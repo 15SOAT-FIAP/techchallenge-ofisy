@@ -1,0 +1,24 @@
+spring:
+  config:
+    activate:
+      on-profile: docker
+  datasource:
+    url: jdbc:postgresql://postgres:5432/ofisydb
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+security:
+  public-paths:
+    - /api/teste/**
+    - /swagger-ui/**
+    - /swagger-ui.html
+    - /v3/api-docs/**
