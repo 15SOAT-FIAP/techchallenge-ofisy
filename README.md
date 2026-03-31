@@ -22,7 +22,7 @@ A estruturação das classes e entidades criadas seguirá o modelo de **arquitet
 
 ## Stack do Projeto
 
-A combinação dessas tecnologias permite a construção de um backend robusto e de fácil manutenção, a execução local do ambiente de desenvolvimento de forma facilitada e a futura evolução da aplicação conforme evolução das fases do projeto.
+A combinação dessas tecnologias permite a construção de um backend robusto e de fácil manutenção, a execução local do ambiente de desenvolvimento de forma facilitada para o time e para avaliação posterior do projeto e a futura evolução da aplicação conforme as próximas fases do projeto.
 
 | Tecnologia | Versão | Justificativa |
 |---|---|---|
@@ -38,7 +38,7 @@ A combinação dessas tecnologias permite a construção de um backend robusto e
 
 | Dependência                                                   | Descrição                                                                                                                                                                                       | Artefato                                |
 |---------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------|
-| Spring Web	                                                   | Uso para criação de APIs RESTful, incluindo o servidor web (Tomcat), mapeamento de rotas e controllers	                                                                                         | `spring-boot-starter-web`               |
+| Spring Web	                                                   | Dependência para criação de APIs RESTful, incluindo o servidor web (Tomcat), mapeamento de rotas e controllers	                                                                                         | `spring-boot-starter-web`               |
 | Spring Data JPA	                                              | Dependência para gerenciar a comunicação com o banco de dados. Além de acelerar o desenvolvimento e reduzir o código boilerplate, permite a utilização de objetos ORM dentre outras facilidades | 	`spring-boot-starter-data-jpa`         |
 | Spring Security	                                              | Dependência para tratar autenticação e autorização da aplicação                                                                                                                                 | 	`spring-boot-starter-security`         |
 | Spring Security JWT                                           | Dependência para tratar autenticação e autorização da aplicação. Exigência de utilização de JWT para entrega do projeto em APIs administrativas.                                                | 	`jjwt-api`, `jjwt-impl`,`jjwt-jackson` |
@@ -64,13 +64,6 @@ A combinação dessas tecnologias permite a construção de um backend robusto e
 - `.gitignore` — instruções para que o Git ignore determinados tipos, pastas e denominações de arquivos;
 - `.env` — variáveis sensíveis utilizadas no projeto. Este arquivo **não é versionado**;
 - `.env.example` — arquivo de exemplo do `.env` para criação do ambiente local.
-
----
-
-## Requisitos
-
-- Java 21
-- Docker e Docker Compose
 
 ---
 
