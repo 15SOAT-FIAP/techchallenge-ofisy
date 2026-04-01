@@ -82,10 +82,7 @@ via SSH
 git clone git@github.com:15SOAT-FIAP/techchallenge-ofisy.git
 ```
 
-Acesse o repositório clonado com o comando:
-```bash
-cd techchallenge-ofisy/ofisy
-```
+Acesse o repositório clonado.
 
 ### 2. Crie o arquivo `.env`
 
@@ -154,4 +151,4 @@ docker compose -f compose.db.yaml up -d
 ---
 
 ## Documentação Adicional
-- **[Guia de Testes](ofisy/docs/TESTING.md)** - Instruções para executar análises de cobertura de testes e segurança
+- **[Guia de Testes](docs/TESTING.md)** - Instruções para executar análises de cobertura de testes e segurança
