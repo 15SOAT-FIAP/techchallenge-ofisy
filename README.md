@@ -150,3 +150,8 @@ docker compose -f compose.db.yaml up -d
 
 - O arquivo `.env` está no `.gitignore` e **não deve ser versionado**
 - As instruções para criação do `.env` estão no corpo deste documento.
+
+---
+
+## Documentação Adicional
+- **[Guia de Testes](ofisy/docs/TESTING.md)** - Instruções para executar análises de cobertura de testes e segurança
