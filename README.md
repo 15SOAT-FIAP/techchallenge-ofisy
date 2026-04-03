@@ -13,10 +13,16 @@ A utilização do Monolito Modular, além de permitir a criação da aplicação
 
 A estruturação das classes e entidades criadas seguirá o modelo de **arquitetura em camadas**:
 
-- **Domínio (Domain)** — o core da aplicação. Aqui estarão contidas entidades, regras de negócio e objetos de valor (Value Objects).
-- **Aplicação (Application)** — camada de orquestração, contendo os serviços de domínio, DTOs, etc.
-- **Infraestrutura (Infrastructure)** — camada de suporte às camadas principais, contendo persistência de dados, lógicas de autenticação e autorização, mensageria, etc.
-- **API (Interfaces)** — por ser um projeto 100% backend, não teremos uma camada de interface do usuário com frontend. A comunicação com os serviços se dará via API, iniciando as ações necessárias para execução dos serviços e fluxos mapeados na documentação DDD do projeto.
+```
+br.com.ofisy
+├── config/       # Configurações transversais (segurança, Swagger, etc.)
+├── controller/   # Endpoints REST
+├── service/      # Orquestração de fluxos que envolvem mais de uma entidade
+├── repository/   # Acesso ao banco de dados via Spring Data JPA
+├── model/        # Modelos ricos — entidades com regras do próprio subdomínio
+├── dto/          # Objetos de transferência de dados (request/response)
+└── mapper/       # Conversores entre entidades e DTOs
+```
 
 ---
 
