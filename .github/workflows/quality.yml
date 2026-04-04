@@ -2,7 +2,6 @@ name: Java CI Pipeline
 
 on:
   push:
-    # Captura commits em master, develop e em qualquer branch de funcionalidade ou correção
     branches: [ "master", "feat/*", "fix/*", "develop" ]
   pull_request:
     branches: [ "master" ]
@@ -24,8 +23,15 @@ jobs:
       - name: Update Dependency Graph
         uses: advanced-security/maven-dependency-submission-action@v4
 
-      - name: Build with Maven
-        run: mvn clean verify
+      - name: Build and Test with Maven
+        run: mvn -B clean verify --no-transfer-progress
+
+      - name: Upload JaCoCo Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-cobertura
+          path: target/site/jacoco/
 
       - name: Lint Dockerfile
         uses: hadolint/hadolint-action@v3.1.0
