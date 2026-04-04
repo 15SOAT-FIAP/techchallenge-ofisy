@@ -12,7 +12,10 @@ jobs:
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          if [ "${{ github.event.pull_request.merged }}" = "true" ]; then
+          if [ "${{ github.event.action }}" = "opened" ] || [ "${{ github.event.action }}" = "reopened" ]; then
+            TITLE="🔔 Pull Request Aberto"
+            COLOR=3447003
+          elif [ "${{ github.event.pull_request.merged }}" = "true" ]; then
             TITLE="✅ Pull Request Merged"
             COLOR=3066993
           else
