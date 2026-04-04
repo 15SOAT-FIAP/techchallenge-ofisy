@@ -1,0 +1,33 @@
+name: Java CI Pipeline
+
+on:
+  push:
+    # Captura commits em master, develop e em qualquer branch de funcionalidade ou correção
+    branches: [ "master", "feat/*", "fix/*", "develop" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  quality-and-security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Update Dependency Graph
+        uses: advanced-security/maven-dependency-submission-action@v4
+
+      - name: Build with Maven
+        run: mvn clean verify
+
+      - name: Lint Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
