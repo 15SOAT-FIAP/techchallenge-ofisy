@@ -33,7 +33,7 @@ A combinação dessas tecnologias permite a construção de um backend robusto e
 | Tecnologia | Versão | Justificativa |
 |---|---|---|
 | Java | 21 (LTS) | Linguagem conhecida e utilizada por todos do grupo. Maturidade, robustez e suporte da comunidade. O JDK 21 oferece melhorias de desempenho e segurança, garantindo estabilidade e suporte de longo prazo, além de compatibilidade com a versão do Spring Boot escolhida. |
-| Spring Boot | 3.5.x | Totalmente compatível com Java 21. Inclui melhorias de performance, atualizações do Spring Framework 6 e suporte a observabilidade e containers. O uso de dependências como o Spring Data JPA facilita o mapeamento entre o domínio da aplicação e a estrutura de dados. |
+| Spring Boot | 4.0.3 | Totalmente compatível com Java 21. Inclui melhorias de performance, atualizações do Spring Framework 7 e suporte a observabilidade e containers. O uso de dependências como o Spring Data JPA facilita o mapeamento entre o domínio da aplicação e a estrutura de dados. |
 | PostgreSQL | 16 | Banco de dados relacional escolhido devido à natureza monolítica da aplicação e à estrutura de entidades com forte relacionamento entre si. O modelo relacional facilita a representação dessas relações por meio de chaves estrangeiras, garantindo integridade entre os dados. Solução amplamente utilizada em sistemas corporativos, com versão estável e melhorias de desempenho, paralelismo e otimização de consultas. |
 | Maven | 3.9.x | Escolhido como ferramenta de gerenciamento de dependências e build do projeto pela facilidade de utilização e praticidade. |
 | Docker | — | Necessário para containerização da aplicação e de seus serviços dependentes, garantindo um ambiente de execução padronizado e isolado, juntamente com o banco de dados através do uso do Docker Compose. Trata-se também de uma exigência para a entrega do projeto. |
@@ -69,7 +69,7 @@ A combinação dessas tecnologias permite a construção de um backend robusto e
 - `.dockerignore` — instruções para que o Docker ignore determinados arquivos e pastas durante o build, reduzindo o tamanho da imagem gerada;
 - `.gitignore` — instruções para que o Git ignore determinados tipos, pastas e denominações de arquivos;
 - `.env` — variáveis sensíveis utilizadas no projeto. Este arquivo **não é versionado**;
-- `.env.example` — arquivo de exemplo do `.env` para criação do ambiente local.
+- `env.example` — arquivo de exemplo do `.env` para criação do ambiente local.
 
 ---
 
@@ -92,13 +92,13 @@ Acesse o repositório clonado.
 
 ### 2. Crie o arquivo `.env`
 
-O arquivo `.env.example` já contém os valores prontos para um novo ambiente ou avaliação. Para efetuar a cópia, execute o seguinte comando:
+O arquivo `env.example` já contém os valores prontos para um novo ambiente ou avaliação. Para efetuar a cópia, execute o seguinte comando:
 
 ```bash
 cp env.example .env
 ```
 
-> O `.env.example` possui credenciais funcionais para o ambiente de desenvolvimento e avaliação.
+> O `env.example` possui credenciais funcionais para o ambiente de desenvolvimento e avaliação.
 
 ---
 
@@ -158,3 +158,4 @@ docker compose -f compose.db.yaml up -d
 
 ## Documentação Adicional
 - **[Guia de Testes](docs/TESTING.md)** - Instruções para executar análises de cobertura de testes e segurança
+- **[Guia de Flyway](docs/FLYWAY.md)** - Instruções para criar e executar migrations
