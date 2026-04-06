@@ -1,4 +1,4 @@
-package br.com.ofisy.controller;
+package br.com.ofisy.interfaces.api;
 
 import br.com.ofisy.interfaces.api.OfisyControllerTeste;
 import org.junit.jupiter.api.Test;
