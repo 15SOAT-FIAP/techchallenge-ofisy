@@ -42,10 +42,6 @@ public class Customer {
         this.name = name;
         this.email = email;
         this.phone = phone;
-    }
-
-    @PrePersist
-    private void prePersist() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
