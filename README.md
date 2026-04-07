@@ -57,7 +57,7 @@ A combinação dessas tecnologias permite a construção de um backend robusto e
 | Lombok                   | 	Dependência para permitir redução de código boilerplate através de anotações, gerando automaticamente getters, setters, construtores etc.	                                                     | `lombok`                                |
 | Spring Actuator          | 	Dependência utilizada para obter endpoints de monitoramento e observabilidade da aplicação, como verificação de saúde (/actuator/health), métricas entre outras informações	                   | `spring-boot-starter-actuator`          |
 | Spring Boot Test         | 	Dependência para escrita de testes automatizados, incluindo suporte a testes unitários e de integração com JUnit e Mockito	                                                                    | `spring-boot-starter-test`              |
-| Spring Boot Webmvc Test  |   Dependência que permite testar de forma isolada a camada de Controller (Web), simulando requisições HTTP, validando rotas, parâmetros de entrada e o JSON de retorno sem subir o servidor completo | `spring-boot-starter-test`              |
+| Spring Boot Webmvc Test  |   Dependência que permite testar de forma isolada a camada de Controller (Web), simulando requisições HTTP, validando rotas, parâmetros de entrada e o JSON de retorno sem subir o servidor completo | `spring-boot-webmvc-test`               |
 | Spring Security Test     | 	Dependência para testes de endpoints protegidos, permitindo simular usuários autenticados e verificar comportamentos de segurança nos testes	                                                  | `spring-security-test`                  |
 ---
 
