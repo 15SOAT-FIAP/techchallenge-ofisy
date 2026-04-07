@@ -1,4 +1,4 @@
-package br.com.ofisy.config.db;
+package br.com.ofisy.infrastructure.config.db;
 
 import org.flywaydb.core.Flyway;
 import org.springframework.beans.factory.annotation.Value;
