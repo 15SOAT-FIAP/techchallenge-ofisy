@@ -99,7 +99,7 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <!--- Dependencias flyaway para as migrations -->
+        <!-- Dependencias flyway para as migrations -->
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
