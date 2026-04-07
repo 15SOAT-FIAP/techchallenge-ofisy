@@ -19,3 +19,5 @@ Resumo objetivo do propósito deste PR.
 ## Como testar
 
 Descreva os passos necessários para validar a alteração.
+
+## Issue relacionada
