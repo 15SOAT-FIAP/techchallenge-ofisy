@@ -44,20 +44,22 @@ A combinação dessas tecnologias permite a construção de um backend robusto e
 
 ## Dependências
 
-| Dependência          | Descrição                                                                                                                                                                                       | Artefato                                |
-|----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------|
-| Spring Web	          | Dependência para criação de APIs RESTful, incluindo o servidor web (Tomcat), mapeamento de rotas e controllers	                                                                                 | `spring-boot-starter-web`               |
-| Spring Data JPA	     | Dependência para gerenciar a comunicação com o banco de dados. Além de acelerar o desenvolvimento e reduzir o código boilerplate, permite a utilização de objetos ORM dentre outras facilidades | 	`spring-boot-starter-data-jpa`         |
-| Spring Security	     | Dependência para tratar autenticação e autorização da aplicação                                                                                                                                 | 	`spring-boot-starter-security`         |
-| Spring Security JWT  | Dependência para tratar autenticação e autorização da aplicação. Exigência de utilização de JWT para entrega do projeto em APIs administrativas.                                                | 	`jjwt-api`, `jjwt-impl`,`jjwt-jackson` |
-| OpenAPI / Swagger	   | Dependência para documentação e exposição das APIs/rotas criadas para o projeto via Swagger nesta fase 1.	                                                                                      | `springdoc-openapi-starter-webmvc-ui`   |
-| Spring Validation    | 	Dependência para validação de DTOs e beans	                                                                                                                                                    | `spring-boot-starter-validation`        |
-| PostgreSQL	          | Dependência para o banco de dados PostgreSQL                                                                                                                                                    | 	`postgresql`                           |
-| Docker Compose	      | Dependência para permitir utilização de docker compose para aplicação                                                                                                                           | 	`spring-boot-docker-compose`           |
-| Lombok               | 	Dependência para permitir redução de código boilerplate através de anotações, gerando automaticamente getters, setters, construtores etc.	                                                     | `lombok`                                |
-| Spring Actuator      | 	Dependência utilizada para obter endpoints de monitoramento e observabilidade da aplicação, como verificação de saúde (/actuator/health), métricas entre outras informações	                   | `spring-boot-starter-actuator`          |
-| Spring Boot Test     | 	Dependência para escrita de testes automatizados, incluindo suporte a testes unitários e de integração com JUnit e Mockito	                                                                    | `spring-boot-starter-test`              |
-| Spring Security Test | 	Dependência para testes de endpoints protegidos, permitindo simular usuários autenticados e verificar comportamentos de segurança nos testes	                                                  | `spring-security-test`                  |
+| Dependência                | Descrição                                                                                                                                                                                       | Artefato                                |
+|----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------|
+| Spring Web	                | Dependência para criação de APIs RESTful, incluindo o servidor web (Tomcat), mapeamento de rotas e controllers	                                                                                 | `spring-boot-starter-web`               |
+| Spring Data JPA	           | Dependência para gerenciar a comunicação com o banco de dados. Além de acelerar o desenvolvimento e reduzir o código boilerplate, permite a utilização de objetos ORM dentre outras facilidades | 	`spring-boot-starter-data-jpa`         |
+| Spring Security	           | Dependência para tratar autenticação e autorização da aplicação                                                                                                                                 | 	`spring-boot-starter-security`         |
+| Spring Security JWT        | Dependência para tratar autenticação e autorização da aplicação. Exigência de utilização de JWT para entrega do projeto em APIs administrativas.                                                | 	`jjwt-api`, `jjwt-impl`,`jjwt-jackson` |
+| OpenAPI / Swagger	         | Dependência para documentação e exposição das APIs/rotas criadas para o projeto via Swagger nesta fase 1.	                                                                                      | `springdoc-openapi-starter-webmvc-ui`   |
+| Spring Validation          | 	Dependência para validação de DTOs e beans	                                                                                                                                                    | `spring-boot-starter-validation`        |
+| PostgreSQL	                | Dependência para o banco de dados PostgreSQL                                                                                                                                                    | 	`postgresql`                           |
+| Docker Compose	            | Dependência para permitir utilização de docker compose para aplicação                                                                                                                           | 	`spring-boot-docker-compose`           |
+| Lombok                     | 	Dependência para permitir redução de código boilerplate através de anotações, gerando automaticamente getters, setters, construtores etc.	                                                     | `lombok`                                |
+| Spring Actuator            | 	Dependência utilizada para obter endpoints de monitoramento e observabilidade da aplicação, como verificação de saúde (/actuator/health), métricas entre outras informações	                   | `spring-boot-starter-actuator`          |
+| Spring Boot Test           | 	Dependência para escrita de testes automatizados, incluindo suporte a testes unitários e de integração com JUnit e Mockito	                                                                    | `spring-boot-starter-test`              |
+| Spring Security Test       | 	Dependência para testes de endpoints protegidos, permitindo simular usuários autenticados e verificar comportamentos de segurança nos testes	                                                  | `spring-security-test`                  |
+| Flyway Core                | Dependência principal do framework de migração de banco de dados, responsável por gerenciar o histórico de versões, executar scripts SQL automaticamente e garantir a integridade do esquema    | `flyway-core`                           |
+| Flyway Database PostgreSQL | Extensão específica do Flyway que adiciona suporte completo às funcionalidades do PostgreSQL, permitindo que o framework se comunique corretamente com o dialeto e driver desse banco           | `flyway-database-postgresql`            |
 ---
 
 ## Arquivos de Configuração
@@ -160,3 +162,4 @@ docker compose -f compose.db.yaml up -d
 
 ## Documentação Adicional
 - **[Guia de Testes](docs/TESTING.md)** - Instruções para executar análises de cobertura de testes e segurança
+- **[Guia de Flyway](docs/FLYWAY.md)** - Instruções para criar e executar migrations
