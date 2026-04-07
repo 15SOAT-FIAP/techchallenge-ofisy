@@ -1,4 +1,4 @@
-package br.com.ofisy.controller;
+package br.com.ofisy.interfaces.api;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

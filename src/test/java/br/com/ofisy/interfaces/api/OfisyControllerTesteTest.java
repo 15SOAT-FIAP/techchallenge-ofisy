@@ -1,5 +1,6 @@
-package br.com.ofisy.controller;
+package br.com.ofisy.interfaces.api;
 
+import br.com.ofisy.interfaces.api.OfisyControllerTeste;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
