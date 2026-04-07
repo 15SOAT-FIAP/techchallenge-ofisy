@@ -11,13 +11,9 @@ Resumo objetivo do propósito deste PR.
 ## Impacto
 
 - [ ] Aplicação
-
 - [ ] Interfaces e API
-
 - [ ] Banco de dados
-
 - [ ] Infraestrutura
-
 - [ ] Configurações
 
 ## Como testar
