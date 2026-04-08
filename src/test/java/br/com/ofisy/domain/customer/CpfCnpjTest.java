@@ -73,18 +73,18 @@ class CpfCnpjTest {
                     .isInstanceOf(InvalidCpfCnpjException.class);
         }
 
-@ParameterizedTest
-@ValueSource(strings = {
-    "",
-    "   ",
-    "abcdefghijk",
-    "12345",
-    "123456789012345"
-})
-void shouldThrowExceptionForInvalidInputs(String invalidValue) {
-    assertThatThrownBy(() -> new CpfCnpj(invalidValue))
-            .isInstanceOf(InvalidCpfCnpjException.class);
-}
+        @ParameterizedTest
+        @ValueSource(strings = {
+            "",
+            "   ",
+            "abcdefghijk",
+            "12345",
+            "123456789012345"
+        })
+        void shouldThrowExceptionForInvalidInputs(String invalidValue) {
+            assertThatThrownBy(() -> new CpfCnpj(invalidValue))
+                    .isInstanceOf(InvalidCpfCnpjException.class);
+        }
 
         @Test
         void shouldIncludeInvalidValueInExceptionMessage() {
