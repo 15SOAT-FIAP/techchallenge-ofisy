@@ -71,35 +71,18 @@ class CpfCnpjTest {
                     .isInstanceOf(InvalidCpfCnpjException.class);
         }
 
-        @Test
-        void shouldThrowExceptionForEmptyString() {
-            assertThatThrownBy(() -> new CpfCnpj(""))
-                    .isInstanceOf(InvalidCpfCnpjException.class);
-        }
-
-        @Test
-        void shouldThrowExceptionForBlankString() {
-            assertThatThrownBy(() -> new CpfCnpj("   "))
-                    .isInstanceOf(InvalidCpfCnpjException.class);
-        }
-
-        @Test
-        void shouldThrowExceptionForLettersOnly() {
-            assertThatThrownBy(() -> new CpfCnpj("abcdefghijk"))
-                    .isInstanceOf(InvalidCpfCnpjException.class);
-        }
-
-        @Test
-        void shouldThrowExceptionForInvalidLength() {
-            assertThatThrownBy(() -> new CpfCnpj("12345"))
-                    .isInstanceOf(InvalidCpfCnpjException.class);
-        }
-
-        @Test
-        void shouldThrowExceptionForTooManyDigits() {
-            assertThatThrownBy(() -> new CpfCnpj("123456789012345"))
-                    .isInstanceOf(InvalidCpfCnpjException.class);
-        }
+@ParameterizedTest
+@ValueSource(strings = {
+    "",
+    "   ",
+    "abcdefghijk",
+    "12345",
+    "123456789012345"
+})
+void shouldThrowExceptionForInvalidInputs(String invalidValue) {
+    assertThatThrownBy(() -> new CpfCnpj(invalidValue))
+            .isInstanceOf(InvalidCpfCnpjException.class);
+}
 
         @Test
         void shouldIncludeInvalidValueInExceptionMessage() {
