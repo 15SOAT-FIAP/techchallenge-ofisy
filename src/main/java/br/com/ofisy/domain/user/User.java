@@ -1,5 +1,6 @@
 package br.com.ofisy.domain.user;
 
+import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -43,14 +44,14 @@ public class User {
     private LocalDateTime updatedAt;
 
     public static User create(String email, String encryptedPassword, String nome, Role role) {
-        User usuario = new User();
-        usuario.email = new Email(email);
-        usuario.password = encryptedPassword;
-        usuario.name = nome;
-        usuario.role = role;
-        usuario.active = true;
-        usuario.createdAt = LocalDateTime.now();
-        return usuario;
+        User user = new User();
+        user.email = new Email(email);
+        user.password = encryptedPassword;
+        user.name = nome;
+        user.role = role;
+        user.active = true;
+        user.createdAt = LocalDateTime.now();
+        return user;
     }
 
     public void deactivate() {
@@ -69,10 +70,6 @@ public class User {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void remove() {
-
-    }
-
     public void updatePassword(String newEncryptedPassword) {
         this.password = newEncryptedPassword;
         this.updatedAt = LocalDateTime.now();
@@ -85,7 +82,7 @@ public class User {
 
     public static void validateExistingEmail(boolean emailAlreadyExists, String email) {
         if (emailAlreadyExists) {
-            throw new IllegalArgumentException("Email já cadastrado: " + email);
+            throw new EmailAlreadyExistsException(email);
         }
     }
 
