@@ -18,7 +18,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CustomerService {
 
-    // Essa injeçao de dependencia vai ficar com erro ate implementar o repository, mas nao tem problema
     private final CustomerRepository customerRepository;
 
     @Transactional
