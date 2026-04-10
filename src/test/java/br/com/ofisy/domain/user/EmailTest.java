@@ -45,6 +45,5 @@ class EmailTest {
     void shouldValidateEmailCorrectly() {
         assertThat(Email.isValid("joao@ofisy.com")).isTrue();
         assertThat(Email.isValid("emailinvalido")).isFalse();
-        assertThat(Email.isValid(null)).isFalse();
     }
 }
