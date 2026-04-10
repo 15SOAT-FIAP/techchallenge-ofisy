@@ -59,8 +59,9 @@ class CustomerServiceTest {
         @ValueSource(strings = {"52998224725", "11222333000181"})
         void shouldSaveCustomerWithValidCpfOrCnpj(String cpfCnpj) {
             var request = new CustomerRequestDTO(cpfCnpj, VALID_NAME, VALID_EMAIL, VALID_PHONE);
+            when(customerRepository.save(any(Customer.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            customerService.registerCustomer(request);
+            var response = customerService.registerCustomer(request);
 
             var captor = ArgumentCaptor.forClass(Customer.class);
             verify(customerRepository).save(captor.capture());
@@ -69,10 +70,20 @@ class CustomerServiceTest {
             assertThat(saved.getName()).isEqualTo(VALID_NAME);
             assertThat(saved.getEmail()).isEqualTo(VALID_EMAIL);
             assertThat(saved.getPhone()).isEqualTo(VALID_PHONE);
+
+            assertThat(response).isNotNull();
+            assertThat(response.cpfCnpj()).isEqualTo(cpfCnpj);
+            assertThat(response.name()).isEqualTo(VALID_NAME);
+            assertThat(response.email()).isEqualTo(VALID_EMAIL);
+            assertThat(response.phone()).isEqualTo(VALID_PHONE);
+            assertThat(response.createdAt()).isNotNull();
+            assertThat(response.updatedAt()).isNotNull();
         }
 
         @Test
         void shouldCallRepositorySaveExactlyOnce() {
+            when(customerRepository.save(any(Customer.class))).thenAnswer(inv -> inv.getArgument(0));
+
             customerService.registerCustomer(validRequest());
 
             verify(customerRepository, times(1)).save(any(Customer.class));
