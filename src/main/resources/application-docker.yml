@@ -22,6 +22,7 @@ management:
 security:
   public-paths:
     - /api/v1/login
+    - /api/v1/customers
     - /swagger-ui/**
     - /swagger-ui.html
     - /v3/api-docs/**
