@@ -22,9 +22,11 @@ public class CustomerService {
     private final CustomerRepository customerRepository;
 
     @Transactional
-    public void registerCustomer(CustomerRequestDTO request) {
+    public CustomerResponseDTO registerCustomer(CustomerRequestDTO request) {
         var customer = CustomerMapper.toDomain(request);
-        customerRepository.save(customer);
+        var savedCustomer = customerRepository.save(customer);
+
+        return CustomerMapper.toDTO(savedCustomer);
     }
 
     @Transactional(readOnly = true)
