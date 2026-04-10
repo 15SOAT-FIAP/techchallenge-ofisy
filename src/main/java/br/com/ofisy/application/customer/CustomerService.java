@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -20,16 +21,19 @@ public class CustomerService {
     // Essa injeçao de dependencia vai ficar com erro ate implementar o repository, mas nao tem problema
     private final CustomerRepository customerRepository;
 
+    @Transactional
     public void registerCustomer(CustomerRequestDTO request) {
         var customer = CustomerMapper.toDomain(request);
         customerRepository.save(customer);
     }
 
+    @Transactional(readOnly = true)
     public Page<CustomerResponseDTO> listRegisteredCustomers(Pageable pageable) {
         var customers = customerRepository.findAll(pageable);
         return customers.map(CustomerMapper::toDTO);
     }
 
+    @Transactional(readOnly = true)
     public CustomerResponseDTO identifyCustomerById(UUID id) {
         if (id == null) {
             throw new IllegalArgumentException("ID não pode ser nulo");
@@ -40,6 +44,7 @@ public class CustomerService {
         return CustomerMapper.toDTO(customer);
     }
 
+    @Transactional(readOnly = true)
     public CustomerResponseDTO identifyCustomerByCpfCnpj(String cpfCnpj) {
         var customer = customerRepository.findByCpfCnpj(new CpfCnpj(cpfCnpj))
                 .orElseThrow(() -> new CustomerCpfCnpjNotFoundException(cpfCnpj));
