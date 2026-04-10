@@ -11,13 +11,12 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health
 security:
   public-paths:
+    - /api/v1/login
     - /swagger-ui/**
     - /swagger-ui.html
     - /v3/api-docs/**
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 86400000
