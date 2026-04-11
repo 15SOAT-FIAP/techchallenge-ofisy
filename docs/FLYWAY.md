@@ -18,10 +18,6 @@ Isso significa que:
 - as tabelas precisam bater com o modelo esperado pela aplicação;
 - o Hibernate não cria ou altera tabelas automaticamente, apenas valida.
 
-### `src/main/java/br/com/ofisy/infrastructure/config/db/FlywayConfig.java`
-
-A aplicação também possui uma configuração explícita do Flyway com `@Bean(initMethod = "migrate")`, então as migrations são executadas no startup.
-
 ---
 
 ## Estrutura das migrations
