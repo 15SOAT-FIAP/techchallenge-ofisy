@@ -60,9 +60,15 @@ public class Stock {
 
     public void addQuantity(Integer quantity) {
         this.quantity += quantity;
+        this.updatedAt = LocalDateTime.now();
     }
 
     public void consumeQuantity(Integer quantity) {
         this.quantity -= quantity;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public boolean isLowStock() {
+        return minThreshold != null && quantity <= minThreshold;
     }
 }

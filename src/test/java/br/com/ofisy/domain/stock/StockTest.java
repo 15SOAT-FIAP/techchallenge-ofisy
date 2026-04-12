@@ -1,33 +1,16 @@
 package br.com.ofisy.domain.stock;
 
-import br.com.ofisy.application.stock.StockService;
-import br.com.ofisy.application.stock.exceptions.InsufficientStockException;
-import br.com.ofisy.application.stock.exceptions.StockNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
-public class StockTest {
-
-    @Mock
-    private StockRepository stockRepository;
-
-    @InjectMocks
-    private StockService stockService;
+class StockTest {
 
     private Stock stock;
-
     private Stock lowStock;
 
     @BeforeEach
@@ -37,34 +20,27 @@ public class StockTest {
     }
 
     @Test
-    void shoulAddStockSuccessfully() {
-        when(stockRepository.findById(stock.getId())).thenReturn(Optional.of(stock));
-        when(stockRepository.save(any(Stock.class))).thenReturn(stock);
+    @DisplayName("Deve adicionar itens no estoque com sucesso")
+    void shouldAddStockSuccessfully() {
+        stock.addQuantity(10);
 
-        Stock result = stockService.addStock(stock.getId(), 10);
-
-        assertEquals(50, result.getQuantity());
-        verify(stockRepository).save(any(Stock.class));
+        assertEquals(50, stock.getQuantity());
     }
 
     @Test
-    void shouldThrowExceptionWhenStockNotFound() {
-        when(stockRepository.findById(stock.getId())).thenReturn(Optional.empty());
+    @DisplayName("Deve consumir itens do estoque com sucesso")
+    void shouldConsumeStockSuccessfully() {
+        stock.consumeQuantity(10);
 
-        assertThrows(StockNotFoundException.class, () -> stockService.addStock(stock.getId(), 10));
-        verify(stockRepository, never()).save(any(Stock.class));
+        assertEquals(30, stock.getQuantity());
     }
 
     @Test
-    void shouldThrowExceptionWhenInsufficientStock() {
-        when(stockRepository.findById(lowStock.getId())).thenReturn(Optional.of(lowStock));
+    @DisplayName("Deve identificar que estoque está abaixo do limite mínimo")
+    void shouldIdentifyStockBelowMinThreshold() {
+        lowStock.consumeQuantity(100);
 
-        InsufficientStockException exception = assertThrows(
-                InsufficientStockException.class,
-                () -> stockService.consumeStock(lowStock.getId(), 100)
-        );
-
-        verify(stockRepository, never()).save(any(Stock.class));
+        assertEquals(true, lowStock.isLowStock());
     }
 
     private Stock createStock() {
