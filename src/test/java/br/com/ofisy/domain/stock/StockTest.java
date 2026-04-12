@@ -67,7 +67,7 @@ public class StockTest {
         verify(stockRepository, never()).save(any(Stock.class));
     }
 
-    private static Stock createStock() {
+    private Stock createStock() {
         return Stock.create(
                 "Filtro de Óleo",
                 "Filtro de óleo para motor 1.6",
@@ -78,7 +78,7 @@ public class StockTest {
         );
     }
 
-    private static Stock createLowStock() {
+    private Stock createLowStock() {
         return Stock.create(
                 "Filtro de combustível",
                 "Filtro de combustível",
