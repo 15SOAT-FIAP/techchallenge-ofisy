@@ -25,19 +25,19 @@ public class Stock {
     @Column(nullable = false)
     private String description;
 
-    @Column
+    @Column(nullable = false)
     private Integer quantity;
 
-    @Column
+    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal unitPrice;
 
     @Column(nullable = false)
     private String category;
 
-    @Column
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @Column
+    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
     @Column
