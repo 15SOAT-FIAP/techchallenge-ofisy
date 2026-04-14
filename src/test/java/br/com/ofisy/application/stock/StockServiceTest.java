@@ -40,7 +40,7 @@ public class StockServiceTest {
 
     @Test
     @DisplayName("Deve adicionar itens no estoque com sucesso")
-    void shoulAddStockSuccessfully() {
+    void shouldAddStockSuccessfully() {
         when(stockRepository.findById(stock.getId())).thenReturn(Optional.of(stock));
         when(stockRepository.save(any(Stock.class))).thenReturn(stock);
 
@@ -52,7 +52,7 @@ public class StockServiceTest {
 
     @Test
     @DisplayName("Deve consumir itens no estoque com sucesso")
-    void shoulConsumeStockSuccessfully() {
+    void shouldConsumeStockSuccessfully() {
         when(stockRepository.findById(stock.getId())).thenReturn(Optional.of(stock));
         when(stockRepository.save(any(Stock.class))).thenReturn(stock);
 
