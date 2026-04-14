@@ -5,6 +5,7 @@ import br.com.ofisy.application.customer.dto.CustomerRequestDTO;
 import br.com.ofisy.application.customer.dto.CustomerResponseDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -28,7 +29,7 @@ public class CustomerController {
 
     @GetMapping
     public ResponseEntity<Page<CustomerResponseDTO>> getAllCustomers(
-            @PageableDefault(size = 10) Pageable pageable) {
+            @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
 
         return ResponseEntity.ok(customerService.listRegisteredCustomers(pageable));
     }
