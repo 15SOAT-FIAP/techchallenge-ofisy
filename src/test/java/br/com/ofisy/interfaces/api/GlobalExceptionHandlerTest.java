@@ -1,6 +1,7 @@
 package br.com.ofisy.interfaces.api;
 
 import br.com.ofisy.application.customer.CustomerService;
+import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsException;
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
@@ -59,6 +60,34 @@ class GlobalExceptionHandlerTest {
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.title").value("Cliente não encontrado"))
                     .andExpect(jsonPath("$.detail").value("Cliente com CPF/CNPJ " + cpfCnpj + " não encontrado."));
+        }
+    }
+
+    @Nested
+    class CustomerAlreadyExists {
+
+        @Test
+        void shouldReturn409WhenCustomerAlreadyExists() throws Exception {
+            var cpfCnpj = "52998224725";
+            when(customerService.registerCustomer(any()))
+                    .thenThrow(new CustomerAlreadyExistsException(cpfCnpj));
+
+            var body = """
+                    {
+                        "cpfCnpj": "52998224725",
+                        "name": "John Doe",
+                        "email": "john@mail.com",
+                        "phone": "11999999999"
+                    }
+                    """;
+
+            mockMvc.perform(post("/api/v1/customers")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.title").value("Cliente já existe"))
+                    .andExpect(jsonPath("$.detail").value("Cliente com CPF/CNPJ " + cpfCnpj + " já existe."));
         }
     }
 

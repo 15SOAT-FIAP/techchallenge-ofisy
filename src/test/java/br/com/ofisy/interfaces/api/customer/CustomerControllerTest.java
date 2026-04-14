@@ -2,6 +2,7 @@ package br.com.ofisy.interfaces.api.customer;
 
 import br.com.ofisy.application.customer.CustomerService;
 import br.com.ofisy.application.customer.dto.CustomerResponseDTO;
+import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsException;
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
@@ -340,6 +341,20 @@ class CustomerControllerTest {
                             .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        void shouldReturn409WhenCustomerAlreadyExists() throws Exception {
+            when(customerService.registerCustomer(any()))
+                    .thenThrow(new CustomerAlreadyExistsException(VALID_CPF));
+
+            mockMvc.perform(post(BASE_URL)
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(validBody()))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.title").value("Cliente já existe"))
+                    .andExpect(jsonPath("$.detail").value("Cliente com CPF/CNPJ " + VALID_CPF + " já existe."));
         }
 
         @Test
