@@ -1,5 +1,6 @@
 package br.com.ofisy.interfaces.api;
 
+import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsException;
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
@@ -26,6 +27,13 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleInvalidCpfCnpj(InvalidCpfCnpjException ex) {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         problem.setTitle("CPF/CNPJ inválido");
+        return problem;
+    }
+
+    @ExceptionHandler(CustomerAlreadyExistsException.class)
+    public ProblemDetail handleCustomerAlreadyExists(CustomerAlreadyExistsException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problem.setTitle("Cliente já existe");
         return problem;
     }
 

@@ -2,6 +2,7 @@ package br.com.ofisy.application.customer;
 
 import br.com.ofisy.application.customer.dto.CustomerRequestDTO;
 import br.com.ofisy.application.customer.dto.CustomerResponseDTO;
+import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsException;
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
 import br.com.ofisy.domain.customer.CpfCnpj;
@@ -23,6 +24,9 @@ public class CustomerService {
     @Transactional
     public CustomerResponseDTO registerCustomer(CustomerRequestDTO request) {
         var customer = CustomerMapper.toDomain(request);
+        if (customerRepository.findByCpfCnpj(customer.getCpfCnpj()).isPresent()) {
+            throw new CustomerAlreadyExistsException(customer.getCpfCnpj().getValue());
+        }
         var savedCustomer = customerRepository.save(customer);
 
         return CustomerMapper.toDTO(savedCustomer);
