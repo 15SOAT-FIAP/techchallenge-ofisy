@@ -4,18 +4,18 @@ import br.com.ofisy.application.stock.exceptions.InsufficientStockException;
 import br.com.ofisy.application.stock.exceptions.StockNotFoundException;
 import br.com.ofisy.domain.stock.Stock;
 import br.com.ofisy.domain.stock.StockRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
+@Transactional
 public class StockService {
 
     private final StockRepository stockRepository;
-
-    public StockService (StockRepository stockRepository) {
-        this.stockRepository = stockRepository;
-    }
 
     public Stock addStock(UUID stockId, Integer quantity) {
         Stock stock = stockRepository.findById(stockId)
