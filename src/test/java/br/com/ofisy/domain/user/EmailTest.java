@@ -37,7 +37,7 @@ class EmailTest {
     void shouldThrowExceptionForNullEmail() {
         assertThatThrownBy(() -> new Email(null))
                 .isInstanceOf(InvalidEmailException.class)
-                .hasMessageContaining("E-mail informado é nulo!");
+                .hasMessageContaining("E-mail informado é inválido!");
     }
 
     @Test
