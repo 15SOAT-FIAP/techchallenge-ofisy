@@ -6,22 +6,21 @@ import br.com.ofisy.application.stockmovement.StockMovementService;
 import br.com.ofisy.domain.stock.Stock;
 import br.com.ofisy.domain.stock.StockRepository;
 import br.com.ofisy.domain.stockmovement.MovementType;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class StockService {
 
     private final StockRepository stockRepository;
 
     private final StockMovementService stockMovementService;
 
-    public StockService (StockRepository stockRepository, StockMovementService stockMovementService) {
-        this.stockRepository = stockRepository;
-        this.stockMovementService = stockMovementService;
-    }
-
+    @Transactional
     public Stock addStock(UUID stockId, Integer quantity) {
         Stock stock = stockRepository.findById(stockId)
                 .orElseThrow(() -> new StockNotFoundException(stockId));
@@ -42,6 +41,7 @@ public class StockService {
         return stockRepository.save(stock);
     }
 
+    @Transactional
     public Stock consumeStock(UUID stockId, Integer quantity) {
         Stock stock = stockRepository.findById(stockId)
                 .orElseThrow(() -> new StockNotFoundException(stockId));
