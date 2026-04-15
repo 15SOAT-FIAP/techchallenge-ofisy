@@ -1,7 +1,7 @@
 package br.com.ofisy.application.user;
 
 import br.com.ofisy.application.user.dto.*;
-import br.com.ofisy.application.user.exception.UserNotFoundException;
+import br.com.ofisy.application.user.exceptions.UserNotFoundException;
 import br.com.ofisy.domain.user.Email;
 import br.com.ofisy.domain.user.Role;
 import br.com.ofisy.domain.user.User;
