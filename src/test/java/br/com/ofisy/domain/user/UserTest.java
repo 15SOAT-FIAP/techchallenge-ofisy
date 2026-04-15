@@ -8,17 +8,18 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class UserTest {
 
-    private User createUser() {
-        return User.create(new Email("joao@ofisy.com").emailAddress(), "senha-hash", "João Silva", Role.ATENDENTE);
-    }
+    public static final String TEST_USER_PRINCIPAL_NAME = "João Silva";
+    public static final String TEST_USER_PRINCIPAL_EMAIL = "joao@ofisy.com";
+    public static final String TEST_USER_PRINCIPAL_PASSWORD = "senha-hash";
+    public static final Role TEST_USER_PRINCIPAL_ROLE = Role.ATTENDANT;
 
     @Test
     @DisplayName("Deve criar usuário ativo por padrão")
     void shouldCreateActiveUser() {
         User user = createUser();
         assertThat(user.isActive()).isTrue();
-        assertThat(user.getEmail().emailAddress()).isEqualTo("joao@ofisy.com");
-        assertThat(user.getRole()).isEqualTo(Role.ATENDENTE);
+        assertThat(user.getEmail().emailAddress()).isEqualTo(TEST_USER_PRINCIPAL_EMAIL);
+        assertThat(user.getRole()).isEqualTo(TEST_USER_PRINCIPAL_ROLE);
         assertThat(user.getCreatedAt()).isNotNull();
     }
 
@@ -63,6 +64,11 @@ class UserTest {
     @DisplayName("Deve retornar authority correta para o Spring Security")
     void shouldReturnCorrectAuthority() {
         User user = createUser();
-        assertThat(user.getAuthorities()).containsExactly("ROLE_ATENDENTE");
+        assertThat(user.getAuthorities()).containsExactly("ROLE_ATTENDANT");
+    }
+
+
+    private User createUser() {
+        return User.create(new Email(TEST_USER_PRINCIPAL_EMAIL).emailAddress(),TEST_USER_PRINCIPAL_PASSWORD, TEST_USER_PRINCIPAL_NAME, TEST_USER_PRINCIPAL_ROLE);
     }
 }
