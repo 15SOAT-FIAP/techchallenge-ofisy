@@ -3,15 +3,19 @@ package br.com.ofisy.application.stockmovement;
 import br.com.ofisy.domain.stockmovement.MovementType;
 import br.com.ofisy.domain.stockmovement.StockMovement;
 import br.com.ofisy.domain.stockmovement.StockMovementRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class StockMovementService {
 
     StockMovementRepository stockMovementRepository;
 
+    @Transactional
     public StockMovement registerMovement(UUID stockId, MovementType type, Integer quantity,
                                  Integer previousQuantity, Integer newQuantity) {
 

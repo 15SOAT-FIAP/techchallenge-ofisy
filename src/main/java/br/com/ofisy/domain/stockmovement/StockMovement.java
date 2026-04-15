@@ -18,25 +18,26 @@ public class StockMovement {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column
+    @Column(nullable = false)
     private UUID stockId;
 
-    @Column
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private MovementType movementType;
 
-    @Column
+    @Column(nullable = false)
     private Integer quantity;
 
-    @Column
+    @Column(nullable = false)
     private Integer previousQuantity;
 
-    @Column
+    @Column(nullable = false)
     private Integer newQuantity;
 
-    @Column
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @Column
+    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
     private StockMovement(UUID stockId, MovementType movementType, Integer quantity, Integer previousQuantity, Integer newQuantity) {
