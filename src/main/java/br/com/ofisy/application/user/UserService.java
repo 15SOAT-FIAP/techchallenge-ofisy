@@ -4,7 +4,7 @@ import br.com.ofisy.application.user.dto.CreateUserRequestDTO;
 import br.com.ofisy.application.user.dto.ModifyUserRoleRequestDTO;
 import br.com.ofisy.application.user.dto.UpdatePasswordRequestDTO;
 import br.com.ofisy.application.user.dto.UserResponseDTO;
-import br.com.ofisy.application.user.exception.UserNotFoundException;
+import br.com.ofisy.application.user.exceptions.UserNotFoundException;
 import br.com.ofisy.domain.user.User;
 import br.com.ofisy.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
