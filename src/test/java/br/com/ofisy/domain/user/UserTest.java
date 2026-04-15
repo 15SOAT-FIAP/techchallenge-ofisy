@@ -1,24 +1,25 @@
 package br.com.ofisy.domain.user;
 
+import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 class UserTest {
 
-    private User createUser() {
-        return User.create(new Email("joao@ofisy.com").emailAddress(), "senha-hash", "João Silva", Role.ATENDENTE);
-    }
+    public static final String TEST_USER_PRINCIPAL_NAME = "João Silva";
+    public static final String TEST_USER_PRINCIPAL_EMAIL = "joao@ofisy.com";
+    public static final String TEST_USER_PRINCIPAL_PASSWORD = "senha-hash";
+    public static final Role TEST_USER_PRINCIPAL_ROLE = Role.ATTENDANT;
 
     @Test
     @DisplayName("Deve criar usuário ativo por padrão")
     void shouldCreateActiveUser() {
         User user = createUser();
         assertThat(user.isActive()).isTrue();
-        assertThat(user.getEmail().emailAddress()).isEqualTo("joao@ofisy.com");
-        assertThat(user.getRole()).isEqualTo(Role.ATENDENTE);
+        assertThat(user.getEmail().emailAddress()).isEqualTo(TEST_USER_PRINCIPAL_EMAIL);
+        assertThat(user.getRole()).isEqualTo(TEST_USER_PRINCIPAL_ROLE);
         assertThat(user.getCreatedAt()).isNotNull();
     }
 
@@ -63,6 +64,41 @@ class UserTest {
     @DisplayName("Deve retornar authority correta para o Spring Security")
     void shouldReturnCorrectAuthority() {
         User user = createUser();
-        assertThat(user.getAuthorities()).containsExactly("ROLE_ATENDENTE");
+        assertThat(user.getAuthorities()).containsExactly("ROLE_ATTENDANT");
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao validar email já existente")
+    void shouldThrowExceptionWhenEmailAlreadyExists() {
+        assertThatThrownBy(() -> User.validateExistingEmail(true, TEST_USER_PRINCIPAL_EMAIL))
+                .isInstanceOf(EmailAlreadyExistsException.class)
+                .hasMessageContaining(TEST_USER_PRINCIPAL_EMAIL);
+    }
+    @Test
+    @DisplayName("Não deve lançar exceção quando email não existe")
+    void shouldNotThrowExceptionWhenEmailDoesNotExist() {
+        assertThatNoException().isThrownBy(() ->
+                User.validateExistingEmail(false, TEST_USER_PRINCIPAL_EMAIL)
+        );
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção quando senha atual incorreta")
+    void shouldThrowExceptionWhenCurrentPasswordIsWrong() {
+        User user = createUser();
+        assertThatThrownBy(() -> user.validateCurrentPassword(false))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Senha atual incorreta");
+    }
+
+    @Test
+    @DisplayName("Não deve lançar exceção quando senha atual está correta")
+    void shouldNotThrowExceptionWhenCurrentPasswordIsCorrect() {
+        User user = createUser();
+        assertThatNoException().isThrownBy(() -> user.validateCurrentPassword(true));
+    }
+
+    private User createUser() {
+        return User.create(new Email(TEST_USER_PRINCIPAL_EMAIL).emailAddress(),TEST_USER_PRINCIPAL_PASSWORD, TEST_USER_PRINCIPAL_NAME, TEST_USER_PRINCIPAL_ROLE);
     }
 }

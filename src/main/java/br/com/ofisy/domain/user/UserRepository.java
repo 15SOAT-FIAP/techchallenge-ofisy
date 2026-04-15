@@ -1,17 +1,23 @@
 package br.com.ofisy.domain.user;
 
-import org.jspecify.annotations.NonNull;
-import org.springframework.data.jpa.repository.JpaRepository;
+import lombok.NonNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
 import java.util.UUID;
 
-public interface UserRepository
-        extends JpaRepository<User, UUID> {
+public interface UserRepository {
 
-    Optional<User> findByEmailEmailAddress(String email);
+    Optional<User> findById(@NonNull UUID id);
 
-    boolean existsByEmailEmailAddress(String email);
+    Page<User> findAll(Pageable pageable);
+
+    User save(User user);
+
+    Optional<User> findByEmailAddress(String email);
+
+    boolean existsByEmailAddress(String email);
 
     void deleteById(@NonNull UUID id);
 }
