@@ -51,7 +51,7 @@ public class StockService {
         }
 
         Integer previousQuantity = stock.getQuantity();
-        Integer newQuantity = stock.getQuantity() + quantity;
+        Integer newQuantity = stock.getQuantity() - quantity;
 
         stock.consumeQuantity(quantity);
 
