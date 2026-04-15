@@ -1,14 +1,14 @@
-package br.com.ofisy.application.user.mapper;
+package br.com.ofisy.application.user;
 
-import br.com.ofisy.application.user.dto.UserDTO;
+import br.com.ofisy.application.user.dto.UserResponseDTO;
 import br.com.ofisy.domain.user.User;
 import org.springframework.stereotype.Component;
 
 @Component
 public class UserMapper {
 
-    public UserDTO.UserResponse toResponse(User user) {
-        return new UserDTO.UserResponse(
+    public UserResponseDTO toResponse(User user) {
+        return new UserResponseDTO(
                 user.getId(),
                 user.getName(),
                 user.getEmail(),

@@ -1,8 +1,8 @@
-package br.com.ofisy.application.user.service;
+package br.com.ofisy.application.user;
 
+import br.com.ofisy.application.user.dto.CreateUserRequestDTO;
+import br.com.ofisy.application.user.dto.UserResponseDTO;
 import br.com.ofisy.application.user.exception.UserNotFoundException;
-import br.com.ofisy.application.user.mapper.UserMapper;
-import br.com.ofisy.application.user.dto.UserDTO.*;
 import br.com.ofisy.domain.user.User;
 import br.com.ofisy.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public UserResponse create(CreateUserRequest request) {
+    public UserResponseDTO create(CreateUserRequestDTO request) {
         User.validateExistingEmail(
                 repository.existsByEmailEmailAddress(request.email()),
                 request.email()
@@ -39,26 +39,26 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserResponse findById(UUID id) {
+    public UserResponseDTO findById(UUID id) {
         return mapper.toResponse(searchUserByID(id));
     }
 
     @Transactional(readOnly = true)
-    public List<UserResponse> listAllUsers() {
+    public List<UserResponseDTO> listAllUsers() {
         return repository.findAll().stream()
                 .map(mapper::toResponse)
                 .toList();
     }
 
     @Transactional
-    public UserResponse modifyUserRole(UUID id, ModifyUserRoleRequest request) {
+    public UserResponseDTO modifyUserRole(UUID id, ModifyUserRoleRequest request) {
         User currentUser = searchUserByID(id);
         currentUser.modifyRole(request.role());
         return mapper.toResponse(repository.save(currentUser));
     }
 
     @Transactional
-    public UserResponse updatePassword(UUID id, UpdatePasswordRequest request) {
+    public UserResponseDTO updatePassword(UUID id, UpdatePasswordRequest request) {
         User currentUser = searchUserByID(id);
         currentUser.validateCurrentPassword(
                 passwordEncoder.matches(request.currentPassword(), currentUser.getPassword())
@@ -68,14 +68,14 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponse deactivateUser(UUID id) {
+    public UserResponseDTO deactivateUser(UUID id) {
         User currentUser = searchUserByID(id);
         currentUser.deactivate();
         return mapper.toResponse(repository.save(currentUser));
     }
 
     @Transactional
-    public UserResponse activateUser(UUID id) {
+    public UserResponseDTO activateUser(UUID id) {
         User currentUser = searchUserByID(id);
         currentUser.activate();
         return mapper.toResponse(repository.save(currentUser));
