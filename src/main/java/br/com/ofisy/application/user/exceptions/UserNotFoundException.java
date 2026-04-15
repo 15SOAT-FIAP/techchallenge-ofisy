@@ -1,4 +1,4 @@
-package br.com.ofisy.application.user.exception;
+package br.com.ofisy.application.user.exceptions;
 
 import java.util.UUID;
 
