@@ -7,6 +7,8 @@ import java.util.UUID;
 
 public interface UserRepository {
 
+    Optional<User> findById(@NonNull UUID id);
+
     Optional<User> findByEmailEmailAddress(String email);
 
     boolean existsByEmailEmailAddress(String email);
