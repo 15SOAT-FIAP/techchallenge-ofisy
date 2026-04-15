@@ -1,6 +1,8 @@
 package br.com.ofisy.application.user;
 
 import br.com.ofisy.application.user.dto.CreateUserRequestDTO;
+import br.com.ofisy.application.user.dto.ModifyUserRoleRequestDTO;
+import br.com.ofisy.application.user.dto.UpdatePasswordRequestDTO;
 import br.com.ofisy.application.user.dto.UserResponseDTO;
 import br.com.ofisy.application.user.exception.UserNotFoundException;
 import br.com.ofisy.domain.user.User;
@@ -24,7 +26,7 @@ public class UserService {
     @Transactional
     public UserResponseDTO create(CreateUserRequestDTO request) {
         User.validateExistingEmail(
-                repository.existsByEmailEmailAddress(request.email()),
+                repository.existsByEmailAddress(request.email()),
                 request.email()
         );
 
@@ -51,14 +53,14 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponseDTO modifyUserRole(UUID id, ModifyUserRoleRequest request) {
+    public UserResponseDTO modifyUserRole(UUID id, ModifyUserRoleRequestDTO request) {
         User currentUser = searchUserByID(id);
         currentUser.modifyRole(request.role());
         return mapper.toResponse(repository.save(currentUser));
     }
 
     @Transactional
-    public UserResponseDTO updatePassword(UUID id, UpdatePasswordRequest request) {
+    public UserResponseDTO updatePassword(UUID id, UpdatePasswordRequestDTO request) {
         User currentUser = searchUserByID(id);
         currentUser.validateCurrentPassword(
                 passwordEncoder.matches(request.currentPassword(), currentUser.getPassword())
