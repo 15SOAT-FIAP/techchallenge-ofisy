@@ -2,8 +2,8 @@ package br.com.ofisy.application.user.service;
 
 import br.com.ofisy.application.user.dto.UserDTO.*;
 import br.com.ofisy.application.user.exception.UserNotFoundException;
-import br.com.ofisy.application.user.mapper.UserMapper;
-import br.com.ofisy.application.user.service.UserService;
+import br.com.ofisy.application.user.UserMapper;
+import br.com.ofisy.application.user.UserService;
 import br.com.ofisy.domain.user.Email;
 import br.com.ofisy.domain.user.Role;
 import br.com.ofisy.domain.user.User;
