@@ -59,6 +59,9 @@ A combinação dessas tecnologias permite a construção de um backend robusto e
 | Spring Boot Test         | 	Dependência para escrita de testes automatizados, incluindo suporte a testes unitários e de integração com JUnit e Mockito	                                                                    | `spring-boot-starter-test`              |
 | Spring Boot Webmvc Test  |   Dependência que permite testar de forma isolada a camada de Controller (Web), simulando requisições HTTP, validando rotas, parâmetros de entrada e o JSON de retorno sem subir o servidor completo | `spring-boot-webmvc-test`               |
 | Spring Security Test     | 	Dependência para testes de endpoints protegidos, permitindo simular usuários autenticados e verificar comportamentos de segurança nos testes	                                                  | `spring-security-test`                  |
+| Flyway Core                | Dependência principal do framework de migração de banco de dados, responsável por gerenciar o histórico de versões, executar scripts SQL automaticamente e garantir a integridade do esquema    | `flyway-core`                           |
+| Flyway Database PostgreSQL | Extensão específica do Flyway que adiciona suporte completo às funcionalidades do PostgreSQL, permitindo que o framework se comunique corretamente com o dialeto e driver desse banco           | `flyway-database-postgresql`            |
+
 ---
 
 ## Arquivos de Configuração
@@ -161,3 +164,4 @@ docker compose -f compose.db.yaml up -d
 
 ## Documentação Adicional
 - **[Guia de Testes](docs/TESTING.md)** - Instruções para executar análises de cobertura de testes e segurança
+- **[Guia de Flyway](docs/FLYWAY.md)** - Instruções para criar e executar migrations
