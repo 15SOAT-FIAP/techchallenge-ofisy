@@ -8,11 +8,12 @@ import br.com.ofisy.application.user.exception.UserNotFoundException;
 import br.com.ofisy.domain.user.User;
 import br.com.ofisy.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -46,10 +47,9 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public List<UserResponseDTO> listAllUsers() {
-        return repository.findAll().stream()
-                .map(mapper::toResponse)
-                .toList();
+    public Page<UserResponseDTO> listAllUsers(Pageable pageable) {
+        return repository.findAll(pageable)
+                .map(mapper::toResponse);
     }
 
     @Transactional
@@ -62,9 +62,7 @@ public class UserService {
     @Transactional
     public UserResponseDTO updatePassword(UUID id, UpdatePasswordRequestDTO request) {
         User currentUser = searchUserByID(id);
-        currentUser.validateCurrentPassword(
-                passwordEncoder.matches(request.currentPassword(), currentUser.getPassword())
-        );
+        currentUser.validateCurrentPassword(passwordEncoder.matches(request.currentPassword(), currentUser.getPassword()));
         currentUser.updatePassword(passwordEncoder.encode(request.newPassword()));
         return mapper.toResponse(repository.save(currentUser));
     }
