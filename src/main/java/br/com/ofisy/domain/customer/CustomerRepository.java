@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public interface CustomerRepository {
 
-    void save(Customer customer);
+    Customer save(Customer customer);
 
     Page<Customer> findAll(Pageable pageable);
 
