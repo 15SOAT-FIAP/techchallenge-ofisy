@@ -2,6 +2,7 @@ package br.com.ofisy.application.customer;
 
 import br.com.ofisy.application.customer.dto.CustomerRequestDTO;
 import br.com.ofisy.application.customer.dto.CustomerResponseDTO;
+import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsException;
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
 import br.com.ofisy.domain.customer.CpfCnpj;
@@ -18,12 +19,14 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CustomerService {
 
-    // Essa injeçao de dependencia vai ficar com erro ate implementar o repository, mas nao tem problema
     private final CustomerRepository customerRepository;
 
     @Transactional
     public CustomerResponseDTO registerCustomer(CustomerRequestDTO request) {
         var customer = CustomerMapper.toDomain(request);
+        if (customerRepository.findByCpfCnpj(customer.getCpfCnpj()).isPresent()) {
+            throw new CustomerAlreadyExistsException(customer.getCpfCnpj().getValue());
+        }
         var savedCustomer = customerRepository.save(customer);
 
         return CustomerMapper.toDTO(savedCustomer);

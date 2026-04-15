@@ -1,6 +1,7 @@
 package br.com.ofisy.application.customer;
 
 import br.com.ofisy.application.customer.dto.CustomerRequestDTO;
+import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsException;
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
 import br.com.ofisy.domain.customer.CpfCnpj;
@@ -87,6 +88,19 @@ class CustomerServiceTest {
             customerService.registerCustomer(validRequest());
 
             verify(customerRepository, times(1)).save(any(Customer.class));
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"52998224725", "11222333000181"})
+        void shouldThrowCustomerAlreadyExistsExceptionWhenCpfCnpjAlreadyRegistered(String cpfCnpj) {
+            var request = new CustomerRequestDTO(cpfCnpj, VALID_NAME, VALID_EMAIL, VALID_PHONE);
+            when(customerRepository.findByCpfCnpj(any(CpfCnpj.class))).thenReturn(Optional.of(validCustomer()));
+
+            assertThatThrownBy(() -> customerService.registerCustomer(request))
+                    .isInstanceOf(CustomerAlreadyExistsException.class)
+                    .hasMessageContaining(cpfCnpj);
+
+            verify(customerRepository, never()).save(any(Customer.class));
         }
     }
 
