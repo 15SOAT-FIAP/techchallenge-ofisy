@@ -12,11 +12,11 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class StockService {
 
     private final StockRepository stockRepository;
 
+    @Transactional
     public Stock addStock(UUID stockId, Integer quantity) {
         Stock stock = stockRepository.findById(stockId)
                 .orElseThrow(() -> new StockNotFoundException(stockId));
@@ -26,6 +26,7 @@ public class StockService {
         return stockRepository.save(stock);
     }
 
+    @Transactional
     public Stock consumeStock(UUID stockId, Integer quantity) {
         Stock stock = stockRepository.findById(stockId)
                 .orElseThrow(() -> new StockNotFoundException(stockId));

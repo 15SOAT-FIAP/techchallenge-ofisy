@@ -1,5 +1,6 @@
 package br.com.ofisy.domain.stock;
 
+import br.com.ofisy.domain.stock.exceptions.InvalidOperationException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -59,16 +60,28 @@ public class Stock {
     }
 
     public void addQuantity(Integer quantity) {
+        validateQuantity(quantity);
+
         this.quantity += quantity;
         this.updatedAt = LocalDateTime.now();
     }
 
     public void consumeQuantity(Integer quantity) {
+        validateQuantity(quantity);
+
         this.quantity -= quantity;
         this.updatedAt = LocalDateTime.now();
     }
 
     public boolean isLowStock() {
         return minThreshold != null && quantity <= minThreshold;
+    }
+
+    private void validateQuantity(Integer quantity) {
+        if (quantity == null || quantity <= 0) {
+            throw new InvalidOperationException(
+                    "Quantidade informada é inválida: " + quantity + ". Deve ser maior que zero."
+            );
+        }
     }
 }
