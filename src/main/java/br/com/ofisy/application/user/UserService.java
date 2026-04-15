@@ -81,11 +81,6 @@ public class UserService {
         return mapper.toResponse(repository.save(currentUser));
     }
 
-    @Transactional
-    public void removeUser(UUID id) {
-        searchUserByID(id);
-        repository.deleteById(id);
-    }
 
     private User searchUserByID(UUID id) {
         return repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
