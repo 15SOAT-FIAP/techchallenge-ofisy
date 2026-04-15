@@ -155,7 +155,7 @@ class CustomerControllerTest {
             var dto = responseDTO(VALID_CPF, "John Doe");
             when(customerService.identifyCustomerByCpfCnpj(VALID_CPF)).thenReturn(dto);
 
-            mockMvc.perform(get(BASE_URL + "/cpfcnpj/{cpfCnpj}", VALID_CPF))
+            mockMvc.perform(get(BASE_URL).param("cpfCnpj", VALID_CPF))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.cpfCnpj").value(VALID_CPF))
                     .andExpect(jsonPath("$.name").value("John Doe"));
@@ -166,7 +166,7 @@ class CustomerControllerTest {
             var dto = responseDTO(VALID_CNPJ, "Empresa SA");
             when(customerService.identifyCustomerByCpfCnpj(VALID_CNPJ)).thenReturn(dto);
 
-            mockMvc.perform(get(BASE_URL + "/cpfcnpj/{cpfCnpj}", VALID_CNPJ))
+            mockMvc.perform(get(BASE_URL).param("cpfCnpj", VALID_CNPJ))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.cpfCnpj").value(VALID_CNPJ));
         }
@@ -176,7 +176,7 @@ class CustomerControllerTest {
             when(customerService.identifyCustomerByCpfCnpj(VALID_CPF))
                     .thenThrow(new CustomerCpfCnpjNotFoundException(VALID_CPF));
 
-            mockMvc.perform(get(BASE_URL + "/cpfcnpj/{cpfCnpj}", VALID_CPF))
+            mockMvc.perform(get(BASE_URL).param("cpfCnpj", VALID_CPF))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.title").value("Cliente não encontrado"))
                     .andExpect(jsonPath("$.detail").value("Cliente com CPF/CNPJ " + VALID_CPF + " não encontrado."));
@@ -188,7 +188,7 @@ class CustomerControllerTest {
             when(customerService.identifyCustomerByCpfCnpj(invalid))
                     .thenThrow(new InvalidCpfCnpjException(invalid));
 
-            mockMvc.perform(get(BASE_URL + "/cpfcnpj/{cpfCnpj}", invalid))
+            mockMvc.perform(get(BASE_URL).param("cpfCnpj", invalid))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.title").value("CPF/CNPJ inválido"));
         }

@@ -56,7 +56,7 @@ class GlobalExceptionHandlerTest {
             when(customerService.identifyCustomerByCpfCnpj(cpfCnpj))
                     .thenThrow(new CustomerCpfCnpjNotFoundException(cpfCnpj));
 
-            mockMvc.perform(get("/api/v1/customers/cpfcnpj/{cpfCnpj}", cpfCnpj))
+            mockMvc.perform(get("/api/v1/customers").param("cpfCnpj", cpfCnpj))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.title").value("Cliente não encontrado"))
                     .andExpect(jsonPath("$.detail").value("Cliente com CPF/CNPJ " + cpfCnpj + " não encontrado."));
@@ -100,7 +100,7 @@ class GlobalExceptionHandlerTest {
             when(customerService.identifyCustomerByCpfCnpj(invalidCpfCnpj))
                     .thenThrow(new InvalidCpfCnpjException(invalidCpfCnpj));
 
-            mockMvc.perform(get("/api/v1/customers/cpfcnpj/{cpfCnpj}", invalidCpfCnpj))
+            mockMvc.perform(get("/api/v1/customers").param("cpfCnpj", invalidCpfCnpj))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.title").value("CPF/CNPJ inválido"))
                     .andExpect(jsonPath("$.detail").value("CPF ou CNPJ inválido: " + invalidCpfCnpj));
