@@ -6,9 +6,13 @@ import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsExcepti
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
+import br.com.ofisy.infrastructure.config.security.JwtService;
+import br.com.ofisy.infrastructure.config.security.OfisyUserDetailsService;
+import br.com.ofisy.interfaces.api.ControllerTestBase;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -33,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(CustomerController.class)
 @WithMockUser
-class CustomerControllerTest {
+class CustomerControllerTest extends ControllerTestBase {
 
     private static final String BASE_URL = "/api/v1/customers";
     private static final String VALID_CPF = "52998224725";
@@ -45,10 +49,6 @@ class CustomerControllerTest {
 
     @MockitoBean
     private CustomerService customerService;
-
-    private CustomerResponseDTO responseDTO(String cpfCnpj, String name) {
-        return new CustomerResponseDTO(cpfCnpj, name, name.toLowerCase().replace(" ", "") + "@mail.com", "11999999999", NOW, NOW);
-    }
 
     @Nested
     class GetAllCustomers {
@@ -369,5 +369,9 @@ class CustomerControllerTest {
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.title").value("CPF/CNPJ inválido"));
         }
+    }
+
+    private CustomerResponseDTO responseDTO(String cpfCnpj, String name) {
+        return new CustomerResponseDTO(cpfCnpj, name, name.toLowerCase().replace(" ", "") + "@mail.com", "11999999999", NOW, NOW);
     }
 }

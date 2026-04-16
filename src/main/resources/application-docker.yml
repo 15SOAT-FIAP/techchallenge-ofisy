@@ -29,5 +29,7 @@ logging:
   level:
     org.flywaydb: DEBUG
 jwt:
+  adminPassword: ${ADMIN_PASSWORD}
+  adminLogin: ${ADMIN_LOGIN}
   secret: ${JWT_SECRET}
   expiration: 86400000

@@ -1,8 +1,10 @@
-package br.com.ofisy.application.auth.service;
+package br.com.ofisy.infrastructure.config.security;
 
 import br.com.ofisy.domain.user.Role;
 import br.com.ofisy.domain.user.User;
 import br.com.ofisy.domain.user.UserRepository;
+import br.com.ofisy.infrastructure.config.security.OfisyUserDetailsService;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +22,8 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class OfisyUserDetailsServiceTest {
 
+    public static final String TEST_USER_PRINCIPAL_EMAIL = "joao@ofisy.com";
+
     @Mock private UserRepository userRepository;
 
     @InjectMocks private OfisyUserDetailsService userDetailsService;
@@ -27,26 +31,26 @@ class OfisyUserDetailsServiceTest {
     @Test
     @DisplayName("Deve carregar usuário pelo email com sucesso")
     void shouldLoadUserByEmailSuccessfully() {
-        String email = "joao@ofisy.com";
-        User user = User.create(email, "hashed-password", "João Silva", Role.ATENDENTE);
+        String email = TEST_USER_PRINCIPAL_EMAIL;
+        User user = mockCreateUser(email);
 
-        when(userRepository.findByEmailEmailAddress(email)).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailAddress(email)).thenReturn(Optional.of(user));
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
         assertThat(userDetails).isNotNull();
         assertThat(userDetails.getUsername()).isEqualTo(email);
-        assertThat(userDetails.getPassword()).isEqualTo("hashed-password");
+        assertThat(userDetails.getPassword()).isEqualTo("hashed-password1");
         assertThat(userDetails.getAuthorities())
                 .extracting("authority")
-                .containsExactly("ROLE_ATENDENTE");
+                .containsExactly("ROLE_ATTENDANT");
     }
 
     @Test
     @DisplayName("Deve lançar exceção quando usuário não encontrado")
     void shouldThrowExceptionWhenUserNotFound() {
         String email = "naoexiste@ofisy.com";
-        when(userRepository.findByEmailEmailAddress(email)).thenReturn(Optional.empty());
+        when(userRepository.findByEmailAddress(email)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userDetailsService.loadUserByUsername(email))
                 .isInstanceOf(UsernameNotFoundException.class)
@@ -56,11 +60,11 @@ class OfisyUserDetailsServiceTest {
     @Test
     @DisplayName("Deve lançar exceção quando usuário está inativo")
     void shouldThrowExceptionWhenUserIsInactive() {
-        String email = "joao@ofisy.com";
-        User user = User.create(email, "hashed-password", "João Silva", Role.ATENDENTE);
+        String email = TEST_USER_PRINCIPAL_EMAIL;
+        User user = mockCreateUser(email);
         user.deactivate();
 
-        when(userRepository.findByEmailEmailAddress(email)).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailAddress(email)).thenReturn(Optional.of(user));
 
         assertThatThrownBy(() -> userDetailsService.loadUserByUsername(email))
                 .isInstanceOf(UsernameNotFoundException.class)
@@ -71,14 +75,18 @@ class OfisyUserDetailsServiceTest {
     @DisplayName("Deve retornar authority correta para role ADMIN")
     void shouldReturnCorrectAuthorityForAdminRole() {
         String email = "admin@ofisy.com";
-        User user = User.create(email, "hashed-password", "Admin", Role.ADMIN);
+        User user = User.create(email, "hashed-password2", "Admin", Role.ADMIN);
 
-        when(userRepository.findByEmailEmailAddress(email)).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailAddress(email)).thenReturn(Optional.of(user));
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
         assertThat(userDetails.getAuthorities())
                 .extracting("authority")
                 .containsExactly("ROLE_ADMIN");
+    }
+
+    private static @NonNull User mockCreateUser(String email) {
+        return User.create(email, "hashed-password1", "João Silva", Role.ATTENDANT);
     }
 }

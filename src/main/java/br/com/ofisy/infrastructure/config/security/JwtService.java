@@ -1,17 +1,17 @@
-package br.com.ofisy.application.auth.service;
+package br.com.ofisy.infrastructure.config.security;
 
 import br.com.ofisy.infrastructure.config.auth.JwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
-@Component
+@Service
 @RequiredArgsConstructor
 public class JwtService {
 
