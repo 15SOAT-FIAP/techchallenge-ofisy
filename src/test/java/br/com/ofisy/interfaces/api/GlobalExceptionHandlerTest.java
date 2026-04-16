@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(CustomerController.class)
 @WithMockUser
-class GlobalExceptionHandlerTest {
+class GlobalExceptionHandlerTest extends ControllerTestBase {
 
     @Autowired
     private MockMvc mockMvc;

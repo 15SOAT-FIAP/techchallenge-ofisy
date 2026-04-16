@@ -1,4 +1,4 @@
-package br.com.ofisy.application.auth.service;
+package br.com.ofisy.infrastructure.config.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

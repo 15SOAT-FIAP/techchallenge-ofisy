@@ -1,7 +1,5 @@
 package br.com.ofisy.infrastructure.config.security;
 
-import br.com.ofisy.application.auth.service.JwtAuthFilter;
-import br.com.ofisy.application.auth.service.OfisyUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

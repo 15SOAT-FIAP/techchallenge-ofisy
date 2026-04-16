@@ -1,9 +1,9 @@
-package br.com.ofisy.application.auth.service;
+package br.com.ofisy.infrastructure.config.security;
 
 import br.com.ofisy.domain.user.User;
 import br.com.ofisy.domain.user.UserRepository;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -20,7 +20,7 @@ public class OfisyUserDetailsService implements org.springframework.security.cor
     @Override
     public UserDetails loadUserByUsername(@NonNull String email) throws UsernameNotFoundException {
 
-        User user = userRepository.findByEmailEmailAddress(email)
+        User user = userRepository.findByEmailAddress(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + email));
 
         if (!user.isActive()) {

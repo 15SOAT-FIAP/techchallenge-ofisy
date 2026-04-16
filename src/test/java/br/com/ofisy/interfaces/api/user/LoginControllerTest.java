@@ -1,13 +1,11 @@
-package br.com.ofisy.interfaces.api.auth;
+package br.com.ofisy.interfaces.api.user;
 
-import br.com.ofisy.application.auth.service.JwtService;
-import br.com.ofisy.application.auth.service.OfisyUserDetailsService;
-import br.com.ofisy.application.user.dto.LoginDTO.*;
+import br.com.ofisy.application.user.dto.LoginRequestDTO;
+import br.com.ofisy.infrastructure.config.security.JwtService;
+import br.com.ofisy.infrastructure.config.security.OfisyUserDetailsService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration;
 import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration;
@@ -30,15 +28,12 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = AuthController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
-@Import({JacksonAutoConfiguration.class, ValidationAutoConfiguration.class})
+@WebMvcTest(controllers = LoginController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
 @AutoConfigureMockMvc(addFilters = false)
-class AuthControllerTest {
+class LoginControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @MockitoBean
     private AuthenticationManager authenticationManager;
@@ -49,11 +44,12 @@ class AuthControllerTest {
     @MockitoBean
     private OfisyUserDetailsService userDetailsService;
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
     @DisplayName("Deve realizar login com sucesso e retornar token")
     void shouldLoginSuccessfullyAndReturnToken() throws Exception {
-        LoginRequest request = new LoginRequest("admin@ofisy.com", "Admin@1234");
+        LoginRequestDTO request = new LoginRequestDTO("admin@ofisy.com", "Admin@1234");
         Authentication auth = new UsernamePasswordAuthenticationToken("admin@ofisy.com", null, List.of());
 
         when(authenticationManager.authenticate(any())).thenReturn(auth);
@@ -69,7 +65,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("Deve retornar 401 com credenciais inválidas")
     void shouldReturn401WithInvalidCredentials() throws Exception {
-        LoginRequest request = new LoginRequest("admin@ofisy.com", "senhaErrada");
+        LoginRequestDTO request = new LoginRequestDTO("admin@ofisy.com", "senhaErrada");
 
         when(authenticationManager.authenticate(any()))
                 .thenThrow(new BadCredentialsException("Bad credentials"));
