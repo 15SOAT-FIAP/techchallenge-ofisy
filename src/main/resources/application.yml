@@ -20,11 +20,16 @@ management:
           include: health
 security:
   public-paths:
-    - /api/teste/**
+    - /api/v1/login
+    - /api/v1/customers
     - /swagger-ui/**
     - /swagger-ui.html
     - /v3/api-docs/**
-
 logging:
   level:
     org.flywaydb: DEBUG
+jwt:
+  admin-password: Admin@1234
+  admin-login: admin@ofisy.com
+  secret: e68a91e8cfe93e50b88ea095d1d75e71770b9404756153675365ca70a3d56805d7662c37690b22698a647efbe9991ea73430daef2f1ccdfbe50eef11c7d97369
+  expiration: 86400000

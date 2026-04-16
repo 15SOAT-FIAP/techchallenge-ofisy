@@ -21,11 +21,15 @@ management:
         include: health
 security:
   public-paths:
-    - /api/teste/**
+    - /api/v1/login
     - /swagger-ui/**
     - /swagger-ui.html
     - /v3/api-docs/**
-
 logging:
   level:
     org.flywaydb: DEBUG
+jwt:
+  adminPassword: ${ADMIN_PASSWORD}
+  adminLogin: ${ADMIN_LOGIN}
+  secret: ${JWT_SECRET}
+  expiration: 86400000
