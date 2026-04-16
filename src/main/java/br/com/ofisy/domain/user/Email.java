@@ -14,9 +14,7 @@ public record Email(
 
     public Email {
 
-        if (emailAddress == null) {
-            throw new InvalidEmailException("E-mail informado é nulo!");
-        } else if (!isValid(emailAddress)) {
+        if (!isValid(emailAddress)) {
             throw new InvalidEmailException("E-mail informado é inválido!");
         }
         emailAddress = emailAddress.toLowerCase().trim();
