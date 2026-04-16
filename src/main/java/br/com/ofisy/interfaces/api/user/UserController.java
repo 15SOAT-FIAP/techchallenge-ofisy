@@ -24,7 +24,7 @@ import java.util.UUID;
 @RestController()
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
-@Tag(name = "Usuários")
+@Tag(name = "CRUD Usuários")
 @SecurityRequirement(name = "Bearer Token")
 public class UserController {
 
