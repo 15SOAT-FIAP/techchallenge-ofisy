@@ -2,6 +2,7 @@ package br.com.ofisy.application.stock;
 
 import br.com.ofisy.application.stock.exceptions.InsufficientStockException;
 import br.com.ofisy.application.stock.exceptions.StockNotFoundException;
+import br.com.ofisy.application.stockmovement.StockMovementService;
 import br.com.ofisy.domain.stock.Stock;
 import br.com.ofisy.domain.stock.StockRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +25,9 @@ public class StockServiceTest {
 
     @Mock
     private StockRepository stockRepository;
+
+    @Mock
+    private StockMovementService stockMovementService;
 
     @InjectMocks
     private StockService stockService;
