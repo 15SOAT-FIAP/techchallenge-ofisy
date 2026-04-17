@@ -20,7 +20,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class VehicleService {
 
-    // Implementaçao do repositorio sera no proximo PR
     private final VehicleRepository vehicleRepository;
 
     @Transactional(readOnly = true)
