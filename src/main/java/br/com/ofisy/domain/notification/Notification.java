@@ -21,13 +21,6 @@ public class Notification {
     @Column(name = "stock_id")
     private UUID stockId;
 
-//    @Column(name = "service_order_id")
-//    private UUID serviceOrderId;
-
-//    @Enumerated(EnumType.STRING)
-//    @Column(nullable = false)
-//    private NotificationType type;
-
     @Column(nullable = false)
     private String message;
 
@@ -41,23 +34,21 @@ public class Notification {
     private LocalDateTime updatedAt;
 
     private Notification(UUID stockId,
-//                         UUID serviceOrderId,
-//                         NotificationType type,
+
                          String message) {
         this.stockId = stockId;
-//        this.serviceOrderId = serviceOrderId;
-//        this.type = type;
         this.message = message;
         this.read = false;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
-//    public static Notification createStockAlert(UUID stockId, String message) {
-//        return new Notification(stockId, null, NotificationType.STOCK, message);
-//    }
-//
-//    public static Notification createServiceOrderAlert(UUID serviceOrderId, String message) {
-//        return new Notification(null, serviceOrderId, NotificationType.SERVICE_ORDER, message);
-//    }
+    public static Notification createStockAlert(UUID stockId, String message) {
+        return new Notification(stockId, message);
+    }
+
+    public void markAsRead() {
+        this.read = true;
+        this.updatedAt = LocalDateTime.now();
+    }
 }
