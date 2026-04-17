@@ -4,13 +4,25 @@ import br.com.ofisy.application.customer.CustomerService;
 import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsException;
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
+import br.com.ofisy.application.user.UserService;
+import br.com.ofisy.application.user.dto.CreateUserRequestDTO;
+import br.com.ofisy.application.user.dto.LoginRequestDTO;
+import br.com.ofisy.application.user.exceptions.UserNotFoundException;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
+import br.com.ofisy.domain.user.Role;
+import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
 import br.com.ofisy.interfaces.api.customer.CustomerController;
+import br.com.ofisy.interfaces.api.user.LoginController;
+import br.com.ofisy.interfaces.api.user.UserController;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -25,7 +37,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(CustomerController.class)
+@WebMvcTest({CustomerController.class, UserController.class, LoginController.class})
 @WithMockUser
 class GlobalExceptionHandlerTest extends ControllerTestBase {
 
@@ -34,6 +46,12 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
 
     @MockitoBean
     private CustomerService customerService;
+
+    @MockitoBean
+    private UserService userService;
+
+    @MockitoBean
+    private AuthenticationManager authenticationManager;
 
     @Nested
     class CustomerNotFound {
@@ -163,4 +181,54 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
                     .andExpect(jsonPath("$.errors.email").value("Email deve ser válido"));
         }
     }
+
+    @Nested
+    class BadCredentials {
+        @Test
+        @DisplayName("Deve retornar 401 com credenciais inválidas")
+        void shouldReturn401WithInvalidCredentials() throws Exception {
+            LoginRequestDTO request = new LoginRequestDTO("admin@ofisy.com", "senhaErrada");
+
+            when(authenticationManager.authenticate(any()))
+                    .thenThrow(new BadCredentialsException("Bad credentials"));
+
+            mockMvc.perform(post("/api/v1/login")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isUnauthorized());
+        }
+    }
+
+    @Nested
+    class UserNotFound {
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        @DisplayName("Deve retornar 404 quando usuário não encontrado")
+        void shouldReturn404WhenUserNotFound() throws Exception {
+            UUID id = UUID.randomUUID();
+            when(userService.findById(id)).thenThrow(new UserNotFoundException(id));
+            mockMvc.perform(get("/api/v1/users/{id}", id))
+                    .andExpect(status().isNotFound());
+        }
+    }
+
+    @Nested
+    class EmailAlreadyExists {
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        @DisplayName("Deve retornar 409 quando email do usuário já existe")
+        void shouldReturn409WhenEmailAlreadyExists() throws Exception {
+            CreateUserRequestDTO request = new CreateUserRequestDTO("Pedro Mecânico", "mecanico@ofisy.com", "senha12345", Role.MECHANIC);
+
+            when(userService.create(any())).thenThrow(new EmailAlreadyExistsException("mecanico@ofisy.com"));
+            mockMvc.perform(post("/api/v1/users")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isConflict());
+        }
+    }
+
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 }
