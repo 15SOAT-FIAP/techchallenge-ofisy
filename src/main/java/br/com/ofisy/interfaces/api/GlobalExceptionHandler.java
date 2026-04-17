@@ -3,6 +3,8 @@ package br.com.ofisy.interfaces.api;
 import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsException;
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
+import br.com.ofisy.application.notification.exceptions.NotificationNotFoundException;
+import br.com.ofisy.application.stock.exceptions.StockNotFoundException;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -34,6 +36,20 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleCustomerAlreadyExists(CustomerAlreadyExistsException ex) {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         problem.setTitle("Cliente já existe");
+        return problem;
+    }
+
+    @ExceptionHandler(NotificationNotFoundException.class)
+    public ProblemDetail handleNotificationNotFound(NotificationNotFoundException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problem.setTitle("Notificação não encontrada");
+        return problem;
+    }
+
+    @ExceptionHandler(StockNotFoundException.class)
+    public ProblemDetail handleStockNotFound(StockNotFoundException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problem.setTitle("Estoque não encontrado");
         return problem;
     }
 
