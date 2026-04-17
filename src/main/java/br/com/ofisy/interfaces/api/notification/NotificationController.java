@@ -1,4 +1,4 @@
-package br.com.ofisy.interfaces.api;
+package br.com.ofisy.interfaces.api.notification;
 
 import br.com.ofisy.application.notification.NotificationService;
 import br.com.ofisy.application.notification.dto.NotificationResponseDTO;

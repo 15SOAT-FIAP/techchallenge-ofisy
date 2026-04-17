@@ -1,4 +1,4 @@
-package br.com.ofisy.infrastructure.persistence;
+package br.com.ofisy.infrastructure.persistence.notification;
 
 import br.com.ofisy.domain.notification.Notification;
 import br.com.ofisy.domain.notification.NotificationRepository;
