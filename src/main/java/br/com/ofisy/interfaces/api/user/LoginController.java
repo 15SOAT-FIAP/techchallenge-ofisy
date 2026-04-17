@@ -4,6 +4,9 @@ import br.com.ofisy.application.user.dto.LoginRequestDTO;
 import br.com.ofisy.application.user.dto.LoginResponseDTO;
 import br.com.ofisy.infrastructure.config.security.JwtService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +29,9 @@ public class LoginController {
 
     @PostMapping
     @Operation(summary = "Realizar login e obter o token JWT")
+    @ApiResponse(responseCode = "200", description = "Login realizado com sucesso, token JWT retornado")
+    @ApiResponse(responseCode = "400", description = "Dados inválidos", content = @Content(schema = @Schema(implementation = Void.class)))
+    @ApiResponse(responseCode = "401", description = "Email ou senha inválidos", content = @Content(schema = @Schema(implementation = Void.class)))
     public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
 
         try {
