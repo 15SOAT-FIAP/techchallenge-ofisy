@@ -23,12 +23,12 @@ class UserResponseDTOTest {
         LocalDateTime now = LocalDateTime.now();
 
         UserResponseDTO dto = new UserResponseDTO(
-                id, TEST_USER_PRINCIPAL_NAME, email, Role.ATTENDANT, true, now, null
+                id, TEST_USER_PRINCIPAL_NAME, email.emailAddress(), Role.ATTENDANT, true, now, null
         );
 
         assertThat(dto.id()).isEqualTo(id);
         assertThat(dto.name()).isEqualTo(TEST_USER_PRINCIPAL_NAME);
-        assertThat(dto.email().emailAddress()).isEqualTo(TEST_USER_PRINCIPAL_EMAIL);
+        assertThat(dto.email()).isEqualTo(TEST_USER_PRINCIPAL_EMAIL);
         assertThat(dto.role()).isEqualTo(Role.ATTENDANT);
         assertThat(dto.active()).isTrue();
         assertThat(dto.creationDate()).isEqualTo(now);
@@ -44,7 +44,7 @@ class UserResponseDTOTest {
         LocalDateTime updatedAt = LocalDateTime.now();
 
         UserResponseDTO dto = new UserResponseDTO(
-                id, TEST_USER_PRINCIPAL_NAME, email, Role.ADMIN, false, createdAt, updatedAt
+                id, TEST_USER_PRINCIPAL_NAME, email.emailAddress(), Role.ADMIN, false, createdAt, updatedAt
         );
 
         assertThat(dto.active()).isFalse();

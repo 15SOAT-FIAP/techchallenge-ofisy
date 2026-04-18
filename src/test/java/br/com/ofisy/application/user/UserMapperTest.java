@@ -24,7 +24,7 @@ class UserMapperTest {
         UserResponseDTO response = mapper.toResponse(user);
 
         assertThat(response.name()).isEqualTo(TEST_USER_PRINCIPAL_NAME);
-        assertThat(response.email().emailAddress()).isEqualTo(TEST_USER_PRINCIPAL_EMAIL);
+        assertThat(response.email()).isEqualTo(TEST_USER_PRINCIPAL_EMAIL);
         assertThat(response.role()).isEqualTo(TEST_USER_PRINCIPAL_ROLE);
         assertThat(response.active()).isTrue();
         assertThat(response.creationDate()).isNotNull();
