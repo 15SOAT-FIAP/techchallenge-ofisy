@@ -14,13 +14,20 @@ public record Email(
 
     public Email {
 
+        if (emailAddress != null) {
+            emailAddress = emailAddress.toLowerCase().trim();
+        }
+
         if (!isValid(emailAddress)) {
             throw new InvalidEmailException("E-mail informado é inválido!");
         }
-        emailAddress = emailAddress.toLowerCase().trim();
     }
 
     public static boolean isValid(String email) {
-        return email != null && email.matches(EMAIL_REGEX);
+        if (email == null) {
+            return false;
+        }
+
+        return email.trim().toLowerCase().matches(EMAIL_REGEX);
     }
 }

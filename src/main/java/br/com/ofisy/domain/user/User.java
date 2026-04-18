@@ -43,11 +43,11 @@ public class User {
     @Column
     private LocalDateTime updatedAt;
 
-    public static User create(String email, String encryptedPassword, String nome, Role role) {
+    public static User create(String email, String encryptedPassword, String name, Role role) {
         User user = new User();
         user.email = new Email(email);
         user.password = encryptedPassword;
-        user.name = nome;
+        user.name = name;
         user.role = role;
         user.active = true;
         user.createdAt = LocalDateTime.now();
