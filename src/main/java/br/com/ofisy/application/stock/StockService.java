@@ -33,7 +33,7 @@ public class StockService {
     }
 
     @Transactional
-    public Stock addStock(UUID stockId, Integer quantity) {
+    public StockResponseDTO addStock(UUID stockId, Integer quantity) {
         Stock stock = stockRepository.findById(stockId)
                 .orElseThrow(() -> new StockNotFoundException(stockId));
 
@@ -42,7 +42,7 @@ public class StockService {
 
         stock.addQuantity(quantity);
 
-        stockMovementService.registerMovement(
+        StockMovementRequestDTO requestDTO = new StockMovementRequestDTO(
                 stockId,
                 MovementType.IN,
                 quantity,
@@ -50,11 +50,15 @@ public class StockService {
                 newQuantity
         );
 
-        return stockRepository.save(stock);
+        stockMovementService.registerMovement(requestDTO);
+
+        Stock savedStock = stockRepository.save(stock);
+
+        return StockMapper.toDTO(savedStock);
     }
 
     @Transactional
-    public Stock consumeStock(UUID stockId, Integer quantity) {
+    public StockResponseDTO consumeStock(UUID stockId, Integer quantity) {
         Stock stock = stockRepository.findById(stockId)
                 .orElseThrow(() -> new StockNotFoundException(stockId));
 
@@ -67,7 +71,7 @@ public class StockService {
 
         stock.consumeQuantity(quantity);
 
-        stockMovementService.registerMovement(
+        StockMovementRequestDTO requestDTO = new StockMovementRequestDTO(
                 stockId,
                 MovementType.OUT,
                 quantity,
@@ -75,6 +79,10 @@ public class StockService {
                 newQuantity
         );
 
-        return stockRepository.save(stock);
+        stockMovementService.registerMovement(requestDTO);
+
+        Stock savedStock = stockRepository.save(stock);
+
+        return StockMapper.toDTO(savedStock);
     }
 }
