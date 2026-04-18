@@ -11,6 +11,7 @@ import br.com.ofisy.application.user.exceptions.UserNotFoundException;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
 import br.com.ofisy.domain.user.Role;
 import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
+import br.com.ofisy.infrastructure.config.security.SecurityConfig;
 import br.com.ofisy.interfaces.api.customer.CustomerController;
 import br.com.ofisy.interfaces.api.user.LoginController;
 import br.com.ofisy.interfaces.api.user.UserController;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -32,8 +34,7 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -229,6 +230,46 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
         }
     }
 
+    @Nested
+    class HttpMessageNotReadable {
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        @DisplayName("Deve retornar 400 quando role é inválida")
+        void shouldReturn400WhenRoleIsInvalid() throws Exception {
+            var id = UUID.randomUUID();
+
+            mockMvc.perform(patch("/api/v1/users/{id}/modify-role", id)
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                            {
+                                "role": "ROLE_INVALIDA"
+                            }
+                        """))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.title").value("Erro de validação"))
+                    .andExpect(jsonPath("$.detail").value("Um ou mais campos são inválidos ou contêm valores não permitidos"));
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        @DisplayName("Deve retornar 400 quando role está ausente")
+        void shouldReturn400WhenRoleIsNull() throws Exception {
+            var id = UUID.randomUUID();
+
+            mockMvc.perform(patch("/api/v1/users/{id}/modify-role", id)
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                            {
+                                "role": null
+                            }
+                        """))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.title").value("Erro de validação"));
+        }
+    }
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 }

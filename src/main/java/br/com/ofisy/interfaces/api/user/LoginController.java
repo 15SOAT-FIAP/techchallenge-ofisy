@@ -10,10 +10,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -33,22 +31,8 @@ public class LoginController {
     @ApiResponse(responseCode = "400", description = "Dados inválidos", content = @Content(schema = @Schema(implementation = Void.class)))
     @ApiResponse(responseCode = "401", description = "Email ou senha inválidos", content = @Content(schema = @Schema(implementation = Void.class)))
     public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
-
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.email(), request.password())
-            );
-
-            if (!authentication.isAuthenticated()) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
-
-            String token = jwtService.generateToken(authentication.getName());
-            return ResponseEntity.ok(new LoginResponseDTO(token));
-        } catch (BadCredentialsException ex) {
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body(new LoginResponseDTO("E-mail ou senha inválidos."));
-        }
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.email(), request.password()));
+        String token = jwtService.generateToken(authentication.getName());
+        return ResponseEntity.ok(new LoginResponseDTO(token));
     }
 }

@@ -5,7 +5,6 @@ import br.com.ofisy.application.user.dto.*;
 import br.com.ofisy.application.user.exceptions.UserNotFoundException;
 import br.com.ofisy.domain.user.Email;
 import br.com.ofisy.domain.user.Role;
-import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
 import br.com.ofisy.interfaces.api.ControllerTestBase;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +15,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -31,6 +31,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@EnableMethodSecurity
 @WebMvcTest(UserController.class)
 class UserControllerTest extends ControllerTestBase {
 

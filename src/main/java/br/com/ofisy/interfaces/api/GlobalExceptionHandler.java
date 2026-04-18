@@ -8,12 +8,17 @@ import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
 import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.nio.file.AccessDeniedException;
+import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -79,6 +84,22 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleBadCredentials(RuntimeException ex) {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Email ou senha inválidos");
         problem.setTitle("Não autorizado");
+        return problem;
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ProblemDetail handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
+        var problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        problem.setTitle("Erro de validação");
+        problem.setDetail("Um ou mais campos são inválidos ou contêm valores não permitidos");
+        return problem;
+    }
+
+    @ExceptionHandler({AccessDeniedException.class, AuthorizationDeniedException.class})
+    public ProblemDetail handleAccessDenied(AccessDeniedException ex) {
+        var problem = ProblemDetail.forStatus(HttpStatus.FORBIDDEN);
+        problem.setTitle("Usuário sem permissão");
+        problem.setDetail("Você não tem permissão para acessar este recurso");
         return problem;
     }
 

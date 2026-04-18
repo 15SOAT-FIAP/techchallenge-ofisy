@@ -4,8 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -32,13 +30,16 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) {
         String[] publicPaths = securityProperties.getPublicPaths().toArray(new String[0]);
 
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder());
+
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
-                .authenticationProvider(authenticationProvider())
+                .authenticationProvider(provider)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(publicPaths).permitAll()
                         .requestMatchers("/error").permitAll()
@@ -47,13 +48,6 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
-    }
-
-    @Bean
-    public AuthenticationProvider authenticationProvider() throws AuthenticationServiceException {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder());
-        return provider;
     }
 
     @Bean
