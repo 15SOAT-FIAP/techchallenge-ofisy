@@ -269,6 +269,7 @@ class UserServiceTest {
     }
 
     private UserResponseDTO mockResponse(UUID id) {
+        return new UserResponseDTO(id, TEST_USER_PRINCIPAL_NAME, new Email(TEST_USER_PRINCIPAL_EMAIL).emailAddress(),
                 TEST_USER_PRINCIPAL_ROLE, true, LocalDateTime.now(), null);
     }
 }
