@@ -1,6 +1,5 @@
 package br.com.ofisy.application.user.dto;
 
-import br.com.ofisy.domain.user.Email;
 import br.com.ofisy.domain.user.Role;
 
 import java.time.LocalDateTime;
