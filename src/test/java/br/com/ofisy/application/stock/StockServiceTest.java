@@ -78,9 +78,9 @@ public class StockServiceTest {
         when(stockRepository.findById(stock.getId())).thenReturn(Optional.of(stock));
         when(stockRepository.save(any(Stock.class))).thenReturn(stock);
 
-        Stock result = stockService.addStock(stock.getId(), 10);
+        StockResponseDTO resultDTO = stockService.addStock(stock.getId(), 10);
 
-        assertEquals(50, result.getQuantity());
+        assertEquals(50, resultDTO.quantity());
         verify(stockRepository).save(any(Stock.class));
     }
 
@@ -90,9 +90,9 @@ public class StockServiceTest {
         when(stockRepository.findById(stock.getId())).thenReturn(Optional.of(stock));
         when(stockRepository.save(any(Stock.class))).thenReturn(stock);
 
-        Stock result = stockService.consumeStock(stock.getId(), 10);
+        StockResponseDTO resultDTO = stockService.consumeStock(stock.getId(), 10);
 
-        assertEquals(30, result.getQuantity());
+        assertEquals(30, resultDTO.quantity());
         verify(stockRepository).save(any(Stock.class));
     }
 
