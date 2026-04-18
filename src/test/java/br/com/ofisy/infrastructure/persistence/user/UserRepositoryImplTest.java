@@ -44,8 +44,7 @@ class UserRepositoryImplTest {
 
             Optional<User> result = userRepository.findById(id);
 
-            assertThat(result).isPresent();
-            assertThat(result.get()).isEqualTo(user);
+            assertThat(result).isPresent().contains(user);
             verify(jpaUserRepository).findById(id);
         }
 
