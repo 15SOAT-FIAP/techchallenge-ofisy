@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import java.util.UUID;
+
 @Tag(name = "API de Clientes")
 public interface CustomerApi {
 
@@ -23,7 +25,7 @@ public interface CustomerApi {
     @ApiResponse(responseCode = "200", description = "Cliente encontrado com sucesso")
     @ApiResponse(responseCode = "404", description = "Cliente não encontrado")
     @GetMapping("/{id}")
-    ResponseEntity<CustomerResponseDTO> getCustomerById(Long id);
+    ResponseEntity<CustomerResponseDTO> getCustomerById(UUID id);
 
     @Operation(summary = "Obter cliente por CPF/CNPJ")
     @ApiResponse(responseCode = "200", description = "Cliente encontrado com sucesso")
