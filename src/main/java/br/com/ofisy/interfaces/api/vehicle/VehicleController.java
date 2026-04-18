@@ -25,7 +25,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/vehicles")
 @RequiredArgsConstructor
-public class VehicleController {
+public class VehicleController implements VehicleApi {
 
     private final VehicleService vehicleService;
 
