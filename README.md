@@ -139,9 +139,10 @@ docker compose -f compose.db.yaml up -d
 ## Acesso a aplicação e Swagger
 
 - A API estará disponível em `http://localhost:8080`.
-- Um controller de teste (Hello World) está disponível em `http://localhost:8080/api/teste/hello`
 - A documentação Swagger estará disponível em `http://localhost:8080/swagger-ui.html`.
-
+- Para acesso as APIs com role ADMIN, o usuário a ser utilizado deve ser:
+  - `username`: admin@ofisy.com
+  - `senha`: Admin@1234
 ---
 
 ## Variáveis de ambiente
