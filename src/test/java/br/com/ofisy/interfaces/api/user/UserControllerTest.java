@@ -7,7 +7,6 @@ import br.com.ofisy.domain.user.Email;
 import br.com.ofisy.domain.user.Role;
 import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -268,7 +267,7 @@ class UserControllerTest {
     private UserResponseDTO mockResponse() {
         return new UserResponseDTO(
                 UUID.randomUUID(), TEST_USER_PRINCIPAL_NAME,
-                new Email(TEST_USER_PRINCIPAL_EMAIL),
+                new Email(TEST_USER_PRINCIPAL_EMAIL).emailAddress(),
                 TEST_USER_PRINCIPAL_ROLE, true,
                 LocalDateTime.now(), null
         );
