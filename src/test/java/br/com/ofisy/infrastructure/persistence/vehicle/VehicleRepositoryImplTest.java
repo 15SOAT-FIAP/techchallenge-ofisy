@@ -31,10 +31,6 @@ class VehicleRepositoryImplTest {
     @InjectMocks
     private VehicleRepositoryImpl repository;
 
-    private Vehicle validVehicle() {
-        return Vehicle.create(VALID_CUSTOMER_ID, new LicensePlate(VALID_PLATE), "Civic", "Honda", "Preto", 2022, null);
-    }
-
     @Nested
     class Save {
 
@@ -151,5 +147,9 @@ class VehicleRepositoryImplTest {
 
             assertThat(result).isEmpty();
         }
+    }
+
+    private Vehicle validVehicle() {
+        return Vehicle.create(VALID_CUSTOMER_ID, new LicensePlate(VALID_PLATE), "Civic", "Honda", "Preto", 2022, null);
     }
 }
