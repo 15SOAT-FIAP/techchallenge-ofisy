@@ -11,7 +11,6 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 import java.util.UUID;
 
-
 @Repository
 @RequiredArgsConstructor
 public class UserRepositoryImpl implements UserRepository {
@@ -41,10 +40,5 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public boolean existsByEmailAddress(String email) {
         return jpaUserRepository.existsByEmailEmailAddress(email);
-    }
-
-    @Override
-    public void deleteById(@NonNull UUID id) {
-        jpaUserRepository.deleteById(id);
     }
 }

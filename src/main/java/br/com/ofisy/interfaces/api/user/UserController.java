@@ -73,11 +73,4 @@ public class UserController implements UserApi {
     public ResponseEntity<UserResponseDTO> activateUser(@PathVariable UUID id) {
         return ResponseEntity.ok(userService.activateUser(id));
     }
-
-    @DeleteMapping("/{id}/remove")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> removeUser(@PathVariable UUID id) {
-        userService.removeUser(id);
-        return ResponseEntity.noContent().build();
-    }
 }

@@ -1,6 +1,5 @@
 package br.com.ofisy.interfaces.api.user;
 
-
 import br.com.ofisy.application.user.dto.CreateUserRequestDTO;
 import br.com.ofisy.application.user.dto.ModifyUserRoleRequestDTO;
 import br.com.ofisy.application.user.dto.UpdatePasswordRequestDTO;
@@ -70,9 +69,4 @@ public interface UserApi {
     @ApiResponse(responseCode = "409", description = "Usuário já está ativo", content = @Content(schema = @Schema(implementation = Void.class)))
     public ResponseEntity<UserResponseDTO> activateUser(@PathVariable UUID id);
 
-    @Operation(summary = "Remover usuário")
-    @ApiResponse(responseCode = "204", description = "Usuário removido com sucesso", content = @Content(schema = @Schema(implementation = Void.class)))
-    @ApiResponse(responseCode = "403", description = "Usuário sem permissão", content = @Content(schema = @Schema(implementation = Void.class)))
-    @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(implementation = Void.class)))
-    public ResponseEntity<Void> removeUser(@PathVariable UUID id);
 }
