@@ -28,45 +28,45 @@ public interface UserApi {
     @ApiResponse(responseCode = "400", description = "Dados inválidos", content = @Content(schema = @Schema(implementation = Void.class)))
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão", content = @Content(schema = @Schema(implementation = Void.class)))
     @ApiResponse(responseCode = "409", description = "Email já cadastrado", content = @Content(schema = @Schema(implementation = Void.class)))
-    public ResponseEntity<UserResponseDTO> createUser(@RequestBody @Valid CreateUserRequestDTO request);
+    ResponseEntity<UserResponseDTO> createUser(@RequestBody @Valid CreateUserRequestDTO request);
 
     @Operation(summary = "Listar todos os usuários")
     @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão", content = @Content(schema = @Schema(implementation = Void.class)))
-    public ResponseEntity<Page<UserResponseDTO>> listAllUsers(@ParameterObject @PageableDefault(size = 10) Pageable pageable);
+    ResponseEntity<Page<UserResponseDTO>> listAllUsers(@ParameterObject @PageableDefault(size = 10) Pageable pageable);
 
     @Operation(summary = "Buscar usuário por ID")
     @ApiResponse(responseCode = "200", description = "Usuário encontrado")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão", content = @Content(schema = @Schema(implementation = Void.class)))
     @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(implementation = Void.class)))
-    public ResponseEntity<UserResponseDTO> findById(@PathVariable UUID id);
+    ResponseEntity<UserResponseDTO> findById(@PathVariable UUID id);
 
     @Operation(summary = "Alterar role do usuário")
     @ApiResponse(responseCode = "200", description = "Role alterada com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados inválidos", content = @Content(schema = @Schema(implementation = Void.class)))
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão", content = @Content(schema = @Schema(implementation = Void.class)))
     @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(implementation = Void.class)))
-    public ResponseEntity<UserResponseDTO> modifyRole(@PathVariable UUID id, @RequestBody @Valid ModifyUserRoleRequestDTO request);
+    ResponseEntity<UserResponseDTO> modifyRole(@PathVariable UUID id, @RequestBody @Valid ModifyUserRoleRequestDTO request);
 
     @Operation(summary = "Alterar senha do usuário")
     @ApiResponse(responseCode = "200", description = "Senha alterada com sucesso")
     @ApiResponse(responseCode = "400", description = "Senha atual incorreta ou dados inválidos", content = @Content(schema = @Schema(implementation = Void.class)))
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão", content = @Content(schema = @Schema(implementation = Void.class)))
     @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(implementation = Void.class)))
-    public ResponseEntity<UserResponseDTO> modifyPassword(@PathVariable UUID id, @RequestBody @Valid UpdatePasswordRequestDTO request);
+    ResponseEntity<UserResponseDTO> modifyPassword(@PathVariable UUID id, @RequestBody @Valid UpdatePasswordRequestDTO request);
 
     @Operation(summary = "Desativar usuário")
     @ApiResponse(responseCode = "200", description = "Usuário desativado com sucesso")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão", content = @Content(schema = @Schema(implementation = Void.class)))
     @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(implementation = Void.class)))
     @ApiResponse(responseCode = "409", description = "Usuário já está desativado", content = @Content(schema = @Schema(implementation = Void.class)))
-    public ResponseEntity<UserResponseDTO> deactivateUser(@PathVariable UUID id);
+    ResponseEntity<UserResponseDTO> deactivateUser(@PathVariable UUID id);
 
     @Operation(summary = "Ativar usuário")
     @ApiResponse(responseCode = "200", description = "Usuário ativado com sucesso")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão", content = @Content(schema = @Schema(implementation = Void.class)))
     @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(implementation = Void.class)))
     @ApiResponse(responseCode = "409", description = "Usuário já está ativo", content = @Content(schema = @Schema(implementation = Void.class)))
-    public ResponseEntity<UserResponseDTO> activateUser(@PathVariable UUID id);
+    ResponseEntity<UserResponseDTO> activateUser(@PathVariable UUID id);
 
 }
