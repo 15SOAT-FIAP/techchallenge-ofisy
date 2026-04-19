@@ -45,10 +45,6 @@ class VehicleControllerTest {
     @MockitoBean
     private VehicleService vehicleService;
 
-    private VehicleResponseDTO responseDTO(String plate, UUID customerId) {
-        return new VehicleResponseDTO(UUID.randomUUID(), customerId, plate, "Civic", "Honda", "Preto", 2022, null, NOW, NOW);
-    }
-
     @Nested
     class GetAllVehicles {
 
@@ -250,5 +246,9 @@ class VehicleControllerTest {
                     .andExpect(jsonPath("$.title").value("Veículo já existe"))
                     .andExpect(jsonPath("$.detail").value("Veículo com placa " + VALID_PLATE + " já está registrado."));
         }
+    }
+
+    private VehicleResponseDTO responseDTO(String plate, UUID customerId) {
+        return new VehicleResponseDTO(UUID.randomUUID(), customerId, plate, "Civic", "Honda", "Preto", 2022, null, NOW, NOW);
     }
 }
