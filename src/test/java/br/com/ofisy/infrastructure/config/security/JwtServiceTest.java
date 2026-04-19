@@ -1,6 +1,5 @@
 package br.com.ofisy.infrastructure.config.security;
 
-import br.com.ofisy.infrastructure.config.security.JwtService;
 import br.com.ofisy.infrastructure.config.auth.JwtProperties;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
