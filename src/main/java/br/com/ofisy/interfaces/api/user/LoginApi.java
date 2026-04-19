@@ -18,5 +18,5 @@ public interface LoginApi {
     @ApiResponse(responseCode = "200", description = "Login realizado com sucesso, token JWT retornado")
     @ApiResponse(responseCode = "400", description = "Dados inválidos", content = @Content(schema = @Schema(implementation = Void.class)))
     @ApiResponse(responseCode = "401", description = "Email ou senha inválidos", content = @Content(schema = @Schema(implementation = Void.class)))
-    public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO request);
+    ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO request);
 }
