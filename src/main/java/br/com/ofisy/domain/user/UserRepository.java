@@ -19,5 +19,4 @@ public interface UserRepository {
 
     boolean existsByEmailAddress(String email);
 
-    void deleteById(@NonNull UUID id);
 }

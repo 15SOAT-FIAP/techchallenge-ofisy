@@ -172,21 +172,6 @@ class UserRepositoryImplTest {
         }
     }
 
-    @Nested
-    @DisplayName("deleteById")
-    class DeleteById {
-
-        @Test
-        @DisplayName("Deve deletar usuário por ID")
-        void shouldDeleteUserById() {
-            UUID id = UUID.randomUUID();
-
-            userRepository.deleteById(id);
-
-            verify(jpaUserRepository).deleteById(id);
-        }
-    }
-
     private User mockUser() {
         return User.create("joao@ofisy.com", "hashed-password", "João Silva", Role.ATTENDANT);
     }

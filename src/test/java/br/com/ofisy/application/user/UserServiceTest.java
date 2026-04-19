@@ -264,36 +264,6 @@ class UserServiceTest {
         }
     }
 
-    @Nested
-    @DisplayName("removeUser")
-    class RemoveUser {
-
-        @Test
-        @DisplayName("Deve remover usuário com sucesso")
-        void shouldRemoveUserSuccessfully() {
-            UUID id = UUID.randomUUID();
-            User user = mockUser();
-
-            when(repository.findById(id)).thenReturn(Optional.of(user));
-
-            userService.removeUser(id);
-
-            verify(repository).deleteById(id);
-        }
-
-        @Test
-        @DisplayName("Deve lançar exceção ao remover usuário inexistente")
-        void shouldThrowExceptionWhenRemovingNonExistentUser() {
-            UUID id = UUID.randomUUID();
-            when(repository.findById(id)).thenReturn(Optional.empty());
-
-            assertThatThrownBy(() -> userService.removeUser(id))
-                    .isInstanceOf(UserNotFoundException.class);
-
-            verify(repository, never()).deleteById(any());
-        }
-    }
-
     private User mockUser() {
         return User.create(TEST_USER_PRINCIPAL_EMAIL, "hashed-password", TEST_USER_PRINCIPAL_NAME, TEST_USER_PRINCIPAL_ROLE);
     }
