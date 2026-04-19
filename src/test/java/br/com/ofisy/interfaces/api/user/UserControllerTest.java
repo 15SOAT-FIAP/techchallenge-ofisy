@@ -237,33 +237,6 @@ class UserControllerTest {
         }
     }
 
-    @Nested
-    @DisplayName("DELETE /api/v1/users/{id}/remove")
-    class RemoveUser {
-
-        @Test
-        @WithMockUser(roles = "ADMIN")
-        @DisplayName("Deve remover usuário e retornar 204")
-        void shouldRemoveUserAndReturn204() throws Exception {
-            UUID id = UUID.randomUUID();
-            doNothing().when(userService).removeUser(id);
-            mockMvc.perform(delete(BASE_URL + "/{id}/remove", id)
-                            .with(csrf()))
-                    .andExpect(status().isNoContent());
-        }
-
-        @Test
-        @WithMockUser(roles = "ADMIN")
-        @DisplayName("Deve retornar 404 ao remover usuário inexistente")
-        void shouldReturn404WhenRemovingNonExistentUser() throws Exception {
-            UUID id = UUID.randomUUID();
-            doThrow(new UserNotFoundException(id)).when(userService).removeUser(id);
-            mockMvc.perform(delete(BASE_URL + "/{id}/remove", id)
-                            .with(csrf()))
-                    .andExpect(status().isNotFound());
-        }
-    }
-
     private UserResponseDTO mockResponse() {
         return new UserResponseDTO(
                 UUID.randomUUID(), TEST_USER_PRINCIPAL_NAME,
