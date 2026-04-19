@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -268,6 +269,29 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
                         """))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.title").value("Erro de validação"));
+        }
+    }
+
+    @Nested
+    class UsernameNotFound {
+
+        @Test
+        @DisplayName("Deve retornar 401 quando usuário não encontrado")
+        void shouldReturn401WhenUsernameNotFound() throws Exception {
+            when(authenticationManager.authenticate(any()))
+                    .thenThrow(new UsernameNotFoundException("Usuário não encontrado"));
+
+            mockMvc.perform(post("/api/v1/login")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                            {
+                                "email": "naoexiste@ofisy.com",
+                                "password": "senha123"
+                            }
+                        """))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.title").value("Não autorizado"));
         }
     }
 
