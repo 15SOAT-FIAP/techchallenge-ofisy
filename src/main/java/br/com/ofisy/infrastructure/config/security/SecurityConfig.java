@@ -17,7 +17,7 @@ public class SecurityConfig {
     private final SecurityProperties securityProperties;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) {
         String[] publicPaths = securityProperties.getPublicPaths().toArray(new String[0]);
 
         http
