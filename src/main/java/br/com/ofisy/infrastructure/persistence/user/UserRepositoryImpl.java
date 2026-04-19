@@ -42,9 +42,4 @@ public class UserRepositoryImpl implements UserRepository {
     public boolean existsByEmailAddress(String email) {
         return jpaUserRepository.existsByEmailEmailAddress(email);
     }
-
-    @Override
-    public void deleteById(@NonNull UUID id) {
-        jpaUserRepository.deleteById(id);
-    }
 }
