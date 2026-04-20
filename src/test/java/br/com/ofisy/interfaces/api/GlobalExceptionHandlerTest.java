@@ -4,8 +4,13 @@ import br.com.ofisy.application.customer.CustomerService;
 import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsException;
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
+import br.com.ofisy.application.vehicle.VehicleService;
+import br.com.ofisy.application.vehicle.exceptions.VehicleAlreadyExistsException;
+import br.com.ofisy.application.vehicle.exceptions.VehicleLicensePlateNotFoundException;
+import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
 import br.com.ofisy.interfaces.api.customer.CustomerController;
+import br.com.ofisy.interfaces.api.vehicle.VehicleController;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +30,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(CustomerController.class)
+@WebMvcTest({CustomerController.class, VehicleController.class})
 @WithMockUser
 class GlobalExceptionHandlerTest {
 
@@ -34,6 +39,9 @@ class GlobalExceptionHandlerTest {
 
     @MockitoBean
     private CustomerService customerService;
+
+    @MockitoBean
+    private VehicleService vehicleService;
 
     @Nested
     class CustomerNotFound {
@@ -161,6 +169,68 @@ class GlobalExceptionHandlerTest {
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.title").value("Erro de validação"))
                     .andExpect(jsonPath("$.errors.email").value("Email deve ser válido"));
+        }
+    }
+
+    @Nested
+    class VehicleNotFound {
+
+        @Test
+        void shouldReturn404WhenVehicleNotFoundById() throws Exception {
+            var id = UUID.randomUUID();
+            when(vehicleService.identifyVehicleById(any(UUID.class)))
+                    .thenThrow(new VehicleNotFoundException(id));
+
+            mockMvc.perform(get("/api/v1/vehicles/{id}", id))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.title").value("Veículo não encontrado"))
+                    .andExpect(jsonPath("$.detail").value("Veículo com ID " + id + " não encontrado"));
+        }
+    }
+
+    @Nested
+    class VehicleLicensePlateNotFound {
+
+        @Test
+        void shouldReturn404WhenVehicleNotFoundByLicensePlate() throws Exception {
+            var plate = "ABC1234";
+            when(vehicleService.identifyVehicleByLicensePlate(plate))
+                    .thenThrow(new VehicleLicensePlateNotFoundException(plate));
+
+            mockMvc.perform(get("/api/v1/vehicles").param("licensePlate", plate))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.title").value("Veículo não encontrado pela placa"))
+                    .andExpect(jsonPath("$.detail").value("Veículo com placa '" + plate + "' não encontrado"));
+        }
+    }
+
+    @Nested
+    class VehicleAlreadyExists {
+
+        @Test
+        void shouldReturn409WhenVehicleAlreadyExists() throws Exception {
+            var plate = "ABC1234";
+            when(vehicleService.registerVehicle(any()))
+                    .thenThrow(new VehicleAlreadyExistsException(plate));
+
+            var body = """
+                    {
+                        "customerId": "00000000-0000-0000-0000-000000000001",
+                        "licensePlate": "ABC1234",
+                        "model": "Civic",
+                        "brand": "Honda",
+                        "color": "Preto",
+                        "year": 2022
+                    }
+                    """;
+
+            mockMvc.perform(post("/api/v1/vehicles")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.title").value("Veículo já existe"))
+                    .andExpect(jsonPath("$.detail").value("Veículo com placa " + plate + " já está registrado."));
         }
     }
 }
