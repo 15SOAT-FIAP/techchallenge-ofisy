@@ -1,32 +1,25 @@
 package br.com.ofisy.application.stockmovement;
 
-import br.com.ofisy.domain.stockmovement.MovementType;
+import br.com.ofisy.application.stockmovement.dto.StockMovementRequestDTO;
+import br.com.ofisy.application.stockmovement.dto.StockMovementResponseDTO;
 import br.com.ofisy.domain.stockmovement.StockMovement;
 import br.com.ofisy.domain.stockmovement.StockMovementRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
-
 @Service
 @RequiredArgsConstructor
 public class StockMovementService {
 
-    StockMovementRepository stockMovementRepository;
+    private final StockMovementRepository stockMovementRepository;
 
     @Transactional
-    public StockMovement registerMovement(UUID stockId, MovementType type, Integer quantity,
-                                 Integer previousQuantity, Integer newQuantity) {
+    public StockMovementResponseDTO registerMovement(StockMovementRequestDTO stockMovementRequestDTO) {
+        StockMovement stockMovement = StockMovementMapper.toDomain(stockMovementRequestDTO);
 
-        StockMovement stockMovement = StockMovement.create(
-                stockId,
-                type,
-                quantity,
-                previousQuantity,
-                newQuantity
-        );
+        StockMovement savedStockMovement = stockMovementRepository.save(stockMovement);
 
-        return stockMovementRepository.save(stockMovement);
+        return StockMovementMapper.toDTO(savedStockMovement);
     }
 }
