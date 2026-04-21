@@ -54,7 +54,7 @@ public class StockController implements StockApi {
             @RequestParam Integer quantity) {
 
         return ResponseEntity
-                .status(HttpStatus.CREATED)
+                .status(HttpStatus.OK)
                 .body(stockService.addStock(id, quantity));
     }
 
@@ -64,7 +64,7 @@ public class StockController implements StockApi {
             @RequestParam Integer quantity) {
 
         return ResponseEntity
-                .status(HttpStatus.CREATED)
+                .status(HttpStatus.OK)
                 .body(stockService.consumeStock(id, quantity));
     }
 }

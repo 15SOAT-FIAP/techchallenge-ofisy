@@ -43,7 +43,7 @@ public interface StockApi {
             CreateStockRequestDTO request);
 
     @Operation(summary = "Adicionar estoque")
-    @ApiResponse(responseCode = "201", description = "Estoque adicionado com sucesso")
+    @ApiResponse(responseCode = "200", description = "Estoque adicionado com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados para adicionar estoque inválidos")
     @PostMapping("/{id}/add")
     ResponseEntity<StockResponseDTO> addStock(
@@ -51,7 +51,7 @@ public interface StockApi {
             Integer quantity);
 
     @Operation(summary = "Consumir estoque")
-    @ApiResponse(responseCode = "201", description = "Estoque consumido com sucesso")
+    @ApiResponse(responseCode = "200", description = "Estoque consumido com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados para consumir estoque inválidos")
     @PostMapping("/{id}/consume")
     ResponseEntity<StockResponseDTO> consumeStock(
