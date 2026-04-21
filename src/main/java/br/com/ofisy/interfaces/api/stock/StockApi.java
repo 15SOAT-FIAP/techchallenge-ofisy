@@ -60,9 +60,9 @@ public interface StockApi {
             Integer quantity);
 
     @Operation(summary = "Atualizar um estoque existente")
-    @ApiResponse(responseCode = "201", description = "Estoque atualizado com sucesso")
+    @ApiResponse(responseCode = "200", description = "Estoque atualizado com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados para atualizar estoque inválidos")
-    @PutMapping
+    @PutMapping("/{id}")
     ResponseEntity<StockResponseDTO> update(
             UUID id,
             UpdateStockRequestDTO request);
