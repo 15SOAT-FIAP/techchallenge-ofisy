@@ -1,4 +1,4 @@
-package br.com.ofisy.infrastructure.persistence.CatalogService;
+package br.com.ofisy.infrastructure.persistence.catalogService;
 
 import br.com.ofisy.domain.catalogService.CatalogService;
 import org.springframework.data.jpa.repository.JpaRepository;

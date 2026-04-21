@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -22,7 +23,8 @@ public class Service {
     @Column(nullable = false)
     private UUID catalogServiceId;
 
-    @Column(nullable = false)
+    @Setter
+    @Column
     private UUID serviceExecutionTimeId;
 
     @Column(nullable = false, precision = 10, scale = 2)
@@ -35,6 +37,9 @@ public class Service {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
+
     private Service(UUID catalogServiceId, BigDecimal price) {
         this.catalogServiceId = catalogServiceId;
         this.price = price;
@@ -46,10 +51,6 @@ public class Service {
         return new Service(catalogServiceId, price);
     }
 
-    public void setServiceExecutionTimeId(UUID serviceExecutionTimeId) {
-        this.serviceExecutionTimeId = serviceExecutionTimeId;
-    }
-
     public void complete() {
         this.status = ServiceStatus.COMPLETED;
     }
@@ -58,4 +59,3 @@ public class Service {
         this.status = ServiceStatus.CANCELLED;
     }
 }
-

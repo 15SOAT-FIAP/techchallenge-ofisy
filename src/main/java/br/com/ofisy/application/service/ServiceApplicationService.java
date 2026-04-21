@@ -41,10 +41,6 @@ public class ServiceApplicationService {
         return repository.findAll(pageable);
     }
 
-    public Page<Service> findByCustomerId(UUID customerId, Pageable pageable) {
-        return repository.findByCustomerId(customerId, pageable);
-    }
-
     public Page<Service> findByCatalogServiceId(UUID catalogServiceId, Pageable pageable) {
         return repository.findByCatalogServiceId(catalogServiceId, pageable);
     }

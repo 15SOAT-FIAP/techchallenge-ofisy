@@ -9,8 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.UUID;
 
 public interface JpaServiceRepository extends JpaRepository<Service, UUID> {
-    Page<Service> findByCustomerId(UUID customerId, Pageable pageable);
-
     Page<Service> findByCatalogServiceId(UUID catalogServiceId, Pageable pageable);
 
     Page<Service> findByStatus(ServiceStatus status, Pageable pageable);

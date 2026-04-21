@@ -33,11 +33,6 @@ public class ServiceRepositoryImpl implements ServiceRepository {
     }
 
     @Override
-    public Page<Service> findByCustomerId(UUID customerId, Pageable pageable) {
-        return jpa.findByCustomerId(customerId, pageable);
-    }
-
-    @Override
     public Page<Service> findByCatalogServiceId(UUID catalogServiceId, Pageable pageable) {
         return jpa.findByCatalogServiceId(catalogServiceId, pageable);
     }

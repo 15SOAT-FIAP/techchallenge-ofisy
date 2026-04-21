@@ -35,14 +35,6 @@ public class ServiceController {
         return ResponseEntity.ok(serviceService.findById(id));
     }
 
-    @GetMapping(params = "customerId")
-    public ResponseEntity<Page<Service>> getServicesByCustomerId(
-            @RequestParam UUID customerId,
-            @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
-
-        return ResponseEntity.ok(serviceService.findByCustomerId(customerId, pageable));
-    }
-
     @GetMapping(params = "catalogServiceId")
     public ResponseEntity<Page<Service>> getServicesByCatalogServiceId(
             @RequestParam UUID catalogServiceId,
