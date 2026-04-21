@@ -1,8 +1,11 @@
 package br.com.ofisy.application.stock;
 
+import br.com.ofisy.application.stock.dto.CreateStockRequestDTO;
+import br.com.ofisy.application.stock.dto.StockResponseDTO;
 import br.com.ofisy.application.stock.exceptions.InsufficientStockException;
 import br.com.ofisy.application.stock.exceptions.StockNotFoundException;
 import br.com.ofisy.application.stockmovement.StockMovementService;
+import br.com.ofisy.application.stockmovement.dto.StockMovementRequestDTO;
 import br.com.ofisy.domain.stock.Stock;
 import br.com.ofisy.domain.stock.StockRepository;
 import br.com.ofisy.domain.stockmovement.MovementType;
@@ -16,12 +19,21 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class StockService {
 
-    private final StockRepository stockRepository;
-
     private final StockMovementService stockMovementService;
 
+    private final StockRepository stockRepository;
+
     @Transactional
-    public Stock addStock(UUID stockId, Integer quantity) {
+    public StockResponseDTO create(CreateStockRequestDTO createStockRequestDTO) {
+        Stock stock = StockMapper.toDomain(createStockRequestDTO);
+
+        Stock savedStock = stockRepository.save(stock);
+
+        return StockMapper.toDTO(savedStock);
+    }
+
+    @Transactional
+    public StockResponseDTO addStock(UUID stockId, Integer quantity) {
         Stock stock = stockRepository.findById(stockId)
                 .orElseThrow(() -> new StockNotFoundException(stockId));
 
@@ -30,7 +42,7 @@ public class StockService {
 
         stock.addQuantity(quantity);
 
-        stockMovementService.registerMovement(
+        StockMovementRequestDTO requestDTO = new StockMovementRequestDTO(
                 stockId,
                 MovementType.IN,
                 quantity,
@@ -38,11 +50,15 @@ public class StockService {
                 newQuantity
         );
 
-        return stockRepository.save(stock);
+        stockMovementService.registerMovement(requestDTO);
+
+        Stock savedStock = stockRepository.save(stock);
+
+        return StockMapper.toDTO(savedStock);
     }
 
     @Transactional
-    public Stock consumeStock(UUID stockId, Integer quantity) {
+    public StockResponseDTO consumeStock(UUID stockId, Integer quantity) {
         Stock stock = stockRepository.findById(stockId)
                 .orElseThrow(() -> new StockNotFoundException(stockId));
 
@@ -55,7 +71,7 @@ public class StockService {
 
         stock.consumeQuantity(quantity);
 
-        stockMovementService.registerMovement(
+        StockMovementRequestDTO requestDTO = new StockMovementRequestDTO(
                 stockId,
                 MovementType.OUT,
                 quantity,
@@ -63,6 +79,10 @@ public class StockService {
                 newQuantity
         );
 
-        return stockRepository.save(stock);
+        stockMovementService.registerMovement(requestDTO);
+
+        Stock savedStock = stockRepository.save(stock);
+
+        return StockMapper.toDTO(savedStock);
     }
 }
