@@ -27,7 +27,7 @@ public class Stock {
     private String description;
 
     @Column(nullable = false)
-    private Integer quantity;
+    private Integer quantity = 0;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal unitPrice;
@@ -41,8 +41,8 @@ public class Stock {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    @Column
-    private Integer minThreshold;
+    @Column(nullable = false)
+    private Integer minThreshold = 0;
 
     private Stock(String productName, String description, Integer quantity, BigDecimal unitPrice, String category, Integer minThreshold) {
         this.productName = productName;
