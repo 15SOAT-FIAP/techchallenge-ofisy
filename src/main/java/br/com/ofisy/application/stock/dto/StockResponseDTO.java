@@ -22,5 +22,7 @@ public record StockResponseDTO(
 
         LocalDateTime updatedAt,
 
-        Integer minThreshold
+        Integer minThreshold,
+
+        Boolean isLowStock
 ) {}
