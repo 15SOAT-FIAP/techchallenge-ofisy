@@ -2,6 +2,7 @@ package br.com.ofisy.application.stock;
 
 import br.com.ofisy.application.stock.dto.CreateStockRequestDTO;
 import br.com.ofisy.application.stock.dto.StockResponseDTO;
+import br.com.ofisy.application.stock.dto.UpdateStockRequestDTO;
 import br.com.ofisy.application.stock.exceptions.InsufficientStockException;
 import br.com.ofisy.application.stock.exceptions.StockNotFoundException;
 import br.com.ofisy.application.stockmovement.StockMovementService;
@@ -32,6 +33,22 @@ public class StockService {
         Stock savedStock = stockRepository.save(stock);
 
         return StockMapper.toDTO(savedStock);
+    }
+
+    @Transactional
+    public StockResponseDTO update(UUID stockId, UpdateStockRequestDTO request) {
+        Stock existingStock = stockRepository.findById(stockId)
+                .orElseThrow(() -> new StockNotFoundException(stockId));
+
+        existingStock.update(
+                request.productName(),
+                request.description(),
+                request.unitPrice(),
+                request.category(),
+                request.minThreshold()
+        );
+
+        return StockMapper.toDTO(existingStock);
     }
 
     @Transactional

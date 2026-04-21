@@ -2,6 +2,7 @@ package br.com.ofisy.interfaces.api.stock;
 
 import br.com.ofisy.application.stock.dto.CreateStockRequestDTO;
 import br.com.ofisy.application.stock.dto.StockResponseDTO;
+import br.com.ofisy.application.stock.dto.UpdateStockRequestDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,7 +40,7 @@ public interface StockApi {
     @ApiResponse(responseCode = "201", description = "Estoque cadastrado com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados para criação de estoque inválidos")
     @PostMapping
-    ResponseEntity<StockResponseDTO> createStock(
+    ResponseEntity<StockResponseDTO> create(
             CreateStockRequestDTO request);
 
     @Operation(summary = "Adicionar estoque")
@@ -57,4 +58,12 @@ public interface StockApi {
     ResponseEntity<StockResponseDTO> consumeStock(
             UUID id,
             Integer quantity);
+
+    @Operation(summary = "Atualizar um estoque existente")
+    @ApiResponse(responseCode = "201", description = "Estoque atualizado com sucesso")
+    @ApiResponse(responseCode = "400", description = "Dados para atualizar estoque inválidos")
+    @PutMapping
+    ResponseEntity<StockResponseDTO> update(
+            UUID id,
+            UpdateStockRequestDTO request);
 }

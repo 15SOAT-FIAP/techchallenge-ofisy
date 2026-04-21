@@ -3,6 +3,7 @@ package br.com.ofisy.interfaces.api.stock;
 import br.com.ofisy.application.stock.StockService;
 import br.com.ofisy.application.stock.dto.CreateStockRequestDTO;
 import br.com.ofisy.application.stock.dto.StockResponseDTO;
+import br.com.ofisy.application.stock.dto.UpdateStockRequestDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -43,7 +44,7 @@ public class StockController implements StockApi {
     }
 
     @PostMapping
-    public ResponseEntity<StockResponseDTO> createStock(
+    public ResponseEntity<StockResponseDTO> create(
             @Valid @RequestBody CreateStockRequestDTO requestDTO) {
         return ResponseEntity.status(HttpStatus.CREATED).body(stockService.create(requestDTO));
     }
@@ -66,5 +67,13 @@ public class StockController implements StockApi {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(stockService.consumeStock(id, quantity));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<StockResponseDTO> update(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateStockRequestDTO updateStockDTO) {
+
+        return ResponseEntity.ok(stockService.update(id, updateStockDTO));
     }
 }
