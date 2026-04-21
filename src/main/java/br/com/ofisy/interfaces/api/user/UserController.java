@@ -27,21 +27,18 @@ import java.util.UUID;
 @RestController()
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
-@Tag(name = "CRUD Usuários")
 @SecurityRequirement(name = "Bearer Token")
-public class UserController {
+public class UserController implements UserApi {
 
     private final UserService userService;
 
     @PostMapping
-    @Operation(summary = "Criar novo usuário")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponseDTO> createUser(@RequestBody @Valid CreateUserRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(request));
     }
 
     @GetMapping
-    @Operation(summary = "Listar todos os usuários")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<UserResponseDTO>> listAllUsers(
             @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
@@ -49,14 +46,12 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Buscar usuário por ID")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponseDTO> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(userService.findById(id));
     }
 
     @PatchMapping("/{id}/modify-role")
-    @Operation(summary = "Alterar role do usuário")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponseDTO> modifyRole(
             @PathVariable UUID id,
@@ -65,7 +60,6 @@ public class UserController {
     }
 
     @PatchMapping("/{id}/update-password")
-    @Operation(summary = "Alterar senha do usuário")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponseDTO> modifyPassword(
             @PathVariable UUID id,
@@ -74,24 +68,14 @@ public class UserController {
     }
 
     @PatchMapping("/{id}/deactivate")
-    @Operation(summary = "Desativar usuário")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponseDTO> deactivateUser(@PathVariable UUID id) {
         return ResponseEntity.ok(userService.deactivateUser(id));
     }
 
     @PatchMapping("/{id}/activate")
-    @Operation(summary = "Ativar usuário")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponseDTO> activateUser(@PathVariable UUID id) {
         return ResponseEntity.ok(userService.activateUser(id));
-    }
-
-    @DeleteMapping("/{id}/remove")
-    @Operation(summary = "Remover usuário")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> removeUser(@PathVariable UUID id) {
-        userService.removeUser(id);
-        return ResponseEntity.noContent().build();
     }
 }

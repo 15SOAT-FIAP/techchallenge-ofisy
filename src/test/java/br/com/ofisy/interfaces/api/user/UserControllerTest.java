@@ -1,10 +1,9 @@
 package br.com.ofisy.interfaces.api.user;
 
 import br.com.ofisy.application.user.UserService;
-import br.com.ofisy.application.user.exceptions.UserNotFoundException;
+import br.com.ofisy.application.user.dto.*;
 import br.com.ofisy.domain.user.Email;
 import br.com.ofisy.domain.user.Role;
-import br.com.ofisy.interfaces.api.ControllerTestBase;
 import br.com.ofisy.interfaces.api.ControllerTestBase;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;

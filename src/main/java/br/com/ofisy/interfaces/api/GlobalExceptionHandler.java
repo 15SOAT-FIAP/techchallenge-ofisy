@@ -4,6 +4,10 @@ import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsExcepti
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
 import br.com.ofisy.application.user.exceptions.UserNotFoundException;
+import br.com.ofisy.application.vehicle.exceptions.VehicleAlreadyExistsException;
+import br.com.ofisy.application.vehicle.exceptions.VehicleLicensePlateNotFoundException;
+import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
+import br.com.ofisy.application.user.exceptions.UserNotFoundException;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
 import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
 import org.springframework.http.HttpStatus;
@@ -42,6 +46,27 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleCustomerAlreadyExists(CustomerAlreadyExistsException ex) {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         problem.setTitle("Cliente já existe");
+        return problem;
+    }
+
+    @ExceptionHandler(VehicleNotFoundException.class)
+    public ProblemDetail handleVehicleNotFound(VehicleNotFoundException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problem.setTitle("Veículo não encontrado");
+        return problem;
+    }
+
+    @ExceptionHandler(VehicleLicensePlateNotFoundException.class)
+    public ProblemDetail handleVehicleLicensePlateNotFound(VehicleLicensePlateNotFoundException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problem.setTitle("Veículo não encontrado pela placa");
+        return problem;
+    }
+
+    @ExceptionHandler(VehicleAlreadyExistsException.class)
+    public ProblemDetail handleVehicleAlreadyExists(VehicleAlreadyExistsException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problem.setTitle("Veículo já existe");
         return problem;
     }
 

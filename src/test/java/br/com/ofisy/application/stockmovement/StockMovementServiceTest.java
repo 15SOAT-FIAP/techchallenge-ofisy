@@ -1,19 +1,20 @@
 package br.com.ofisy.application.stockmovement;
 
+import br.com.ofisy.application.stockmovement.dto.StockMovementRequestDTO;
+import br.com.ofisy.application.stockmovement.dto.StockMovementResponseDTO;
 import br.com.ofisy.domain.stockmovement.MovementType;
 import br.com.ofisy.domain.stockmovement.StockMovement;
 import br.com.ofisy.domain.stockmovement.StockMovementRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -27,14 +28,14 @@ public class StockMovementServiceTest {
     private StockMovementService stockMovementService;
 
     @Test
-    @DisplayName("Deve registrar moviementação de entrada no estoque")
+    @DisplayName("Deve registrar movimentação de entrada no estoque")
     void shouldRegisterInMovementSuccessfully() {
-        ArgumentCaptor<StockMovement> captor = ArgumentCaptor.forClass(StockMovement.class);
-
         StockMovement stockIn = createInMovement();
-        when(stockMovementRepository.save(any(StockMovement.class))).thenReturn(stockIn);
 
-        stockMovementService.registerMovement(
+        when(stockMovementRepository.save(any(StockMovement.class)))
+                .thenReturn(stockIn);
+
+        StockMovementRequestDTO requestDTO = new StockMovementRequestDTO(
                 UUID.randomUUID(),
                 MovementType.IN,
                 10,
@@ -42,27 +43,28 @@ public class StockMovementServiceTest {
                 100
         );
 
-        verify(stockMovementRepository).save(captor.capture());
+        StockMovementResponseDTO responseDTO =
+                stockMovementService.registerMovement(requestDTO);
 
-        StockMovement saved = captor.getValue();
+        verify(stockMovementRepository).save(any());
 
-        assertEquals(MovementType.IN, saved.getMovementType());
-        assertEquals(10, saved.getQuantity());
-        assertEquals(90, saved.getPreviousQuantity());
-        assertEquals(100, saved.getNewQuantity());
+        assertThat(responseDTO.movementType()).isEqualTo(MovementType.IN);
+        assertThat(responseDTO.quantity()).isEqualTo(10);
+        assertThat(responseDTO.previousQuantity()).isEqualTo(90);
+        assertThat(responseDTO.newQuantity()).isEqualTo(100);
+        assertThat(responseDTO.createdAt()).isNotNull();
+        assertThat(responseDTO.updatedAt()).isNotNull();
     }
 
     @Test
-    @DisplayName("Deve registrar moviementação de saída no estoque")
+    @DisplayName("Deve registrar movimentação de saída no estoque")
     void shouldRegisterOutMovementSuccessfully() {
-        ArgumentCaptor<StockMovement> captor = ArgumentCaptor.forClass(StockMovement.class);
-
         when(stockMovementRepository.save(any(StockMovement.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         UUID stockId = UUID.randomUUID();
 
-        stockMovementService.registerMovement(
+        StockMovementRequestDTO requestDTO = new StockMovementRequestDTO(
                 stockId,
                 MovementType.OUT,
                 10,
@@ -70,15 +72,17 @@ public class StockMovementServiceTest {
                 90
         );
 
-        verify(stockMovementRepository).save(captor.capture());
+        StockMovementResponseDTO responseDTO =
+                stockMovementService.registerMovement(requestDTO);
 
-        StockMovement saved = captor.getValue();
+        verify(stockMovementRepository).save(any());
 
-        assertEquals(stockId, saved.getStockId());
-        assertEquals(MovementType.OUT, saved.getMovementType());
-        assertEquals(10, saved.getQuantity());
-        assertEquals(100, saved.getPreviousQuantity());
-        assertEquals(90, saved.getNewQuantity());
+        assertThat(responseDTO.movementType()).isEqualTo(MovementType.OUT);
+        assertThat(responseDTO.quantity()).isEqualTo(10);
+        assertThat(responseDTO.previousQuantity()).isEqualTo(100);
+        assertThat(responseDTO.newQuantity()).isEqualTo(90);
+        assertThat(responseDTO.createdAt()).isNotNull();
+        assertThat(responseDTO.updatedAt()).isNotNull();
     }
 
     private StockMovement createInMovement() {
