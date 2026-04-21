@@ -35,7 +35,8 @@ public class StockMapper {
                 stock.getCategory(),
                 stock.getCreatedAt(),
                 stock.getUpdatedAt(),
-                stock.getMinThreshold()
+                stock.getMinThreshold(),
+                stock.isLowStock()
         );
     }
 }
