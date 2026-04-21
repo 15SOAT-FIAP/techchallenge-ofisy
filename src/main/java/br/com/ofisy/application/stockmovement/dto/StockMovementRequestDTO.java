@@ -1,24 +1,29 @@
 package br.com.ofisy.application.stockmovement.dto;
 
 import br.com.ofisy.domain.stockmovement.MovementType;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 
 import java.util.UUID;
 
 public record StockMovementRequestDTO(
 
-        @NotBlank(message = "Estoque é obrigatório")
+        @NotNull(message = "Estoque é obrigatório")
         UUID stockId,
 
-        @NotBlank(message = "Tipo é obrigatório")
+        @NotNull(message = "Tipo é obrigatório")
         MovementType type,
 
-        @NotBlank(message = "Quantidade é obrigatório")
+        @NotNull(message = "Quantidade é obrigatória")
+        @Positive(message = "Quantidade deve ser maior que zero")
         Integer quantity,
 
-        @NotBlank(message = "Quantidade anterior é obrigatório")
+        @NotNull(message = "Quantidade anterior é obrigatória")
+        @Min(value = 0, message = "Quantidade anterior não pode ser negativa")
         Integer previousQuantity,
 
-        @NotBlank(message = "Quantidade nova é obrigatório")
+        @NotNull(message = "Quantidade nova é obrigatória")
+        @Min(value = 0, message = "Quantidade nova não pode ser negativa")
         Integer newQuantity
 ) {}
