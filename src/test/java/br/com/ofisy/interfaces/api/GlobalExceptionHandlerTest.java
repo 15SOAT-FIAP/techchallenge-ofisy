@@ -37,7 +37,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest({CustomerController.class, UserController.class, LoginController.class})
+@WebMvcTest({CustomerController.class, UserController.class, LoginController.class, VehicleController.class})
 @WithMockUser
 class GlobalExceptionHandlerTest extends ControllerTestBase {
 
