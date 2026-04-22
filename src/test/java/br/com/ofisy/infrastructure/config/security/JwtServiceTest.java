@@ -1,6 +1,7 @@
 package br.com.ofisy.infrastructure.config.security;
 
 import br.com.ofisy.infrastructure.config.auth.JwtProperties;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,14 +19,21 @@ class JwtServiceTest {
     public static final String SECRET = "1111111111111111111111111111111111111111111111111111111111";
     public static final long EXPIRATION = 86400000L;
 
-    @Mock private JwtProperties jwtProperties;
+    @Mock
+    private JwtProperties jwtProperties;
 
-    @InjectMocks private JwtService jwtService;
+    @InjectMocks
+    private JwtService jwtService;
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(jwtProperties.getSecret()).thenReturn(SECRET);
+        lenient().when(jwtProperties.getExpiration()).thenReturn(EXPIRATION);
+    }
 
     @Test
     @DisplayName("Deve gerar token JWT válido")
     void shouldGenerateValidToken() {
-        mockProperties(EXPIRATION);
         String token = jwtService.generateToken(TEST_USER_PRINCIPAL_EMAIL);
         assertThat(token).isNotNull().isNotEmpty();
     }
@@ -34,7 +42,6 @@ class JwtServiceTest {
     @DisplayName("Deve extrair email do token corretamente")
     void shouldExtractEmailFromToken() {
         String email = TEST_USER_PRINCIPAL_EMAIL;
-        mockProperties(EXPIRATION);
         String token = jwtService.generateToken(email);
 
         String extractedEmail = jwtService.extractEmail(token);
@@ -44,7 +51,6 @@ class JwtServiceTest {
     @Test
     @DisplayName("Deve validar token válido")
     void shouldValidateValidToken() {
-        mockProperties(EXPIRATION);
         String token = jwtService.generateToken(TEST_USER_PRINCIPAL_EMAIL);
 
         boolean isValid = jwtService.isValidToken(token);
@@ -71,7 +77,6 @@ class JwtServiceTest {
     @Test
     @DisplayName("Deve gerar tokens diferentes para emails diferentes")
     void shouldGenerateDifferentTokensForDifferentEmails() {
-        mockProperties(EXPIRATION);
         String token1 = jwtService.generateToken(TEST_USER_PRINCIPAL_EMAIL);
         String token2 = jwtService.generateToken("maria@ofisy.com");
 
@@ -81,17 +86,10 @@ class JwtServiceTest {
     @Test
     @DisplayName("Deve invalidar token expirado")
     void shouldInvalidateExpiredToken() {
-        mockProperties(-1000L);
-
+        when(jwtProperties.getExpiration()).thenReturn(-1000L);
         String expiredToken = jwtService.generateToken(TEST_USER_PRINCIPAL_EMAIL);
         boolean isValid = jwtService.isValidToken(expiredToken);
-
         assertThat(isValid).isFalse();
-    }
-
-    private void mockProperties(long expiration) {
-        when(jwtProperties.getSecret()).thenReturn(SECRET);
-        when(jwtProperties.getExpiration()).thenReturn(expiration);
     }
 
 }
