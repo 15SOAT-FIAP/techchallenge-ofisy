@@ -29,7 +29,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -299,7 +298,7 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
                             }
                         """))
                     .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.title").value("Não autorizado"));
+                    .andExpect(jsonPath("$.title").value("Usuário não autorizado"));
         }
     }
 
