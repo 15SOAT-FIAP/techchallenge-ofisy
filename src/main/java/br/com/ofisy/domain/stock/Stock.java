@@ -59,30 +59,6 @@ public class Stock {
         return new Stock(productName, description, quantity, unitPrice, category, minThreshold);
     }
 
-    public void update(String productName, String description, BigDecimal unitPrice, String category, Integer minThreshold) {
-        if (productName != null) {
-            this.productName = productName;
-        }
-
-        if (description != null) {
-            this.description = description;
-        }
-
-        if (unitPrice != null && unitPrice.compareTo(BigDecimal.ZERO) > 0) {
-            this.unitPrice = unitPrice;
-        }
-
-        if (category != null) {
-            this.category = category;
-        }
-
-        if (minThreshold != null && minThreshold >= 0) {
-            this.minThreshold = minThreshold;
-        }
-
-        this.updatedAt = LocalDateTime.now();
-    }
-
     public void addQuantity(Integer quantity) {
         validateQuantity(quantity);
 

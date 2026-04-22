@@ -16,6 +16,8 @@ spring:
   docker:
     compose:
       file: compose.db.yaml
+  config:
+    import: optional:file:.env[.properties]
 management:
     endpoints:
       web:
@@ -23,6 +25,8 @@ management:
           include: health
 security:
   public-paths:
+    - /api/v1/login
+    - /api/v1/customers
     - /swagger-ui/**
     - /swagger-ui.html
     - /v3/api-docs/**
@@ -30,3 +34,8 @@ security:
 logging:
   level:
     org.flywaydb: DEBUG
+jwt:
+  admin-password: ${ADMIN_PASSWORD}
+  admin-login: ${ADMIN_LOGIN}
+  secret: ${JWT_SECRET}
+  expiration: 86400000

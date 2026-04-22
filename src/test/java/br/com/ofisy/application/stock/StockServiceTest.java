@@ -2,7 +2,6 @@ package br.com.ofisy.application.stock;
 
 import br.com.ofisy.application.stock.dto.CreateStockRequestDTO;
 import br.com.ofisy.application.stock.dto.StockResponseDTO;
-import br.com.ofisy.application.stock.dto.UpdateStockRequestDTO;
 import br.com.ofisy.application.stock.exceptions.InsufficientStockException;
 import br.com.ofisy.application.stock.exceptions.StockNotFoundException;
 import br.com.ofisy.application.stockmovement.StockMovementService;
@@ -71,30 +70,6 @@ public class StockServiceTest {
        assertThat(responseDTO.minThreshold()).isEqualTo(requestDTO.minThreshold());
        assertThat(responseDTO.createdAt()).isNotNull();
        assertThat(responseDTO.updatedAt()).isNotNull();
-    }
-
-    @Test
-    @DisplayName("Deve atualizar estoque com sucesso")
-    void shouldUpdateStockSuccessfully() {
-        when(stockRepository.findById(stock.getId()))
-                .thenReturn(Optional.of(stock));
-
-        UpdateStockRequestDTO requestDTO = new UpdateStockRequestDTO(
-                "Radiador - usado",
-                "Radiador de água com reservatório - usado",
-                new BigDecimal("190.00"),
-                "Arrefecimento",
-                2
-        );
-
-        StockResponseDTO responseDTO = stockService.update(stock.getId(), requestDTO);
-
-        assertThat(responseDTO.productName()).isEqualTo(requestDTO.productName());
-        assertThat(responseDTO.description()).isEqualTo(requestDTO.description());
-        assertThat(responseDTO.unitPrice()).isEqualTo(requestDTO.unitPrice());
-        assertThat(responseDTO.category()).isEqualTo(requestDTO.category());
-        assertThat(responseDTO.minThreshold()).isEqualTo(requestDTO.minThreshold());
-        assertThat(responseDTO.updatedAt()).isNotNull();
     }
 
     @Test
