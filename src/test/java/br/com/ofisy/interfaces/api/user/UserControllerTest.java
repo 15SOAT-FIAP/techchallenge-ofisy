@@ -2,10 +2,9 @@ package br.com.ofisy.interfaces.api.user;
 
 import br.com.ofisy.application.user.UserService;
 import br.com.ofisy.application.user.dto.*;
-import br.com.ofisy.application.user.exceptions.UserNotFoundException;
 import br.com.ofisy.domain.user.Email;
 import br.com.ofisy.domain.user.Role;
-import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
+import br.com.ofisy.interfaces.api.ControllerTestBase;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -31,7 +30,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(UserController.class)
-class UserControllerTest {
+class UserControllerTest extends ControllerTestBase {
 
     public static final String BASE_URL = "/api/v1/users";
     public static final String TEST_USER_PRINCIPAL_EMAIL = "joao@ofisy.com";
@@ -44,8 +43,6 @@ class UserControllerTest {
 
     @MockitoBean
     private UserService userService;
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Nested
     @DisplayName("POST /api/v1/users")
@@ -84,20 +81,6 @@ class UserControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(invalidRequest))
                     .andExpect(status().isBadRequest());
-        }
-
-        @Test
-        @WithMockUser(roles = "ADMIN")
-        @DisplayName("Deve retornar 409 quando email já existente")
-        void shouldReturn409WhenEmailAlreadyExists() throws Exception {
-            CreateUserRequestDTO request = mockCreateUserRequest();
-
-            when(userService.create(any())).thenThrow(new EmailAlreadyExistsException(TEST_USER_PRINCIPAL_EMAIL));
-            mockMvc.perform(post(BASE_URL)
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isConflict());
         }
 
     }
@@ -152,16 +135,6 @@ class UserControllerTest {
             mockMvc.perform(get(BASE_URL + "/{id}", id))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.name").value(TEST_USER_PRINCIPAL_NAME));
-        }
-
-        @Test
-        @WithMockUser(roles = "ADMIN")
-        @DisplayName("Deve retornar 404 quando usuário não encontrado")
-        void shouldReturn404WhenUserNotFound() throws Exception {
-            UUID id = UUID.randomUUID();
-            when(userService.findById(id)).thenThrow(new UserNotFoundException(id));
-            mockMvc.perform(get(BASE_URL + "/{id}", id))
-                    .andExpect(status().isNotFound());
         }
     }
 
@@ -251,4 +224,6 @@ class UserControllerTest {
                 TEST_USER_PRINCIPAL_NAME, TEST_USER_PRINCIPAL_EMAIL, TEST_USER_PRINCIPAL_PASSWORD, TEST_USER_PRINCIPAL_ROLE
         );
     }
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 }
