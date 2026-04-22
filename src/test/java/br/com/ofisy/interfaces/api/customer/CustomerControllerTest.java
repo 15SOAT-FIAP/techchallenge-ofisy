@@ -6,13 +6,10 @@ import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsExcepti
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
-import br.com.ofisy.infrastructure.config.security.JwtService;
-import br.com.ofisy.infrastructure.config.security.OfisyUserDetailsService;
 import br.com.ofisy.interfaces.api.ControllerTestBase;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;

@@ -7,21 +7,18 @@ import br.com.ofisy.application.user.exceptions.UserNotFoundException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleAlreadyExistsException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleLicensePlateNotFoundException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
-import br.com.ofisy.application.user.exceptions.UserNotFoundException;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
 import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.InternalAuthenticationServiceException;
-import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.nio.file.AccessDeniedException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -104,8 +101,8 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
-    @ExceptionHandler({BadCredentialsException.class, InternalAuthenticationServiceException.class})
-    public ProblemDetail handleBadCredentials(RuntimeException ex) {
+    @ExceptionHandler({BadCredentialsException.class})
+    public ProblemDetail handleBadCredentials(BadCredentialsException ex) {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Email ou senha inválidos");
         problem.setTitle("Não autorizado");
         return problem;
@@ -119,18 +116,17 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
-    @ExceptionHandler({AccessDeniedException.class, AuthorizationDeniedException.class})
-    public ProblemDetail handleAccessDenied(AccessDeniedException ex) {
-        var problem = ProblemDetail.forStatus(HttpStatus.FORBIDDEN);
-        problem.setTitle("Usuário sem permissão");
-        problem.setDetail("Você não tem permissão para acessar este recurso");
-        return problem;
-    }
-
     @ExceptionHandler(UsernameNotFoundException.class)
     public ProblemDetail handleUsernameNotFound(UsernameNotFoundException ex) {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
-        problem.setTitle("Não autorizado");
+        problem.setTitle("Usuário não autorizado");
+        return problem;
+    }
+
+    @ExceptionHandler(DisabledException.class)
+    public ProblemDetail handleDisabled(DisabledException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
+        problem.setTitle("Usuário inativo");
         return problem;
     }
 }

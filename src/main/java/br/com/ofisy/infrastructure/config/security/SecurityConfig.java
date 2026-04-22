@@ -25,6 +25,8 @@ public class SecurityConfig {
     private final SecurityProperties securityProperties;
     private final JwtAuthFilter jwtAuthFilter;
     private final OfisyUserDetailsService userDetailsService;
+    private final OfisyAccessDeniedHandler accessDeniedHandler;
+    private final OfisyAuthenticationEntryPoint authenticationEntryPoint;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) {
@@ -45,7 +47,11 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(ex -> ex
+                        .accessDeniedHandler(accessDeniedHandler)
+                        .authenticationEntryPoint(authenticationEntryPoint)
+                );
 
         return http.build();
     }

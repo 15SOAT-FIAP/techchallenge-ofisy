@@ -3,7 +3,6 @@ package br.com.ofisy.infrastructure.config.security;
 import br.com.ofisy.domain.user.Role;
 import br.com.ofisy.domain.user.User;
 import br.com.ofisy.domain.user.UserRepository;
-import br.com.ofisy.infrastructure.config.security.OfisyUserDetailsService;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
@@ -60,14 +60,14 @@ class OfisyUserDetailsServiceTest {
     @Test
     @DisplayName("Deve lançar exceção quando usuário está inativo")
     void shouldThrowExceptionWhenUserIsInactive() {
-        String email = TEST_USER_PRINCIPAL_EMAIL;
-        User user = mockCreateUser(email);
+        String email = "joao@ofisy.com";
+        User user = User.create(email, "hashed-password", "João Silva", Role.ATTENDANT);
         user.deactivate();
 
         when(userRepository.findByEmailAddress(email)).thenReturn(Optional.of(user));
 
         assertThatThrownBy(() -> userDetailsService.loadUserByUsername(email))
-                .isInstanceOf(UsernameNotFoundException.class)
+                .isInstanceOf(DisabledException.class)  // ← era UsernameNotFoundException
                 .hasMessageContaining("inativo");
     }
 

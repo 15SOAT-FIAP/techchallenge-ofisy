@@ -28,6 +28,8 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -362,6 +364,29 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
                     .andExpect(status().isConflict())
                     .andExpect(jsonPath("$.title").value("Veículo já existe"))
                     .andExpect(jsonPath("$.detail").value("Veículo com placa " + plate + " já está registrado."));
+        }
+    }
+
+    @Nested
+    class UserDisabled {
+
+        @Test
+        @DisplayName("Deve retornar 401 quando usuário está inativo")
+        void shouldReturn401WhenUserIsDisabled() throws Exception {
+            when(authenticationManager.authenticate(any()))
+                    .thenThrow(new DisabledException("Usuário inativo: joao@ofisy.com"));
+
+            mockMvc.perform(post("/api/v1/login")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                            {
+                                "email": "joao@ofisy.com",
+                                "password": "senha123"
+                            }
+                        """))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.title").value("Usuário inativo"));
         }
     }
 }

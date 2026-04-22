@@ -25,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(controllers = LoginController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
 class LoginControllerTest extends ControllerTestBase {
 
+    public static final String BASE_URL = "/api/v1/login";
     @Autowired
     private MockMvc mockMvc;
 
@@ -40,7 +41,7 @@ class LoginControllerTest extends ControllerTestBase {
         when(authenticationManager.authenticate(any())).thenReturn(auth);
         when(jwtService.generateToken("admin@ofisy.com")).thenReturn("mocked-jwt-token");
 
-        mockMvc.perform(post("/api/v1/login")
+        mockMvc.perform(post(BASE_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -48,16 +49,11 @@ class LoginControllerTest extends ControllerTestBase {
     }
 
     @Test
-    @DisplayName("Deve retornar 404 para login inválido")
-    void shouldNotLoginAndReturn404() throws Exception {
-        Authentication auth = new UsernamePasswordAuthenticationToken("admin@ofisy.com", null, List.of());
-
-        when(authenticationManager.authenticate(any())).thenReturn(auth);
-        when(jwtService.generateToken("admin@ofisy.com")).thenReturn("mocked-jwt-token");
-
-        mockMvc.perform(post("/api/v1/login")
+    @DisplayName("Deve retornar 400 quando body está ausente")
+    void shouldReturn400WhenBodyIsMissing() throws Exception {
+        mockMvc.perform(post(BASE_URL)
                         .contentType(MediaType.APPLICATION_JSON))
-                        .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest());
     }
 
     private final ObjectMapper objectMapper = new ObjectMapper();

@@ -3,6 +3,7 @@ package br.com.ofisy.infrastructure.config.security;
 import br.com.ofisy.domain.user.User;
 import br.com.ofisy.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -24,7 +25,7 @@ public class OfisyUserDetailsService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + email));
 
         if (!user.isActive()) {
-            throw new UsernameNotFoundException("Usuário inativo: " + email);
+            throw new DisabledException("Usuário inativo: " + email);
         }
 
         //aqui está sendo usado o path da classe junto com o nome pq há conflito com o nosso user se eu adicioná-la ao import
