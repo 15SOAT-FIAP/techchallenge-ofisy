@@ -21,7 +21,6 @@ management:
         include: health
 security:
   public-paths:
-    - /api/teste/**
     - /swagger-ui/**
     - /swagger-ui.html
     - /v3/api-docs/**

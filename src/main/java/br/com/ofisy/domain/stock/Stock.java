@@ -27,7 +27,7 @@ public class Stock {
     private String description;
 
     @Column(nullable = false)
-    private Integer quantity;
+    private Integer quantity = 0;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal unitPrice;
@@ -41,8 +41,8 @@ public class Stock {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    @Column
-    private Integer minThreshold;
+    @Column(nullable = false)
+    private Integer minThreshold = 0;
 
     private Stock(String productName, String description, Integer quantity, BigDecimal unitPrice, String category, Integer minThreshold) {
         this.productName = productName;
@@ -57,6 +57,30 @@ public class Stock {
 
     public static Stock create(String productName, String description, Integer quantity, BigDecimal unitPrice, String category, Integer minThreshold) {
         return new Stock(productName, description, quantity, unitPrice, category, minThreshold);
+    }
+
+    public void update(String productName, String description, BigDecimal unitPrice, String category, Integer minThreshold) {
+        if (productName != null) {
+            this.productName = productName;
+        }
+
+        if (description != null) {
+            this.description = description;
+        }
+
+        if (unitPrice != null && unitPrice.compareTo(BigDecimal.ZERO) > 0) {
+            this.unitPrice = unitPrice;
+        }
+
+        if (category != null) {
+            this.category = category;
+        }
+
+        if (minThreshold != null && minThreshold >= 0) {
+            this.minThreshold = minThreshold;
+        }
+
+        this.updatedAt = LocalDateTime.now();
     }
 
     public void addQuantity(Integer quantity) {

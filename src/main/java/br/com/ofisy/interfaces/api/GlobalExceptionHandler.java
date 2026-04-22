@@ -3,7 +3,12 @@ package br.com.ofisy.interfaces.api;
 import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsException;
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
+import br.com.ofisy.application.vehicle.exceptions.VehicleAlreadyExistsException;
+import br.com.ofisy.application.vehicle.exceptions.VehicleLicensePlateNotFoundException;
+import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
+import br.com.ofisy.application.user.exceptions.UserNotFoundException;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
+import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -37,6 +42,27 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
+    @ExceptionHandler(VehicleNotFoundException.class)
+    public ProblemDetail handleVehicleNotFound(VehicleNotFoundException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problem.setTitle("Veículo não encontrado");
+        return problem;
+    }
+
+    @ExceptionHandler(VehicleLicensePlateNotFoundException.class)
+    public ProblemDetail handleVehicleLicensePlateNotFound(VehicleLicensePlateNotFoundException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problem.setTitle("Veículo não encontrado pela placa");
+        return problem;
+    }
+
+    @ExceptionHandler(VehicleAlreadyExistsException.class)
+    public ProblemDetail handleVehicleAlreadyExists(VehicleAlreadyExistsException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problem.setTitle("Veículo já existe");
+        return problem;
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ProblemDetail handleIllegalArgument(IllegalArgumentException ex) {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
@@ -54,6 +80,20 @@ public class GlobalExceptionHandler {
         problem.setTitle("Erro de validação");
         problem.setDetail("Um ou mais campos são inválidos");
         problem.setProperty("errors", fieldErrors);
+        return problem;
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ProblemDetail handleUserNotFound(UserNotFoundException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problem.setTitle("Usuário não encontrado");
+        return problem;
+    }
+
+    @ExceptionHandler(EmailAlreadyExistsException.class)
+    public ProblemDetail handleEmailAlreadyExists(EmailAlreadyExistsException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problem.setTitle("Email já cadastrado");
         return problem;
     }
 }
