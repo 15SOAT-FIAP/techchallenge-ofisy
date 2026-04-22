@@ -34,6 +34,7 @@ public interface UserApi {
     @Operation(summary = "Listar todos os usuários")
     @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
     @ApiResponse(responseCode = "401", description = "Usuário não autorizado", content = @Content(schema = @Schema(implementation = Void.class)))
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão", content = @Content(schema = @Schema(implementation = Void.class)))
     ResponseEntity<Page<UserResponseDTO>> listAllUsers(@ParameterObject @PageableDefault(size = 10) Pageable pageable);
 
     @Operation(summary = "Buscar usuário por ID")
