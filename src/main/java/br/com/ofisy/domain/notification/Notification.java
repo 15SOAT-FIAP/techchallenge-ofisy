@@ -33,6 +33,15 @@ public class Notification {
     @Column
     private LocalDateTime updatedAt;
 
+    public static Notification createStockAlert(UUID stockId, String message) {
+        return new Notification(stockId, message);
+    }
+
+    public void markAsRead() {
+        this.read = true;
+        this.updatedAt = LocalDateTime.now();
+    }
+
     private Notification(UUID stockId,
 
                          String message) {
@@ -40,15 +49,6 @@ public class Notification {
         this.message = message;
         this.read = false;
         this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    public static Notification createStockAlert(UUID stockId, String message) {
-        return new Notification(stockId, message);
-    }
-
-    public void markAsRead() {
-        this.read = true;
         this.updatedAt = LocalDateTime.now();
     }
 }
