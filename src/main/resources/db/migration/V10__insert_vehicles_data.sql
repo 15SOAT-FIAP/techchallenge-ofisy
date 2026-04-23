@@ -1,0 +1,16 @@
+INSERT INTO vehicles (customer_id, license_plate, model, brand, color, year, description) VALUES
+('a1b2c3d4-e5f6-7890-abcd-ef1234567801', 'ABC1234', 'Civic', 'Honda', 'Prata', 2020, 'Sedan automático'),
+('a1b2c3d4-e5f6-7890-abcd-ef1234567801', 'GHI2J34', 'HB20', 'Hyundai', 'Branco', 2023, 'Hatch automático'),
+('a1b2c3d4-e5f6-7890-abcd-ef1234567802', 'DEF5K67', 'Kwid', 'Renault', 'Vermelho', 2022, 'Hatch automático'),
+('a1b2c3d4-e5f6-7890-abcd-ef1234567803', 'JKL3456', 'Onix', 'Chevrolet', 'Preto', 2019, 'Sedan automático'),
+('a1b2c3d4-e5f6-7890-abcd-ef1234567804', 'MNO7890', 'Polo', 'Volkswagen', 'Cinza', 2018, 'Hatch manual'),
+('a1b2c3d4-e5f6-7890-abcd-ef1234567804', 'PQR4S56', 'T-Cross', 'Volkswagen', 'Branco', 2023, 'SUV automático'),
+('a1b2c3d4-e5f6-7890-abcd-ef1234567805', 'STU6T78', 'Tracker', 'Chevrolet', 'Azul', 2022, 'SUV automático'),
+('a1b2c3d4-e5f6-7890-abcd-ef1234567806', 'VWX9012', 'Corolla', 'Toyota', 'Prata', 2019, 'Sedan automático'),
+('a1b2c3d4-e5f6-7890-abcd-ef1234567807', 'YZA3U45', '320i', 'BMW', 'Preto', 2014, 'Sedan automático'),
+('a1b2c3d4-e5f6-7890-abcd-ef1234567808', 'BCD7890', 'Sprinter', 'Mercedes-Benz', 'Branco', 2020, 'Van de carga'),
+('a1b2c3d4-e5f6-7890-abcd-ef1234567808', 'EFG8V90', 'Sprinter', 'Mercedes-Benz', 'Branco', 2023, 'Van de carga'),
+('a1b2c3d4-e5f6-7890-abcd-ef1234567809', 'HIJ1W23', 'Master', 'Renault', 'Branco', 2022, 'Van de passageiros'),
+('a1b2c3d4-e5f6-7890-abcd-ef1234567809', 'KLM9012', 'Daily', 'Iveco', 'Branco', 2020, 'Micro-ônibus'),
+('a1b2c3d4-e5f6-7890-abcd-ef1234567810', 'NOP2X34', 'Virtus', 'Volkswagen', 'Prata', 2023, 'Sedan automático'),
+('a1b2c3d4-e5f6-7890-abcd-ef1234567810', 'QRS7890', 'Kicks', 'Nissan', 'Vermelho', 2021, 'SUV automático');
