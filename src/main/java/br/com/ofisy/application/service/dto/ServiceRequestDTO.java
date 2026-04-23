@@ -6,8 +6,10 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 public record ServiceRequestDTO(
-        @NotNull(message = "ID do serviço do catálogo é obrigatório")
-        UUID catalogServiceId,
-        @NotNull(message = "Preço é obrigatório")
-        BigDecimal price
+        @NotNull(message = "O preço do serviço é obrigatório")
+        BigDecimal price,
+        @NotNull(message = "O nome do serviço é obrigatório")
+        String name,
+        @NotNull(message = "A descrição do serviço é obrigatória")
+        String description
 ) {}

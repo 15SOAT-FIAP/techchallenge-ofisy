@@ -1,8 +1,11 @@
 package br.com.ofisy.interfaces.api.service;
 
-import br.com.ofisy.application.service.ServiceApplicationService;
+import br.com.ofisy.application.service.ServiceApplication;
 import br.com.ofisy.application.service.dto.ServiceRequestDTO;
+import br.com.ofisy.application.serviceOrderService.ServiceOrderServiceApplication;
 import br.com.ofisy.domain.service.Service;
+import br.com.ofisy.domain.service.ServiceRepository;
+import br.com.ofisy.domain.serviceOrderService.ServiceOrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -13,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @RestController
@@ -20,53 +24,40 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ServiceController {
 
-    private final ServiceApplicationService serviceService;
-
+    private ServiceApplication serviceApplication;
+    private ServiceOrderServiceApplication serviceOrderServiceApplication;
     @GetMapping
-    public ResponseEntity<Page<Service>> getAllServices(
+    public ResponseEntity<Page<Service>> getAll(
             @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
 
-        return ResponseEntity.ok(serviceService.findAll(pageable));
+        return ResponseEntity.status(HttpStatus.OK).body(serviceApplication.findAll(pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Service> getServiceById(@PathVariable UUID id) {
+    public ResponseEntity<Service> getById(@PathVariable UUID id) {
 
-        return ResponseEntity.ok(serviceService.findById(id));
+        return ResponseEntity.status(HttpStatus.OK).body(serviceApplication.findById(id));
+
     }
 
-    @GetMapping(params = "catalogServiceId")
-    public ResponseEntity<Page<Service>> getServicesByCatalogServiceId(
-            @RequestParam UUID catalogServiceId,
-            @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
+    @GetMapping(params = "name")
+    public ResponseEntity<Service> getByName(@RequestParam String name) {
 
-        return ResponseEntity.ok(serviceService.findByCatalogServiceId(catalogServiceId, pageable));
+        return ResponseEntity.ok(serviceApplication.findByName(name));
+
     }
 
-    @GetMapping(params = "status")
-    public ResponseEntity<Page<Service>> getServicesByStatus(
-            @RequestParam String status,
-            @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
+    @GetMapping("execution_time_average/{id}")
+    public ResponseEntity<Double> getExecutionTimeAverage(@PathVariable UUID id) {
 
-        return ResponseEntity.ok(serviceService.findByStatus(status, pageable));
+        return ResponseEntity.ok(serviceOrderServiceApplication.getAverageExecutionTimeByService(id));
     }
 
     @PostMapping
-    public ResponseEntity<Service> createService(@Valid @RequestBody ServiceRequestDTO requestDTO) {
+    public ResponseEntity<Service> create(
+            @Valid @RequestBody ServiceRequestDTO dto) {
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(serviceService.create(requestDTO));
-    }
-
-    @PatchMapping("/{id}/complete")
-    public ResponseEntity<Service> completeService(@PathVariable UUID id) {
-
-        return ResponseEntity.ok(serviceService.completeService(id));
-    }
-
-    @PatchMapping("/{id}/cancel")
-    public ResponseEntity<Service> cancelService(@PathVariable UUID id) {
-
-        return ResponseEntity.ok(serviceService.cancelService(id));
+        return ResponseEntity.status(HttpStatus.CREATED).body(serviceApplication.create(dto));
     }
 }
 

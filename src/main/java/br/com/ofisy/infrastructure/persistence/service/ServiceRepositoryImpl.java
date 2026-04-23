@@ -1,8 +1,8 @@
-package br.com.ofisy.infrastructure.persistence.service;
+package br.com.ofisy.infrastructure.persistence.Service;
 
 import br.com.ofisy.domain.service.Service;
 import br.com.ofisy.domain.service.ServiceRepository;
-import br.com.ofisy.domain.service.ServiceStatus;
+import br.com.ofisy.infrastructure.persistence.service.JpaServiceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,13 +33,7 @@ public class ServiceRepositoryImpl implements ServiceRepository {
     }
 
     @Override
-    public Page<Service> findByCatalogServiceId(UUID catalogServiceId, Pageable pageable) {
-        return jpa.findByCatalogServiceId(catalogServiceId, pageable);
-    }
-
-    @Override
-    public Page<Service> findByStatus(ServiceStatus status, Pageable pageable) {
-        return jpa.findByStatus(status, pageable);
+    public Optional<Service> findByName(String name) {
+        return jpa.findByName(name);
     }
 }
-

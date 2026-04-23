@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -20,19 +19,14 @@ public class Service {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
-    private UUID catalogServiceId;
+    @Column(nullable = false, unique = true)
+    private String name;
 
-    @Setter
-    @Column
-    private UUID serviceExecutionTimeId;
+    @Column(nullable = false)
+    private String description;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, name = "service_status")
-    private ServiceStatus status;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -40,22 +34,16 @@ public class Service {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    private Service(UUID catalogServiceId, BigDecimal price) {
-        this.catalogServiceId = catalogServiceId;
+    private Service(String name, String description, BigDecimal price) {
+        this.name = name;
+        this.description = description;
         this.price = price;
-        this.status = ServiceStatus.PENDING;
         this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
-    public static Service create(UUID catalogServiceId, BigDecimal price) {
-        return new Service(catalogServiceId, price);
-    }
-
-    public void complete() {
-        this.status = ServiceStatus.COMPLETED;
-    }
-
-    public void cancel() {
-        this.status = ServiceStatus.CANCELLED;
+    public static Service create(String name, String description, BigDecimal price) {
+        return new Service(name, description, price);
     }
 }
+

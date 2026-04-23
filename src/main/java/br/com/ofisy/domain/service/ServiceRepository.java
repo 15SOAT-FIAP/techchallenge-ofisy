@@ -14,8 +14,5 @@ public interface ServiceRepository {
 
     Optional<Service> findById(UUID id);
 
-    Page<Service> findByCatalogServiceId(UUID catalogServiceId, Pageable pageable);
-
-    Page<Service> findByStatus(ServiceStatus status, Pageable pageable);
+    Optional<Service> findByName(String name);
 }
-
