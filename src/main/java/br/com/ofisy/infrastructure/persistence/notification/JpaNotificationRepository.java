@@ -16,5 +16,4 @@ public interface JpaNotificationRepository extends JpaRepository<Notification, U
 
     List<Notification> findByStockId(UUID stockId);
 
-//    List<Notification> findByServiceOrderId(UUID serviceOrderId);
 }

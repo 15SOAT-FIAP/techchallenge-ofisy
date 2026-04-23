@@ -1,5 +1,6 @@
 # Env Variables and Secrets
 .env
+.jqwik-database
 
 # Maven
 target/
