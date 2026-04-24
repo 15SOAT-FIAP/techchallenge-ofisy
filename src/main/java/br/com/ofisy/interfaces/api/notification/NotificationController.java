@@ -1,0 +1,43 @@
+package br.com.ofisy.interfaces.api.notification;
+
+import br.com.ofisy.application.notification.NotificationService;
+import br.com.ofisy.application.notification.dto.CreateNotificationRequestDTO;
+import br.com.ofisy.application.notification.dto.NotificationResponseDTO;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/v1/notifications")
+@RequiredArgsConstructor
+public class NotificationController implements NotificationApi {
+
+    private final NotificationService notificationService;
+
+    @PostMapping
+    public ResponseEntity<NotificationResponseDTO> create(@Valid @RequestBody CreateNotificationRequestDTO request) {
+        NotificationResponseDTO result = notificationService.create(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<NotificationResponseDTO>> findAll() {
+        return ResponseEntity.ok(notificationService.findAll());
+    }
+
+    @GetMapping("/unread")
+    public ResponseEntity<List<NotificationResponseDTO>> findUnread() {
+        return ResponseEntity.ok(notificationService.findUnread());
+    }
+
+    @PutMapping("/{id}/read")
+    public ResponseEntity<NotificationResponseDTO> markAsRead(@PathVariable UUID id) {
+        NotificationResponseDTO result = notificationService.markAsRead(id);
+        return ResponseEntity.ok(result);
+    }
+}
