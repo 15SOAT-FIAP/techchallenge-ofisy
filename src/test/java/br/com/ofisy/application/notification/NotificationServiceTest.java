@@ -88,6 +88,26 @@ public class NotificationServiceTest {
         verify(notificationRepository).save(any(Notification.class));
     }
 
+    @Test
+    @DisplayName("Deve criar notificação de orçamento via método específico com stockId nulo")
+    void shouldCreateBudgetNotificationSuccessfully() {
+        when(notificationRepository.save(any(Notification.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        NotificationResponseDTO result = notificationService.createBudgetNotification(
+                "123",
+                "João Silva",
+                1500.00
+        );
+
+        assertThat(result.type()).isEqualTo("ORCAMENTO_GERADO");
+        assertThat(result.stockId()).isNull();
+        assertThat(result.message()).contains("123");
+        assertThat(result.message()).contains("João Silva");
+        assertThat(result.message()).contains("1500.00");
+        assertThat(result.read()).isFalse();
+        verify(notificationRepository).save(any(Notification.class));
+    }
 
     @Test
     @DisplayName("Deve criar notificação de orçamento sem stockId via DTO")
