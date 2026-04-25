@@ -25,13 +25,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ServiceApplicationTest {
+class ServiceAppServiceTest {
 
     @Mock
     private ServiceRepository repository;
 
     @InjectMocks
-    private ServiceApplication serviceApplication;
+    private ServiceAppService serviceAppService;
 
     private ServiceRequestDTO requestDTO;
     private Service service;
@@ -52,7 +52,7 @@ class ServiceApplicationTest {
     void create_shouldSaveAndReturnService() {
         when(repository.save(any(Service.class))).thenReturn(service);
 
-        Service result = serviceApplication.create(requestDTO);
+        Service result = serviceAppService.create(requestDTO);
 
         assertNotNull(result);
         assertEquals(requestDTO.name(), result.getName());
@@ -65,7 +65,7 @@ class ServiceApplicationTest {
     void findById_shouldReturnServiceWhenFound() {
         when(repository.findById(serviceId)).thenReturn(Optional.of(service));
 
-        Service result = serviceApplication.findById(serviceId);
+        Service result = serviceAppService.findById(serviceId);
 
         assertNotNull(result);
         assertEquals(service, result);
@@ -77,7 +77,7 @@ class ServiceApplicationTest {
         when(repository.findById(serviceId)).thenReturn(Optional.empty());
 
         ServiceNotFoundException exception = assertThrows(ServiceNotFoundException.class,
-                () -> serviceApplication.findById(serviceId));
+                () -> serviceAppService.findById(serviceId));
         assertEquals("Serviço não encontrado com ID: " + serviceId, exception.getMessage());
         verify(repository, times(1)).findById(serviceId);
     }
@@ -88,7 +88,7 @@ class ServiceApplicationTest {
         Page<Service> page = new PageImpl<>(List.of(service), pageable, 1);
         when(repository.findAll(pageable)).thenReturn(page);
 
-        Page<Service> result = serviceApplication.findAll(pageable);
+        Page<Service> result = serviceAppService.findAll(pageable);
 
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
@@ -101,7 +101,7 @@ class ServiceApplicationTest {
         String name = "Oil Change";
         when(repository.findByName(name)).thenReturn(Optional.of(service));
 
-        Service result = serviceApplication.findByName(name);
+        Service result = serviceAppService.findByName(name);
 
         assertNotNull(result);
         assertEquals(service, result);
@@ -114,7 +114,7 @@ class ServiceApplicationTest {
         when(repository.findByName(name)).thenReturn(Optional.empty());
 
         ServiceNotFoundException exception = assertThrows(ServiceNotFoundException.class,
-                () -> serviceApplication.findByName(name));
+                () -> serviceAppService.findByName(name));
         assertEquals("Serviço não encontrado com ID: " + name, exception.getMessage());
         verify(repository, times(1)).findByName(name);
     }

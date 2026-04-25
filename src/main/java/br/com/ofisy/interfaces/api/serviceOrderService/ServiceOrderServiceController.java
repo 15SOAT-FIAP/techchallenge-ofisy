@@ -18,7 +18,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/service_order_services")
 @RequiredArgsConstructor
-public class ServiceOrderServiceController {
+public class ServiceOrderServiceController implements ServiceOrderServiceApi {
 
     private final ServiceOrderServiceApplication serviceOrderServiceApplication;
 
@@ -80,4 +80,3 @@ public class ServiceOrderServiceController {
         return ResponseEntity.ok(serviceOrderServiceApplication.start(id));
     }
 }
-

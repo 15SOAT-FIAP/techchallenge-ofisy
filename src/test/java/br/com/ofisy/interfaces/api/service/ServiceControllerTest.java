@@ -1,6 +1,6 @@
 package br.com.ofisy.interfaces.api.service;
 
-import br.com.ofisy.application.service.ServiceApplication;
+import br.com.ofisy.application.service.ServiceAppService;
 import br.com.ofisy.application.service.dto.ServiceRequestDTO;
 import br.com.ofisy.application.serviceOrderService.ServiceOrderServiceApplication;
 import br.com.ofisy.domain.service.Service;
@@ -33,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ServiceControllerTest {
 
     @Mock
-    private ServiceApplication serviceApplication;
+    private ServiceAppService serviceAppService;
 
     @Mock
     private ServiceOrderServiceApplication serviceOrderServiceApplication;
@@ -60,7 +60,7 @@ class ServiceControllerTest {
     void getAll_shouldReturnPageOfServices() throws Exception {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Service> page = new PageImpl<>(List.of(service), pageable, 1);
-        when(serviceApplication.findAll(any(Pageable.class))).thenReturn(page);
+        when(serviceAppService.findAll(any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/api/v1/services")
                         .param("page", "0")
@@ -71,7 +71,7 @@ class ServiceControllerTest {
 
     @Test
     void getById_shouldReturnService() throws Exception {
-        when(serviceApplication.findById(serviceId)).thenReturn(service);
+        when(serviceAppService.findById(serviceId)).thenReturn(service);
 
         mockMvc.perform(get("/api/v1/services/{id}", serviceId))
                 .andExpect(status().isOk())
@@ -81,7 +81,7 @@ class ServiceControllerTest {
     @Test
     void getByName_shouldReturnService() throws Exception {
         String name = "Oil Change";
-        when(serviceApplication.findByName(name)).thenReturn(service);
+        when(serviceAppService.findByName(name)).thenReturn(service);
 
         mockMvc.perform(get("/api/v1/services")
                         .param("name", name))
@@ -107,7 +107,7 @@ class ServiceControllerTest {
                 "Oil Change",
                 "Change engine oil"
         );
-        when(serviceApplication.create(any(ServiceRequestDTO.class))).thenReturn(service);
+        when(serviceAppService.create(any(ServiceRequestDTO.class))).thenReturn(service);
 
         mockMvc.perform(post("/api/v1/services")
                         .contentType(MediaType.APPLICATION_JSON)

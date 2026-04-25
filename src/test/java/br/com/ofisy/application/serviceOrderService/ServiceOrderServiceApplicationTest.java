@@ -1,6 +1,6 @@
 package br.com.ofisy.application.serviceOrderService;
 
-import br.com.ofisy.application.service.ServiceApplication;
+import br.com.ofisy.application.service.ServiceAppService;
 import br.com.ofisy.application.serviceOrderService.dto.ServiceOrderServiceRequestDTO;
 import br.com.ofisy.application.serviceOrderService.exceptions.ServiceOrderServiceNotFoundException;
 import br.com.ofisy.domain.serviceOrderService.ServiceOrderService;
@@ -33,7 +33,7 @@ class ServiceOrderServiceApplicationTest {
     private ServiceOrderServiceRepository repository;
 
     @Mock
-    private ServiceApplication serviceApplication;
+    private ServiceAppService serviceAppService;
 
     @InjectMocks
     private ServiceOrderServiceApplication application;

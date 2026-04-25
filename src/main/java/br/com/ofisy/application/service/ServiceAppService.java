@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
-public class ServiceApplication {
+public class ServiceAppService {
 
     private final ServiceRepository repository;
 
