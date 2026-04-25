@@ -1,0 +1,17 @@
+INSERT INTO stocks (product_name, description, quantity, category, unit_price, min_threshold) VALUES
+('Radiador', 'Radiador de água com reservatório', 10, 'Arrefecimento', 350.00, 2),
+('Bomba de água', 'Bomba de água do motor', 8, 'Arrefecimento', 180.00, 2),
+('Aditivo de radiador', 'Aditivo para sistema de arrefecimento 1L', 20, 'Arrefecimento', 25.00, 5),
+('Pastilha de freio', 'Jogo de pastilhas de freio dianteiras', 15, 'Freios', 120.00, 4),
+('Disco de freio', 'Disco de freio ventilado', 10, 'Freios', 200.00, 2),
+('Fluido de freio', 'Fluido DOT 4 500ml', 25, 'Freios', 30.00, 5),
+('Filtro de óleo', 'Filtro de óleo do motor', 30, 'Motor', 25.00, 10),
+('Óleo de motor 5W30', 'Óleo sintético 1L', 50, 'Motor', 45.00, 10),
+('Correia dentada', 'Correia dentada do motor', 12, 'Motor', 150.00, 3),
+('Bateria automotiva', 'Bateria 60Ah', 6, 'Elétrica', 450.00, 2),
+('Alternador', 'Alternador automotivo', 4, 'Elétrica', 900.00, 1),
+('Velas de ignição', 'Jogo de velas (4 unidades)', 20, 'Elétrica', 80.00, 5),
+('Amortecedor', 'Amortecedor dianteiro', 10, 'Suspensão', 300.00, 2),
+('Mola de suspensão', 'Mola helicoidal', 8, 'Suspensão', 220.00, 2),
+('Embreagem', 'Kit embreagem completo', 5, 'Transmissão', 650.00, 1),
+('Óleo de câmbio', 'Óleo para transmissão manual 1L', 15, 'Transmissão', 60.00, 3);

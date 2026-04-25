@@ -5,6 +5,7 @@ import br.com.ofisy.application.vehicle.dto.VehicleResponseDTO;
 import br.com.ofisy.application.vehicle.exceptions.VehicleAlreadyExistsException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleLicensePlateNotFoundException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
+import br.com.ofisy.interfaces.api.ControllerTestBase;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(VehicleController.class)
 @WithMockUser
-class VehicleControllerTest {
+class VehicleControllerTest extends ControllerTestBase {
 
     private static final String BASE_URL = "/api/v1/vehicles";
     private static final String VALID_PLATE = "ABC1234";
