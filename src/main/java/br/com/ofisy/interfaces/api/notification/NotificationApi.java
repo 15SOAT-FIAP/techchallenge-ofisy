@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.util.List;
 import java.util.UUID;
 
-@Tag(name = "Notificações")
+@Tag(name = "API de Notificações")
 public interface NotificationApi {
 
     @Operation(summary = "Criar uma nova notificação")
