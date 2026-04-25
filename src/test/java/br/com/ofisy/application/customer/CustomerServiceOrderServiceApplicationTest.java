@@ -31,7 +31,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class CustomerServiceTest {
+class CustomerServiceOrderServiceApplicationTest {
 
     private static final String VALID_CPF = "52998224725";
     private static final String VALID_CNPJ = "11222333000181";
