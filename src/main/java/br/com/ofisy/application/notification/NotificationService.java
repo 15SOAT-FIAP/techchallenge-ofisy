@@ -38,7 +38,7 @@ public class NotificationService {
                 currentQuantity,
                 minThreshold
         );
-        Notification notification = Notification.create("LOW_STOCK", stockId, message);
+        Notification notification = Notification.create("LOW_STOCK", stock.getId(), message);
         Notification saved = notificationRepository.save(notification);
         return toResponseDTO(saved);
     }
