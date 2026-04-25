@@ -1,8 +1,7 @@
-package br.com.ofisy.infrastructure.persistence.Service;
+package br.com.ofisy.infrastructure.persistence.service;
 
 import br.com.ofisy.domain.service.Service;
 import br.com.ofisy.domain.service.ServiceRepository;
-import br.com.ofisy.infrastructure.persistence.service.JpaServiceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

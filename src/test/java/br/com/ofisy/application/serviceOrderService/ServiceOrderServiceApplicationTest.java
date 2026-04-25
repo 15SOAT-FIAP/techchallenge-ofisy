@@ -303,11 +303,9 @@ class ServiceOrderServiceApplicationTest {
             var serviceId = UUID.randomUUID();
             var serviceOrderService = createValidServiceOrderService();
 
-            // Start the service 10 minutes ago
             var startTime = LocalDateTime.now().minusMinutes(10);
             var endTime = LocalDateTime.now();
 
-            // Use reflection to set the private fields (since there's no setter)
             try {
                 var startedAtField = ServiceOrderService.class.getDeclaredField("startedAt");
                 startedAtField.setAccessible(true);
@@ -336,7 +334,6 @@ class ServiceOrderServiceApplicationTest {
             var completedService = createValidServiceOrderService();
             var incompleteService = createValidServiceOrderService();
 
-            // Set completed service times
             try {
                 var startedAtField = ServiceOrderService.class.getDeclaredField("startedAt");
                 startedAtField.setAccessible(true);
@@ -364,7 +361,6 @@ class ServiceOrderServiceApplicationTest {
             var service1 = createValidServiceOrderService();
             var service2 = createValidServiceOrderService();
 
-            // Set times for first service (10 minutes)
             try {
                 var startedAtField = ServiceOrderService.class.getDeclaredField("startedAt");
                 startedAtField.setAccessible(true);
