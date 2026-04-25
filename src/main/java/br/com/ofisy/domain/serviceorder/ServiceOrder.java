@@ -53,4 +53,18 @@ public class ServiceOrder {
 
 //    private List<ServiceOrderService> services = new ArrayList<>();
 //    private List<Quote> quotes = new ArrayList<>();
+
+    private ServiceOrder(UUID vehicleId, UUID customerId, String report, UUID createdBy) {
+        this.vehicleId = vehicleId;
+        this.customerId = customerId;
+        this.report = report;
+        this.status = ServiceOrderStatus.RECEIVED;
+        this.createdBy = createdBy;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public static ServiceOrder receive(UUID vehicleId, UUID customerId, String report, UUID createdBy) {
+        return new ServiceOrder(vehicleId, customerId, report, createdBy);
+    }
 }
