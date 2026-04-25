@@ -31,12 +31,12 @@ public class NotificationService {
     }
 
     @Transactional
-    public NotificationResponseDTO createLowStockNotification(UUID stockId, String productName, Integer currentQuantity, Integer minThreshold) {
+    public NotificationResponseDTO createLowStockNotification(Stock stock) {
         String message = String.format(
                 "Estoque baixo para %s. Quantidade atual: %d. Mínimo: %d",
-                productName,
-                currentQuantity,
-                minThreshold
+                stock.getProductName(),
+                stock.getQuantity(),
+                stock.getMinThreshold()
         );
         Notification notification = Notification.create("LOW_STOCK", stock.getId(), message);
         Notification saved = notificationRepository.save(notification);
