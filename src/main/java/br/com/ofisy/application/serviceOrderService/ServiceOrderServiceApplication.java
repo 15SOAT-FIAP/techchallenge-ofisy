@@ -1,6 +1,5 @@
 package br.com.ofisy.application.serviceOrderService;
 
-import br.com.ofisy.application.service.ServiceApplication;
 import br.com.ofisy.application.serviceOrderService.dto.ServiceOrderServiceRequestDTO;
 import br.com.ofisy.application.serviceOrderService.exceptions.ServiceOrderServiceNotFoundException;
 import br.com.ofisy.domain.serviceOrderService.ServiceOrderService;
@@ -18,7 +17,6 @@ import java.util.UUID;
 public class ServiceOrderServiceApplication {
 
     private final ServiceOrderServiceRepository repository;
-    private final ServiceApplication serviceApplication;
 
     public ServiceOrderService create(ServiceOrderServiceRequestDTO dto) {
         ServiceOrderService service = ServiceOrderService.create(
