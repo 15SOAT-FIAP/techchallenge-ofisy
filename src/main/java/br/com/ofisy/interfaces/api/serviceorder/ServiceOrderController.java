@@ -1,9 +1,31 @@
 package br.com.ofisy.interfaces.api.serviceorder;
 
+import br.com.ofisy.application.serviceorder.ServiceOrderService;
+import br.com.ofisy.application.serviceorder.dto.ServiceOrderRequestDTO;
+import br.com.ofisy.application.serviceorder.dto.ServiceOrderResponseDTO;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/service-orders")
-public class ServiceOrderController {
+@RequiredArgsConstructor
+public class ServiceOrderController implements ServiceOrderApi {
+
+    private final ServiceOrderService serviceOrderService;
+
+    @PostMapping
+    public ResponseEntity<ServiceOrderResponseDTO> receiveServiceOrder(
+            @Valid @RequestBody ServiceOrderRequestDTO request,
+            @AuthenticationPrincipal UserDetails user) {
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(serviceOrderService.createServiceOrder(request, user.getUsername()));
+    }
 }
