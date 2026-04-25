@@ -3,6 +3,7 @@ package br.com.ofisy.interfaces.api;
 import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsException;
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
+import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
 import br.com.ofisy.application.user.exceptions.UserNotFoundException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleAlreadyExistsException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleLicensePlateNotFoundException;
@@ -127,6 +128,13 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleDisabled(DisabledException ex) {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
         problem.setTitle("Usuário inativo");
+        return problem;
+    }
+
+    @ExceptionHandler(VehicleNotOwnedByCustomerException.class)
+    public ProblemDetail handleVehicleNotOwnedByCustomer(VehicleNotOwnedByCustomerException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, ex.getMessage());
+        problem.setTitle("Veículo não pertence ao cliente");
         return problem;
     }
 }
