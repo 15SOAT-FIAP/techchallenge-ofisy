@@ -109,7 +109,7 @@ public class NotificationServiceTest {
         assertThat(result.stockId()).isNull();
         assertThat(result.message()).contains("123");
         assertThat(result.message()).contains("João Silva");
-        assertThat(result.message()).contains("1500,00");
+        assertThat(result.message()).contains("1500.00");
         assertThat(result.read()).isFalse();
         verify(notificationRepository).save(any(Notification.class));
     }
