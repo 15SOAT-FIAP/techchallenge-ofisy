@@ -21,7 +21,6 @@ public class ServiceOrderService {
     @Column(nullable = false)
     private UUID serviceId;
 
-    // id da ordem de serviço a qual este serviço pertence
     @Column(nullable = false)
     private UUID serviceOrderId;
 
@@ -40,8 +39,6 @@ public class ServiceOrderService {
 
     @Column
     private LocalDateTime startedAt;
-
-
 
     private ServiceOrderService(UUID serviceId, UUID serviceOrderId) {
         this.serviceId = serviceId;

@@ -1,5 +1,5 @@
--- V5__create_catalog_services_table.sql
-CREATE TABLE catalog_services (
+-- V5__create_services_table.sql
+CREATE TABLE services (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL UNIQUE,
     description TEXT NOT NULL,
@@ -8,4 +8,4 @@ CREATE TABLE catalog_services (
     updated_at TIMESTAMP NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_catalog_services_name ON catalog_services(name);
+CREATE INDEX idx_services_name ON services(name);
