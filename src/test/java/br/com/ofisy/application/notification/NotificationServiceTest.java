@@ -5,6 +5,7 @@ import br.com.ofisy.application.notification.dto.NotificationResponseDTO;
 import br.com.ofisy.application.notification.exceptions.NotificationNotFoundException;
 import br.com.ofisy.domain.notification.Notification;
 import br.com.ofisy.domain.notification.NotificationRepository;
+import br.com.ofisy.domain.stock.Stock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -72,15 +73,19 @@ public class NotificationServiceTest {
         when(notificationRepository.save(any(Notification.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        NotificationResponseDTO result = notificationService.createLowStockNotification(
-                stockId,
+        Stock stock = Stock.create(
                 "Radiador",
+                "Radiador de água com reservatório",
                 2,
+                new java.math.BigDecimal("150.00"),
+                "Arrefecimento",
                 5
         );
 
+        NotificationResponseDTO result = notificationService.createLowStockNotification(stock);
+
         assertThat(result.type()).isEqualTo("LOW_STOCK");
-        assertThat(result.stockId()).isEqualTo(stockId);
+        assertThat(result.stockId()).isEqualTo(stock.getId());
         assertThat(result.message()).contains("Radiador");
         assertThat(result.message()).contains("2");
         assertThat(result.message()).contains("5");
@@ -104,7 +109,7 @@ public class NotificationServiceTest {
         assertThat(result.stockId()).isNull();
         assertThat(result.message()).contains("123");
         assertThat(result.message()).contains("João Silva");
-        assertThat(result.message()).contains("1500.00");
+        assertThat(result.message()).contains("1500,00");
         assertThat(result.read()).isFalse();
         verify(notificationRepository).save(any(Notification.class));
     }

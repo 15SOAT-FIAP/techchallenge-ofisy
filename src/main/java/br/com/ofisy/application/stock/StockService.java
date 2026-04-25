@@ -106,12 +106,7 @@ public class StockService {
         Stock savedStock = stockRepository.save(stock);
 
         if (savedStock.isLowStock()) {
-            notificationService.createLowStockNotification(
-                    savedStock.getId(),
-                    savedStock.getProductName(),
-                    savedStock.getQuantity(),
-                    savedStock.getMinThreshold()
-            );
+            notificationService.createLowStockNotification(savedStock);
         }
 
         return StockMapper.toDTO(savedStock);

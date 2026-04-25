@@ -5,6 +5,7 @@ import br.com.ofisy.application.notification.dto.NotificationResponseDTO;
 import br.com.ofisy.application.notification.exceptions.NotificationNotFoundException;
 import br.com.ofisy.domain.notification.Notification;
 import br.com.ofisy.domain.notification.NotificationRepository;
+import br.com.ofisy.domain.stock.Stock;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +28,7 @@ public class NotificationService {
                 request.message()
         );
         Notification saved = notificationRepository.save(notification);
-        return toResponseDTO(saved);
+        return NotificationMapper.toDTO(saved);
     }
 
     @Transactional
@@ -40,7 +41,7 @@ public class NotificationService {
         );
         Notification notification = Notification.create("LOW_STOCK", stock.getId(), message);
         Notification saved = notificationRepository.save(notification);
-        return toResponseDTO(saved);
+        return NotificationMapper.toDTO(saved);
     }
 
     @Transactional
@@ -53,20 +54,20 @@ public class NotificationService {
         );
         Notification notification = Notification.create("ORCAMENTO_GERADO", null, message);
         Notification saved = notificationRepository.save(notification);
-        return toResponseDTO(saved);
+        return NotificationMapper.toDTO(saved);
     }
 
     @Transactional(readOnly = true)
     public List<NotificationResponseDTO> findAll() {
         return notificationRepository.findAll().stream()
-                .map(this::toResponseDTO)
+                .map(NotificationMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<NotificationResponseDTO> findUnread() {
         return notificationRepository.findByRead(false).stream()
-                .map(this::toResponseDTO)
+                .map(NotificationMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
@@ -75,17 +76,6 @@ public class NotificationService {
         Notification notification = notificationRepository.findById(id)
                 .orElseThrow(() -> new NotificationNotFoundException(id));
         notification.markAsRead();
-        return toResponseDTO(notification);
-    }
-
-    private NotificationResponseDTO toResponseDTO(Notification notification) {
-        return new NotificationResponseDTO(
-                notification.getId(),
-                notification.getType(),
-                notification.getStockId(),
-                notification.getMessage(),
-                notification.getRead(),
-                notification.getCreatedAt()
-        );
+        return NotificationMapper.toDTO(notification);
     }
 }

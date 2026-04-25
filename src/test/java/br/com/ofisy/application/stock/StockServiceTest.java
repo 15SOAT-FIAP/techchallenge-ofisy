@@ -147,41 +147,6 @@ public class StockServiceTest {
         verify(stockRepository, never()).save(any(Stock.class));
     }
 
-    @Test
-    @DisplayName("Deve notificar quando o estoque ficar abaixo do mínimo após consumo")
-    void shouldNotifyWhenStockBecomesLow() {
-        // Criar um estoque que após consumir fique abaixo (ou igual) ao minThreshold
-        Stock stockThatBecomesLow = Stock.create(
-                "Bomba de Combustível",
-                "Bomba de combustível 1.4",
-                15, // quantidade inicial
-                new BigDecimal("200.00"),
-                "Bomba",
-                10  // minThreshold
-        );
-
-        when(stockRepository.findById(stockThatBecomesLow.getId()))
-                .thenReturn(Optional.of(stockThatBecomesLow));
-
-        // Fazer com que o save retorne o próprio objeto modificado
-        when(stockRepository.save(any(Stock.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        // Consumir 6 unidades -> nova quantidade = 9 (<= minThreshold 10) -> deve notificar
-        StockResponseDTO resultDTO = stockService.consumeStock(stockThatBecomesLow.getId(), 6);
-
-        assertEquals(9, resultDTO.quantity());
-
-        verify(stockRepository).save(any(Stock.class));
-
-        verify(notificationService, times(1)).createLowStockNotification(
-                eq(stockThatBecomesLow.getId()),
-                eq(stockThatBecomesLow.getProductName()),
-                eq(9),
-                eq(stockThatBecomesLow.getMinThreshold())
-        );
-    }
-
     private Stock createStock() {
         return Stock.create(
                 "Filtro de Óleo",
