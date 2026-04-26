@@ -9,5 +9,6 @@ public record NotificationResponseDTO(
         UUID stockId,
         String message,
         Boolean read,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
 ) {}

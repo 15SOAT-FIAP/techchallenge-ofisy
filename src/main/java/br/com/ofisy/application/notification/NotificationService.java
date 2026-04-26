@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,11 +21,7 @@ public class NotificationService {
 
     @Transactional
     public NotificationResponseDTO create(CreateNotificationRequestDTO request) {
-        Notification notification = Notification.create(
-                request.type(),
-                request.stockId(),
-                request.message()
-        );
+        Notification notification = NotificationMapper.toDomain(request);
         Notification saved = notificationRepository.save(notification);
         return NotificationMapper.toDTO(saved);
     }
@@ -45,14 +40,14 @@ public class NotificationService {
     }
 
     @Transactional
-    public NotificationResponseDTO createBudgetNotification(String budgetNumber, String customerName, Double totalValue) {
+    public NotificationResponseDTO createQuoteNotification(String quoteNumber, String customerName, Double totalValue) {
         String message = String.format(
                 "Orçamento #%s gerado para o cliente '%s'. Valor total: R$ %.2f",
-                budgetNumber,
+                quoteNumber,
                 customerName,
                 totalValue
         );
-        Notification notification = Notification.create("ORCAMENTO_GERADO", null, message);
+        Notification notification = Notification.create("QUOTE_GENERATED", null, message);
         Notification saved = notificationRepository.save(notification);
         return NotificationMapper.toDTO(saved);
     }
@@ -61,14 +56,14 @@ public class NotificationService {
     public List<NotificationResponseDTO> findAll() {
         return notificationRepository.findAll().stream()
                 .map(NotificationMapper::toDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Transactional(readOnly = true)
     public List<NotificationResponseDTO> findUnread() {
         return notificationRepository.findByRead(false).stream()
                 .map(NotificationMapper::toDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Transactional

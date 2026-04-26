@@ -53,7 +53,7 @@ public class NotificationServiceTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         CreateNotificationRequestDTO request = new CreateNotificationRequestDTO(
-                "ESTOQUE_BAIXO",
+                "LOW_STOCK",
                 UUID.randomUUID(),
                 "Estoque baixo para o produto Radiador"
         );
@@ -95,17 +95,17 @@ public class NotificationServiceTest {
 
     @Test
     @DisplayName("Deve criar notificação de orçamento via método específico com stockId nulo")
-    void shouldCreateBudgetNotificationSuccessfully() {
+    void shouldCreateQuoteNotificationSuccessfully() {
         when(notificationRepository.save(any(Notification.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        NotificationResponseDTO result = notificationService.createBudgetNotification(
+        NotificationResponseDTO result = notificationService.createQuoteNotification(
                 "123",
                 "João Silva",
                 1500.00
         );
 
-        assertThat(result.type()).isEqualTo("ORCAMENTO_GERADO");
+        assertThat(result.type()).isEqualTo("QUOTE_GENERATED");
         assertThat(result.stockId()).isNull();
         assertThat(result.message()).contains("123");
         assertThat(result.message()).contains("João Silva");
@@ -116,19 +116,19 @@ public class NotificationServiceTest {
 
     @Test
     @DisplayName("Deve criar notificação de orçamento sem stockId via DTO")
-    void shouldCreateBudgetNotificationWithoutStockId() {
+    void shouldCreateQuoteNotificationWithoutStockId() {
         when(notificationRepository.save(any(Notification.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         CreateNotificationRequestDTO request = new CreateNotificationRequestDTO(
-                "ORCAMENTO_GERADO",
+                "QUOTE_GENERATED",
                 null,
                 "Orçamento #123 gerado para o cliente João"
         );
 
         NotificationResponseDTO result = notificationService.create(request);
 
-        assertThat(result.type()).isEqualTo("ORCAMENTO_GERADO");
+        assertThat(result.type()).isEqualTo("QUOTE_GENERATED");
         assertThat(result.stockId()).isNull();
         assertThat(result.message()).isEqualTo("Orçamento #123 gerado para o cliente João");
         assertThat(result.read()).isFalse();
@@ -143,8 +143,8 @@ public class NotificationServiceTest {
         List<NotificationResponseDTO> result = notificationService.findAll();
 
         assertThat(result).hasSize(2);
-        assertThat(result.get(0).type()).isEqualTo("ESTOQUE_BAIXO");
-        assertThat(result.get(1).type()).isEqualTo("ORCAMENTO_GERADO");
+        assertThat(result.get(0).type()).isEqualTo("LOW_STOCK");
+        assertThat(result.get(1).type()).isEqualTo("QUOTE_GENERATED");
         verify(notificationRepository).findAll();
     }
 
@@ -156,7 +156,7 @@ public class NotificationServiceTest {
         List<NotificationResponseDTO> result = notificationService.findUnread();
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).type()).isEqualTo("ESTOQUE_BAIXO");
+        assertThat(result.get(0).type()).isEqualTo("LOW_STOCK");
         assertThat(result.get(0).read()).isFalse();
         verify(notificationRepository).findByRead(false);
     }
@@ -195,7 +195,7 @@ public class NotificationServiceTest {
 
     private Notification createNotification() {
         return Notification.create(
-                "ESTOQUE_BAIXO",
+                "LOW_STOCK",
                 UUID.randomUUID(),
                 "Estoque baixo para o produto Radiador"
         );
@@ -203,7 +203,7 @@ public class NotificationServiceTest {
 
     private Notification createReadNotification() {
         Notification notification = Notification.create(
-                "ORCAMENTO_GERADO",
+                "QUOTE_GENERATED",
                 null,
                 "Orçamento #123 gerado"
         );
