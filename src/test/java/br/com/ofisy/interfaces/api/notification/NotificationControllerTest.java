@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -119,14 +119,14 @@ class NotificationControllerTest extends ControllerTestBase {
         @Test
         void shouldReturn200WithListOfNotifications() throws Exception {
             var dto1 = responseDTO("LOW_STOCK", "Estoque baixo para Radiador");
-            var dto2 = responseDTO("ORCAMENTO_GERADO", "Orçamento #123 gerado");
+            var dto2 = responseDTO("QUOTE_GENERATED", "Orçamento #123 gerado");
             when(notificationService.findAll()).thenReturn(List.of(dto1, dto2));
 
             mockMvc.perform(get(BASE_URL))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
                     .andExpect(jsonPath("$[0].type").value("LOW_STOCK"))
-                    .andExpect(jsonPath("$[1].type").value("ORCAMENTO_GERADO"))
+                    .andExpect(jsonPath("$[1].type").value("QUOTE_GENERATED"))
                     .andExpect(jsonPath("$.length()").value(2));
         }
 
@@ -174,10 +174,10 @@ class NotificationControllerTest extends ControllerTestBase {
         @Test
         void shouldReturn200WhenMarkAsReadSuccessfully() throws Exception {
             var id = UUID.randomUUID();
-            var dto = new NotificationResponseDTO(id, "LOW_STOCK", null, "Estoque baixo", true, NOW);
+            var dto = new NotificationResponseDTO(id, "LOW_STOCK", null, "Estoque baixo", true, NOW, NOW);
             when(notificationService.markAsRead(id)).thenReturn(dto);
 
-            mockMvc.perform(put(BASE_URL + "/{id}/read", id)
+            mockMvc.perform(patch(BASE_URL + "/{id}/read", id)
                             .with(csrf()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id").value(id.toString()))
@@ -192,7 +192,7 @@ class NotificationControllerTest extends ControllerTestBase {
             when(notificationService.markAsRead(id))
                     .thenThrow(new NotificationNotFoundException(id));
 
-            mockMvc.perform(put(BASE_URL + "/{id}/read", id)
+            mockMvc.perform(patch(BASE_URL + "/{id}/read", id)
                             .with(csrf()))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.title").value("Notificação não encontrada"));
@@ -200,13 +200,13 @@ class NotificationControllerTest extends ControllerTestBase {
 
         @Test
         void shouldReturn400WhenIdIsNotAValidUUID() throws Exception {
-            mockMvc.perform(put(BASE_URL + "/{id}/read", "not-a-uuid")
+            mockMvc.perform(patch(BASE_URL + "/{id}/read", "not-a-uuid")
                             .with(csrf()))
                     .andExpect(status().isBadRequest());
         }
     }
 
     private NotificationResponseDTO responseDTO(String type, String message) {
-        return new NotificationResponseDTO(UUID.randomUUID(), type, null, message, false, NOW);
+        return new NotificationResponseDTO(UUID.randomUUID(), type, null, message, false, NOW, NOW);
     }
 }

@@ -35,7 +35,7 @@ public class NotificationController implements NotificationApi {
         return ResponseEntity.ok(notificationService.findUnread());
     }
 
-    @PutMapping("/{id}/read")
+    @PatchMapping("/{id}/read")
     public ResponseEntity<NotificationResponseDTO> markAsRead(@PathVariable UUID id) {
         NotificationResponseDTO result = notificationService.markAsRead(id);
         return ResponseEntity.ok(result);
