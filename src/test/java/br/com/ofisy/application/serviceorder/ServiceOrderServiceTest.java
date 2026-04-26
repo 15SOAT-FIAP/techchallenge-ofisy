@@ -135,6 +135,38 @@ class ServiceOrderServiceTest {
     }
 
     @Nested
+    class StartDiagnosticServiceOrder {
+
+        @Test
+        void shouldStartDiagnosticSuccessfully() {
+            var serviceOrder = receivedServiceOrder();
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
+            when(serviceOrderRepository.save(serviceOrder)).thenAnswer(inv -> inv.getArgument(0));
+
+            var result = serviceOrderService.startDiagnosticServiceOrder(VALID_SERVICE_ORDER_ID);
+
+            assertThat(result.status()).isEqualTo("IN_DIAGNOSTIC");
+        }
+
+        @Test
+        void shouldThrowServiceOrderNotFoundExceptionWhenOrderDoesNotExist() {
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> serviceOrderService.startDiagnosticServiceOrder(VALID_SERVICE_ORDER_ID))
+                    .isInstanceOf(ServiceOrderNotFoundException.class);
+        }
+
+        @Test
+        void shouldThrowInvalidTransitionWhenOrderIsNotReceived() {
+            var serviceOrder = cancelledServiceOrder();
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
+
+            assertThatThrownBy(() -> serviceOrderService.startDiagnosticServiceOrder(VALID_SERVICE_ORDER_ID))
+                    .isInstanceOf(InvalidServiceOrderTransitionException.class);
+        }
+    }
+
+    @Nested
     class CloseServiceOrder {
 
         @Test
@@ -178,6 +210,10 @@ class ServiceOrderServiceTest {
     private VehicleResponseDTO vehicleOwnedByOther() {
         return new VehicleResponseDTO(VALID_VEHICLE_ID, UUID.randomUUID(), "ABC1234",
                 "Civic", "Honda", "Preto", 2022, null, LocalDateTime.now(), LocalDateTime.now());
+    }
+
+    private ServiceOrder receivedServiceOrder() {
+        return ServiceOrder.receive(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, VALID_REPORT, VALID_USER_ID);
     }
 
     private ServiceOrder serviceOrderAwaitingApproval() {
