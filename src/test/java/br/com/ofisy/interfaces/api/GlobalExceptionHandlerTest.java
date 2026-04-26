@@ -4,6 +4,7 @@ import br.com.ofisy.application.customer.CustomerService;
 import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsException;
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
+import br.com.ofisy.application.serviceorder.ServiceOrderService;
 import br.com.ofisy.application.user.UserService;
 import br.com.ofisy.application.user.dto.CreateUserRequestDTO;
 import br.com.ofisy.application.user.dto.LoginRequestDTO;
@@ -13,9 +14,12 @@ import br.com.ofisy.application.vehicle.exceptions.VehicleAlreadyExistsException
 import br.com.ofisy.application.vehicle.exceptions.VehicleLicensePlateNotFoundException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
+import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
+import br.com.ofisy.domain.serviceorder.exceptions.InvalidServiceOrderTransitionException;
 import br.com.ofisy.domain.user.Role;
 import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
 import br.com.ofisy.interfaces.api.customer.CustomerController;
+import br.com.ofisy.interfaces.api.serviceorder.ServiceOrderController;
 import br.com.ofisy.interfaces.api.vehicle.VehicleController;
 import br.com.ofisy.interfaces.api.user.LoginController;
 import br.com.ofisy.interfaces.api.user.UserController;
@@ -43,7 +47,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest({CustomerController.class, UserController.class, LoginController.class, VehicleController.class})
+@WebMvcTest({CustomerController.class, UserController.class, LoginController.class, VehicleController.class, ServiceOrderController.class})
 @WithMockUser
 class GlobalExceptionHandlerTest extends ControllerTestBase {
 
@@ -61,6 +65,9 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
 
     @MockitoBean
     private VehicleService vehicleService;
+
+    @MockitoBean
+    private ServiceOrderService serviceOrderService;
 
     @Nested
     class CustomerNotFound {
@@ -363,6 +370,23 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
                     .andExpect(status().isConflict())
                     .andExpect(jsonPath("$.title").value("Veículo já existe"))
                     .andExpect(jsonPath("$.detail").value("Veículo com placa " + plate + " já está registrado."));
+        }
+    }
+
+    @Nested
+    class InvalidServiceOrderTransition {
+
+        @Test
+        void shouldReturn409WhenStatusTransitionIsInvalid() throws Exception {
+            when(customerService.identifyCustomerById(any(UUID.class)))
+                    .thenThrow(new InvalidServiceOrderTransitionException(
+                            ServiceOrderStatus.RECEIVED, ServiceOrderStatus.DELIVERED));
+
+            mockMvc.perform(get("/api/v1/customers/{id}", UUID.randomUUID()))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.title").value("Transição de status inválida"))
+                    .andExpect(jsonPath("$.detail").value(
+                            "Nao pode alterar o status da ordem de servico de RECEIVED para DELIVERED"));
         }
     }
 
