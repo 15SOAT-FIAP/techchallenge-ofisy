@@ -3,8 +3,11 @@ package br.com.ofisy.interfaces.api.serviceorder;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
 import br.com.ofisy.application.serviceorder.ServiceOrderService;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderResponseDTO;
+import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
+import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
+import br.com.ofisy.domain.serviceorder.exceptions.InvalidServiceOrderTransitionException;
 import br.com.ofisy.interfaces.api.GlobalExceptionHandler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +29,7 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -150,6 +154,47 @@ class ServiceOrderControllerTest {
                             .content(validBody()))
                     .andExpect(status().isUnprocessableContent())
                     .andExpect(jsonPath("$.title").value("Veículo não pertence ao cliente"));
+        }
+    }
+
+    @Nested
+    class StartDiagnosticServiceOrder {
+
+        private static final UUID ORDER_ID = UUID.randomUUID();
+
+        @Test
+        void shouldReturn200WithUpdatedServiceOrder() throws Exception {
+            when(serviceOrderService.startDiagnosticServiceOrder(ORDER_ID)).thenReturn(mockInDiagnosticResponse());
+
+            mockMvc.perform(patch(BASE_URL + "/{id}/start-diagnostic", ORDER_ID))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status").value("IN_DIAGNOSTIC"));
+        }
+
+        @Test
+        void shouldReturn404WhenOrderDoesNotExist() throws Exception {
+            when(serviceOrderService.startDiagnosticServiceOrder(ORDER_ID))
+                    .thenThrow(new ServiceOrderNotFoundException(ORDER_ID));
+
+            mockMvc.perform(patch(BASE_URL + "/{id}/start-diagnostic", ORDER_ID))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.title").value("Ordem de serviço não encontrada"));
+        }
+
+        @Test
+        void shouldReturn409WhenTransitionIsInvalid() throws Exception {
+            when(serviceOrderService.startDiagnosticServiceOrder(ORDER_ID))
+                    .thenThrow(new InvalidServiceOrderTransitionException(ServiceOrderStatus.IN_DIAGNOSTIC, ServiceOrderStatus.IN_DIAGNOSTIC));
+
+            mockMvc.perform(patch(BASE_URL + "/{id}/start-diagnostic", ORDER_ID))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.title").value("Transição de status inválida"));
+        }
+
+        private ServiceOrderResponseDTO mockInDiagnosticResponse() {
+            return new ServiceOrderResponseDTO(
+                    ORDER_ID, VALID_VEHICLE_ID, VALID_CUSTOMER_ID,
+                    "Barulho na suspensão", "IN_DIAGNOSTIC", UUID.randomUUID(), NOW, null, NOW);
         }
     }
 
