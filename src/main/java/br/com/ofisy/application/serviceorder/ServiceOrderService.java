@@ -3,6 +3,7 @@ package br.com.ofisy.application.serviceorder;
 import br.com.ofisy.application.customer.CustomerService;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderRequestDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderResponseDTO;
+import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
 import br.com.ofisy.application.user.UserService;
 import br.com.ofisy.application.vehicle.VehicleService;
@@ -10,6 +11,8 @@ import br.com.ofisy.domain.serviceorder.ServiceOrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -32,5 +35,13 @@ public class ServiceOrderService {
         var serviceOrder = ServiceOrderMapper.toDomain(request, createdBy);
         var receivedServiceOrder = serviceOrderRepository.save(serviceOrder);
         return ServiceOrderMapper.toResponseDTO(receivedServiceOrder);
+    }
+
+    @Transactional
+    public ServiceOrderResponseDTO closeServiceOrder(UUID id) {
+        var serviceOrder = serviceOrderRepository.findById(id)
+                .orElseThrow(() -> new ServiceOrderNotFoundException(id));
+        serviceOrder.cancel();
+        return ServiceOrderMapper.toResponseDTO(serviceOrderRepository.save(serviceOrder));
     }
 }
