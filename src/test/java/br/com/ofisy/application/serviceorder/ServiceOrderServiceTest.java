@@ -167,6 +167,38 @@ class ServiceOrderServiceTest {
     }
 
     @Nested
+    class DeliverToCustomerServiceOrder {
+
+        @Test
+        void shouldDeliverServiceOrderSuccessfully() {
+            var serviceOrder = finishedServiceOrder();
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
+            when(serviceOrderRepository.save(serviceOrder)).thenAnswer(inv -> inv.getArgument(0));
+
+            var result = serviceOrderService.deliverToCustomerServiceOrder(VALID_SERVICE_ORDER_ID);
+
+            assertThat(result.status()).isEqualTo("DELIVERED");
+        }
+
+        @Test
+        void shouldThrowServiceOrderNotFoundExceptionWhenOrderDoesNotExist() {
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> serviceOrderService.deliverToCustomerServiceOrder(VALID_SERVICE_ORDER_ID))
+                    .isInstanceOf(ServiceOrderNotFoundException.class);
+        }
+
+        @Test
+        void shouldThrowInvalidTransitionWhenOrderIsNotFinished() {
+            var serviceOrder = cancelledServiceOrder();
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
+
+            assertThatThrownBy(() -> serviceOrderService.deliverToCustomerServiceOrder(VALID_SERVICE_ORDER_ID))
+                    .isInstanceOf(InvalidServiceOrderTransitionException.class);
+        }
+    }
+
+    @Nested
     class CloseServiceOrder {
 
         @Test
@@ -214,6 +246,16 @@ class ServiceOrderServiceTest {
 
     private ServiceOrder receivedServiceOrder() {
         return ServiceOrder.receive(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, VALID_REPORT, VALID_USER_ID);
+    }
+
+    private ServiceOrder finishedServiceOrder() {
+        var order = ServiceOrder.receive(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, VALID_REPORT, VALID_USER_ID);
+        order.startDiagnostic();
+        order.sendToApproval();
+        order.approve();
+        order.startExecution();
+        order.finish();
+        return order;
     }
 
     private ServiceOrder serviceOrderAwaitingApproval() {
