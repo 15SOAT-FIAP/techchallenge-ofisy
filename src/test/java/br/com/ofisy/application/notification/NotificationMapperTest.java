@@ -1,5 +1,6 @@
 package br.com.ofisy.application.notification;
 
+import br.com.ofisy.application.notification.dto.CreateNotificationRequestDTO;
 import br.com.ofisy.application.notification.dto.NotificationResponseDTO;
 import br.com.ofisy.domain.notification.Notification;
 import org.junit.jupiter.api.DisplayName;
@@ -32,13 +33,14 @@ class NotificationMapperTest {
         assertThat(dto.message()).isEqualTo(message);
         assertThat(dto.read()).isTrue();
         assertThat(dto.createdAt()).isNotNull();
+        assertThat(dto.updatedAt()).isNotNull();
     }
 
     @Test
     @DisplayName("Deve converter Notification sem stockId para DTO")
     void shouldConvertNotificationWithoutStockIdToDTO() {
         UUID id = UUID.randomUUID();
-        String type = "ORCAMENTO_GERADO";
+        String type = "QUOTE_GENERATED";
         String message = "Orçamento #123 gerado";
 
         Notification notification = Notification.create(type, null, message);
@@ -59,6 +61,51 @@ class NotificationMapperTest {
         assertThatThrownBy(() -> NotificationMapper.toDTO(null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Notification não pode ser nulo");
+    }
+
+    @Test
+    @DisplayName("Deve converter CreateNotificationRequestDTO para Notification (toDomain)")
+    void shouldConvertDTOToDomain() {
+        UUID stockId = UUID.randomUUID();
+        String type = "LOW_STOCK";
+        String message = "Estoque baixo para Radiador";
+
+        CreateNotificationRequestDTO dto = new CreateNotificationRequestDTO(type, stockId, message);
+
+        Notification notification = NotificationMapper.toDomain(dto);
+
+        assertThat(notification).isNotNull();
+        assertThat(notification.getType()).isEqualTo(type);
+        assertThat(notification.getStockId()).isEqualTo(stockId);
+        assertThat(notification.getMessage()).isEqualTo(message);
+        assertThat(notification.getRead()).isFalse();
+        assertThat(notification.getCreatedAt()).isNotNull();
+        assertThat(notification.getUpdatedAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Deve converter CreateNotificationRequestDTO sem stockId para Notification")
+    void shouldConvertDTOWithoutStockIdToDomain() {
+        String type = "QUOTE_GENERATED";
+        String message = "Orçamento #123 gerado";
+
+        CreateNotificationRequestDTO dto = new CreateNotificationRequestDTO(type, null, message);
+
+        Notification notification = NotificationMapper.toDomain(dto);
+
+        assertThat(notification).isNotNull();
+        assertThat(notification.getType()).isEqualTo(type);
+        assertThat(notification.getStockId()).isNull();
+        assertThat(notification.getMessage()).isEqualTo(message);
+        assertThat(notification.getRead()).isFalse();
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção quando DTO for nulo no toDomain")
+    void shouldThrowExceptionWhenDTOIsNull() {
+        assertThatThrownBy(() -> NotificationMapper.toDomain(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("CreateNotificationRequestDTO não pode ser nulo");
     }
 
     private void setIdViaReflection(Notification notification, UUID id) {
