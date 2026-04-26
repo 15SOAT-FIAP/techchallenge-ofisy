@@ -1,2 +1,0 @@
-ALTER TABLE notifications
-    ADD COLUMN type VARCHAR(100) NOT NULL;

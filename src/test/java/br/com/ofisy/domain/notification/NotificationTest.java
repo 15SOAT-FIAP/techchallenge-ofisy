@@ -30,7 +30,7 @@ class NotificationTest {
     @Test
     @DisplayName("Deve criar notificação sem stockId (orçamento)")
     void shouldCreateNotificationWithoutStockId() {
-        String type = "ORCAMENTO_GERADO";
+        String type = "QUOTE_GENERATED";
         String message = "Orçamento #123 gerado";
 
         Notification notification = Notification.create(type, null, message);
