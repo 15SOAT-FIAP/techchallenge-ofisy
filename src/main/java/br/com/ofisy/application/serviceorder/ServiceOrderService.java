@@ -44,4 +44,12 @@ public class ServiceOrderService {
         serviceOrder.cancel();
         return ServiceOrderMapper.toResponseDTO(serviceOrderRepository.save(serviceOrder));
     }
+
+    @Transactional
+    public ServiceOrderResponseDTO startDiagnosticServiceOrder(UUID id) {
+        var serviceOrder = serviceOrderRepository.findById(id)
+                .orElseThrow(() -> new ServiceOrderNotFoundException(id));
+        serviceOrder.startDiagnostic();
+        return ServiceOrderMapper.toResponseDTO(serviceOrderRepository.save(serviceOrder));
+    }
 }
