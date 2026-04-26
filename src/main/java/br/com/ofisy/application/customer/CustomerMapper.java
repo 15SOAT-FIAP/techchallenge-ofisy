@@ -32,6 +32,7 @@ public class CustomerMapper {
             throw new IllegalArgumentException("CpfCnpj do cliente não pode ser nulo");
         }
         return new CustomerResponseDTO(
+                customer.getId(),
                 customer.getCpfCnpj().getValue(),
                 customer.getName(),
                 customer.getEmail(),

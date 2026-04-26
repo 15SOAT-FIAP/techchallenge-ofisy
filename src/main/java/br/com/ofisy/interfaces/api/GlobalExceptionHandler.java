@@ -4,6 +4,7 @@ import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsExcepti
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
 import br.com.ofisy.application.notification.exceptions.NotificationNotFoundException;
+import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
 import br.com.ofisy.application.user.exceptions.UserNotFoundException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleAlreadyExistsException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleLicensePlateNotFoundException;
@@ -135,6 +136,13 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleNotificationNotFound(NotificationNotFoundException ex) {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         problem.setTitle("Notificação não encontrada");
+        return problem;
+    }
+  
+    @ExceptionHandler(VehicleNotOwnedByCustomerException.class)
+    public ProblemDetail handleVehicleNotOwnedByCustomer(VehicleNotOwnedByCustomerException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, ex.getMessage());
+        problem.setTitle("Veículo não pertence ao cliente");
         return problem;
     }
 }
