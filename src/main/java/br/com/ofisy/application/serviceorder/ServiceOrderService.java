@@ -52,4 +52,12 @@ public class ServiceOrderService {
         serviceOrder.startDiagnostic();
         return ServiceOrderMapper.toResponseDTO(serviceOrderRepository.save(serviceOrder));
     }
+
+    @Transactional
+    public ServiceOrderResponseDTO deliverToCustomerServiceOrder(UUID id) {
+        var serviceOrder = serviceOrderRepository.findById(id)
+                .orElseThrow(() -> new ServiceOrderNotFoundException(id));
+        serviceOrder.deliver();
+        return ServiceOrderMapper.toResponseDTO(serviceOrderRepository.save(serviceOrder));
+    }
 }
