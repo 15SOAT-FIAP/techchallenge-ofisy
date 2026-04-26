@@ -16,7 +16,7 @@ import java.util.UUID;
 @Tag(name = "API de Clientes")
 public interface CustomerApi {
 
-    @Operation(summary = "Listar clientes com paginação")
+    @Operation(summary = "Listar clientes com paginação ou por CPF/CNPJ")
     @ApiResponse(responseCode = "200", description = "Clientes listados com sucesso")
     @GetMapping
     ResponseEntity<Page<CustomerResponseDTO>> getAllCustomers(Pageable pageable);
@@ -27,7 +27,7 @@ public interface CustomerApi {
     @GetMapping("/{id}")
     ResponseEntity<CustomerResponseDTO> getCustomerById(UUID id);
 
-    @Operation(summary = "Obter cliente por CPF/CNPJ")
+    @Operation(summary = "Listar clientes com paginação ou por CPF/CNPJ")
     @ApiResponse(responseCode = "200", description = "Cliente encontrado com sucesso")
     @ApiResponse(responseCode = "404", description = "Cliente não encontrado")
     @GetMapping(params = "cpfCnpj")
