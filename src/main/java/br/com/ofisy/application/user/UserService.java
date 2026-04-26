@@ -4,6 +4,7 @@ import br.com.ofisy.application.user.dto.CreateUserRequestDTO;
 import br.com.ofisy.application.user.dto.ModifyUserRoleRequestDTO;
 import br.com.ofisy.application.user.dto.UpdatePasswordRequestDTO;
 import br.com.ofisy.application.user.dto.UserResponseDTO;
+import br.com.ofisy.application.user.exceptions.EmailNotFoundException;
 import br.com.ofisy.application.user.exceptions.UserNotFoundException;
 import br.com.ofisy.domain.user.User;
 import br.com.ofisy.domain.user.UserRepository;
@@ -81,6 +82,12 @@ public class UserService {
         return mapper.toResponse(repository.save(currentUser));
     }
 
+    @Transactional(readOnly = true)
+    public UUID getIdByEmail(String email) {
+        User currentUser = repository.findByEmailAddress(email)
+                .orElseThrow(() -> new EmailNotFoundException(email));
+        return currentUser.getId();
+    }
 
     private User searchUserByID(UUID id) {
         return repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
