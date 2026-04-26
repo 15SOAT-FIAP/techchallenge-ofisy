@@ -1,5 +1,6 @@
 package br.com.ofisy.domain.notification;
 
+import br.com.ofisy.domain.notification.NotificationType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -18,13 +19,14 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 100)
-    private String type;
+    private NotificationType type;
 
     @Column
     private UUID stockId;
 
-    @Column(nullable = false, length = 500)
+    @Column(nullable = false, length = 255)
     private String message;
 
     @Column(nullable = false)
@@ -36,7 +38,7 @@ public class Notification {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    private Notification(String type, UUID stockId, String message) {
+    private Notification(NotificationType type, UUID stockId, String message) {
         this.type = type;
         this.stockId = stockId;
         this.message = message;
@@ -45,7 +47,7 @@ public class Notification {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public static Notification create(String type, UUID stockId, String message) {
+    public static Notification create(NotificationType type, UUID stockId, String message) {
         return new Notification(type, stockId, message);
     }
 

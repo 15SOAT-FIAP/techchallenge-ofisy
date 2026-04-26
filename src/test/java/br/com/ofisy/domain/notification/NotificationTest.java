@@ -1,5 +1,6 @@
 package br.com.ofisy.domain.notification;
 
+import br.com.ofisy.domain.notification.NotificationType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -13,7 +14,7 @@ class NotificationTest {
     @DisplayName("Deve criar notificação com sucesso")
     void shouldCreateNotificationSuccessfully() {
         UUID stockId = UUID.randomUUID();
-        String type = "LOW_STOCK";
+        NotificationType type = NotificationType.LOW_STOCK;
         String message = "Estoque baixo para Radiador";
 
         Notification notification = Notification.create(type, stockId, message);
@@ -30,7 +31,7 @@ class NotificationTest {
     @Test
     @DisplayName("Deve criar notificação sem stockId (orçamento)")
     void shouldCreateNotificationWithoutStockId() {
-        String type = "QUOTE_GENERATED";
+        NotificationType type = NotificationType.QUOTE_GENERATED;
         String message = "Orçamento #123 gerado";
 
         Notification notification = Notification.create(type, null, message);
@@ -44,7 +45,7 @@ class NotificationTest {
     @Test
     @DisplayName("Deve marcar notificação como lida")
     void shouldMarkAsRead() {
-        Notification notification = Notification.create("LOW_STOCK", UUID.randomUUID(), "Estoque baixo");
+        Notification notification = Notification.create(NotificationType.LOW_STOCK, UUID.randomUUID(), "Estoque baixo");
 
         assertThat(notification.getRead()).isFalse();
 
@@ -56,7 +57,7 @@ class NotificationTest {
     @Test
     @DisplayName("Deve atualizar updatedAt ao marcar como lida")
     void shouldUpdateUpdatedAtWhenMarkAsRead() {
-        Notification notification = Notification.create("LOW_STOCK", UUID.randomUUID(), "Estoque baixo");
+        Notification notification = Notification.create(NotificationType.LOW_STOCK, UUID.randomUUID(), "Estoque baixo");
         var initialUpdatedAt = notification.getUpdatedAt();
 
         try {

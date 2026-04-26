@@ -13,7 +13,7 @@ public class NotificationMapper {
 
         return new NotificationResponseDTO(
                 notification.getId(),
-                notification.getType(),
+                notification.getType().name(),
                 notification.getStockId(),
                 notification.getMessage(),
                 notification.getRead(),

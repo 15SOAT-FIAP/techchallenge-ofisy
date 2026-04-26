@@ -3,6 +3,7 @@ package br.com.ofisy.application.notification;
 import br.com.ofisy.application.notification.dto.CreateNotificationRequestDTO;
 import br.com.ofisy.application.notification.dto.NotificationResponseDTO;
 import br.com.ofisy.domain.notification.Notification;
+import br.com.ofisy.domain.notification.NotificationType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +19,7 @@ class NotificationMapperTest {
     void shouldConvertNotificationToDTO() {
         UUID id = UUID.randomUUID();
         UUID stockId = UUID.randomUUID();
-        String type = "LOW_STOCK";
+        NotificationType type = NotificationType.LOW_STOCK;
         String message = "Estoque baixo para Radiador";
 
         Notification notification = Notification.create(type, stockId, message);
@@ -28,7 +29,7 @@ class NotificationMapperTest {
         NotificationResponseDTO dto = NotificationMapper.toDTO(notification);
 
         assertThat(dto.id()).isEqualTo(id);
-        assertThat(dto.type()).isEqualTo(type);
+        assertThat(dto.type()).isEqualTo(type.name());
         assertThat(dto.stockId()).isEqualTo(stockId);
         assertThat(dto.message()).isEqualTo(message);
         assertThat(dto.read()).isTrue();
@@ -40,7 +41,7 @@ class NotificationMapperTest {
     @DisplayName("Deve converter Notification sem stockId para DTO")
     void shouldConvertNotificationWithoutStockIdToDTO() {
         UUID id = UUID.randomUUID();
-        String type = "QUOTE_GENERATED";
+        NotificationType type = NotificationType.QUOTE_GENERATED;
         String message = "Orçamento #123 gerado";
 
         Notification notification = Notification.create(type, null, message);
@@ -49,7 +50,7 @@ class NotificationMapperTest {
         NotificationResponseDTO dto = NotificationMapper.toDTO(notification);
 
         assertThat(dto.id()).isEqualTo(id);
-        assertThat(dto.type()).isEqualTo(type);
+        assertThat(dto.type()).isEqualTo(type.name());
         assertThat(dto.stockId()).isNull();
         assertThat(dto.message()).isEqualTo(message);
         assertThat(dto.read()).isFalse();
@@ -67,7 +68,7 @@ class NotificationMapperTest {
     @DisplayName("Deve converter CreateNotificationRequestDTO para Notification (toDomain)")
     void shouldConvertDTOToDomain() {
         UUID stockId = UUID.randomUUID();
-        String type = "LOW_STOCK";
+        NotificationType type = NotificationType.LOW_STOCK;
         String message = "Estoque baixo para Radiador";
 
         CreateNotificationRequestDTO dto = new CreateNotificationRequestDTO(type, stockId, message);
@@ -86,7 +87,7 @@ class NotificationMapperTest {
     @Test
     @DisplayName("Deve converter CreateNotificationRequestDTO sem stockId para Notification")
     void shouldConvertDTOWithoutStockIdToDomain() {
-        String type = "QUOTE_GENERATED";
+        NotificationType type = NotificationType.QUOTE_GENERATED;
         String message = "Orçamento #123 gerado";
 
         CreateNotificationRequestDTO dto = new CreateNotificationRequestDTO(type, null, message);

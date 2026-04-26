@@ -5,6 +5,7 @@ import br.com.ofisy.application.notification.dto.NotificationResponseDTO;
 import br.com.ofisy.application.notification.exceptions.NotificationNotFoundException;
 import br.com.ofisy.domain.notification.Notification;
 import br.com.ofisy.domain.notification.NotificationRepository;
+import br.com.ofisy.domain.notification.NotificationType;
 import br.com.ofisy.domain.stock.Stock;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,7 +35,7 @@ public class NotificationService {
                 stock.getQuantity(),
                 stock.getMinThreshold()
         );
-        Notification notification = Notification.create("LOW_STOCK", stock.getId(), message);
+        Notification notification = Notification.create(NotificationType.LOW_STOCK, stock.getId(), message);
         Notification saved = notificationRepository.save(notification);
         return NotificationMapper.toDTO(saved);
     }
@@ -47,7 +48,7 @@ public class NotificationService {
                 customerName,
                 totalValue
         );
-        Notification notification = Notification.create("QUOTE_GENERATED", null, message);
+        Notification notification = Notification.create(NotificationType.QUOTE_GENERATED, null, message);
         Notification saved = notificationRepository.save(notification);
         return NotificationMapper.toDTO(saved);
     }

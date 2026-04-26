@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
@@ -38,6 +38,6 @@ public interface NotificationApi {
     @Operation(summary = "Marcar notificação como lida")
     @ApiResponse(responseCode = "200", description = "Notificação marcada como lida com sucesso")
     @ApiResponse(responseCode = "404", description = "Notificação não encontrada")
-    @PutMapping("/{id}/read")
+    @PatchMapping("/{id}/read")
     ResponseEntity<NotificationResponseDTO> markAsRead(@PathVariable UUID id);
 }
