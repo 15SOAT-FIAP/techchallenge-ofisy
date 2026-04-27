@@ -43,18 +43,6 @@ public class QuoteService {
         return mapper.toResponse(quoteRepository.save(quote));
     }
 
-    @Transactional(readOnly = true)
-    public QuoteResponseDTO findById(UUID id) {
-        return mapper.toResponse(findQuoteById(id));
-    }
-
-    @Transactional(readOnly = true)
-    public List<QuoteResponseDTO> findByServiceOrderId(UUID serviceOrderId) {
-        return quoteRepository.findByServiceOrderId(serviceOrderId).stream()
-                .map(mapper::toResponse)
-                .toList();
-    }
-
     @Transactional
     public QuoteResponseDTO approve(UUID id) {
         Quote quote = findQuoteById(id);
@@ -67,6 +55,18 @@ public class QuoteService {
         Quote quote = findQuoteById(id);
         quote.reprove(request.reason());
         return mapper.toResponse(quoteRepository.save(quote));
+    }
+
+    @Transactional(readOnly = true)
+    public QuoteResponseDTO findById(UUID id) {
+        return mapper.toResponse(findQuoteById(id));
+    }
+
+    @Transactional(readOnly = true)
+    public List<QuoteResponseDTO> findByServiceOrderId(UUID serviceOrderId) {
+        return quoteRepository.findByServiceOrderId(serviceOrderId).stream()
+                .map(mapper::toResponse)
+                .toList();
     }
 
     private Quote findQuoteById(UUID id) {
