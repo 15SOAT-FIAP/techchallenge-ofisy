@@ -8,7 +8,10 @@ import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustome
 import br.com.ofisy.application.user.UserService;
 import br.com.ofisy.application.vehicle.VehicleService;
 import br.com.ofisy.domain.serviceorder.ServiceOrderRepository;
+import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +46,12 @@ public class ServiceOrderService {
                 .orElseThrow(() -> new ServiceOrderNotFoundException(id));
         serviceOrder.cancel();
         return ServiceOrderMapper.toResponseDTO(serviceOrderRepository.save(serviceOrder));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ServiceOrderResponseDTO> listReceived(Pageable pageable) {
+        return serviceOrderRepository.findByStatus(ServiceOrderStatus.RECEIVED, pageable)
+                .map(ServiceOrderMapper::toResponseDTO);
     }
 
     @Transactional
