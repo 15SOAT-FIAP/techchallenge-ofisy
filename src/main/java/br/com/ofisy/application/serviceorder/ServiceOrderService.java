@@ -54,6 +54,12 @@ public class ServiceOrderService {
                 .map(ServiceOrderMapper::toResponseDTO);
     }
 
+    @Transactional(readOnly = true)
+    public Page<ServiceOrderResponseDTO> listFinished(Pageable pageable) {
+        return serviceOrderRepository.findByStatus(ServiceOrderStatus.FINISHED, pageable)
+                .map(ServiceOrderMapper::toResponseDTO);
+    }
+
     @Transactional
     public ServiceOrderResponseDTO startDiagnostic(UUID id) {
         var serviceOrder = serviceOrderRepository.findById(id)
