@@ -71,7 +71,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn201WithCreatedServiceOrder() throws Exception {
-            when(serviceOrderService.createServiceOrder(any(), any())).thenReturn(mockResponse());
+            when(serviceOrderService.create(any(), any())).thenReturn(mockResponse());
 
             mockMvc.perform(post(BASE_URL)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -122,7 +122,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn404WhenCustomerNotFound() throws Exception {
-            when(serviceOrderService.createServiceOrder(any(), any()))
+            when(serviceOrderService.create(any(), any()))
                     .thenThrow(new CustomerNotFoundException(VALID_CUSTOMER_ID));
 
             mockMvc.perform(post(BASE_URL)
@@ -134,7 +134,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn404WhenVehicleNotFound() throws Exception {
-            when(serviceOrderService.createServiceOrder(any(), any()))
+            when(serviceOrderService.create(any(), any()))
                     .thenThrow(new VehicleNotFoundException(VALID_VEHICLE_ID));
 
             mockMvc.perform(post(BASE_URL)
@@ -146,7 +146,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn422WhenVehicleNotOwnedByCustomer() throws Exception {
-            when(serviceOrderService.createServiceOrder(any(), any()))
+            when(serviceOrderService.create(any(), any()))
                     .thenThrow(new VehicleNotOwnedByCustomerException(VALID_VEHICLE_ID, VALID_CUSTOMER_ID));
 
             mockMvc.perform(post(BASE_URL)
@@ -164,7 +164,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn200WithUpdatedServiceOrder() throws Exception {
-            when(serviceOrderService.startDiagnosticServiceOrder(ORDER_ID)).thenReturn(mockInDiagnosticResponse());
+            when(serviceOrderService.startDiagnostic(ORDER_ID)).thenReturn(mockInDiagnosticResponse());
 
             mockMvc.perform(patch(BASE_URL + "/{id}/start-diagnostic", ORDER_ID))
                     .andExpect(status().isOk())
@@ -173,7 +173,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn404WhenOrderDoesNotExist() throws Exception {
-            when(serviceOrderService.startDiagnosticServiceOrder(ORDER_ID))
+            when(serviceOrderService.startDiagnostic(ORDER_ID))
                     .thenThrow(new ServiceOrderNotFoundException(ORDER_ID));
 
             mockMvc.perform(patch(BASE_URL + "/{id}/start-diagnostic", ORDER_ID))
@@ -183,7 +183,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn409WhenTransitionIsInvalid() throws Exception {
-            when(serviceOrderService.startDiagnosticServiceOrder(ORDER_ID))
+            when(serviceOrderService.startDiagnostic(ORDER_ID))
                     .thenThrow(new InvalidServiceOrderTransitionException(ServiceOrderStatus.IN_DIAGNOSTIC, ServiceOrderStatus.IN_DIAGNOSTIC));
 
             mockMvc.perform(patch(BASE_URL + "/{id}/start-diagnostic", ORDER_ID))

@@ -60,7 +60,7 @@ class ServiceOrderServiceTest {
             when(userService.getIdByEmail(VALID_EMAIL)).thenReturn(VALID_USER_ID);
             when(serviceOrderRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-            var result = serviceOrderService.createServiceOrder(validRequest(), VALID_EMAIL);
+            var result = serviceOrderService.create(validRequest(), VALID_EMAIL);
 
             assertThat(result).isNotNull();
             assertThat(result.vehicleId()).isEqualTo(VALID_VEHICLE_ID);
@@ -77,7 +77,7 @@ class ServiceOrderServiceTest {
             when(userService.getIdByEmail(VALID_EMAIL)).thenReturn(VALID_USER_ID);
             when(serviceOrderRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-            var result = serviceOrderService.createServiceOrder(request, VALID_EMAIL);
+            var result = serviceOrderService.create(request, VALID_EMAIL);
 
             assertThat(result.report()).isNull();
             verify(serviceOrderRepository).save(any());
@@ -89,7 +89,7 @@ class ServiceOrderServiceTest {
                     .when(customerService).identifyCustomerById(VALID_CUSTOMER_ID);
 
             var request = validRequest();
-            assertThatThrownBy(() -> serviceOrderService.createServiceOrder(request, VALID_EMAIL))
+            assertThatThrownBy(() -> serviceOrderService.create(request, VALID_EMAIL))
                     .isInstanceOf(CustomerNotFoundException.class);
 
             verify(serviceOrderRepository, never()).save(any());
@@ -101,7 +101,7 @@ class ServiceOrderServiceTest {
                     .when(vehicleService).identifyVehicleById(VALID_VEHICLE_ID);
 
             var request = validRequest();
-            assertThatThrownBy(() -> serviceOrderService.createServiceOrder(request, VALID_EMAIL))
+            assertThatThrownBy(() -> serviceOrderService.create(request, VALID_EMAIL))
                     .isInstanceOf(VehicleNotFoundException.class);
 
             verify(serviceOrderRepository, never()).save(any());
@@ -112,7 +112,7 @@ class ServiceOrderServiceTest {
             when(vehicleService.identifyVehicleById(VALID_VEHICLE_ID)).thenReturn(vehicleOwnedByOther());
 
             var request = validRequest();
-            assertThatThrownBy(() -> serviceOrderService.createServiceOrder(request, VALID_EMAIL))
+            assertThatThrownBy(() -> serviceOrderService.create(request, VALID_EMAIL))
                     .isInstanceOf(VehicleNotOwnedByCustomerException.class)
                     .hasMessageContaining(VALID_VEHICLE_ID.toString())
                     .hasMessageContaining(VALID_CUSTOMER_ID.toString());
@@ -127,7 +127,7 @@ class ServiceOrderServiceTest {
                     .when(userService).getIdByEmail(VALID_EMAIL);
 
             var request = validRequest();
-            assertThatThrownBy(() -> serviceOrderService.createServiceOrder(request, VALID_EMAIL))
+            assertThatThrownBy(() -> serviceOrderService.create(request, VALID_EMAIL))
                     .isInstanceOf(EmailNotFoundException.class);
 
             verify(serviceOrderRepository, never()).save(any());
@@ -143,7 +143,7 @@ class ServiceOrderServiceTest {
             when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
             when(serviceOrderRepository.save(serviceOrder)).thenAnswer(inv -> inv.getArgument(0));
 
-            var result = serviceOrderService.startDiagnosticServiceOrder(VALID_SERVICE_ORDER_ID);
+            var result = serviceOrderService.startDiagnostic(VALID_SERVICE_ORDER_ID);
 
             assertThat(result.status()).isEqualTo("IN_DIAGNOSTIC");
         }
@@ -152,7 +152,7 @@ class ServiceOrderServiceTest {
         void shouldThrowServiceOrderNotFoundExceptionWhenOrderDoesNotExist() {
             when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> serviceOrderService.startDiagnosticServiceOrder(VALID_SERVICE_ORDER_ID))
+            assertThatThrownBy(() -> serviceOrderService.startDiagnostic(VALID_SERVICE_ORDER_ID))
                     .isInstanceOf(ServiceOrderNotFoundException.class);
         }
 
@@ -161,7 +161,7 @@ class ServiceOrderServiceTest {
             var serviceOrder = cancelledServiceOrder();
             when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
 
-            assertThatThrownBy(() -> serviceOrderService.startDiagnosticServiceOrder(VALID_SERVICE_ORDER_ID))
+            assertThatThrownBy(() -> serviceOrderService.startDiagnostic(VALID_SERVICE_ORDER_ID))
                     .isInstanceOf(InvalidServiceOrderTransitionException.class);
         }
     }
@@ -175,7 +175,7 @@ class ServiceOrderServiceTest {
             when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
             when(serviceOrderRepository.save(serviceOrder)).thenAnswer(inv -> inv.getArgument(0));
 
-            var result = serviceOrderService.closeServiceOrder(VALID_SERVICE_ORDER_ID);
+            var result = serviceOrderService.close(VALID_SERVICE_ORDER_ID);
 
             assertThat(result.status()).isEqualTo("CANCELLED");
         }
@@ -184,7 +184,7 @@ class ServiceOrderServiceTest {
         void shouldThrowServiceOrderNotFoundExceptionWhenOrderDoesNotExist() {
             when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> serviceOrderService.closeServiceOrder(VALID_SERVICE_ORDER_ID))
+            assertThatThrownBy(() -> serviceOrderService.close(VALID_SERVICE_ORDER_ID))
                     .isInstanceOf(ServiceOrderNotFoundException.class);
         }
 
@@ -193,7 +193,7 @@ class ServiceOrderServiceTest {
             var serviceOrder = cancelledServiceOrder();
             when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
 
-            assertThatThrownBy(() -> serviceOrderService.closeServiceOrder(VALID_SERVICE_ORDER_ID))
+            assertThatThrownBy(() -> serviceOrderService.close(VALID_SERVICE_ORDER_ID))
                     .isInstanceOf(InvalidServiceOrderTransitionException.class);
         }
     }

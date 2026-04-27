@@ -30,11 +30,11 @@ public class ServiceOrderController implements ServiceOrderApi {
             @Valid @RequestBody ServiceOrderRequestDTO request,
             @AuthenticationPrincipal UserDetails user) {
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(serviceOrderService.createServiceOrder(request, user.getUsername()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(serviceOrderService.create(request, user.getUsername()));
     }
 
     @PatchMapping("/{id}/start-diagnostic")
     public ResponseEntity<ServiceOrderResponseDTO> startDiagnosticServiceOrder(@PathVariable UUID id) {
-        return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.startDiagnosticServiceOrder(id));
+        return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.startDiagnostic(id));
     }
 }

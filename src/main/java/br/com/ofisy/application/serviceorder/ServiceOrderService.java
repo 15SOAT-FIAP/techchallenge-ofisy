@@ -24,7 +24,7 @@ public class ServiceOrderService {
     private final UserService userService;
 
     @Transactional
-    public ServiceOrderResponseDTO createServiceOrder(ServiceOrderRequestDTO request, String createdByEmail) {
+    public ServiceOrderResponseDTO create(ServiceOrderRequestDTO request, String createdByEmail) {
         customerService.identifyCustomerById(request.customerId());
         var vehicle = vehicleService.identifyVehicleById(request.vehicleId());
         if (!vehicle.customerId().equals(request.customerId())) {
@@ -38,7 +38,7 @@ public class ServiceOrderService {
     }
 
     @Transactional
-    public ServiceOrderResponseDTO closeServiceOrder(UUID id) {
+    public ServiceOrderResponseDTO close(UUID id) {
         var serviceOrder = serviceOrderRepository.findById(id)
                 .orElseThrow(() -> new ServiceOrderNotFoundException(id));
         serviceOrder.cancel();
@@ -46,7 +46,7 @@ public class ServiceOrderService {
     }
 
     @Transactional
-    public ServiceOrderResponseDTO startDiagnosticServiceOrder(UUID id) {
+    public ServiceOrderResponseDTO startDiagnostic(UUID id) {
         var serviceOrder = serviceOrderRepository.findById(id)
                 .orElseThrow(() -> new ServiceOrderNotFoundException(id));
         serviceOrder.startDiagnostic();
