@@ -10,6 +10,7 @@ import br.com.ofisy.application.vehicle.exceptions.VehicleAlreadyExistsException
 import br.com.ofisy.application.vehicle.exceptions.VehicleLicensePlateNotFoundException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
+import br.com.ofisy.domain.serviceorder.exceptions.InvalidServiceOrderTransitionException;
 import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -143,6 +144,13 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleVehicleNotOwnedByCustomer(VehicleNotOwnedByCustomerException ex) {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, ex.getMessage());
         problem.setTitle("Veículo não pertence ao cliente");
+        return problem;
+    }
+
+    @ExceptionHandler(InvalidServiceOrderTransitionException.class)
+    public ProblemDetail handleInvalidServiceOrderTransition(InvalidServiceOrderTransitionException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problem.setTitle("Transição de status inválida");
         return problem;
     }
 }

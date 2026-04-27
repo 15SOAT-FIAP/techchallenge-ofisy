@@ -1,5 +1,6 @@
 package br.com.ofisy.domain.serviceorder;
 
+import br.com.ofisy.domain.serviceorder.exceptions.InvalidServiceOrderTransitionException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -13,8 +14,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -66,5 +65,44 @@ public class ServiceOrder {
 
     public static ServiceOrder receive(UUID vehicleId, UUID customerId, String report, UUID createdBy) {
         return new ServiceOrder(vehicleId, customerId, report, createdBy);
+    }
+
+    public void startDiagnostic() {
+        transitionTo(ServiceOrderStatus.IN_DIAGNOSTIC);
+    }
+
+    public void sendToApproval() {
+        transitionTo(ServiceOrderStatus.AWAITING_APPROVAL);
+    }
+
+    public void approve() {
+        transitionTo(ServiceOrderStatus.AWAITING_EXECUTION);
+    }
+
+    public void cancel() {
+        transitionTo(ServiceOrderStatus.CANCELLED);
+    }
+
+    public void startExecution() {
+        transitionTo(ServiceOrderStatus.IN_PROGRESS);
+    }
+
+    public void finish() {
+        transitionTo(ServiceOrderStatus.FINISHED);
+    }
+
+    public void deliver() {
+        transitionTo(ServiceOrderStatus.DELIVERED);
+    }
+
+    private void transitionTo(ServiceOrderStatus nextStatus) {
+        if (!this.status.canTransitionTo(nextStatus)) {
+            throw new InvalidServiceOrderTransitionException(this.status, nextStatus);
+        }
+        this.status = nextStatus;
+        this.updatedAt = LocalDateTime.now();
+        if (nextStatus == ServiceOrderStatus.FINISHED) {
+            this.finishedAt = this.updatedAt;
+        }
     }
 }
