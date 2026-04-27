@@ -12,22 +12,32 @@ import br.com.ofisy.application.vehicle.dto.VehicleResponseDTO;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import br.com.ofisy.domain.serviceorder.ServiceOrderRepository;
+import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
 import br.com.ofisy.domain.serviceorder.exceptions.InvalidServiceOrderTransitionException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ServiceOrderServiceTest {
@@ -131,6 +141,52 @@ class ServiceOrderServiceTest {
                     .isInstanceOf(EmailNotFoundException.class);
 
             verify(serviceOrderRepository, never()).save(any());
+        }
+    }
+
+    @Nested
+    class ListReceivedServiceOrders {
+
+        @Test
+        void shouldReturnMappedPageOfReceivedServiceOrders() {
+            var pageable = PageRequest.of(0, 10);
+            var serviceOrder = receivedServiceOrder();
+            Page<ServiceOrder> page = new PageImpl<>(List.of(serviceOrder), pageable, 1);
+            when(serviceOrderRepository.findByStatus(ServiceOrderStatus.RECEIVED, pageable)).thenReturn(page);
+
+            var result = serviceOrderService.listReceived(pageable);
+
+            assertThat(result.getTotalElements()).isEqualTo(1);
+            assertThat(result.getContent()).hasSize(1);
+            assertThat(result.getContent().get(0).status()).isEqualTo("RECEIVED");
+            assertThat(result.getContent().get(0).vehicleId()).isEqualTo(VALID_VEHICLE_ID);
+            assertThat(result.getContent().get(0).customerId()).isEqualTo(VALID_CUSTOMER_ID);
+        }
+
+        @Test
+        void shouldReturnEmptyPageWhenNoReceivedServiceOrders() {
+            var pageable = PageRequest.of(0, 10);
+            when(serviceOrderRepository.findByStatus(ServiceOrderStatus.RECEIVED, pageable))
+                    .thenReturn(Page.empty(pageable));
+
+            var result = serviceOrderService.listReceived(pageable);
+
+            assertThat(result.getTotalElements()).isZero();
+            assertThat(result.getContent()).isEmpty();
+        }
+
+        @Test
+        void shouldQueryRepositoryWithReceivedStatusAndProvidedPageable() {
+            var pageable = PageRequest.of(2, 5);
+            when(serviceOrderRepository.findByStatus(any(), any())).thenReturn(Page.empty(pageable));
+
+            serviceOrderService.listReceived(pageable);
+
+            var statusCaptor = ArgumentCaptor.forClass(ServiceOrderStatus.class);
+            var pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+            verify(serviceOrderRepository).findByStatus(statusCaptor.capture(), pageableCaptor.capture());
+            assertThat(statusCaptor.getValue()).isEqualTo(ServiceOrderStatus.RECEIVED);
+            assertThat(pageableCaptor.getValue()).isEqualTo(pageable);
         }
     }
 
