@@ -258,7 +258,7 @@ class QuoteServiceTest {
             UUID id = UUID.randomUUID();
             Quote quote = mockQuote();
             QuoteResponseDTO response = mockResponse(quote);
-            ReproveQuoteRequestDTO request = new ReproveQuoteRequestDTO("Não gostei das avaliações da oficina");
+            ReproveQuoteRequestDTO request = new ReproveQuoteRequestDTO("Não gostei das avaliações da oficina no Google");
 
             when(quoteRepository.findById(id)).thenReturn(Optional.of(quote));
             when(quoteRepository.save(quote)).thenReturn(quote);
