@@ -1,0 +1,137 @@
+package br.com.ofisy.application.quote;
+
+import br.com.ofisy.application.quote.dto.*;
+import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
+import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
+import br.com.ofisy.application.stock.StockService;
+import br.com.ofisy.domain.quote.*;
+import br.com.ofisy.domain.stock.Stock;
+import br.com.ofisy.domain.stock.StockRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+public class QuoteService {
+
+    private final QuoteRepository quoteRepository;
+    private final StockService stockService;
+    private final StockRepository stockRepository;
+    //    private final ServiceOrderServiceRepository serviceOrderServiceRepository;
+//    private final ServiceRepository serviceRepository;
+    private final QuoteMapper mapper;
+
+    @Transactional
+    public QuoteResponseDTO create(CreateQuoteRequestDTO request) {
+        List<QuoteStockItem> stockItems = buildStockItems(request.stockItems());
+        /* Comentando isso até termos a parte de serviço
+        List<QuoteServiceItem> serviceItems = buildServiceItems(
+                request.serviceItems() != null ? request.serviceItems() : List.of()
+        );
+
+        Quote quote = Quote.create(request.serviceOrderId(), stockItems, serviceItems);
+        */
+
+        Quote quote = Quote.create(request.serviceOrderId(), stockItems, new ArrayList<>());
+
+        //TODO: Vamos lançar a notificação de criação do orçamento aqui? Ou na OS?
+        return mapper.toResponse(quoteRepository.save(quote));
+    }
+
+    @Transactional(readOnly = true)
+    public QuoteResponseDTO findById(UUID id) {
+        return mapper.toResponse(findQuoteById(id));
+    }
+
+    @Transactional(readOnly = true)
+    public List<QuoteResponseDTO> findByServiceOrderId(UUID serviceOrderId) {
+        return quoteRepository.findByServiceOrderId(serviceOrderId).stream()
+                .map(mapper::toResponse)
+                .toList();
+    }
+
+    @Transactional
+    public QuoteResponseDTO approve(UUID id) {
+        Quote quote = findQuoteById(id);
+        quote.approve();
+        return mapper.toResponse(quoteRepository.save(quote));
+    }
+
+    @Transactional
+    public QuoteResponseDTO reprove(UUID id, ReproveQuoteRequestDTO request) {
+        Quote quote = findQuoteById(id);
+        quote.reprove(request.reason());
+        return mapper.toResponse(quoteRepository.save(quote));
+    }
+
+    private Quote findQuoteById(UUID id) {
+        return quoteRepository.findById(id)
+                .orElseThrow(() -> new QuoteNotFoundException(id));
+    }
+
+    private Stock findStockById(UUID id) {
+        return stockRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Estoque com id " + id + " não encontrado"));
+    }
+
+    private List<QuoteStockItem> buildStockItems(List<StockItemRequestDTO> requests) {
+        List<QuoteStockItem> items = new ArrayList<>();
+
+        for (StockItemRequestDTO request : requests) {
+            Stock stock = findStockById(request.stockId());
+
+            boolean duplicate = items.stream()
+                    .anyMatch(i -> i.getStock().getId().equals(request.stockId()));
+            if (duplicate) {
+                throw new QuoteItemAlreadyExistsException(stock.getProductName());
+            }
+
+            //como o método de consumeStock já vai lançar a notificação de low_stock estou utilizando-o aqui
+            stockService.consumeStock(request.stockId(), request.quantity());
+
+            items.add(QuoteStockItem.create(stock, request.quantity()));
+        }
+
+        return items;
+    }
+
+    /* Comentando aqui até termos a parte de serviços
+    private ServiceOrderService findServiceOrderServiceById(UUID id) {
+        return serviceOrderServiceRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Execução de serviço com id " + id + " não encontrada"));
+    }
+
+    private Service findServiceById(UUID id) {
+        return serviceRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Serviço com id " + id + " não encontrado"));
+    }
+
+    private List<QuoteServiceItem> buildServiceItems(List<ServiceItemRequestDTO> requests) {
+        List<QuoteServiceItem> items = new ArrayList<>();
+
+        for (ServiceItemRequestDTO request : requests) {
+            ServiceOrderExecution serviceOrderService = findServiceOrderExecutionById(
+                    request.serviceOrderExecutionId()
+            );
+
+            boolean duplicate = items.stream()
+                    .anyMatch(i -> i.getServiceOrderExecution().getId().equals(request.serviceOrderExecutionId()));
+            if (duplicate) {
+                throw new QuoteItemAlreadyExistsException(
+                        "Serviço " + request.serviceOrderExecutionsId()
+                );
+            }
+
+            Service service = findServiceById(serviceOrderService.getServiceId());
+            items.add(QuoteServiceItem.create(serviceOrderService, service.getPrice()));
+        }
+
+        return items;
+    }
+    */
+}
