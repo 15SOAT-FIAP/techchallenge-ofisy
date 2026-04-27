@@ -369,6 +369,6 @@ class CustomerControllerTest extends ControllerTestBase {
     }
 
     private CustomerResponseDTO responseDTO(String cpfCnpj, String name) {
-        return new CustomerResponseDTO(cpfCnpj, name, name.toLowerCase().replace(" ", "") + "@mail.com", "11999999999", NOW, NOW);
+        return new CustomerResponseDTO(UUID.randomUUID(), cpfCnpj, name, name.toLowerCase().replace(" ", "") + "@mail.com", "11999999999", NOW, NOW);
     }
 }
