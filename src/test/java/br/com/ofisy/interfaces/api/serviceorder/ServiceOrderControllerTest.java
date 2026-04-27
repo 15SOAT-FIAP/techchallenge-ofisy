@@ -214,6 +214,58 @@ class ServiceOrderControllerTest {
     }
 
     @Nested
+    class ListFinished {
+
+        @Test
+        void shouldReturn200WithPageOfFinishedServiceOrders() throws Exception {
+            var response = mockFinishedResponse();
+            Page<ServiceOrderResponseDTO> page = new PageImpl<>(List.of(response), PageRequest.of(0, 10), 1);
+            when(serviceOrderService.listFinished(any(Pageable.class))).thenReturn(page);
+
+            mockMvc.perform(get(BASE_URL + "/finished"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content[0].status").value("FINISHED"))
+                    .andExpect(jsonPath("$.content[0].vehicleId").value(VALID_VEHICLE_ID.toString()))
+                    .andExpect(jsonPath("$.content[0].customerId").value(VALID_CUSTOMER_ID.toString()))
+                    .andExpect(jsonPath("$.totalElements").value(1));
+        }
+
+        @Test
+        void shouldReturn200WithEmptyPageWhenNoFinishedOrders() throws Exception {
+            Page<ServiceOrderResponseDTO> page = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
+            when(serviceOrderService.listFinished(any(Pageable.class))).thenReturn(page);
+
+            mockMvc.perform(get(BASE_URL + "/finished"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content").isEmpty())
+                    .andExpect(jsonPath("$.totalElements").value(0));
+        }
+
+        @Test
+        void shouldForwardPageableParametersToService() throws Exception {
+            Page<ServiceOrderResponseDTO> page = new PageImpl<>(List.of(), PageRequest.of(2, 5), 0);
+            when(serviceOrderService.listFinished(any(Pageable.class))).thenReturn(page);
+
+            mockMvc.perform(get(BASE_URL + "/finished")
+                            .param("page", "2")
+                            .param("size", "5"))
+                    .andExpect(status().isOk());
+
+            var captor = org.mockito.ArgumentCaptor.forClass(Pageable.class);
+            verify(serviceOrderService).listFinished(captor.capture());
+            var captured = captor.getValue();
+            org.assertj.core.api.Assertions.assertThat(captured.getPageNumber()).isEqualTo(2);
+            org.assertj.core.api.Assertions.assertThat(captured.getPageSize()).isEqualTo(5);
+        }
+
+        private ServiceOrderResponseDTO mockFinishedResponse() {
+            return new ServiceOrderResponseDTO(
+                    UUID.randomUUID(), VALID_VEHICLE_ID, VALID_CUSTOMER_ID,
+                    "Barulho na suspensão", "FINISHED", UUID.randomUUID(), NOW, null, NOW);
+        }
+    }
+
+    @Nested
     class StartDiagnosticServiceOrder {
 
         private static final UUID ORDER_ID = UUID.randomUUID();
