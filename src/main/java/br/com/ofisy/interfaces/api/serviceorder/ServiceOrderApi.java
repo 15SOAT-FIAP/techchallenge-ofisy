@@ -24,6 +24,10 @@ public interface ServiceOrderApi {
     @ApiResponse(responseCode = "200", description = "Lista de ordens de serviço recebidas retornada com sucesso")
     ResponseEntity<Page<ServiceOrderResponseDTO>> listReceived(Pageable pageable);
 
+    @Operation(summary = "Listar todas as ordens de serviço com status FINISHED")
+    @ApiResponse(responseCode = "200", description = "Lista de ordens de serviço finalizadas retornada com sucesso")
+    ResponseEntity<Page<ServiceOrderResponseDTO>> listFinished(Pageable pageable);
+
     @Operation(summary = "Iniciar diagnóstico de uma ordem de serviço")
     @ApiResponse(responseCode = "200", description = "Diagnóstico iniciado com sucesso")
     @ApiResponse(responseCode = "404", description = "Ordem de serviço não encontrada")

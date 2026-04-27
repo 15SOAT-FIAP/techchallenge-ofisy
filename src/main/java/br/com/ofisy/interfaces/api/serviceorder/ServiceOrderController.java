@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,6 +44,13 @@ public class ServiceOrderController implements ServiceOrderApi {
     @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
 
         return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.listReceived(pageable));
+    }
+
+    @GetMapping("/finished")
+    public ResponseEntity<Page<ServiceOrderResponseDTO>> listFinished(
+            @ParameterObject @PageableDefault(size = 10, sort = "finishedAt", direction = Sort.Direction.ASC) Pageable pageable) {
+
+        return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.listFinished(pageable));
     }
 
     @PatchMapping("/{id}/start-diagnostic")
