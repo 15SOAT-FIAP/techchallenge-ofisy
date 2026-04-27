@@ -1,6 +1,5 @@
 package br.com.ofisy.application.notification;
 
-import br.com.ofisy.application.notification.dto.CreateNotificationRequestDTO;
 import br.com.ofisy.application.notification.dto.NotificationResponseDTO;
 import br.com.ofisy.application.notification.exceptions.NotificationNotFoundException;
 import br.com.ofisy.domain.notification.Notification;
@@ -48,27 +47,6 @@ public class NotificationServiceTest {
     }
 
     @Test
-    @DisplayName("Deve criar notificação com sucesso via DTO")
-    void shouldCreateNotificationSuccessfully() {
-        when(notificationRepository.save(any(Notification.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        CreateNotificationRequestDTO request = new CreateNotificationRequestDTO(
-                NotificationType.LOW_STOCK,
-                UUID.randomUUID(),
-                "Estoque baixo para o produto Radiador"
-        );
-
-        NotificationResponseDTO result = notificationService.create(request);
-
-        assertThat(result.type()).isEqualTo(request.type().name());
-        assertThat(result.message()).isEqualTo(request.message());
-        assertThat(result.read()).isFalse();
-        assertThat(result.createdAt()).isNotNull();
-        verify(notificationRepository).save(any(Notification.class));
-    }
-
-    @Test
     @DisplayName("Deve criar notificação de estoque baixo via método específico com stockId")
     void shouldCreateLowStockNotificationSuccessfully() {
         when(notificationRepository.save(any(Notification.class)))
@@ -111,27 +89,6 @@ public class NotificationServiceTest {
         assertThat(result.message()).contains("123");
         assertThat(result.message()).contains("João Silva");
         assertThat(result.message()).contains("1500.00");
-        assertThat(result.read()).isFalse();
-        verify(notificationRepository).save(any(Notification.class));
-    }
-
-    @Test
-    @DisplayName("Deve criar notificação de orçamento sem stockId via DTO")
-    void shouldCreateQuoteNotificationWithoutStockId() {
-        when(notificationRepository.save(any(Notification.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        CreateNotificationRequestDTO request = new CreateNotificationRequestDTO(
-                NotificationType.QUOTE_GENERATED,
-                null,
-                "Orçamento #123 gerado para o cliente João"
-        );
-
-        NotificationResponseDTO result = notificationService.create(request);
-
-        assertThat(result.type()).isEqualTo(NotificationType.QUOTE_GENERATED.name());
-        assertThat(result.stockId()).isNull();
-        assertThat(result.message()).isEqualTo("Orçamento #123 gerado para o cliente João");
         assertThat(result.read()).isFalse();
         verify(notificationRepository).save(any(Notification.class));
     }

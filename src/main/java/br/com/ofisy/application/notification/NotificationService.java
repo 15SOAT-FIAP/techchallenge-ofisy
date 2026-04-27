@@ -1,6 +1,5 @@
 package br.com.ofisy.application.notification;
 
-import br.com.ofisy.application.notification.dto.CreateNotificationRequestDTO;
 import br.com.ofisy.application.notification.dto.NotificationResponseDTO;
 import br.com.ofisy.application.notification.exceptions.NotificationNotFoundException;
 import br.com.ofisy.domain.notification.Notification;
@@ -19,13 +18,6 @@ import java.util.UUID;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
-
-    @Transactional
-    public NotificationResponseDTO create(CreateNotificationRequestDTO request) {
-        Notification notification = NotificationMapper.toDomain(request);
-        Notification saved = notificationRepository.save(notification);
-        return NotificationMapper.toDTO(saved);
-    }
 
     @Transactional
     public NotificationResponseDTO createLowStockNotification(Stock stock) {

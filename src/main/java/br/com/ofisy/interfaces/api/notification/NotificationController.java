@@ -1,11 +1,8 @@
 package br.com.ofisy.interfaces.api.notification;
 
 import br.com.ofisy.application.notification.NotificationService;
-import br.com.ofisy.application.notification.dto.CreateNotificationRequestDTO;
 import br.com.ofisy.application.notification.dto.NotificationResponseDTO;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,11 +16,6 @@ public class NotificationController implements NotificationApi {
 
     private final NotificationService notificationService;
 
-    @PostMapping
-    public ResponseEntity<NotificationResponseDTO> create(@Valid @RequestBody CreateNotificationRequestDTO request) {
-        NotificationResponseDTO result = notificationService.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(result);
-    }
 
     @GetMapping
     public ResponseEntity<List<NotificationResponseDTO>> findAll() {

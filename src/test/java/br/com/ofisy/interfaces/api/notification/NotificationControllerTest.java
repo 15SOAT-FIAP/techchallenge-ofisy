@@ -18,12 +18,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -40,78 +38,6 @@ class NotificationControllerTest extends ControllerTestBase {
 
     @MockitoBean
     private NotificationService notificationService;
-
-    @Nested
-    class CreateNotification {
-
-        private String validBody() {
-            return """
-                    {
-                        "type": "LOW_STOCK",
-                        "stockId": "550e8400-e29b-41d4-a716-446655440000",
-                        "message": "Estoque baixo para Radiador"
-                    }
-                    """;
-        }
-
-        @Test
-        void shouldReturn201WithCreatedNotification() throws Exception {
-            var dto = responseDTO("LOW_STOCK", "Estoque baixo para Radiador");
-            when(notificationService.create(any())).thenReturn(dto);
-
-            mockMvc.perform(post(BASE_URL)
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(validBody()))
-                    .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.id").exists())
-                    .andExpect(jsonPath("$.type").value("LOW_STOCK"))
-                    .andExpect(jsonPath("$.message").value("Estoque baixo para Radiador"))
-                    .andExpect(jsonPath("$.read").value(false))
-                    .andExpect(jsonPath("$.createdAt").exists());
-        }
-
-        @Test
-        void shouldReturn400WhenTypeIsBlank() throws Exception {
-            var body = """
-                    {
-                        "type": "",
-                        "message": "Estoque baixo para Radiador"
-                    }
-                    """;
-
-            mockMvc.perform(post(BASE_URL)
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(body))
-                    .andExpect(status().isBadRequest());
-        }
-
-        @Test
-        void shouldReturn400WhenMessageIsBlank() throws Exception {
-            var body = """
-                    {
-                        "type": "LOW_STOCK",
-                        "message": ""
-                    }
-                    """;
-
-            mockMvc.perform(post(BASE_URL)
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(body))
-                    .andExpect(status().isBadRequest());
-        }
-
-        @Test
-        void shouldReturn400WhenBodyIsEmpty() throws Exception {
-            mockMvc.perform(post(BASE_URL)
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{}"))
-                    .andExpect(status().isBadRequest());
-        }
-    }
 
     @Nested
     class GetAllNotifications {
