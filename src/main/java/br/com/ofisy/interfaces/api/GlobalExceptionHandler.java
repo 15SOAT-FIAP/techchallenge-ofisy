@@ -4,6 +4,7 @@ import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsExcepti
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
 import br.com.ofisy.application.notification.exceptions.NotificationNotFoundException;
+import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
 import br.com.ofisy.application.user.exceptions.UserNotFoundException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleAlreadyExistsException;
@@ -151,6 +152,13 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleInvalidServiceOrderTransition(InvalidServiceOrderTransitionException ex) {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         problem.setTitle("Transição de status inválida");
+        return problem;
+    }
+
+    @ExceptionHandler(ServiceOrderNotFoundException.class)
+    public ProblemDetail handleServiceOrderNotFound(ServiceOrderNotFoundException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problem.setTitle("Ordem de serviço não encontrada");
         return problem;
     }
 }
