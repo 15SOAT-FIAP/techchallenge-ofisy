@@ -153,41 +153,6 @@ class QuoteTest {
         }
     }
 
-    @Nested
-    @DisplayName("recalculateTotal")
-    class RecalculateTotal {
-
-        @Test
-        @DisplayName("Deve recalcular total após adicionar itens")
-        void shouldRecalculateTotalAfterAddingItems() {
-            var quote = mockQuote(List.of(mockStockItem(new BigDecimal(PRICE_100), 2)), List.of());
-            var initialTotal = quote.getTotalPrice();
-
-            var newItem = mockStockItem(new BigDecimal(PRICE_50), 1);
-            newItem.setQuote(quote);
-            quote.getStockItems().add(newItem);
-            quote.recalculateTotal();
-
-            assertThat(quote.getTotalPrice()).isGreaterThan(initialTotal);
-            assertThat(quote.getTotalPrice()).isEqualByComparingTo(new BigDecimal("250.00"));
-            assertThat(quote.getUpdatedAt()).isNotNull();
-        }
-
-        /* Comentando aqui até termos a parte de serviços
-        @Test
-        @DisplayName("Deve recalcular total com itens de estoque e serviço")
-        void shouldRecalculateTotalWithStockAndServiceItems() {
-            var serviceItem = mockServiceItem(new BigDecimal(PRICE_100));
-            var quote = mockQuote(List.of(mockStockItem(new BigDecimal(PRICE_100), 2)), List.of(serviceItem));
-
-            quote.recalculateTotal();
-
-            assertThat(quote.getTotalPrice()).isEqualByComparingTo(new BigDecimal("300.00"));
-        }
-        */
-
-    }
-
     private Stock mockStock(BigDecimal unitPrice) {
         return Stock.create("Filtro de óleo", "Filtro", 10, unitPrice, "Filtros", 2);
     }

@@ -83,12 +83,6 @@ public class Quote {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void recalculateTotal() {
-        //this.totalPrice = calculateTotal(this.stockItems, this.serviceItems); - comentando isso até termos tudo do serviço
-        this.totalPrice = calculateTotal(this.stockItems);
-        this.updatedAt = LocalDateTime.now();
-    }
-
     private static BigDecimal calculateTotal(List<QuoteStockItem> stockItems) {
        return stockItems.stream()
                 .map(item -> item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
