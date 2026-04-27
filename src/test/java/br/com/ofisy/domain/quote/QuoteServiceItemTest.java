@@ -23,19 +23,19 @@ class QuoteServiceItemTest {
         @Test
         @DisplayName("Deve criar item com snapshot do preço do serviço")
         void shouldCreateItemWithServicePriceSnapshot() {
-            var serviceOrderService = mockServiceOrderService();
-            var item = QuoteServiceItem.create(serviceOrderService, new BigDecimal(PRICE_100));
+            var serviceOrderExecution = mockServiceOrderExecution();
+            var item = QuoteServiceItem.create(serviceOrderExecution, new BigDecimal(PRICE_100));
 
             assertThat(item.getPrice()).isEqualByComparingTo(new BigDecimal(PRICE_100));
-            assertThat(item.getServiceOrderExecutions()).isEqualTo(serviceOrderService);
+            assertThat(item.getServiceOrderExecution()).isEqualTo(serviceOrderExecution);
             assertThat(item.getQuote()).isNull();
         }
 
         @Test
         @DisplayName("Deve manter snapshot mesmo que preço do serviço mude")
         void shouldMaintainSnapshotEvenIfServicePriceChanges() {
-            var serviceOrderService = mockServiceOrderService();
-            var item = QuoteServiceItem.create(serviceOrderService, new BigDecimal(PRICE_100));
+            var serviceOrderExecution = mockServiceOrderExecution();
+            var item = QuoteServiceItem.create(serviceOrderExecution, new BigDecimal(PRICE_100));
 
             assertThat(item.getPrice()).isEqualByComparingTo(new BigDecimal(PRICE_100));
         }
@@ -43,7 +43,7 @@ class QuoteServiceItemTest {
         @Test
         @DisplayName("Deve criar item sem quote associado inicialmente")
         void shouldCreateItemWithoutQuoteInitially() {
-            var item = QuoteServiceItem.create(mockServiceOrderService(), new BigDecimal(PRICE_100));
+            var item = QuoteServiceItem.create(mockServiceOrderExecution(), new BigDecimal(PRICE_100));
 
             assertThat(item.getQuote()).isNull();
         }
@@ -56,7 +56,7 @@ class QuoteServiceItemTest {
         @Test
         @DisplayName("Deve associar quote ao item")
         void shouldSetQuoteToItem() {
-            var item = QuoteServiceItem.create(mockServiceOrderService(), new BigDecimal(PRICE_100));
+            var item = QuoteServiceItem.create(mockServiceOrderExecution(), new BigDecimal(PRICE_100));
             var quote = Quote.create(UUID.randomUUID(), List.of(), List.of());
 
             item.setQuote(quote);
@@ -66,7 +66,7 @@ class QuoteServiceItemTest {
     }
 
 
-    private ServiceOrderService mockServiceOrderService() {
-        return ServiceOrderService.create(UUID.randomUUID(), UUID.randomUUID());
+    private ServiceOrderExecution mockServiceOrderExecution() {
+        return ServiceOrderExecution.create(UUID.randomUUID(), UUID.randomUUID());
     } */
 }

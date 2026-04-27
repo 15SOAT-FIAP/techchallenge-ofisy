@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "quote_service_items", uniqueConstraints = {
-        //@UniqueConstraint(columnNames = {"quote_id", "service_order_service_id"}) - comentando aqui até termos tudo dos serviços
+        //@UniqueConstraint(columnNames = {"quote_id", "service_order_executions_id"}) - comentando aqui até termos tudo dos serviços
         @UniqueConstraint(columnNames = {"quote_id"})
 })
 @Getter
@@ -26,15 +26,15 @@ public class QuoteServiceItem {
 
     /* Comentando até termos tudo do serviço comitado
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "service_order_service_id", nullable = false)
-    private ServiceOrderService serviceOrderService;
+    @JoinColumn(name = "service_order_executions_id", nullable = false)
+    private ServiceOrderExecution serviceOrderExecution;
 
     @Column(name = "price", nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
-    public static QuoteServiceItem create(ServiceOrderService serviceOrderService, BigDecimal servicePrice) {
+    public static QuoteServiceItem create(ServiceOrderExecution serviceOrderExecution, BigDecimal servicePrice) {
         QuoteServiceItem item = new QuoteServiceItem();
-        item.serviceOrderService = serviceOrderService;
+        item.serviceOrderExecution = serviceOrderExecution;
         item.price = servicePrice;
         return item;
     } */

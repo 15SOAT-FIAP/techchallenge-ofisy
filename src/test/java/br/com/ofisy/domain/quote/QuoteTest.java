@@ -18,7 +18,7 @@ class QuoteTest {
     private static final String PRICE_100 = "100.00";
     private static final String PRICE_50 = "50.00";
     private static final String PRICE_350 = "350.00";
-    private static final String REFUSAL_REASON = "Peças fora do orçamento aprovado pelo cliente";
+    private static final String REFUSAL_REASON = "Achei o valor das peças do orçamento muito alto";
 
     @Nested
     @DisplayName("create")
@@ -202,12 +202,12 @@ class QuoteTest {
     }
 
      /* Comentando aqui até termos a parte de serviços
-    private ServiceOrderService mockServiceOrderService() {
-        return ServiceOrderService.create(UUID.randomUUID(), UUID.randomUUID());
+    private ServiceOrderExecution mockServiceOrderExecution() {
+        return ServiceOrderExecution.create(UUID.randomUUID(), UUID.randomUUID());
     }
 
     private QuoteServiceItem mockServiceItem(BigDecimal price) {
-        return QuoteServiceItem.create(mockServiceOrderService(), price);
+        return QuoteServiceItem.create(mockServiceOrderExecution(), price);
     }   */
 
 }
