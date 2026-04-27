@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.UUID;
 
-@Tag(name = "CRUD Usuários", description = "Para acessar essas APIs é necessário um usuário com a role ADMIN")
+@Tag(name = "API de Usuários", description = "Para acessar essas APIs é necessário um usuário com a role ADMIN")
 public interface UserApi {
 
     @Operation(summary = "Criar novo usuário")

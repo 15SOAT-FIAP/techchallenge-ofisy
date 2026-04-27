@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import java.util.List;
 import java.util.UUID;
 
-@Tag(name = "Veiculos")
+@Tag(name = "API de Veiculos")
 public interface VehicleApi {
 
     @Operation(summary = "Listar veículos")
