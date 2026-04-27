@@ -29,7 +29,7 @@ public class QuoteStockItem {
     @JoinColumn(name = "stock_id", nullable = false)
     private Stock stock;
 
-    @Column(name = "unit_price", nullable = false, precision = 10, scale = 2)
+    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal unitPrice;
 
     @Column(nullable = false)

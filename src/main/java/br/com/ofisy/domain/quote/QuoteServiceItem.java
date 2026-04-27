@@ -29,7 +29,7 @@ public class QuoteServiceItem {
     @JoinColumn(name = "service_order_executions_id", nullable = false)
     private ServiceOrderExecution serviceOrderExecution;
 
-    @Column(name = "price", nullable = false, precision = 10, scale = 2)
+    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
     public static QuoteServiceItem create(ServiceOrderExecution serviceOrderExecution, BigDecimal servicePrice) {
