@@ -61,7 +61,7 @@ class QuoteStockItemTest {
         void shouldSetQuoteToItem() {
             var stock = mockStock(new BigDecimal(PRICE_100));
             var item = QuoteStockItem.create(stock, 2);
-            var quote = Quote.create(UUID.randomUUID(), List.of());
+            var quote = Quote.create(UUID.randomUUID(), List.of(), List.of());
 
             item.setQuote(quote);
 

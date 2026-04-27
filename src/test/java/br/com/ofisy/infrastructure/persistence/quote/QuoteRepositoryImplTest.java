@@ -17,7 +17,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class QuoteRepositoryImplTest {
@@ -106,6 +107,6 @@ class QuoteRepositoryImplTest {
     private Quote mockQuote() {
         Stock stock = Stock.create("Filtro de óleo", "Filtro", 10, new BigDecimal("100.00"), "Filtros", 2);
         List<QuoteStockItem> items = List.of(QuoteStockItem.create(stock, 2));
-        return Quote.create(UUID.randomUUID(), items);
+        return Quote.create(UUID.randomUUID(), items, List.of());
     }
 }

@@ -20,7 +20,6 @@ public class Quote {
 
     public static final String ACTION_APPROVE = "aprovar";
     public static final String ACTION_REPROVE = "reprovar";
-    public static final String ACTION_REPROVE_PARTIALLY = "reprovar parcialmente";
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -39,20 +38,31 @@ public class Quote {
     @OneToMany(mappedBy = "quote", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QuoteStockItem> stockItems = new ArrayList<>();
 
+    @OneToMany(mappedBy = "quote", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<QuoteServiceItem> serviceItems = new ArrayList<>();
+
+    @Column
+    private String quoteRefusalReason;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @Column
     private LocalDateTime updatedAt;
 
-    public static Quote create(UUID serviceOrderId, List<QuoteStockItem> stockItems) {
+    public static Quote create(UUID serviceOrderId,
+                               List<QuoteStockItem> stockItems,
+                               List<QuoteServiceItem> serviceItems) {
         Quote quote = new Quote();
         quote.serviceOrderId = serviceOrderId;
         quote.status = QuoteStatus.PENDING;
-        quote.stockItems = stockItems;
-        quote.totalPrice = calculateTotal(stockItems);
+        quote.stockItems = stockItems != null ? stockItems : new ArrayList<>();
+        quote.serviceItems = serviceItems != null ? serviceItems : new ArrayList<>();
+        //quote.totalPrice = calculateTotal(quote.stockItems, quote.serviceItems); - aguardando implementação total serviços
+        quote.totalPrice = calculateTotal(quote.stockItems);
         quote.createdAt = LocalDateTime.now();
-        stockItems.forEach(item -> item.setQuote(quote));
+        quote.stockItems.forEach(item -> item.setQuote(quote));
+        quote.serviceItems.forEach(item -> item.setQuote(quote));
         return quote;
     }
 
@@ -64,25 +74,34 @@ public class Quote {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void reprove() {
+    public void reprove(String reason) {
         if (!QuoteStatus.PENDING.equals(this.status)) {
             throw new InvalidQuoteStatusException(ACTION_REPROVE, this.status);
         }
         this.status = QuoteStatus.REPROVED;
+        this.quoteRefusalReason = reason;
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void reprovePartially() {
-        if (!QuoteStatus.PENDING.equals(this.status)) {
-            throw new InvalidQuoteStatusException(ACTION_REPROVE_PARTIALLY, this.status);
-        }
-        this.status = QuoteStatus.PARTIALLY_REPROVED;
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    private static BigDecimal calculateTotal(List<QuoteStockItem> items) {
-        return items.stream()
+    private static BigDecimal calculateTotal(List<QuoteStockItem> stockItems) {
+       return stockItems.stream()
                 .map(item -> item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
+
+    /* Comentando essa versão até termos tudo do serviço
+    private static BigDecimal calculateTotal(List<QuoteStockItem> stockItems,
+                                             List<QuoteServiceItem> serviceItems) {
+        BigDecimal stockTotal = stockItems.stream()
+                .map(item -> item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal serviceTotal = serviceItems.stream()
+                .map(QuoteServiceItem::getPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return stockTotal.add(serviceTotal);
+    }
+    */
+
 }
