@@ -16,6 +16,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,10 +30,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -52,7 +60,9 @@ class ServiceOrderControllerTest {
     void setUp() {
         mockMvc = MockMvcBuilders
                 .standaloneSetup(new ServiceOrderController(serviceOrderService))
-                .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
+                .setCustomArgumentResolvers(
+                        new AuthenticationPrincipalArgumentResolver(),
+                        new PageableHandlerMethodArgumentResolver())
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
 
@@ -154,6 +164,52 @@ class ServiceOrderControllerTest {
                             .content(validBody()))
                     .andExpect(status().isUnprocessableContent())
                     .andExpect(jsonPath("$.title").value("Veículo não pertence ao cliente"));
+        }
+    }
+
+    @Nested
+    class ListReceived {
+
+        @Test
+        void shouldReturn200WithPageOfReceivedServiceOrders() throws Exception {
+            var response = mockResponse();
+            Page<ServiceOrderResponseDTO> page = new PageImpl<>(List.of(response), PageRequest.of(0, 10), 1);
+            when(serviceOrderService.listReceived(any(Pageable.class))).thenReturn(page);
+
+            mockMvc.perform(get(BASE_URL + "/received"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content[0].status").value("RECEIVED"))
+                    .andExpect(jsonPath("$.content[0].vehicleId").value(VALID_VEHICLE_ID.toString()))
+                    .andExpect(jsonPath("$.content[0].customerId").value(VALID_CUSTOMER_ID.toString()))
+                    .andExpect(jsonPath("$.totalElements").value(1));
+        }
+
+        @Test
+        void shouldReturn200WithEmptyPageWhenNoReceivedOrders() throws Exception {
+            Page<ServiceOrderResponseDTO> page = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
+            when(serviceOrderService.listReceived(any(Pageable.class))).thenReturn(page);
+
+            mockMvc.perform(get(BASE_URL + "/received"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content").isEmpty())
+                    .andExpect(jsonPath("$.totalElements").value(0));
+        }
+
+        @Test
+        void shouldForwardPageableParametersToService() throws Exception {
+            Page<ServiceOrderResponseDTO> page = new PageImpl<>(List.of(), PageRequest.of(2, 5), 0);
+            when(serviceOrderService.listReceived(any(Pageable.class))).thenReturn(page);
+
+            mockMvc.perform(get(BASE_URL + "/received")
+                            .param("page", "2")
+                            .param("size", "5"))
+                    .andExpect(status().isOk());
+
+            var captor = org.mockito.ArgumentCaptor.forClass(Pageable.class);
+            verify(serviceOrderService).listReceived(captor.capture());
+            var captured = captor.getValue();
+            org.assertj.core.api.Assertions.assertThat(captured.getPageNumber()).isEqualTo(2);
+            org.assertj.core.api.Assertions.assertThat(captured.getPageSize()).isEqualTo(5);
         }
     }
 
