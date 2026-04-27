@@ -54,7 +54,7 @@ public class ServiceOrderService {
     }
 
     @Transactional
-    public ServiceOrderResponseDTO deliverToCustomerServiceOrder(UUID id) {
+    public ServiceOrderResponseDTO deliverToCustomer(UUID id) {
         var serviceOrder = serviceOrderRepository.findById(id)
                 .orElseThrow(() -> new ServiceOrderNotFoundException(id));
         serviceOrder.deliver();

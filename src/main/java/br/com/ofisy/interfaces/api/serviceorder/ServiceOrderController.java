@@ -40,6 +40,6 @@ public class ServiceOrderController implements ServiceOrderApi {
 
     @PatchMapping("/{id}/deliver")
     public ResponseEntity<ServiceOrderResponseDTO> deliverToCustomerServiceOrder(@PathVariable UUID id) {
-        return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.deliverToCustomerServiceOrder(id));
+        return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.deliverToCustomer(id));
     }
 }
