@@ -20,7 +20,7 @@ public class Notification {
     private UUID id;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false)
     private NotificationType type;
 
     @Column
