@@ -23,4 +23,10 @@ public interface ServiceOrderApi {
     @ApiResponse(responseCode = "404", description = "Ordem de serviço não encontrada")
     @ApiResponse(responseCode = "409", description = "Transição de estado inválida")
     ResponseEntity<ServiceOrderResponseDTO> startDiagnosticServiceOrder(UUID id);
+
+    @Operation(summary = "Entregar carro ao cliente para uma ordem de serviço")
+    @ApiResponse(responseCode = "200", description = "Carro entregue ao cliente com sucesso")
+    @ApiResponse(responseCode = "404", description = "Ordem de serviço não encontrada")
+    @ApiResponse(responseCode = "409", description = "Transição de estado inválida")
+    ResponseEntity<ServiceOrderResponseDTO> deliverToCustomerServiceOrder(UUID id);
 }

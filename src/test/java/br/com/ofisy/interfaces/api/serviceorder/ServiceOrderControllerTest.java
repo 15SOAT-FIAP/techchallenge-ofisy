@@ -198,6 +198,47 @@ class ServiceOrderControllerTest {
         }
     }
 
+    @Nested
+    class DeliverToCustomerServiceOrder {
+
+        private static final UUID ORDER_ID = UUID.randomUUID();
+
+        @Test
+        void shouldReturn200WithDeliveredServiceOrder() throws Exception {
+            when(serviceOrderService.deliverToCustomer(ORDER_ID)).thenReturn(mockDeliveredResponse());
+
+            mockMvc.perform(patch(BASE_URL + "/{id}/deliver", ORDER_ID))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status").value("DELIVERED"));
+        }
+
+        @Test
+        void shouldReturn404WhenOrderDoesNotExist() throws Exception {
+            when(serviceOrderService.deliverToCustomer(ORDER_ID))
+                    .thenThrow(new ServiceOrderNotFoundException(ORDER_ID));
+
+            mockMvc.perform(patch(BASE_URL + "/{id}/deliver", ORDER_ID))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.title").value("Ordem de serviço não encontrada"));
+        }
+
+        @Test
+        void shouldReturn409WhenTransitionIsInvalid() throws Exception {
+            when(serviceOrderService.deliverToCustomer(ORDER_ID))
+                    .thenThrow(new InvalidServiceOrderTransitionException(ServiceOrderStatus.IN_PROGRESS, ServiceOrderStatus.DELIVERED));
+
+            mockMvc.perform(patch(BASE_URL + "/{id}/deliver", ORDER_ID))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.title").value("Transição de status inválida"));
+        }
+
+        private ServiceOrderResponseDTO mockDeliveredResponse() {
+            return new ServiceOrderResponseDTO(
+                    ORDER_ID, VALID_VEHICLE_ID, VALID_CUSTOMER_ID,
+                    "Barulho na suspensão", "DELIVERED", UUID.randomUUID(), NOW, NOW, NOW);
+        }
+    }
+
     private String validBody() {
         return """
                 {
