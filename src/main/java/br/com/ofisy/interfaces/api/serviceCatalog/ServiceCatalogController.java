@@ -20,8 +20,8 @@ import java.util.UUID;
 @RequestMapping("/api/v1/services-catalog")
 @RequiredArgsConstructor
 public class ServiceCatalogController implements ServiceCatalogApi {
-    private ServiceCatalogService serviceCatalogService;
-    private ServiceOrderExecutionService serviceOrderExecutionService;
+    private final ServiceCatalogService serviceCatalogService;
+    private final ServiceOrderExecutionService serviceOrderExecutionService;
 
     @GetMapping
     public ResponseEntity<Page<ServiceCatalog>> getAll(
@@ -57,4 +57,3 @@ public class ServiceCatalogController implements ServiceCatalogApi {
         return ResponseEntity.status(HttpStatus.CREATED).body(serviceCatalogService.create(dto));
     }
 }
-
