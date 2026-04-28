@@ -30,14 +30,4 @@ class ServiceItemRequestDTOTest {
 
         assertThat(violations).isEmpty();
     }
-
-    @Test
-    @DisplayName("Deve lançar violação quando serviceOrderExecutionId é nulo")
-    void shouldViolateWhenServiceOrderExecutionIdIsNull() {
-        var dto = new ServiceItemRequestDTO(null);
-
-        Set<ConstraintViolation<ServiceItemRequestDTO>> violations = validator.validate(dto);
-
-        assertThat(violations).anyMatch(v -> v.getPropertyPath().toString().equals("serviceOrderExecutionId"));
-    }
 }

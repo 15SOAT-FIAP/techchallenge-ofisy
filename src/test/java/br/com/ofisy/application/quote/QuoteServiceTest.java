@@ -294,7 +294,9 @@ class QuoteServiceTest {
     }
 
     private Quote mockQuote() {
-        return Quote.create(UUID.randomUUID(), new ArrayList<>(), new ArrayList<>());
+        Stock stock = mockStock();
+        List<QuoteStockItem> stockItems = new ArrayList<>(List.of(QuoteStockItem.create(stock, 2)));
+        return Quote.create(UUID.randomUUID(), stockItems, new ArrayList<>());
     }
 
     /* Comentando aqui até termos a parte de serviço
