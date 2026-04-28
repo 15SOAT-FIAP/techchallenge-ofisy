@@ -89,7 +89,6 @@ public class QuoteService {
                 throw new QuoteItemAlreadyExistsException(stock.getProductName());
             }
 
-            //como o método de consumeStock já vai lançar a notificação de low_stock estou utilizando-o aqui
             stockService.consumeStock(request.stockId(), request.quantity());
 
             items.add(QuoteStockItem.create(stock, request.quantity()));

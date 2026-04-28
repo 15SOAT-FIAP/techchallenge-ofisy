@@ -1,6 +1,7 @@
 package br.com.ofisy.application.quote.dto;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record QuoteStockItemResponseDTO(
@@ -9,5 +10,6 @@ public record QuoteStockItemResponseDTO(
         String productName,
         BigDecimal unitPrice,
         Integer quantity,
-        BigDecimal subtotal
+        BigDecimal subtotal,
+        LocalDateTime createdAt
 ) {}

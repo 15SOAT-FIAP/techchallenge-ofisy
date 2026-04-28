@@ -35,7 +35,8 @@ public class QuoteMapper {
                 item.getStock().getProductName(),
                 item.getUnitPrice(),
                 item.getQuantity(),
-                item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity()))
+                item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())),
+                item.getCreatedAt()
         );
     }
 
@@ -43,7 +44,8 @@ public class QuoteMapper {
         return new QuoteServiceItemResponseDTO(
                 item.getId(),
                 UUID.randomUUID(), //aqui assim até termos a parte de serviços
-                new BigDecimal(1) //aqui assim até termos a parte de serviços
+                new BigDecimal(1), //aqui assim até termos a parte de serviços
+                item.getCreatedAt()
                 //quando tivermos a parte de serviços descomentar abaixo
                 //item.serviceOrderExecution().getId(),
                // item.getPrice()

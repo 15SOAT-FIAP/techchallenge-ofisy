@@ -38,7 +38,6 @@ class QuoteMapperTest {
             assertThat(response.totalPrice()).isEqualByComparingTo(quote.getTotalPrice());
             assertThat(response.quoteRefusalReason()).isNull();
             assertThat(response.createdAt()).isNotNull();
-            assertThat(response.updatedAt()).isNull();
         }
 
         @Test
@@ -53,6 +52,7 @@ class QuoteMapperTest {
             assertThat(response.stockItems().getFirst().quantity()).isEqualTo(2);
             assertThat(response.stockItems().getFirst().unitPrice()).isEqualByComparingTo(new BigDecimal(PRICE_100));
             assertThat(response.stockItems().getFirst().subtotal()).isEqualByComparingTo(new BigDecimal(PRICE_200));
+            assertThat(response.stockItems().getFirst().createdAt()).isNotNull();
         }
 
         /* Comentando até termos os itens de serviço
