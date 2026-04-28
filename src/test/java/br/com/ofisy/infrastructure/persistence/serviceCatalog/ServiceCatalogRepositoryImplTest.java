@@ -1,6 +1,6 @@
 package br.com.ofisy.infrastructure.persistence.serviceCatalog;
 
-import br.com.ofisy.domain.serviceCatalog.ServiceCatalog;
+import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,7 +36,7 @@ class ServiceCatalogRepositoryImplTest {
     @BeforeEach
     void setUp() {
         serviceCatalogId = UUID.randomUUID();
-        serviceCatalog = br.com.ofisy.domain.serviceCatalog.ServiceCatalog.create("Oil Change", "Change engine oil", new BigDecimal("50.00"));
+        serviceCatalog = br.com.ofisy.domain.servicecatalog.ServiceCatalog.create("Oil Change", "Change engine oil", new BigDecimal("50.00"));
     }
 
     @Test

@@ -1,7 +1,7 @@
 package br.com.ofisy.infrastructure.persistence.serviceCatalog;
 
-import br.com.ofisy.domain.serviceCatalog.ServiceCatalog;
-import br.com.ofisy.domain.serviceCatalog.ServiceCatalogRepository;
+import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
+import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
