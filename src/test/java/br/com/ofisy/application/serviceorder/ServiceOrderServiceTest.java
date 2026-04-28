@@ -332,6 +332,42 @@ class ServiceOrderServiceTest {
         }
     }
 
+    @Nested
+    class GetStatusServiceOrder {
+
+        @Test
+        void shouldReturnStatusResponseSuccessfully() {
+            var serviceOrder = receivedServiceOrder();
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
+
+            var result = serviceOrderService.getStatus(VALID_SERVICE_ORDER_ID);
+
+            assertThat(result).isNotNull();
+            assertThat(result.id()).isEqualTo(serviceOrder.getId());
+            assertThat(result.vehicleId()).isEqualTo(VALID_VEHICLE_ID);
+            assertThat(result.customerId()).isEqualTo(VALID_CUSTOMER_ID);
+            assertThat(result.status()).isEqualTo(ServiceOrderStatus.RECEIVED);
+        }
+
+        @Test
+        void shouldReturnCurrentStatusForFinishedOrder() {
+            var serviceOrder = finishedServiceOrder();
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
+
+            var result = serviceOrderService.getStatus(VALID_SERVICE_ORDER_ID);
+
+            assertThat(result.status()).isEqualTo(ServiceOrderStatus.FINISHED);
+        }
+
+        @Test
+        void shouldThrowServiceOrderNotFoundExceptionWhenOrderDoesNotExist() {
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> serviceOrderService.getStatus(VALID_SERVICE_ORDER_ID))
+                    .isInstanceOf(ServiceOrderNotFoundException.class);
+        }
+    }
+
     private ServiceOrderRequestDTO validRequest() {
         return new ServiceOrderRequestDTO(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, VALID_REPORT);
     }
