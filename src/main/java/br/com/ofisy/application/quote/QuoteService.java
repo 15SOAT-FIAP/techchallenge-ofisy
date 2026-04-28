@@ -38,8 +38,6 @@ public class QuoteService {
         */
 
         Quote quote = Quote.create(request.serviceOrderId(), stockItems, new ArrayList<>());
-
-        //TODO: Vamos lançar a notificação de criação do orçamento aqui? Ou na OS?
         return mapper.toResponse(quoteRepository.save(quote));
     }
 

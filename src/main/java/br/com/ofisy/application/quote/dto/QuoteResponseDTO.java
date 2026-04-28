@@ -1,16 +1,20 @@
 package br.com.ofisy.application.quote.dto;
 
+import br.com.ofisy.domain.quote.QuoteStatus;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 public record QuoteResponseDTO(
         UUID id,
         UUID serviceOrderId,
-        br.com.ofisy.domain.quote.QuoteStatus status,
-        java.math.BigDecimal totalPrice,
+        QuoteStatus status,
+        BigDecimal totalPrice,
         String quoteRefusalReason,
         List<QuoteStockItemResponseDTO> stockItems,
         List<QuoteServiceItemResponseDTO> serviceItems,
-        java.time.LocalDateTime createdAt,
-        java.time.LocalDateTime updatedAt
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
 ) {}
