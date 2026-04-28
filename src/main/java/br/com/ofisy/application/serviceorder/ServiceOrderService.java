@@ -3,6 +3,7 @@ package br.com.ofisy.application.serviceorder;
 import br.com.ofisy.application.customer.CustomerService;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderRequestDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderResponseDTO;
+import br.com.ofisy.application.serviceorder.dto.ServiceOrderStatusResponseDTO;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
 import br.com.ofisy.application.user.UserService;
@@ -74,5 +75,12 @@ public class ServiceOrderService {
                 .orElseThrow(() -> new ServiceOrderNotFoundException(id));
         serviceOrder.deliver();
         return ServiceOrderMapper.toResponseDTO(serviceOrderRepository.save(serviceOrder));
+    }
+
+    @Transactional(readOnly = true)
+    public ServiceOrderStatusResponseDTO getStatus(UUID id) {
+        var serviceOrder = serviceOrderRepository.findById(id)
+                .orElseThrow(() -> new ServiceOrderNotFoundException(id));
+        return ServiceOrderMapper.toStatusResponseDTO(serviceOrder);
     }
 }
