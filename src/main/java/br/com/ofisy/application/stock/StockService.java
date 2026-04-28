@@ -1,5 +1,6 @@
 package br.com.ofisy.application.stock;
 
+import br.com.ofisy.application.notification.NotificationService;
 import br.com.ofisy.application.stock.dto.CreateStockRequestDTO;
 import br.com.ofisy.application.stock.dto.StockResponseDTO;
 import br.com.ofisy.application.stock.dto.UpdateStockRequestDTO;
@@ -25,6 +26,8 @@ public class StockService {
     private final StockMovementService stockMovementService;
 
     private final StockRepository stockRepository;
+
+    private final NotificationService notificationService;
 
     @Transactional
     public StockResponseDTO create(CreateStockRequestDTO createStockRequestDTO) {
@@ -101,6 +104,10 @@ public class StockService {
         stockMovementService.registerMovement(requestDTO);
 
         Stock savedStock = stockRepository.save(stock);
+
+        if (savedStock.isLowStock()) {
+            notificationService.createLowStockNotification(savedStock);
+        }
 
         return StockMapper.toDTO(savedStock);
     }

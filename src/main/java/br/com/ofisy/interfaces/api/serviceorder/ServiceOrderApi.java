@@ -6,8 +6,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.UUID;
 
 @Tag(name = "API de Ordem de Serviço")
 public interface ServiceOrderApi {
@@ -15,4 +19,24 @@ public interface ServiceOrderApi {
     @Operation(summary = "Criar uma nova ordem de serviço")
     @ApiResponse(responseCode = "201", description = "Ordem de serviço criada com sucesso")
     ResponseEntity<ServiceOrderResponseDTO> receiveServiceOrder(ServiceOrderRequestDTO request, @Parameter(hidden = true) UserDetails userDetails);
+
+    @Operation(summary = "Listar todas as ordens de serviço com status RECEIVED")
+    @ApiResponse(responseCode = "200", description = "Lista de ordens de serviço recebidas retornada com sucesso")
+    ResponseEntity<Page<ServiceOrderResponseDTO>> listReceived(Pageable pageable);
+
+    @Operation(summary = "Listar todas as ordens de serviço com status FINISHED")
+    @ApiResponse(responseCode = "200", description = "Lista de ordens de serviço finalizadas retornada com sucesso")
+    ResponseEntity<Page<ServiceOrderResponseDTO>> listFinished(Pageable pageable);
+
+    @Operation(summary = "Iniciar diagnóstico de uma ordem de serviço")
+    @ApiResponse(responseCode = "200", description = "Diagnóstico iniciado com sucesso")
+    @ApiResponse(responseCode = "404", description = "Ordem de serviço não encontrada")
+    @ApiResponse(responseCode = "409", description = "Transição de estado inválida")
+    ResponseEntity<ServiceOrderResponseDTO> startDiagnosticServiceOrder(UUID id);
+
+    @Operation(summary = "Entregar carro ao cliente para uma ordem de serviço")
+    @ApiResponse(responseCode = "200", description = "Carro entregue ao cliente com sucesso")
+    @ApiResponse(responseCode = "404", description = "Ordem de serviço não encontrada")
+    @ApiResponse(responseCode = "409", description = "Transição de estado inválida")
+    ResponseEntity<ServiceOrderResponseDTO> deliverToCustomerServiceOrder(UUID id);
 }
