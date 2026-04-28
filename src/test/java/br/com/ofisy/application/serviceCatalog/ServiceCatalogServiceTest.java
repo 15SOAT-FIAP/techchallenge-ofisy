@@ -1,0 +1,121 @@
+package br.com.ofisy.application.serviceCatalog;
+
+import br.com.ofisy.application.serviceCatalog.dto.ServiceCatalogRequestDTO;
+import br.com.ofisy.application.serviceCatalog.exceptions.ServiceCatalogNotFoundException;
+import br.com.ofisy.domain.serviceCatalog.ServiceCatalog;
+import br.com.ofisy.domain.serviceCatalog.ServiceCatalogRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class ServiceCatalogServiceTest {
+
+    @Mock
+    private ServiceCatalogRepository repository;
+
+    @InjectMocks
+    private ServiceCatalogService serviceCatalogService;
+
+    private ServiceCatalogRequestDTO requestDTO;
+    private ServiceCatalog serviceCatalog;
+    private UUID serviceCatalogId;
+
+    @BeforeEach
+    void setUp() {
+        serviceCatalogId = UUID.randomUUID();
+        requestDTO = new ServiceCatalogRequestDTO(
+                new BigDecimal("50.00"),
+                "Oil Change",
+                "Change engine oil"
+        );
+        serviceCatalog = br.com.ofisy.domain.serviceCatalog.ServiceCatalog.create("Oil Change", "Change engine oil", new BigDecimal("50.00"));
+    }
+
+    @Test
+    void create_shouldSaveAndReturnService() {
+        when(repository.save(any(ServiceCatalog.class))).thenReturn(serviceCatalog);
+
+        ServiceCatalog result = serviceCatalogService.create(requestDTO);
+
+        assertNotNull(result);
+        assertEquals(requestDTO.name(), result.getName());
+        assertEquals(requestDTO.description(), result.getDescription());
+        assertEquals(requestDTO.price(), result.getPrice());
+        verify(repository, times(1)).save(any(ServiceCatalog.class));
+    }
+
+    @Test
+    void findById_shouldReturnServiceWhenFound() {
+        when(repository.findById(serviceCatalogId)).thenReturn(Optional.of(serviceCatalog));
+
+        ServiceCatalog result = serviceCatalogService.findById(serviceCatalogId);
+
+        assertNotNull(result);
+        assertEquals(serviceCatalog, result);
+        verify(repository, times(1)).findById(serviceCatalogId);
+    }
+
+    @Test
+    void findById_shouldThrowExceptionWhenNotFound() {
+        when(repository.findById(serviceCatalogId)).thenReturn(Optional.empty());
+
+        ServiceCatalogNotFoundException exception = assertThrows(ServiceCatalogNotFoundException.class,
+                () -> serviceCatalogService.findById(serviceCatalogId));
+        assertEquals("Serviço não encontrado com ID: " + serviceCatalogId, exception.getMessage());
+        verify(repository, times(1)).findById(serviceCatalogId);
+    }
+
+    @Test
+    void findAll_shouldReturnPageOfServices() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<ServiceCatalog> page = new PageImpl<>(List.of(serviceCatalog), pageable, 1);
+        when(repository.findAll(pageable)).thenReturn(page);
+
+        Page<ServiceCatalog> result = serviceCatalogService.findAll(pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        assertEquals(serviceCatalog, result.getContent().get(0));
+        verify(repository, times(1)).findAll(pageable);
+    }
+
+    @Test
+    void findByName_shouldReturnServiceWhenFound() {
+        String name = "Oil Change";
+        when(repository.findByName(name)).thenReturn(Optional.of(serviceCatalog));
+
+        ServiceCatalog result = serviceCatalogService.findByName(name);
+
+        assertNotNull(result);
+        assertEquals(serviceCatalog, result);
+        verify(repository, times(1)).findByName(name);
+    }
+
+    @Test
+    void findByName_shouldThrowExceptionWhenNotFound() {
+        String name = "Nonexistent ServiceCatalog";
+        when(repository.findByName(name)).thenReturn(Optional.empty());
+
+        ServiceCatalogNotFoundException exception = assertThrows(ServiceCatalogNotFoundException.class,
+                () -> serviceCatalogService.findByName(name));
+        assertEquals("Serviço não encontrado com ID: " + name, exception.getMessage());
+        verify(repository, times(1)).findByName(name);
+    }
+}
