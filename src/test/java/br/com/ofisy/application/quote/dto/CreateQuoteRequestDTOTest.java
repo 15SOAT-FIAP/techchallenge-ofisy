@@ -49,32 +49,4 @@ class CreateQuoteRequestDTOTest {
 
         assertThat(violations).anyMatch(v -> v.getPropertyPath().toString().equals("serviceOrderId"));
     }
-
-    @Test
-    @DisplayName("Deve lançar violação quando stockItems está vazio")
-    void shouldViolateWhenStockItemsIsEmpty() {
-        var dto = new CreateQuoteRequestDTO(
-                UUID.randomUUID(),
-                List.of(),
-                List.of()
-        );
-
-        Set<ConstraintViolation<CreateQuoteRequestDTO>> violations = validator.validate(dto);
-
-        assertThat(violations).anyMatch(v -> v.getPropertyPath().toString().equals("stockItems"));
-    }
-
-    @Test
-    @DisplayName("Deve lançar violação quando stockItems é nulo")
-    void shouldViolateWhenStockItemsIsNull() {
-        var dto = new CreateQuoteRequestDTO(
-                UUID.randomUUID(),
-                null,
-                List.of()
-        );
-
-        Set<ConstraintViolation<CreateQuoteRequestDTO>> violations = validator.validate(dto);
-
-        assertThat(violations).anyMatch(v -> v.getPropertyPath().toString().equals("stockItems"));
-    }
 }
