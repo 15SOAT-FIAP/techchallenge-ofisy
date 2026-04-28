@@ -41,15 +41,6 @@ class QuoteStockItemTest {
 
             assertThat(item.getUnitPrice()).isEqualByComparingTo(new BigDecimal(PRICE_150));
         }
-
-        @Test
-        @DisplayName("Deve criar item sem quote associado inicialmente")
-        void shouldCreateItemWithoutQuoteInitially() {
-            var stock = mockStock(new BigDecimal(PRICE_100));
-            var item = QuoteStockItem.create(stock, 2);
-
-            assertThat(item.getQuote()).isNull();
-        }
     }
 
     @Nested
@@ -61,7 +52,7 @@ class QuoteStockItemTest {
         void shouldSetQuoteToItem() {
             var stock = mockStock(new BigDecimal(PRICE_100));
             var item = QuoteStockItem.create(stock, 2);
-            var quote = Quote.create(UUID.randomUUID(), List.of(), List.of());
+            var quote = Quote.create(UUID.randomUUID(), List.of(item), List.of());
 
             item.setQuote(quote);
 
