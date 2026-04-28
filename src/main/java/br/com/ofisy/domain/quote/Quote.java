@@ -1,5 +1,6 @@
 package br.com.ofisy.domain.quote;
 
+import br.com.ofisy.domain.quote.exceptions.InvalidQuoteDataException;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -58,6 +59,11 @@ public class Quote {
         quote.status = QuoteStatus.PENDING;
         quote.stockItems = stockItems != null ? stockItems : new ArrayList<>();
         quote.serviceItems = serviceItems != null ? serviceItems : new ArrayList<>();
+
+        if (quote.stockItems.isEmpty() && quote.serviceItems.isEmpty()) {
+            throw new InvalidQuoteDataException(serviceOrderId);
+        }
+
         //quote.totalPrice = calculateTotal(quote.stockItems, quote.serviceItems); - aguardando implementação total serviços
         quote.totalPrice = calculateTotal(quote.stockItems);
         quote.createdAt = LocalDateTime.now();

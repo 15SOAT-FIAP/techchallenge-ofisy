@@ -1,5 +1,6 @@
 package br.com.ofisy.domain.quote;
 
+import br.com.ofisy.domain.quote.exceptions.InvalidQuoteDataException;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
 import br.com.ofisy.domain.stock.Stock;
 import org.junit.jupiter.api.DisplayName;
@@ -62,17 +63,13 @@ class QuoteTest {
         }
 
         @Test
-        @DisplayName("Deve criar orçamento com total zero quando listas vazias")
-        void shouldCreateQuoteWithZeroTotalWhenNoItems() {
-            var quote = mockQuote(List.of(), List.of());
+        @DisplayName("Deve lançar exceção quando ambas as listas são nulas")
+        void shouldThrowExceptionWhenBothListsAreNull() {
+            UUID serviceOrderId = UUID.randomUUID();
 
-            assertThat(quote.getTotalPrice()).isEqualByComparingTo(BigDecimal.ZERO);
-        }
-
-        @Test
-        @DisplayName("Deve criar orçamento com listas nulas sem lançar exceção")
-        void shouldCreateQuoteWithNullListsWithoutException() {
-            assertThatNoException().isThrownBy(() -> Quote.create(UUID.randomUUID(), null, null));
+            assertThatThrownBy(() -> Quote.create(serviceOrderId, null, null))
+                    .isInstanceOf(InvalidQuoteDataException.class)
+                    .hasMessageContaining(serviceOrderId.toString());
         }
 
         @Test
