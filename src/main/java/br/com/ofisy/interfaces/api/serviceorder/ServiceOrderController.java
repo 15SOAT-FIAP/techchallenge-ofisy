@@ -46,6 +46,13 @@ public class ServiceOrderController implements ServiceOrderApi {
         return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.listReceived(pageable));
     }
 
+    @GetMapping("/finished")
+    public ResponseEntity<Page<ServiceOrderResponseDTO>> listFinished(
+            @ParameterObject @PageableDefault(size = 10, sort = "finishedAt", direction = Sort.Direction.ASC) Pageable pageable) {
+
+        return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.listFinished(pageable));
+    }
+
     @PatchMapping("/{id}/start-diagnostic")
     public ResponseEntity<ServiceOrderResponseDTO> startDiagnosticServiceOrder(@PathVariable UUID id) {
         return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.startDiagnostic(id));

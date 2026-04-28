@@ -191,6 +191,52 @@ class ServiceOrderServiceTest {
     }
 
     @Nested
+    class ListFinishedServiceOrders {
+
+        @Test
+        void shouldReturnMappedPageOfFinishedServiceOrders() {
+            var pageable = PageRequest.of(0, 10);
+            var serviceOrder = finishedServiceOrder();
+            Page<ServiceOrder> page = new PageImpl<>(List.of(serviceOrder), pageable, 1);
+            when(serviceOrderRepository.findByStatus(ServiceOrderStatus.FINISHED, pageable)).thenReturn(page);
+
+            var result = serviceOrderService.listFinished(pageable);
+
+            assertThat(result.getTotalElements()).isEqualTo(1);
+            assertThat(result.getContent()).hasSize(1);
+            assertThat(result.getContent().get(0).status()).isEqualTo("FINISHED");
+            assertThat(result.getContent().get(0).vehicleId()).isEqualTo(VALID_VEHICLE_ID);
+            assertThat(result.getContent().get(0).customerId()).isEqualTo(VALID_CUSTOMER_ID);
+        }
+
+        @Test
+        void shouldReturnEmptyPageWhenNoFinishedServiceOrders() {
+            var pageable = PageRequest.of(0, 10);
+            when(serviceOrderRepository.findByStatus(ServiceOrderStatus.FINISHED, pageable))
+                    .thenReturn(Page.empty(pageable));
+
+            var result = serviceOrderService.listFinished(pageable);
+
+            assertThat(result.getTotalElements()).isZero();
+            assertThat(result.getContent()).isEmpty();
+        }
+
+        @Test
+        void shouldQueryRepositoryWithFinishedStatusAndProvidedPageable() {
+            var pageable = PageRequest.of(2, 5);
+            when(serviceOrderRepository.findByStatus(any(), any())).thenReturn(Page.empty(pageable));
+
+            serviceOrderService.listFinished(pageable);
+
+            var statusCaptor = ArgumentCaptor.forClass(ServiceOrderStatus.class);
+            var pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+            verify(serviceOrderRepository).findByStatus(statusCaptor.capture(), pageableCaptor.capture());
+            assertThat(statusCaptor.getValue()).isEqualTo(ServiceOrderStatus.FINISHED);
+            assertThat(pageableCaptor.getValue()).isEqualTo(pageable);
+        }
+    }
+
+    @Nested
     class StartDiagnosticServiceOrder {
 
         @Test
