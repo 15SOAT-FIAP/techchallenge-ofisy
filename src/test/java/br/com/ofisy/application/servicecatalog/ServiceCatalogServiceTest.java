@@ -1,6 +1,7 @@
 package br.com.ofisy.application.servicecatalog;
 
 import br.com.ofisy.application.servicecatalog.dto.ServiceCatalogRequestDTO;
+import br.com.ofisy.application.servicecatalog.dto.ServiceCatalogResponseDTO;
 import br.com.ofisy.application.servicecatalog.exceptions.ServiceCatalogNotFoundException;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
@@ -35,6 +36,7 @@ class ServiceCatalogServiceTest {
 
     private ServiceCatalogRequestDTO requestDTO;
     private ServiceCatalog serviceCatalog;
+    private ServiceCatalogResponseDTO responseDTO;
     private UUID serviceCatalogId;
 
     @BeforeEach
@@ -45,19 +47,35 @@ class ServiceCatalogServiceTest {
                 "Oil Change",
                 "Change engine oil"
         );
-        serviceCatalog = br.com.ofisy.domain.servicecatalog.ServiceCatalog.create("Oil Change", "Change engine oil", new BigDecimal("50.00"));
+        serviceCatalog = ServiceCatalog.create("Oil Change", "Change engine oil", new BigDecimal("50.00"));
+        // Set the ID using reflection since it's private
+        try {
+            java.lang.reflect.Field idField = ServiceCatalog.class.getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(serviceCatalog, serviceCatalogId);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        responseDTO = new ServiceCatalogResponseDTO(
+                serviceCatalogId,
+                "Oil Change",
+                "Change engine oil",
+                new BigDecimal("50.00"),
+                serviceCatalog.getCreatedAt(),
+                serviceCatalog.getUpdatedAt()
+        );
     }
 
     @Test
     void create_shouldSaveAndReturnService() {
         when(repository.save(any(ServiceCatalog.class))).thenReturn(serviceCatalog);
 
-        ServiceCatalog result = serviceCatalogService.create(requestDTO);
+        ServiceCatalogResponseDTO result = serviceCatalogService.create(requestDTO);
 
         assertNotNull(result);
-        assertEquals(requestDTO.name(), result.getName());
-        assertEquals(requestDTO.description(), result.getDescription());
-        assertEquals(requestDTO.price(), result.getPrice());
+        assertEquals(requestDTO.name(), result.name());
+        assertEquals(requestDTO.description(), result.description());
+        assertEquals(requestDTO.price(), result.price());
         verify(repository, times(1)).save(any(ServiceCatalog.class));
     }
 
@@ -65,10 +83,13 @@ class ServiceCatalogServiceTest {
     void findById_shouldReturnServiceWhenFound() {
         when(repository.findById(serviceCatalogId)).thenReturn(Optional.of(serviceCatalog));
 
-        ServiceCatalog result = serviceCatalogService.findById(serviceCatalogId);
+        ServiceCatalogResponseDTO result = serviceCatalogService.findById(serviceCatalogId);
 
         assertNotNull(result);
-        assertEquals(serviceCatalog, result);
+        assertEquals(serviceCatalog.getId(), result.id());
+        assertEquals(serviceCatalog.getName(), result.name());
+        assertEquals(serviceCatalog.getDescription(), result.description());
+        assertEquals(serviceCatalog.getPrice(), result.price());
         verify(repository, times(1)).findById(serviceCatalogId);
     }
 
@@ -88,11 +109,14 @@ class ServiceCatalogServiceTest {
         Page<ServiceCatalog> page = new PageImpl<>(List.of(serviceCatalog), pageable, 1);
         when(repository.findAll(pageable)).thenReturn(page);
 
-        Page<ServiceCatalog> result = serviceCatalogService.findAll(pageable);
+        Page<ServiceCatalogResponseDTO> result = serviceCatalogService.findAll(pageable);
 
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
-        assertEquals(serviceCatalog, result.getContent().get(0));
+        assertEquals(serviceCatalog.getId(), result.getContent().get(0).id());
+        assertEquals(serviceCatalog.getName(), result.getContent().get(0).name());
+        assertEquals(serviceCatalog.getDescription(), result.getContent().get(0).description());
+        assertEquals(serviceCatalog.getPrice(), result.getContent().get(0).price());
         verify(repository, times(1)).findAll(pageable);
     }
 
@@ -101,10 +125,13 @@ class ServiceCatalogServiceTest {
         String name = "Oil Change";
         when(repository.findByName(name)).thenReturn(Optional.of(serviceCatalog));
 
-        ServiceCatalog result = serviceCatalogService.findByName(name);
+        ServiceCatalogResponseDTO result = serviceCatalogService.findByName(name);
 
         assertNotNull(result);
-        assertEquals(serviceCatalog, result);
+        assertEquals(serviceCatalog.getId(), result.id());
+        assertEquals(serviceCatalog.getName(), result.name());
+        assertEquals(serviceCatalog.getDescription(), result.description());
+        assertEquals(serviceCatalog.getPrice(), result.price());
         verify(repository, times(1)).findByName(name);
     }
 

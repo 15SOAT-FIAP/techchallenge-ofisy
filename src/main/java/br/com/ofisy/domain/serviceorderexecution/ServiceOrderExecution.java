@@ -69,6 +69,4 @@ public class ServiceOrderExecution {
         this.startedAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
-
-
 }

@@ -8,13 +8,13 @@ import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionRepository
 import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.stereotype.Component;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
 
-@Component
+@Service
 @RequiredArgsConstructor
 public class ServiceOrderExecutionService {
 

@@ -57,9 +57,9 @@ class ServiceOrderExecutionApplicationTest {
             var result = application.create(dto);
 
             assertThat(result).isNotNull();
-            assertThat(result.getServiceCatalogId()).isEqualTo(serviceCatalogId);
-            assertThat(result.getServiceOrderId()).isEqualTo(serviceOrderId);
-            assertThat(result.getStatus()).isEqualTo(ServiceOrderExecutionStatus.PENDING);
+            assertThat(result.serviceCatalogId()).isEqualTo(serviceCatalogId);
+            assertThat(result.serviceOrderId()).isEqualTo(serviceOrderId);
+            assertThat(result.status()).isEqualTo(ServiceOrderExecutionStatus.PENDING);
             verify(repository).save(any(ServiceOrderExecution.class));
         }
 
@@ -73,7 +73,7 @@ class ServiceOrderExecutionApplicationTest {
 
             var result = application.create(dto);
 
-            assertThat(result.getCreatedAt()).isNotNull();
+            assertThat(result.createdAt()).isNotNull();
         }
     }
 
@@ -90,7 +90,7 @@ class ServiceOrderExecutionApplicationTest {
             var result = application.findById(id);
 
             assertThat(result).isNotNull();
-            assertThat(result).isEqualTo(serviceOrderExecution);
+            assertThat(result).isEqualTo(ServiceOrderExecutionMapper.toDTO(serviceOrderExecution));
             verify(repository).findById(id);
         }
 
@@ -185,8 +185,8 @@ class ServiceOrderExecutionApplicationTest {
             var result = application.complete(id);
 
             assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(ServiceOrderExecutionStatus.COMPLETED);
-            assertThat(result.getFinishedAt()).isNotNull();
+            assertThat(result.status()).isEqualTo(ServiceOrderExecutionStatus.COMPLETED);
+            assertThat(result.finishedAt()).isNotNull();
             verify(repository).findById(id);
             verify(repository).save(any(ServiceOrderExecution.class));
         }
@@ -218,8 +218,8 @@ class ServiceOrderExecutionApplicationTest {
             var result = application.cancel(id);
 
             assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(ServiceOrderExecutionStatus.CANCELLED);
-            assertThat(result.getFinishedAt()).isNotNull();
+            assertThat(result.status()).isEqualTo(ServiceOrderExecutionStatus.CANCELLED);
+            assertThat(result.finishedAt()).isNotNull();
             verify(repository).findById(id);
             verify(repository).save(any(ServiceOrderExecution.class));
         }
@@ -251,8 +251,8 @@ class ServiceOrderExecutionApplicationTest {
             var result = application.start(id);
 
             assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(ServiceOrderExecutionStatus.IN_PROGRESS);
-            assertThat(result.getStartedAt()).isNotNull();
+            assertThat(result.status()).isEqualTo(ServiceOrderExecutionStatus.IN_PROGRESS);
+            assertThat(result.startedAt()).isNotNull();
             verify(repository).findById(id);
             verify(repository).save(any(ServiceOrderExecution.class));
         }

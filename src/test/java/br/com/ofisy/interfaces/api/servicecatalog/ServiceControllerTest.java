@@ -2,6 +2,7 @@ package br.com.ofisy.interfaces.api.servicecatalog;
 
 import br.com.ofisy.application.servicecatalog.ServiceCatalogService;
 import br.com.ofisy.application.servicecatalog.dto.ServiceCatalogRequestDTO;
+import br.com.ofisy.application.servicecatalog.dto.ServiceCatalogResponseDTO;
 import br.com.ofisy.application.serviceorderexecution.ServiceOrderExecutionService;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,6 +45,7 @@ class ServiceControllerTest {
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
     private ServiceCatalog serviceCatalog;
+    private ServiceCatalogResponseDTO responseDTO;
     private UUID serviceCatalogId;
 
     @BeforeEach
@@ -54,12 +56,20 @@ class ServiceControllerTest {
         objectMapper = new ObjectMapper();
         serviceCatalogId = UUID.randomUUID();
         serviceCatalog = ServiceCatalog.create("Oil Change", "Change engine oil", new BigDecimal("50.00"));
+        responseDTO = new ServiceCatalogResponseDTO(
+                serviceCatalogId,
+                serviceCatalog.getName(),
+                serviceCatalog.getDescription(),
+                serviceCatalog.getPrice(),
+                serviceCatalog.getCreatedAt(),
+                serviceCatalog.getUpdatedAt()
+        );
     }
 
     @Test
     void getAll_shouldReturnPageOfServices() throws Exception {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<ServiceCatalog> page = new PageImpl<>(List.of(serviceCatalog), pageable, 1);
+        Page<ServiceCatalogResponseDTO> page = new PageImpl<>(List.of(responseDTO), pageable, 1);
         when(serviceCatalogService.findAll(any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/api/v1/services-catalog")
@@ -71,7 +81,7 @@ class ServiceControllerTest {
 
     @Test
     void getById_shouldReturnService() throws Exception {
-        when(serviceCatalogService.findById(serviceCatalogId)).thenReturn(serviceCatalog);
+        when(serviceCatalogService.findById(serviceCatalogId)).thenReturn(responseDTO);
 
         mockMvc.perform(get("/api/v1/services-catalog/{id}", serviceCatalogId))
                 .andExpect(status().isOk())
@@ -81,7 +91,7 @@ class ServiceControllerTest {
     @Test
     void getByName_shouldReturnService() throws Exception {
         String name = "Oil Change";
-        when(serviceCatalogService.findByName(name)).thenReturn(serviceCatalog);
+        when(serviceCatalogService.findByName(name)).thenReturn(responseDTO);
 
         mockMvc.perform(get("/api/v1/services-catalog")
                         .param("name", name))
@@ -107,7 +117,7 @@ class ServiceControllerTest {
                 "Oil Change",
                 "Change engine oil"
         );
-        when(serviceCatalogService.create(any(ServiceCatalogRequestDTO.class))).thenReturn(serviceCatalog);
+        when(serviceCatalogService.create(any(ServiceCatalogRequestDTO.class))).thenReturn(responseDTO);
 
         mockMvc.perform(post("/api/v1/services-catalog")
                         .contentType(MediaType.APPLICATION_JSON)
