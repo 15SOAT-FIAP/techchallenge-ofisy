@@ -2,6 +2,7 @@ package br.com.ofisy.interfaces.api.serviceorderexecution;
 
 import br.com.ofisy.application.serviceorderexecution.ServiceOrderExecutionService;
 import br.com.ofisy.application.serviceorderexecution.dto.ServiceOrderExecutionRequestDTO;
+import br.com.ofisy.application.serviceorderexecution.dto.ServiceOrderExecutionResponseDTO;
 import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecution;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,20 +24,20 @@ public class ServiceOrderExecutionController implements ServiceOrderExecutionApi
     private final ServiceOrderExecutionService serviceOrderExecutionService;
 
     @GetMapping
-    public ResponseEntity<Page<ServiceOrderExecution>> getAll(
+    public ResponseEntity<Page<ServiceOrderExecutionResponseDTO>> getAll(
             @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
 
         return ResponseEntity.ok(serviceOrderExecutionService.findAll(pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ServiceOrderExecution> getById(@PathVariable UUID id) {
+    public ResponseEntity<ServiceOrderExecutionResponseDTO> getById(@PathVariable UUID id) {
 
         return ResponseEntity.ok(serviceOrderExecutionService.findById(id));
     }
 
     @GetMapping(params = "serviceCatalogId")
-    public ResponseEntity<Page<ServiceOrderExecution>> getByServiceCatalogId(
+    public ResponseEntity<Page<ServiceOrderExecutionResponseDTO>> getByServiceCatalogId(
             @RequestParam UUID serviceCatalogId,
             @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
 
@@ -44,7 +45,7 @@ public class ServiceOrderExecutionController implements ServiceOrderExecutionApi
     }
 
     @GetMapping(params = "status")
-    public ResponseEntity<Page<ServiceOrderExecution>> getByStatus(
+    public ResponseEntity<Page<ServiceOrderExecutionResponseDTO>> getByStatus(
             @RequestParam String status,
             @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
 
@@ -52,31 +53,31 @@ public class ServiceOrderExecutionController implements ServiceOrderExecutionApi
     }
 
     @GetMapping("/service_order/{id}")
-    public ResponseEntity<Page<ServiceOrderExecution>> getByServiceOrderId(@PathVariable UUID id, @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
+    public ResponseEntity<Page<ServiceOrderExecutionResponseDTO>> getByServiceOrderId(@PathVariable UUID id, @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
 
         return ResponseEntity.ok(serviceOrderExecutionService.findByServiceOrderId(id, pageable));
     }
 
     @PostMapping
-    public ResponseEntity<ServiceOrderExecution> create(@Valid @RequestBody ServiceOrderExecutionRequestDTO requestDTO) {
+    public ResponseEntity<ServiceOrderExecutionResponseDTO> create(@Valid @RequestBody ServiceOrderExecutionRequestDTO requestDTO) {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(serviceOrderExecutionService.create(requestDTO));
     }
 
     @PatchMapping("/{id}/complete")
-    public ResponseEntity<ServiceOrderExecution> complete(@PathVariable UUID id) {
+    public ResponseEntity<ServiceOrderExecutionResponseDTO> complete(@PathVariable UUID id) {
 
         return ResponseEntity.ok(serviceOrderExecutionService.complete(id));
     }
 
     @PatchMapping("/{id}/cancel")
-    public ResponseEntity<ServiceOrderExecution> cancel(@PathVariable UUID id) {
+    public ResponseEntity<ServiceOrderExecutionResponseDTO> cancel(@PathVariable UUID id) {
 
         return ResponseEntity.ok(serviceOrderExecutionService.cancel(id));
     }
 
     @PatchMapping("/{id}/start")
-    public ResponseEntity<ServiceOrderExecution> start(@PathVariable UUID id) {
+    public ResponseEntity<ServiceOrderExecutionResponseDTO> start(@PathVariable UUID id) {
         return ResponseEntity.ok(serviceOrderExecutionService.start(id));
     }
 }

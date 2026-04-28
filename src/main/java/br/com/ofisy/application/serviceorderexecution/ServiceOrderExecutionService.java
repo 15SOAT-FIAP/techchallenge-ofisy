@@ -1,6 +1,7 @@
 package br.com.ofisy.application.serviceorderexecution;
 
 import br.com.ofisy.application.serviceorderexecution.dto.ServiceOrderExecutionRequestDTO;
+import br.com.ofisy.application.serviceorderexecution.dto.ServiceOrderExecutionResponseDTO;
 import br.com.ofisy.application.serviceorderexecution.exceptions.ServiceOrderExecutionNotFoundException;
 import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecution;
 import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionRepository;
@@ -19,56 +20,62 @@ public class ServiceOrderExecutionService {
 
     private final ServiceOrderExecutionRepository repository;
 
-    public ServiceOrderExecution create(ServiceOrderExecutionRequestDTO dto) {
+    public ServiceOrderExecutionResponseDTO create(ServiceOrderExecutionRequestDTO dto) {
         ServiceOrderExecution service = ServiceOrderExecution.create(
                 dto.serviceCatalogId(),
                 dto.serviceOrderId()
         );
         
-        return repository.save(service);
+        ServiceOrderExecution savedService = repository.save(service);
+        return ServiceOrderExecutionMapper.toDTO(savedService);
     }
 
-    public ServiceOrderExecution findById(UUID id) {
+    public ServiceOrderExecutionResponseDTO findById(UUID id) {
         return repository.findById(id)
+                .map(ServiceOrderExecutionMapper::toDTO)
                 .orElseThrow(() -> new ServiceOrderExecutionNotFoundException(id.toString()));
     }
 
-    public Page<ServiceOrderExecution> findAll(Pageable pageable) {
-        return repository.findAll(pageable);
+    public Page<ServiceOrderExecutionResponseDTO> findAll(Pageable pageable) {
+        return repository.findAll(pageable)
+                .map(ServiceOrderExecutionMapper::toDTO);
     }
 
-    public Page<ServiceOrderExecution> findByServiceCatalogId(UUID serviceCatalogId, Pageable pageable) {
-        return repository.findByServiceCatalogId(serviceCatalogId, pageable);
+    public Page<ServiceOrderExecutionResponseDTO> findByServiceCatalogId(UUID serviceCatalogId, Pageable pageable) {
+        return repository.findByServiceCatalogId(serviceCatalogId, pageable)
+                .map(ServiceOrderExecutionMapper::toDTO);
     }
 
-    public Page<ServiceOrderExecution> findByServiceOrderId(UUID serviceOrderId, Pageable pageable) {
-        return repository.findByServiceOrderId(serviceOrderId, pageable);
+    public Page<ServiceOrderExecutionResponseDTO> findByServiceOrderId(UUID serviceOrderId, Pageable pageable) {
+        return repository.findByServiceOrderId(serviceOrderId, pageable)
+                .map(ServiceOrderExecutionMapper::toDTO);
     }
 
-    public Page<ServiceOrderExecution> findByStatus(String status, Pageable pageable) {
+    public Page<ServiceOrderExecutionResponseDTO> findByStatus(String status, Pageable pageable) {
         ServiceOrderExecutionStatus serviceStatus = ServiceOrderExecutionStatus.valueOf(status.toUpperCase());
-        return repository.findByStatus(serviceStatus, pageable);
+        return repository.findByStatus(serviceStatus, pageable)
+                .map(ServiceOrderExecutionMapper::toDTO);
     }
 
-    public ServiceOrderExecution complete(UUID id) {
+    public ServiceOrderExecutionResponseDTO complete(UUID id) {
         ServiceOrderExecution service = repository.findById(id)
                 .orElseThrow(() -> new ServiceOrderExecutionNotFoundException(id.toString()));
         service.complete();
-        return repository.save(service);
+        return ServiceOrderExecutionMapper.toDTO(repository.save(service));
     }
 
-    public ServiceOrderExecution cancel(UUID id) {
+    public ServiceOrderExecutionResponseDTO cancel(UUID id) {
         ServiceOrderExecution service = repository.findById(id)
                 .orElseThrow(() -> new ServiceOrderExecutionNotFoundException(id.toString()));
         service.cancel();
-        return repository.save(service);
+        return ServiceOrderExecutionMapper.toDTO(repository.save(service));
     }
 
-    public ServiceOrderExecution start(UUID id) {
+    public ServiceOrderExecutionResponseDTO start(UUID id) {
         ServiceOrderExecution service = repository.findById(id)
                 .orElseThrow(() -> new ServiceOrderExecutionNotFoundException(id.toString()));
         service.start();
-        return repository.save(service);
+        return ServiceOrderExecutionMapper.toDTO(repository.save(service));
     }
 
     public double getAverageExecutionTimeByService(UUID serviceCatalogId) {

@@ -2,8 +2,8 @@ package br.com.ofisy.interfaces.api.servicecatalog;
 
 import br.com.ofisy.application.servicecatalog.ServiceCatalogService;
 import br.com.ofisy.application.servicecatalog.dto.ServiceCatalogRequestDTO;
+import br.com.ofisy.application.servicecatalog.dto.ServiceCatalogResponseDTO;
 import br.com.ofisy.application.serviceorderexecution.ServiceOrderExecutionService;
-import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -24,21 +24,21 @@ public class ServiceCatalogController implements ServiceCatalogApi {
     private final ServiceOrderExecutionService serviceOrderExecutionService;
 
     @GetMapping
-    public ResponseEntity<Page<ServiceCatalog>> getAll(
+    public ResponseEntity<Page<ServiceCatalogResponseDTO>> getAll(
             @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
 
         return ResponseEntity.status(HttpStatus.OK).body(serviceCatalogService.findAll(pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ServiceCatalog> getById(@PathVariable UUID id) {
+    public ResponseEntity<ServiceCatalogResponseDTO> getById(@PathVariable UUID id) {
 
         return ResponseEntity.status(HttpStatus.OK).body(serviceCatalogService.findById(id));
 
     }
 
     @GetMapping(params = "name")
-    public ResponseEntity<ServiceCatalog> getByName(@RequestParam String name) {
+    public ResponseEntity<ServiceCatalogResponseDTO> getByName(@RequestParam String name) {
 
         return ResponseEntity.ok(serviceCatalogService.findByName(name));
 
@@ -51,7 +51,7 @@ public class ServiceCatalogController implements ServiceCatalogApi {
     }
 
     @PostMapping
-    public ResponseEntity<ServiceCatalog> create(
+    public ResponseEntity<ServiceCatalogResponseDTO> create(
             @Valid @RequestBody ServiceCatalogRequestDTO dto) {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(serviceCatalogService.create(dto));
