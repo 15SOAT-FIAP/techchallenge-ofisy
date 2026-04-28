@@ -1,5 +1,6 @@
 package br.com.ofisy.domain.quote;
 
+import br.com.ofisy.domain.quote.exceptions.InvalidQuoteItemException;
 import br.com.ofisy.domain.stock.Stock;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -7,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -35,11 +37,19 @@ public class QuoteStockItem {
     @Column(nullable = false)
     private Integer quantity;
 
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
     public static QuoteStockItem create(Stock stock, Integer quantity) {
+        if (quantity == null || quantity <= 0) {
+            throw new InvalidQuoteItemException("Quantidade do item deve ser maior que zero!");
+        }
+
         QuoteStockItem item = new QuoteStockItem();
         item.stock = stock;
         item.unitPrice = stock.getUnitPrice();
         item.quantity = quantity;
+        item.createdAt = LocalDateTime.now();
         return item;
     }
 

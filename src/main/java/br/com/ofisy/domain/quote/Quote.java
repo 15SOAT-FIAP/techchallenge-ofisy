@@ -42,13 +42,11 @@ public class Quote {
     @OneToMany(mappedBy = "quote", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QuoteServiceItem> serviceItems = new ArrayList<>();
 
-    @Column
     private String quoteRefusalReason;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @Column
     private LocalDateTime updatedAt;
 
     public static Quote create(UUID serviceOrderId,
@@ -67,6 +65,7 @@ public class Quote {
         //quote.totalPrice = calculateTotal(quote.stockItems, quote.serviceItems); - aguardando implementação total serviços
         quote.totalPrice = calculateTotal(quote.stockItems);
         quote.createdAt = LocalDateTime.now();
+        quote.updatedAt = LocalDateTime.now();
         quote.stockItems.forEach(item -> item.setQuote(quote));
         quote.serviceItems.forEach(item -> item.setQuote(quote));
         return quote;

@@ -32,7 +32,7 @@ class QuoteTest {
 
             assertThat(quote.getStatus()).isEqualTo(QuoteStatus.PENDING);
             assertThat(quote.getCreatedAt()).isNotNull();
-            assertThat(quote.getUpdatedAt()).isNull();
+            assertThat(quote.getUpdatedAt()).isNotNull();
             assertThat(quote.getQuoteRefusalReason()).isNull();
         }
 
