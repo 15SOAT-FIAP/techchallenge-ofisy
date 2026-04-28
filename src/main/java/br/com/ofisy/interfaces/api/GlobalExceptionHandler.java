@@ -14,6 +14,7 @@ import br.com.ofisy.application.vehicle.exceptions.VehicleLicensePlateNotFoundEx
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteDataException;
+import br.com.ofisy.domain.quote.exceptions.InvalidQuoteItemException;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
 import br.com.ofisy.domain.serviceorder.exceptions.InvalidServiceOrderTransitionException;
 import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
@@ -191,6 +192,13 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleInvalidQuoteData(InvalidQuoteDataException ex) {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         problem.setTitle("Dados do orçamento inválidos");
+        return problem;
+    }
+
+    @ExceptionHandler(InvalidQuoteItemException.class)
+    public ProblemDetail handleInvalidQuoteItem(InvalidQuoteItemException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problem.setTitle("Item do orçamento inválido");
         return problem;
     }
 }
