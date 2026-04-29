@@ -49,7 +49,8 @@ public class ServiceOrderMapper {
                 serviceOrder.getId(),
                 serviceOrder.getVehicleId(),
                 serviceOrder.getCustomerId(),
-                serviceOrder.getStatus()
+                serviceOrder.getStatus(),
+                serviceOrder.getUpdatedAt()
         );
     }
 }

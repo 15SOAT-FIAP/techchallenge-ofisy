@@ -294,7 +294,7 @@ class ServiceOrderControllerTest {
         }
 
         private ServiceOrderStatusResponseDTO mockStatusResponse() {
-            return new ServiceOrderStatusResponseDTO(ORDER_ID, VALID_VEHICLE_ID, VALID_CUSTOMER_ID, ServiceOrderStatus.RECEIVED);
+            return new ServiceOrderStatusResponseDTO(ORDER_ID, VALID_VEHICLE_ID, VALID_CUSTOMER_ID, ServiceOrderStatus.RECEIVED, NOW);
         }
     }
 
