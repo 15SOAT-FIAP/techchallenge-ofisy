@@ -2,6 +2,7 @@ package br.com.ofisy.domain.quote;
 
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteDataException;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
+import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecution;
 import br.com.ofisy.domain.stock.Stock;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -19,6 +20,7 @@ class QuoteTest {
     private static final String PRICE_100 = "100.00";
     private static final String PRICE_50 = "50.00";
     private static final String PRICE_350 = "350.00";
+    private static final String PRICE_450 = "450.00";
     private static final String REFUSAL_REASON = "Achei o valor das peças do orçamento muito alto";
 
     @Nested
@@ -36,7 +38,6 @@ class QuoteTest {
             assertThat(quote.getQuoteRefusalReason()).isNull();
         }
 
-        /* Comentando até termos tudo do serviço
         @Test
         @DisplayName("Deve calcular total somando itens de estoque e serviços")
         void shouldCalculateTotalWithStockAndServiceItems() {
@@ -48,7 +49,7 @@ class QuoteTest {
             var quote = mockQuote(stockItems, serviceItems);
 
             assertThat(quote.getTotalPrice()).isEqualByComparingTo(new BigDecimal(PRICE_450));
-        } */
+        }
 
         @Test
         @DisplayName("Deve calcular total apenas com itens de estoque")
@@ -82,7 +83,6 @@ class QuoteTest {
             assertThat(quote.getStockItems().getFirst().getQuote()).isEqualTo(quote);
         }
 
-        /* Comentando aqui até termos tudo do serviço
         @Test
         @DisplayName("Deve associar itens de serviço ao orçamento")
         void shouldAssociateServiceItemsToQuote() {
@@ -91,7 +91,46 @@ class QuoteTest {
 
             assertThat(quote.getServiceItems()).hasSize(1);
             assertThat(quote.getServiceItems().getFirst().getQuote()).isEqualTo(quote);
-        } */
+        }
+
+        @Test
+        @DisplayName("Deve associar múltiplos itens de estoque ao orçamento")
+        void shouldAssociateMultipleStockItemsToQuote() {
+            var items = List.of(
+                    mockStockItem(new BigDecimal(PRICE_100), 2),
+                    mockStockItem(new BigDecimal(PRICE_50), 3)
+            );
+            var quote = mockQuote(items, List.of());
+
+            assertThat(quote.getStockItems()).hasSize(2);
+            assertThat(quote.getStockItems()).allMatch(item -> item.getQuote().equals(quote));
+        }
+
+        @Test
+        @DisplayName("Deve associar múltiplos itens de serviço ao orçamento")
+        void shouldAssociateMultipleServiceItemsToQuote() {
+            var items = List.of(
+                    mockServiceItem(new BigDecimal(PRICE_100)),
+                    mockServiceItem(new BigDecimal(PRICE_50))
+            );
+            var quote = mockQuote(List.of(mockStockItem(new BigDecimal(PRICE_100), 1)), items);
+
+            assertThat(quote.getServiceItems()).hasSize(2);
+            assertThat(quote.getServiceItems()).allMatch(item -> item.getQuote().equals(quote));
+        }
+
+        @Test
+        @DisplayName("Deve associar itens de estoque e serviço ao mesmo orçamento")
+        void shouldAssociateStockAndServiceItemsToSameQuote() {
+            var stockItems = List.of(mockStockItem(new BigDecimal(PRICE_100), 2));
+            var serviceItems = List.of(mockServiceItem(new BigDecimal(PRICE_50)));
+            var quote = mockQuote(stockItems, serviceItems);
+
+            assertThat(quote.getStockItems()).hasSize(1);
+            assertThat(quote.getServiceItems()).hasSize(1);
+            assertThat(quote.getStockItems().getFirst().getQuote()).isEqualTo(quote);
+            assertThat(quote.getServiceItems().getFirst().getQuote()).isEqualTo(quote);
+        }
     }
 
     @Nested
@@ -163,13 +202,12 @@ class QuoteTest {
         return Quote.create(UUID.randomUUID(), new ArrayList<>(stockItems), new ArrayList<>(serviceItems));
     }
 
-     /* Comentando aqui até termos a parte de serviços
     private ServiceOrderExecution mockServiceOrderExecution() {
         return ServiceOrderExecution.create(UUID.randomUUID(), UUID.randomUUID());
     }
 
     private QuoteServiceItem mockServiceItem(BigDecimal price) {
         return QuoteServiceItem.create(mockServiceOrderExecution(), price);
-    }   */
+    }
 
 }

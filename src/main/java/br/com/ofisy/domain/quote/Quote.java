@@ -62,8 +62,7 @@ public class Quote {
             throw new InvalidQuoteDataException(serviceOrderId);
         }
 
-        //quote.totalPrice = calculateTotal(quote.stockItems, quote.serviceItems); - aguardando implementação total serviços
-        quote.totalPrice = calculateTotal(quote.stockItems);
+        quote.totalPrice = calculateTotal(quote.stockItems, quote.serviceItems);
         quote.createdAt = LocalDateTime.now();
         quote.updatedAt = LocalDateTime.now();
         quote.stockItems.forEach(item -> item.setQuote(quote));
@@ -88,13 +87,6 @@ public class Quote {
         this.updatedAt = LocalDateTime.now();
     }
 
-    private static BigDecimal calculateTotal(List<QuoteStockItem> stockItems) {
-       return stockItems.stream()
-                .map(item -> item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    /* Comentando essa versão até termos tudo do serviço
     private static BigDecimal calculateTotal(List<QuoteStockItem> stockItems,
                                              List<QuoteServiceItem> serviceItems) {
         BigDecimal stockTotal = stockItems.stream()
@@ -107,6 +99,5 @@ public class Quote {
 
         return stockTotal.add(serviceTotal);
     }
-    */
 
 }
