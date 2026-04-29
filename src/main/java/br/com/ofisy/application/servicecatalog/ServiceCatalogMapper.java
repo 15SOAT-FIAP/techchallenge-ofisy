@@ -8,7 +8,7 @@ public class ServiceCatalogMapper {
 
     public static ServiceCatalog toDomain(ServiceCatalogRequestDTO request) {
         if (request == null) {
-            throw new IllegalArgumentException("ServiceCatalogResponseDTO não pode ser nulo");
+            throw new IllegalArgumentException("ServiceCatalogRequestDTO não pode ser nulo");
         }
 
         return ServiceCatalog.create(

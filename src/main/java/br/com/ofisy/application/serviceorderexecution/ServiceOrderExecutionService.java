@@ -23,11 +23,7 @@ public class ServiceOrderExecutionService {
 
     @Transactional
     public ServiceOrderExecutionResponseDTO create(ServiceOrderExecutionRequestDTO dto) {
-        ServiceOrderExecution service = ServiceOrderExecution.create(
-                dto.serviceCatalogId(),
-                dto.serviceOrderId()
-        );
-        
+        ServiceOrderExecution service = ServiceOrderExecutionMapper.toDomain(dto);
         ServiceOrderExecution savedService = repository.save(service);
         return ServiceOrderExecutionMapper.toDTO(savedService);
     }
