@@ -1,5 +1,6 @@
 package br.com.ofisy.domain.serviceorderexecution;
 
+import br.com.ofisy.domain.serviceorderexecution.exceptions.InvalidServiceOrderExecutionTransitionException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -52,21 +53,26 @@ public class ServiceOrderExecution {
         return new ServiceOrderExecution(serviceCatalogId, serviceOrderId);
     }
 
+    public void start() {
+        transitionTo(ServiceOrderExecutionStatus.IN_PROGRESS);
+        this.startedAt = LocalDateTime.now();
+    }
+
     public void complete() {
-        this.status = ServiceOrderExecutionStatus.COMPLETED;
+        transitionTo(ServiceOrderExecutionStatus.COMPLETED);
         this.finishedAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
     }
 
     public void cancel() {
-        this.status = ServiceOrderExecutionStatus.CANCELLED;
+        transitionTo(ServiceOrderExecutionStatus.CANCELLED);
         this.finishedAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
     }
 
-    public void start() {
-        this.status = ServiceOrderExecutionStatus.IN_PROGRESS;
-        this.startedAt = LocalDateTime.now();
+    private void transitionTo(ServiceOrderExecutionStatus next) {
+        if (!this.status.canTransitionTo(next)) {
+            throw new InvalidServiceOrderExecutionTransitionException(this.status, next);
+        }
+        this.status = next;
         this.updatedAt = LocalDateTime.now();
     }
 }
