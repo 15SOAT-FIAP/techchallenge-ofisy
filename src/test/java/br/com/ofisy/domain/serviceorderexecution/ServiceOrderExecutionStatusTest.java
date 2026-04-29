@@ -13,27 +13,14 @@ class ServiceOrderExecutionStatusTest {
     }
 
     @Test
-    void shouldHavePendingStatus() {
+    void shouldHaveAllExpectedStatuses() {
         var values = ServiceOrderExecutionStatus.values();
-        assertThat(values).contains(ServiceOrderExecutionStatus.PENDING);
-    }
-
-    @Test
-    void shouldHaveCompletedStatus() {
-        var values = ServiceOrderExecutionStatus.values();
-        assertThat(values).contains(ServiceOrderExecutionStatus.COMPLETED);
-    }
-
-    @Test
-    void shouldHaveCancelledStatus() {
-        var values = ServiceOrderExecutionStatus.values();
-        assertThat(values).contains(ServiceOrderExecutionStatus.CANCELLED);
-    }
-
-    @Test
-    void shouldHaveInProgressStatus() {
-        var values = ServiceOrderExecutionStatus.values();
-        assertThat(values).contains(ServiceOrderExecutionStatus.IN_PROGRESS);
+        assertThat(values).contains(
+                ServiceOrderExecutionStatus.PENDING,
+                ServiceOrderExecutionStatus.IN_PROGRESS,
+                ServiceOrderExecutionStatus.COMPLETED,
+                ServiceOrderExecutionStatus.CANCELLED
+        );
     }
 
     @Test
@@ -55,5 +42,34 @@ class ServiceOrderExecutionStatusTest {
         assertThat(ServiceOrderExecutionStatus.CANCELLED.toString()).isEqualTo("CANCELLED");
         assertThat(ServiceOrderExecutionStatus.IN_PROGRESS.toString()).isEqualTo("IN_PROGRESS");
     }
-}
 
+    @Test
+    void pendingShouldAllowInProgressAndCancelled() {
+        assertThat(ServiceOrderExecutionStatus.PENDING.canTransitionTo(ServiceOrderExecutionStatus.IN_PROGRESS)).isTrue();
+        assertThat(ServiceOrderExecutionStatus.PENDING.canTransitionTo(ServiceOrderExecutionStatus.CANCELLED)).isTrue();
+        assertThat(ServiceOrderExecutionStatus.PENDING.canTransitionTo(ServiceOrderExecutionStatus.COMPLETED)).isFalse();
+        assertThat(ServiceOrderExecutionStatus.PENDING.canTransitionTo(ServiceOrderExecutionStatus.PENDING)).isFalse();
+    }
+
+    @Test
+    void inProgressShouldAllowCompletedAndCancelled() {
+        assertThat(ServiceOrderExecutionStatus.IN_PROGRESS.canTransitionTo(ServiceOrderExecutionStatus.COMPLETED)).isTrue();
+        assertThat(ServiceOrderExecutionStatus.IN_PROGRESS.canTransitionTo(ServiceOrderExecutionStatus.CANCELLED)).isTrue();
+        assertThat(ServiceOrderExecutionStatus.IN_PROGRESS.canTransitionTo(ServiceOrderExecutionStatus.PENDING)).isFalse();
+        assertThat(ServiceOrderExecutionStatus.IN_PROGRESS.canTransitionTo(ServiceOrderExecutionStatus.IN_PROGRESS)).isFalse();
+    }
+
+    @Test
+    void completedShouldBeTerminal() {
+        for (var next : ServiceOrderExecutionStatus.values()) {
+            assertThat(ServiceOrderExecutionStatus.COMPLETED.canTransitionTo(next)).isFalse();
+        }
+    }
+
+    @Test
+    void cancelledShouldBeTerminal() {
+        for (var next : ServiceOrderExecutionStatus.values()) {
+            assertThat(ServiceOrderExecutionStatus.CANCELLED.canTransitionTo(next)).isFalse();
+        }
+    }
+}

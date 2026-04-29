@@ -177,6 +177,7 @@ class ServiceOrderExecutionApplicationTest {
         @Test
         void shouldCompleteServiceOrderExecutionSuccessfully() {
             var serviceOrderExecution = createValidServiceOrderExecution();
+            serviceOrderExecution.start();
             var id = UUID.randomUUID();
 
             when(repository.findById(id)).thenReturn(Optional.of(serviceOrderExecution));
