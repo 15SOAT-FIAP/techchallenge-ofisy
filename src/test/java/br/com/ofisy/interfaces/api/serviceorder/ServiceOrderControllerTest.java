@@ -3,6 +3,7 @@ package br.com.ofisy.interfaces.api.serviceorder;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
 import br.com.ofisy.application.serviceorder.ServiceOrderService;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderResponseDTO;
+import br.com.ofisy.application.serviceorder.dto.ServiceOrderStatusResponseDTO;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
@@ -262,6 +263,38 @@ class ServiceOrderControllerTest {
             return new ServiceOrderResponseDTO(
                     UUID.randomUUID(), VALID_VEHICLE_ID, VALID_CUSTOMER_ID,
                     "Barulho na suspensão", "FINISHED", UUID.randomUUID(), NOW, null, NOW);
+        }
+    }
+
+    @Nested
+    class GetStatusById {
+
+        private static final UUID ORDER_ID = UUID.randomUUID();
+
+        @Test
+        void shouldReturn200WithServiceOrderStatus() throws Exception {
+            when(serviceOrderService.getStatus(ORDER_ID)).thenReturn(mockStatusResponse());
+
+            mockMvc.perform(get(BASE_URL + "/{id}/status", ORDER_ID))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id").value(ORDER_ID.toString()))
+                    .andExpect(jsonPath("$.vehicleId").value(VALID_VEHICLE_ID.toString()))
+                    .andExpect(jsonPath("$.customerId").value(VALID_CUSTOMER_ID.toString()))
+                    .andExpect(jsonPath("$.status").value("RECEIVED"));
+        }
+
+        @Test
+        void shouldReturn404WhenOrderDoesNotExist() throws Exception {
+            when(serviceOrderService.getStatus(ORDER_ID))
+                    .thenThrow(new ServiceOrderNotFoundException(ORDER_ID));
+
+            mockMvc.perform(get(BASE_URL + "/{id}/status", ORDER_ID))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.title").value("Ordem de serviço não encontrada"));
+        }
+
+        private ServiceOrderStatusResponseDTO mockStatusResponse() {
+            return new ServiceOrderStatusResponseDTO(ORDER_ID, VALID_VEHICLE_ID, VALID_CUSTOMER_ID, ServiceOrderStatus.RECEIVED, NOW);
         }
     }
 

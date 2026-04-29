@@ -2,6 +2,7 @@ package br.com.ofisy.interfaces.api.serviceorder;
 
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderRequestDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderResponseDTO;
+import br.com.ofisy.application.serviceorder.dto.ServiceOrderStatusResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -27,6 +28,11 @@ public interface ServiceOrderApi {
     @Operation(summary = "Listar todas as ordens de serviço com status FINISHED")
     @ApiResponse(responseCode = "200", description = "Lista de ordens de serviço finalizadas retornada com sucesso")
     ResponseEntity<Page<ServiceOrderResponseDTO>> listFinished(Pageable pageable);
+
+    @Operation(summary = "Acompanhar o status da ordem de serviço")
+    @ApiResponse(responseCode = "200", description = "Status da ordem de serviço retornado com sucesso")
+    @ApiResponse(responseCode = "404", description = "Ordem de serviço não encontrada")
+    ResponseEntity<ServiceOrderStatusResponseDTO> getStatusById(UUID id);
 
     @Operation(summary = "Iniciar diagnóstico de uma ordem de serviço")
     @ApiResponse(responseCode = "200", description = "Diagnóstico iniciado com sucesso")

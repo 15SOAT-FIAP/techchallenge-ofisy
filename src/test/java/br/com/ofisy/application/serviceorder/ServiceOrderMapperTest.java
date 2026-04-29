@@ -73,4 +73,26 @@ class ServiceOrderMapperTest {
                     .isInstanceOf(IllegalArgumentException.class);
         }
     }
+
+    @Nested
+    class ToStatusResponseDTO {
+
+        @Test
+        void shouldMapServiceOrderToStatusResponseDTO() {
+            var order = ServiceOrder.receive(VEHICLE_ID, CUSTOMER_ID, REPORT, CREATED_BY);
+
+            var result = ServiceOrderMapper.toStatusResponseDTO(order);
+
+            assertThat(result.id()).isEqualTo(order.getId());
+            assertThat(result.vehicleId()).isEqualTo(VEHICLE_ID);
+            assertThat(result.customerId()).isEqualTo(CUSTOMER_ID);
+            assertThat(result.status()).isEqualTo(ServiceOrderStatus.RECEIVED);
+        }
+
+        @Test
+        void shouldThrowIllegalArgumentExceptionWhenServiceOrderIsNull() {
+            assertThatThrownBy(() -> ServiceOrderMapper.toStatusResponseDTO(null))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+    }
 }
