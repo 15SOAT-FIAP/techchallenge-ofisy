@@ -35,7 +35,7 @@ class ServiceCatalogMapperTest {
         );
 
         assertEquals(
-                "ServiceCatalogResponseDTO não pode ser nulo",
+                "ServiceCatalogRequestDTO não pode ser nulo",
                 exception.getMessage()
         );
     }
