@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -18,6 +19,7 @@ public class ServiceCatalogService {
 
     private final ServiceCatalogRepository repository;
 
+    @Transactional
     public ServiceCatalogResponseDTO create(ServiceCatalogRequestDTO dto) {
         ServiceCatalog serviceCatalog = ServiceCatalogMapper.toDomain(dto);
 
@@ -26,17 +28,20 @@ public class ServiceCatalogService {
         return ServiceCatalogMapper.toDTO(savedServiceCatalog);
     }
 
+    @Transactional(readOnly = true)
     public ServiceCatalogResponseDTO findById(UUID id) {
         return repository.findById(id)
                 .map(ServiceCatalogMapper::toDTO)
                 .orElseThrow(() -> ServiceCatalogNotFoundException.ofId(id.toString()));
     }
 
+    @Transactional(readOnly = true)
     public Page<ServiceCatalogResponseDTO> findAll(Pageable pageable) {
         return repository.findAll(pageable)
                 .map(ServiceCatalogMapper::toDTO);
     }
 
+    @Transactional(readOnly = true)
     public ServiceCatalogResponseDTO findByName(String name) {
         return repository.findByName(name)
                 .map(ServiceCatalogMapper::toDTO)
