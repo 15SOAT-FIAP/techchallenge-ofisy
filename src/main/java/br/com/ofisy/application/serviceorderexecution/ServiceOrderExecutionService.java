@@ -32,7 +32,7 @@ public class ServiceOrderExecutionService {
     public ServiceOrderExecutionResponseDTO findById(UUID id) {
         return repository.findById(id)
                 .map(ServiceOrderExecutionMapper::toDTO)
-                .orElseThrow(() -> new ServiceOrderExecutionNotFoundException(id.toString()));
+                .orElseThrow(() -> new ServiceOrderExecutionNotFoundException(id));
     }
 
     @Transactional(readOnly = true)
@@ -63,7 +63,7 @@ public class ServiceOrderExecutionService {
     @Transactional
     public ServiceOrderExecutionResponseDTO complete(UUID id) {
         ServiceOrderExecution service = repository.findById(id)
-                .orElseThrow(() -> new ServiceOrderExecutionNotFoundException(id.toString()));
+                .orElseThrow(() -> new ServiceOrderExecutionNotFoundException(id));
         service.complete();
         return ServiceOrderExecutionMapper.toDTO(repository.save(service));
     }
@@ -71,7 +71,7 @@ public class ServiceOrderExecutionService {
     @Transactional
     public ServiceOrderExecutionResponseDTO cancel(UUID id) {
         ServiceOrderExecution service = repository.findById(id)
-                .orElseThrow(() -> new ServiceOrderExecutionNotFoundException(id.toString()));
+                .orElseThrow(() -> new ServiceOrderExecutionNotFoundException(id));
         service.cancel();
         return ServiceOrderExecutionMapper.toDTO(repository.save(service));
     }
@@ -79,7 +79,7 @@ public class ServiceOrderExecutionService {
     @Transactional
     public ServiceOrderExecutionResponseDTO start(UUID id) {
         ServiceOrderExecution service = repository.findById(id)
-                .orElseThrow(() -> new ServiceOrderExecutionNotFoundException(id.toString()));
+                .orElseThrow(() -> new ServiceOrderExecutionNotFoundException(id));
         service.start();
         return ServiceOrderExecutionMapper.toDTO(repository.save(service));
     }
