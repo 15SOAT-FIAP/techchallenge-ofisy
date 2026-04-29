@@ -29,7 +29,7 @@ public class ServiceCatalogService {
     public ServiceCatalogResponseDTO findById(UUID id) {
         return repository.findById(id)
                 .map(ServiceCatalogMapper::toDTO)
-                .orElseThrow(() -> new ServiceCatalogNotFoundException(id.toString()));
+                .orElseThrow(() -> ServiceCatalogNotFoundException.ofId(id.toString()));
     }
 
     public Page<ServiceCatalogResponseDTO> findAll(Pageable pageable) {
@@ -40,6 +40,6 @@ public class ServiceCatalogService {
     public ServiceCatalogResponseDTO findByName(String name) {
         return repository.findByName(name)
                 .map(ServiceCatalogMapper::toDTO)
-                .orElseThrow(() -> new ServiceCatalogNotFoundException(name));
+                .orElseThrow(() -> ServiceCatalogNotFoundException.ofName(name));
     }
 }
