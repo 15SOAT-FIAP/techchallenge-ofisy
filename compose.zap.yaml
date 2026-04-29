@@ -1,0 +1,15 @@
+services:
+  zap:
+    image: zaproxy/zap-stable:latest
+    container_name: ofisy-zap
+    command: >
+      bash -c "
+      echo 'Aguardando a aplicação subir...' &&
+      until curl -s http://app:8080 > /dev/null; do sleep 5; done &&
+      echo 'Aplicação disponível! Iniciando scan...' &&
+      zap-full-scan.py -t http://app:8080 -j -a -r /zap/wrk/full-report.html -x /zap/wrk/full-report.xml -J /zap/wrk/full-report.json
+      "
+    volumes:
+      - ./zap-reports:/zap/wrk
+    depends_on:
+      - app
