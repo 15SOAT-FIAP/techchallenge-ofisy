@@ -1,15 +1,16 @@
 package br.com.ofisy.application.quote;
 
-import br.com.ofisy.application.quote.dto.CreateQuoteRequestDTO;
-import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
-import br.com.ofisy.application.quote.dto.ReproveQuoteRequestDTO;
-import br.com.ofisy.application.quote.dto.StockItemRequestDTO;
+import br.com.ofisy.application.quote.dto.*;
 import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
 import br.com.ofisy.application.stock.StockService;
 import br.com.ofisy.application.stock.dto.StockResponseDTO;
 import br.com.ofisy.domain.quote.*;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
+import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
+import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
+import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecution;
+import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionRepository;
 import br.com.ofisy.domain.stock.Stock;
 import br.com.ofisy.domain.stock.StockRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -44,13 +45,11 @@ class QuoteServiceTest {
     @Mock
     private StockRepository stockRepository;
 
-    /* Comentando aqui até termos a parte de serviço
     @Mock
     private ServiceOrderExecutionRepository serviceOrderExecutionRepository;
 
     @Mock
-    private ServiceRepository serviceRepository;
-    */
+    private ServiceCatalogRepository serviceCatalogRepository;
 
     @Mock
     private QuoteMapper mapper;
@@ -143,6 +142,124 @@ class QuoteServiceTest {
             assertThatThrownBy(() -> quoteService.create(request))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining(stockId.toString());
+
+            verify(quoteRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Deve criar orçamento com itens de serviço com sucesso")
+        void shouldCreateQuoteWithServiceItemsSuccessfully() {
+            Stock stock = mockStock();
+            UUID stockId = stock.getId();
+            UUID serviceOrderExecutionId = UUID.randomUUID();
+            UUID serviceId = UUID.randomUUID();
+
+            ServiceOrderExecution execution = mockServiceOrderExecution(serviceId);
+            ReflectionTestUtils.setField(execution, "id", serviceOrderExecutionId);
+
+            ServiceCatalog service = mockService();
+            Quote quote = mockQuote();
+            QuoteResponseDTO response = mockResponse(quote);
+
+            CreateQuoteRequestDTO request = new CreateQuoteRequestDTO(
+                    UUID.randomUUID(),
+                    List.of(new StockItemRequestDTO(stockId, 2)),
+                    List.of(new ServiceItemRequestDTO(serviceOrderExecutionId))
+            );
+
+            when(stockRepository.findById(stockId)).thenReturn(Optional.of(stock));
+            when(serviceOrderExecutionRepository.findById(serviceOrderExecutionId)).thenReturn(Optional.of(execution));
+            when(serviceCatalogRepository.findById(any())).thenReturn(Optional.of(service));
+            when(quoteRepository.save(any())).thenReturn(quote);
+            when(mapper.toResponse(quote)).thenReturn(response);
+
+            var result = quoteService.create(request);
+
+            assertThat(result).isNotNull();
+            verify(stockService).consumeStock(stockId, 2);
+            verify(serviceOrderExecutionRepository).findById(serviceOrderExecutionId);
+            verify(quoteRepository).save(any());
+        }
+
+        @Test
+        @DisplayName("Deve lançar exceção quando item de serviço duplicado")
+        void shouldThrowExceptionWhenDuplicateServiceItem() {
+            Stock stock = mockStock();
+            UUID stockId = stock.getId();
+            UUID serviceOrderExecutionId = UUID.randomUUID();
+            UUID serviceId = UUID.randomUUID();
+
+            ServiceOrderExecution execution = mockServiceOrderExecution(serviceId);
+            ReflectionTestUtils.setField(execution, "id", serviceOrderExecutionId);
+
+            ServiceCatalog service = mockService();
+
+            CreateQuoteRequestDTO request = new CreateQuoteRequestDTO(
+                    UUID.randomUUID(),
+                    List.of(new StockItemRequestDTO(stockId, 2)),
+                    List.of(
+                            new ServiceItemRequestDTO(serviceOrderExecutionId),
+                            new ServiceItemRequestDTO(serviceOrderExecutionId)
+                    )
+            );
+
+            when(stockRepository.findById(stockId)).thenReturn(Optional.of(stock));
+            when(serviceOrderExecutionRepository.findById(serviceOrderExecutionId)).thenReturn(Optional.of(execution));
+            when(serviceCatalogRepository.findById(any())).thenReturn(Optional.of(service));
+
+            assertThatThrownBy(() -> quoteService.create(request))
+                    .isInstanceOf(QuoteItemAlreadyExistsException.class);
+
+            verify(quoteRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Deve lançar exceção quando execução de serviço não encontrada")
+        void shouldThrowExceptionWhenServiceOrderExecutionNotFound() {
+            Stock stock = mockStock();
+            UUID stockId = stock.getId();
+            UUID serviceOrderExecutionId = UUID.randomUUID();
+
+            CreateQuoteRequestDTO request = new CreateQuoteRequestDTO(
+                    UUID.randomUUID(),
+                    List.of(new StockItemRequestDTO(stockId, 2)),
+                    List.of(new ServiceItemRequestDTO(serviceOrderExecutionId))
+            );
+
+            when(stockRepository.findById(stockId)).thenReturn(Optional.of(stock));
+            when(serviceOrderExecutionRepository.findById(serviceOrderExecutionId)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> quoteService.create(request))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining(serviceOrderExecutionId.toString());
+
+            verify(quoteRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Deve lançar exceção quando serviço do catálogo não encontrado")
+        void shouldThrowExceptionWhenServiceCatalogNotFound() {
+            Stock stock = mockStock();
+            UUID stockId = stock.getId();
+            UUID serviceOrderExecutionId = UUID.randomUUID();
+            UUID serviceId = UUID.randomUUID();
+
+            ServiceOrderExecution execution = mockServiceOrderExecution(serviceId);
+            ReflectionTestUtils.setField(execution, "id", serviceOrderExecutionId);
+
+            CreateQuoteRequestDTO request = new CreateQuoteRequestDTO(
+                    UUID.randomUUID(),
+                    List.of(new StockItemRequestDTO(stockId, 2)),
+                    List.of(new ServiceItemRequestDTO(serviceOrderExecutionId))
+            );
+
+            when(stockRepository.findById(stockId)).thenReturn(Optional.of(stock));
+            when(serviceOrderExecutionRepository.findById(serviceOrderExecutionId)).thenReturn(Optional.of(execution));
+            when(serviceCatalogRepository.findById(any())).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> quoteService.create(request))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("não encontrado");
 
             verify(quoteRepository, never()).save(any());
         }
@@ -299,12 +416,11 @@ class QuoteServiceTest {
         return Quote.create(UUID.randomUUID(), stockItems, new ArrayList<>());
     }
 
-    /* Comentando aqui até termos a parte de serviço
     private ServiceOrderExecution mockServiceOrderExecution(UUID serviceId) {
         return ServiceOrderExecution.create(serviceId, UUID.randomUUID());
     }
 
-    private Service mockService(UUID id) {
-        return Service.create("Troca de óleo", "Serviço de troca", new BigDecimal("150.00"));
-    } */
+    private ServiceCatalog mockService() {
+        return ServiceCatalog.create("Troca de óleo", "Serviço de troca", new BigDecimal("150.00"));
+    }
 }

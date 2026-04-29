@@ -5,6 +5,10 @@ import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException
 import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
 import br.com.ofisy.application.stock.StockService;
 import br.com.ofisy.domain.quote.*;
+import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
+import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
+import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecution;
+import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionRepository;
 import br.com.ofisy.domain.stock.Stock;
 import br.com.ofisy.domain.stock.StockRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,22 +26,18 @@ public class QuoteService {
     private final QuoteRepository quoteRepository;
     private final StockService stockService;
     private final StockRepository stockRepository;
-    //    private final ServiceOrderServiceRepository serviceOrderServiceRepository;
-//    private final ServiceRepository serviceRepository;
+    private final ServiceOrderExecutionRepository serviceOrderExecutionRepository;
+    private final ServiceCatalogRepository serviceCatalogRepository;
     private final QuoteMapper mapper;
 
     @Transactional
     public QuoteResponseDTO create(CreateQuoteRequestDTO request) {
         List<QuoteStockItem> stockItems = buildStockItems(request.stockItems());
-        /* Comentando isso até termos a parte de serviço
         List<QuoteServiceItem> serviceItems = buildServiceItems(
                 request.serviceItems() != null ? request.serviceItems() : List.of()
         );
 
         Quote quote = Quote.create(request.serviceOrderId(), stockItems, serviceItems);
-        */
-
-        Quote quote = Quote.create(request.serviceOrderId(), stockItems, new ArrayList<>());
         return mapper.toResponse(quoteRepository.save(quote));
     }
 
@@ -97,22 +97,11 @@ public class QuoteService {
         return items;
     }
 
-    /* Comentando aqui até termos a parte de serviços
-    private ServiceOrderService findServiceOrderServiceById(UUID id) {
-        return serviceOrderServiceRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Execução de serviço com id " + id + " não encontrada"));
-    }
-
-    private Service findServiceById(UUID id) {
-        return serviceRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Serviço com id " + id + " não encontrado"));
-    }
-
     private List<QuoteServiceItem> buildServiceItems(List<ServiceItemRequestDTO> requests) {
         List<QuoteServiceItem> items = new ArrayList<>();
 
         for (ServiceItemRequestDTO request : requests) {
-            ServiceOrderExecution serviceOrderService = findServiceOrderExecutionById(
+            ServiceOrderExecution serviceOrderExecution = findServiceOrderExecutionById(
                     request.serviceOrderExecutionId()
             );
 
@@ -120,15 +109,24 @@ public class QuoteService {
                     .anyMatch(i -> i.getServiceOrderExecution().getId().equals(request.serviceOrderExecutionId()));
             if (duplicate) {
                 throw new QuoteItemAlreadyExistsException(
-                        "Serviço " + request.serviceOrderExecutionsId()
+                        "Serviço " + request.serviceOrderExecutionId()
                 );
             }
 
-            Service service = findServiceById(serviceOrderService.getServiceId());
-            items.add(QuoteServiceItem.create(serviceOrderService, service.getPrice()));
+            ServiceCatalog service = findServiceById(serviceOrderExecution.getId());
+            items.add(QuoteServiceItem.create(serviceOrderExecution, service.getPrice()));
         }
 
         return items;
     }
-    */
+
+    private ServiceOrderExecution findServiceOrderExecutionById(UUID id) {
+        return serviceOrderExecutionRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Execução de serviço com id " + id + " não encontrada"));
+    }
+
+    private ServiceCatalog findServiceById(UUID id) {
+        return serviceCatalogRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Serviço com id " + id + " não encontrado"));
+    }
 }

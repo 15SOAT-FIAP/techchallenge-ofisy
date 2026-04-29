@@ -1,6 +1,7 @@
 package br.com.ofisy.application.quote;
 
 import br.com.ofisy.domain.quote.*;
+import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecution;
 import br.com.ofisy.domain.stock.Stock;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -55,7 +56,6 @@ class QuoteMapperTest {
             assertThat(response.stockItems().getFirst().createdAt()).isNotNull();
         }
 
-        /* Comentando até termos os itens de serviço
         @Test
         @DisplayName("Deve mapear itens de serviço corretamente")
         void shouldMapServiceItemsCorrectly() {
@@ -66,7 +66,6 @@ class QuoteMapperTest {
             assertThat(response.serviceItems()).hasSize(1);
             assertThat(response.serviceItems().getFirst().price()).isEqualByComparingTo(new BigDecimal(PRICE_150));
         }
-        */
         
         @Test
         @DisplayName("Deve mapear motivo de reprovação quando presente")
@@ -79,24 +78,69 @@ class QuoteMapperTest {
             assertThat(response.quoteRefusalReason()).isEqualTo("Achei o valor do serviço muito alto.");
             assertThat(response.status()).isEqualTo(QuoteStatus.REPROVED);
         }
+
+        @Test
+        @DisplayName("Deve mapear quote com múltiplos itens de estoque corretamente")
+        void shouldMapQuoteWithMultipleStockItemsCorrectly() {
+            Stock stock1 = mockStock();
+            Stock stock2 = Stock.create("Pastilha de freio", "Freio", 10, new BigDecimal(PRICE_150), "Freios", 2);
+            List<QuoteStockItem> stockItems = new ArrayList<>(List.of(
+                    QuoteStockItem.create(stock1, 2),
+                    QuoteStockItem.create(stock2, 1)
+            ));
+            var quote = Quote.create(UUID.randomUUID(), stockItems, new ArrayList<>());
+
+            var response = mapper.toResponse(quote);
+
+            assertThat(response.stockItems()).hasSize(2);
+            assertThat(response.totalPrice()).isEqualByComparingTo(new BigDecimal("350.00"));
+        }
+
+        @Test
+        @DisplayName("Deve mapear quote com múltiplos itens de serviço corretamente")
+        void shouldMapQuoteWithMultipleServiceItemsCorrectly() {
+            List<QuoteStockItem> stockItems = new ArrayList<>(List.of(QuoteStockItem.create(mockStock(), 1)));
+            List<QuoteServiceItem> serviceItems = new ArrayList<>(List.of(
+                    QuoteServiceItem.create(mockServiceOrderExecution(), new BigDecimal(PRICE_100)),
+                    QuoteServiceItem.create(mockServiceOrderExecution(), new BigDecimal(PRICE_150))
+            ));
+            var quote = Quote.create(UUID.randomUUID(), stockItems, serviceItems);
+
+            var response = mapper.toResponse(quote);
+
+            assertThat(response.serviceItems()).hasSize(2);
+            assertThat(response.totalPrice()).isEqualByComparingTo(new BigDecimal("350.00"));
+        }
+
+        @Test
+        @DisplayName("Deve mapear quote com itens de estoque e serviço corretamente")
+        void shouldMapQuoteWithStockAndServiceItemsCorrectly() {
+            List<QuoteStockItem> stockItems = new ArrayList<>(List.of(QuoteStockItem.create(mockStock(), 2)));
+            List<QuoteServiceItem> serviceItems = new ArrayList<>(List.of(
+                    QuoteServiceItem.create(mockServiceOrderExecution(), new BigDecimal(PRICE_150))
+            ));
+            var quote = Quote.create(UUID.randomUUID(), stockItems, serviceItems);
+
+            var response = mapper.toResponse(quote);
+
+            assertThat(response.stockItems()).hasSize(1);
+            assertThat(response.serviceItems()).hasSize(1);
+            assertThat(response.totalPrice()).isEqualByComparingTo(new BigDecimal("350.00"));
+        }
     }
 
     private Stock mockStock() {
         return Stock.create(STOCK_PRODUCT_NAME, "Filtro", 10, new BigDecimal(PRICE_100), "Filtros", 2);
     }
 
-    /* Comentando esse ponto até termos os serviços
     private ServiceOrderExecution mockServiceOrderExecution() {
         return ServiceOrderExecution.create(UUID.randomUUID(), UUID.randomUUID());
-    } */
+    }
 
     private Quote mockQuote() {
         Stock stock = mockStock();
         List<QuoteStockItem> stockItems = List.of(QuoteStockItem.create(stock, 2));
-        /* Comentando esse ponto até termos os serviços
-            List<QuoteServiceItem> serviceItems = List.of(QuoteServiceItem.create(mockServiceOrderExecution(), new BigDecimal(PRICE_150)));
-            return Quote.create(UUID.randomUUID(), stockItems, serviceItems);
-        */
-        return Quote.create(UUID.randomUUID(), stockItems, new ArrayList<>());
+        List<QuoteServiceItem> serviceItems = List.of(QuoteServiceItem.create(mockServiceOrderExecution(), new BigDecimal(PRICE_150)));
+        return Quote.create(UUID.randomUUID(), stockItems, serviceItems);
     }
 }

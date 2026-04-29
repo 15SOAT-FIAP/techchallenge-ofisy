@@ -9,7 +9,6 @@ import br.com.ofisy.domain.quote.QuoteStockItem;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 @Component
 public class QuoteMapper {
@@ -43,12 +42,9 @@ public class QuoteMapper {
     private QuoteServiceItemResponseDTO toServiceItemResponse(QuoteServiceItem item) {
         return new QuoteServiceItemResponseDTO(
                 item.getId(),
-                UUID.randomUUID(), //aqui assim até termos a parte de serviços
-                new BigDecimal(1), //aqui assim até termos a parte de serviços
+                item.getServiceOrderExecution().getId(),
+                item.getPrice(),
                 item.getCreatedAt()
-                //quando tivermos a parte de serviços descomentar abaixo
-                //item.serviceOrderExecution().getId(),
-               // item.getPrice()
         );
     }
 }
