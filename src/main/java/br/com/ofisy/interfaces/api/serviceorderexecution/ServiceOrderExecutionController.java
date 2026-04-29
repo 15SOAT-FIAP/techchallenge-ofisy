@@ -3,7 +3,6 @@ package br.com.ofisy.interfaces.api.serviceorderexecution;
 import br.com.ofisy.application.serviceorderexecution.ServiceOrderExecutionService;
 import br.com.ofisy.application.serviceorderexecution.dto.ServiceOrderExecutionRequestDTO;
 import br.com.ofisy.application.serviceorderexecution.dto.ServiceOrderExecutionResponseDTO;
-import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecution;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
