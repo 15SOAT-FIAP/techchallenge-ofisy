@@ -4,6 +4,7 @@ import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsExcepti
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
 import br.com.ofisy.application.notification.exceptions.NotificationNotFoundException;
+import br.com.ofisy.application.servicecatalog.exceptions.ServiceCatalogNotFoundException;
 import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
@@ -164,6 +165,13 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleServiceOrderNotFound(ServiceOrderNotFoundException ex) {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         problem.setTitle("Ordem de serviço não encontrada");
+        return problem;
+    }
+
+    @ExceptionHandler(ServiceCatalogNotFoundException.class)
+    public ProblemDetail handleServiceCatalogNotFound(ServiceCatalogNotFoundException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problem.setTitle("Serviço não encontrado no catalogo");
         return problem;
     }
 
