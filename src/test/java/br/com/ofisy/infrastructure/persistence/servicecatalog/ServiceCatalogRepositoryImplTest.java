@@ -1,4 +1,4 @@
-package br.com.ofisy.infrastructure.persistence.serviceCatalog;
+package br.com.ofisy.infrastructure.persistence.servicecatalog;
 
 import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +28,7 @@ class ServiceCatalogRepositoryImplTest {
     private JpaServiceCatalogRepository jpa;
 
     @InjectMocks
-    private ServiceCatalogCatalogRepositoryImpl repository;
+    private ServiceCatalogRepositoryImpl repository;
 
     private ServiceCatalog serviceCatalog;
     private UUID serviceCatalogId;
