@@ -1,43 +1,50 @@
 package br.com.ofisy.application.servicecatalog;
 
 import br.com.ofisy.application.servicecatalog.dto.ServiceCatalogRequestDTO;
+import br.com.ofisy.application.servicecatalog.dto.ServiceCatalogResponseDTO;
 import br.com.ofisy.application.servicecatalog.exceptions.ServiceCatalogNotFoundException;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.stereotype.Component;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
-@Component
+@Service
 @RequiredArgsConstructor
 public class ServiceCatalogService {
 
     private final ServiceCatalogRepository repository;
 
-    public ServiceCatalog create(ServiceCatalogRequestDTO dto) {
-        ServiceCatalog serviceCatalog = ServiceCatalog.create(
-                dto.name(),
-                dto.description(),
-                dto.price()
-        );
+    @Transactional
+    public ServiceCatalogResponseDTO create(ServiceCatalogRequestDTO dto) {
+        ServiceCatalog serviceCatalog = ServiceCatalogMapper.toDomain(dto);
 
-        return repository.save(serviceCatalog);
+        ServiceCatalog savedServiceCatalog = repository.save(serviceCatalog);
+
+        return ServiceCatalogMapper.toDTO(savedServiceCatalog);
     }
 
-    public ServiceCatalog findById(UUID id) {
+    @Transactional(readOnly = true)
+    public ServiceCatalogResponseDTO findById(UUID id) {
         return repository.findById(id)
-                .orElseThrow(() -> new ServiceCatalogNotFoundException(id.toString()));
+                .map(ServiceCatalogMapper::toDTO)
+                .orElseThrow(() -> ServiceCatalogNotFoundException.ofId(id.toString()));
     }
 
-    public Page<ServiceCatalog> findAll(Pageable pageable) {
-        return repository.findAll(pageable);
+    @Transactional(readOnly = true)
+    public Page<ServiceCatalogResponseDTO> findAll(Pageable pageable) {
+        return repository.findAll(pageable)
+                .map(ServiceCatalogMapper::toDTO);
     }
 
-    public ServiceCatalog findByName(String name) {
+    @Transactional(readOnly = true)
+    public ServiceCatalogResponseDTO findByName(String name) {
         return repository.findByName(name)
-                .orElseThrow(() -> new ServiceCatalogNotFoundException(name));
+                .map(ServiceCatalogMapper::toDTO)
+                .orElseThrow(() -> ServiceCatalogNotFoundException.ofName(name));
     }
 }

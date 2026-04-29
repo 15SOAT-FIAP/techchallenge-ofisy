@@ -1,4 +1,4 @@
-package br.com.ofisy.infrastructure.persistence.serviceCatalog;
+package br.com.ofisy.infrastructure.persistence.servicecatalog;
 
 import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
-public class ServiceCatalogCatalogRepositoryImpl implements ServiceCatalogRepository {
+public class ServiceCatalogRepositoryImpl implements ServiceCatalogRepository {
 
     private final JpaServiceCatalogRepository jpa;
 

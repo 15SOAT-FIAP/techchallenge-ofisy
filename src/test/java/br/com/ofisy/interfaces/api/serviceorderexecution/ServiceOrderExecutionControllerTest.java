@@ -2,6 +2,7 @@ package br.com.ofisy.interfaces.api.serviceorderexecution;
 
 import br.com.ofisy.application.serviceorderexecution.ServiceOrderExecutionService;
 import br.com.ofisy.application.serviceorderexecution.dto.ServiceOrderExecutionRequestDTO;
+import br.com.ofisy.application.serviceorderexecution.dto.ServiceOrderExecutionResponseDTO;
 import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecution;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,6 +40,7 @@ class ServiceOrderExecutionControllerTest {
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
     private ServiceOrderExecution serviceOrderExecution;
+    private ServiceOrderExecutionResponseDTO responseDTO;
     private UUID serviceOrderExecutionId;
     private UUID serviceCatalogId;
     private UUID serviceOrderId;
@@ -53,12 +55,22 @@ class ServiceOrderExecutionControllerTest {
         serviceCatalogId = UUID.randomUUID();
         serviceOrderId = UUID.randomUUID();
         serviceOrderExecution = ServiceOrderExecution.create(serviceCatalogId, serviceOrderId);
+        responseDTO = new ServiceOrderExecutionResponseDTO(
+                serviceOrderExecutionId,
+                serviceCatalogId,
+                serviceOrderId,
+                serviceOrderExecution.getStatus(),
+                serviceOrderExecution.getCreatedAt(),
+                serviceOrderExecution.getUpdatedAt(),
+                serviceOrderExecution.getFinishedAt(),
+                serviceOrderExecution.getStartedAt()
+        );
     }
 
     @Test
     void getAll_shouldReturnPageOfServiceOrderExecutions() throws Exception {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<ServiceOrderExecution> page = new PageImpl<>(List.of(serviceOrderExecution), pageable, 1);
+        Page<ServiceOrderExecutionResponseDTO> page = new PageImpl<>(List.of(responseDTO), pageable, 1);
         when(serviceOrderExecutionService.findAll(any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/api/v1/service_order_executions")
@@ -70,7 +82,7 @@ class ServiceOrderExecutionControllerTest {
 
     @Test
     void getById_shouldReturnServiceOrderExecution() throws Exception {
-        when(serviceOrderExecutionService.findById(serviceOrderExecutionId)).thenReturn(serviceOrderExecution);
+        when(serviceOrderExecutionService.findById(serviceOrderExecutionId)).thenReturn(responseDTO);
 
         mockMvc.perform(get("/api/v1/service_order_executions/{id}", serviceOrderExecutionId))
                 .andExpect(status().isOk())
@@ -80,7 +92,7 @@ class ServiceOrderExecutionControllerTest {
     @Test
     void getByServiceCatalogId_shouldReturnPageOfServiceOrderExecutions() throws Exception {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<ServiceOrderExecution> page = new PageImpl<>(List.of(serviceOrderExecution), pageable, 1);
+        Page<ServiceOrderExecutionResponseDTO> page = new PageImpl<>(List.of(responseDTO), pageable, 1);
         when(serviceOrderExecutionService.findByServiceCatalogId(any(UUID.class), any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/api/v1/service_order_executions")
@@ -95,7 +107,7 @@ class ServiceOrderExecutionControllerTest {
     void getByStatus_shouldReturnPageOfServiceOrderExecutions() throws Exception {
         String status = "PENDING";
         Pageable pageable = PageRequest.of(0, 10);
-        Page<ServiceOrderExecution> page = new PageImpl<>(List.of(serviceOrderExecution), pageable, 1);
+        Page<ServiceOrderExecutionResponseDTO> page = new PageImpl<>(List.of(responseDTO), pageable, 1);
         when(serviceOrderExecutionService.findByStatus(status, pageable)).thenReturn(page);
 
         mockMvc.perform(get("/api/v1/service_order_executions")
@@ -109,7 +121,7 @@ class ServiceOrderExecutionControllerTest {
     @Test
     void getByServiceOrderId_shouldReturnPageOfServiceOrderExecutions() throws Exception {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<ServiceOrderExecution> page = new PageImpl<>(List.of(serviceOrderExecution), pageable, 1);
+        Page<ServiceOrderExecutionResponseDTO> page = new PageImpl<>(List.of(responseDTO), pageable, 1);
         when(serviceOrderExecutionService.findByServiceOrderId(any(UUID.class), any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/api/v1/service_order_executions/service_order/{id}", serviceOrderId)
@@ -122,7 +134,7 @@ class ServiceOrderExecutionControllerTest {
     @Test
     void create_shouldReturnCreatedServiceOrderExecution() throws Exception {
         ServiceOrderExecutionRequestDTO dto = new ServiceOrderExecutionRequestDTO(serviceCatalogId, serviceOrderId);
-        when(serviceOrderExecutionService.create(any(ServiceOrderExecutionRequestDTO.class))).thenReturn(serviceOrderExecution);
+        when(serviceOrderExecutionService.create(any(ServiceOrderExecutionRequestDTO.class))).thenReturn(responseDTO);
 
         mockMvc.perform(post("/api/v1/service_order_executions")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -133,7 +145,7 @@ class ServiceOrderExecutionControllerTest {
 
     @Test
     void complete_shouldReturnCompletedServiceOrderExecution() throws Exception {
-        when(serviceOrderExecutionService.complete(serviceOrderExecutionId)).thenReturn(serviceOrderExecution);
+        when(serviceOrderExecutionService.complete(serviceOrderExecutionId)).thenReturn(responseDTO);
 
         mockMvc.perform(patch("/api/v1/service_order_executions/{id}/complete", serviceOrderExecutionId))
                 .andExpect(status().isOk())
@@ -142,7 +154,7 @@ class ServiceOrderExecutionControllerTest {
 
     @Test
     void cancel_shouldReturnCancelledServiceOrderExecution() throws Exception {
-        when(serviceOrderExecutionService.cancel(serviceOrderExecutionId)).thenReturn(serviceOrderExecution);
+        when(serviceOrderExecutionService.cancel(serviceOrderExecutionId)).thenReturn(responseDTO);
 
         mockMvc.perform(patch("/api/v1/service_order_executions/{id}/cancel", serviceOrderExecutionId))
                 .andExpect(status().isOk())
@@ -151,7 +163,7 @@ class ServiceOrderExecutionControllerTest {
 
     @Test
     void start_shouldReturnStartedServiceOrderExecution() throws Exception {
-        when(serviceOrderExecutionService.start(serviceOrderExecutionId)).thenReturn(serviceOrderExecution);
+        when(serviceOrderExecutionService.start(serviceOrderExecutionId)).thenReturn(responseDTO);
 
         mockMvc.perform(patch("/api/v1/service_order_executions/{id}/start", serviceOrderExecutionId))
                 .andExpect(status().isOk())

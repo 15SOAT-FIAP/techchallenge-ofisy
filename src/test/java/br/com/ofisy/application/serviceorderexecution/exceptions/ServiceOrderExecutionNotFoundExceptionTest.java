@@ -11,46 +11,46 @@ class ServiceOrderExecutionNotFoundExceptionTest {
 
     @Test
     void shouldCreateExceptionWithMessage() {
-        var id = UUID.randomUUID().toString();
+        var id = UUID.randomUUID();
 
         var exception = new ServiceOrderExecutionNotFoundException(id);
 
         assertThat(exception).isInstanceOf(RuntimeException.class);
-        assertThat(exception.getMessage()).contains(id);
-        assertThat(exception.getMessage()).contains("Serviço não encontrado");
+        assertThat(exception.getMessage()).contains(id.toString());
+        assertThat(exception.getMessage()).contains("Execução de serviço não encontrado");
     }
 
     @Test
     void shouldThrowExceptionWithCustomId() {
-        var id = "test-id-123";
+        var id = UUID.randomUUID();
 
         assertThatThrownBy(() -> {
             throw new ServiceOrderExecutionNotFoundException(id);
         }).isInstanceOf(ServiceOrderExecutionNotFoundException.class)
-                .hasMessageContaining("test-id-123")
-                .hasMessageContaining("Serviço não encontrado com ID");
+                .hasMessageContaining(id.toString())
+                .hasMessageContaining("Execução de serviço não encontrado com ID");
     }
 
     @Test
     void shouldMaintainExceptionMessage() {
-        var id = UUID.randomUUID().toString();
+        var id = UUID.randomUUID();
         var exception = new ServiceOrderExecutionNotFoundException(id);
 
         var message = exception.getMessage();
 
-        assertThat(message).isEqualTo("Serviço não encontrado com ID: " + id);
+        assertThat(message).isEqualTo("Execução de serviço não encontrado com ID: " + id);
     }
 
     @Test
     void shouldWorkWithDifferentIds() {
-        var id1 = UUID.randomUUID().toString();
-        var id2 = UUID.randomUUID().toString();
+        var id1 = UUID.randomUUID();
+        var id2 = UUID.randomUUID();
 
         var exception1 = new ServiceOrderExecutionNotFoundException(id1);
         var exception2 = new ServiceOrderExecutionNotFoundException(id2);
 
-        assertThat(exception1.getMessage()).contains(id1);
-        assertThat(exception2.getMessage()).contains(id2);
+        assertThat(exception1.getMessage()).contains(id1.toString());
+        assertThat(exception2.getMessage()).contains(id2.toString());
         assertThat(exception1.getMessage()).isNotEqualTo(exception2.getMessage());
     }
 }

@@ -1,8 +1,10 @@
 package br.com.ofisy.application.serviceorderexecution.exceptions;
 
+import java.util.UUID;
+
 public class ServiceOrderExecutionNotFoundException extends RuntimeException {
-    public ServiceOrderExecutionNotFoundException(String id) {
-        super("Serviço não encontrado com ID: " + id);
+    public ServiceOrderExecutionNotFoundException(UUID id) {
+        super("Execução de serviço não encontrado com ID: " + id);
     }
 }
 

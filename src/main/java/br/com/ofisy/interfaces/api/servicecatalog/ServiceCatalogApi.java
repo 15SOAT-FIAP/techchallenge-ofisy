@@ -1,7 +1,7 @@
 package br.com.ofisy.interfaces.api.servicecatalog;
 
 import br.com.ofisy.application.servicecatalog.dto.ServiceCatalogRequestDTO;
-import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
+import br.com.ofisy.application.servicecatalog.dto.ServiceCatalogResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -18,21 +18,21 @@ public interface ServiceCatalogApi {
     @Operation(summary = "Listar serviços com paginação")
     @ApiResponse(responseCode = "200", description = "Serviços listados com sucesso")
     @GetMapping
-    ResponseEntity<Page<ServiceCatalog>> getAll(
+    ResponseEntity<Page<ServiceCatalogResponseDTO>> getAll(
             Pageable pageable);
 
     @Operation(summary = "Obter serviço por ID")
     @ApiResponse(responseCode = "200", description = "Serviço listado com sucesso")
     @ApiResponse(responseCode = "404", description = "Serviço não encontrado")
     @GetMapping("/{id}")
-    ResponseEntity<ServiceCatalog> getById(
+    ResponseEntity<ServiceCatalogResponseDTO> getById(
             @PathVariable UUID id);
 
     @Operation(summary = "Obter serviço por nome")
     @ApiResponse(responseCode = "200", description = "Serviço listado com sucesso")
     @ApiResponse(responseCode = "404", description = "Serviço não encontrado")
     @GetMapping(params = "name")
-    ResponseEntity<ServiceCatalog> getByName(
+    ResponseEntity<ServiceCatalogResponseDTO> getByName(
             @RequestParam String name);
 
     @Operation(summary = "Obter tempo médio de execução de um serviço")
@@ -45,6 +45,6 @@ public interface ServiceCatalogApi {
     @ApiResponse(responseCode = "201", description = "Serviço cadastrado com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados para criação de serviço inválidos")
     @PostMapping
-    ResponseEntity<ServiceCatalog> create(
+    ResponseEntity<ServiceCatalogResponseDTO> create(
             @RequestBody ServiceCatalogRequestDTO dto);
 }
