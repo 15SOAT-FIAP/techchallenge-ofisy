@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -20,6 +21,7 @@ public class ServiceOrderExecutionService {
 
     private final ServiceOrderExecutionRepository repository;
 
+    @Transactional
     public ServiceOrderExecutionResponseDTO create(ServiceOrderExecutionRequestDTO dto) {
         ServiceOrderExecution service = ServiceOrderExecution.create(
                 dto.serviceCatalogId(),
@@ -30,33 +32,39 @@ public class ServiceOrderExecutionService {
         return ServiceOrderExecutionMapper.toDTO(savedService);
     }
 
+    @Transactional(readOnly = true)
     public ServiceOrderExecutionResponseDTO findById(UUID id) {
         return repository.findById(id)
                 .map(ServiceOrderExecutionMapper::toDTO)
                 .orElseThrow(() -> new ServiceOrderExecutionNotFoundException(id.toString()));
     }
 
+    @Transactional(readOnly = true)
     public Page<ServiceOrderExecutionResponseDTO> findAll(Pageable pageable) {
         return repository.findAll(pageable)
                 .map(ServiceOrderExecutionMapper::toDTO);
     }
 
+    @Transactional(readOnly = true)
     public Page<ServiceOrderExecutionResponseDTO> findByServiceCatalogId(UUID serviceCatalogId, Pageable pageable) {
         return repository.findByServiceCatalogId(serviceCatalogId, pageable)
                 .map(ServiceOrderExecutionMapper::toDTO);
     }
 
+    @Transactional(readOnly = true)
     public Page<ServiceOrderExecutionResponseDTO> findByServiceOrderId(UUID serviceOrderId, Pageable pageable) {
         return repository.findByServiceOrderId(serviceOrderId, pageable)
                 .map(ServiceOrderExecutionMapper::toDTO);
     }
 
+    @Transactional(readOnly = true)
     public Page<ServiceOrderExecutionResponseDTO> findByStatus(String status, Pageable pageable) {
         ServiceOrderExecutionStatus serviceStatus = ServiceOrderExecutionStatus.valueOf(status.toUpperCase());
         return repository.findByStatus(serviceStatus, pageable)
                 .map(ServiceOrderExecutionMapper::toDTO);
     }
 
+    @Transactional
     public ServiceOrderExecutionResponseDTO complete(UUID id) {
         ServiceOrderExecution service = repository.findById(id)
                 .orElseThrow(() -> new ServiceOrderExecutionNotFoundException(id.toString()));
@@ -64,6 +72,7 @@ public class ServiceOrderExecutionService {
         return ServiceOrderExecutionMapper.toDTO(repository.save(service));
     }
 
+    @Transactional
     public ServiceOrderExecutionResponseDTO cancel(UUID id) {
         ServiceOrderExecution service = repository.findById(id)
                 .orElseThrow(() -> new ServiceOrderExecutionNotFoundException(id.toString()));
@@ -71,6 +80,7 @@ public class ServiceOrderExecutionService {
         return ServiceOrderExecutionMapper.toDTO(repository.save(service));
     }
 
+    @Transactional
     public ServiceOrderExecutionResponseDTO start(UUID id) {
         ServiceOrderExecution service = repository.findById(id)
                 .orElseThrow(() -> new ServiceOrderExecutionNotFoundException(id.toString()));
@@ -78,6 +88,7 @@ public class ServiceOrderExecutionService {
         return ServiceOrderExecutionMapper.toDTO(repository.save(service));
     }
 
+    @Transactional(readOnly = true)
     public double getAverageExecutionTimeByService(UUID serviceCatalogId) {
         List<ServiceOrderExecution> serviceOrderExecutions = repository.findByServiceCatalogId(serviceCatalogId,
                 Pageable.unpaged()).getContent();
