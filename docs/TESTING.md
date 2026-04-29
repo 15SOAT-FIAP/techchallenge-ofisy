@@ -85,6 +85,6 @@ Abra o arquivo no navegador: `./zap-reports/full-report.html`
 
 ### Próximos passos
 
-- Adicionar autenticação (JWT) no scan
+- Adicionar autenticação (JWT) no scan para expandir a cobertura
 - Importar especificação OpenAPI (/v3/api-docs)
 - Integrar com pipeline CI/CD
