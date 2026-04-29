@@ -40,6 +40,8 @@ public class QuoteStockItem {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
+    private LocalDateTime updatedAt;
+
     public static QuoteStockItem create(Stock stock, Integer quantity) {
         if (quantity == null || quantity <= 0) {
             throw new InvalidQuoteItemException("Quantidade do item deve ser maior que zero!");
@@ -50,6 +52,7 @@ public class QuoteStockItem {
         item.unitPrice = stock.getUnitPrice();
         item.quantity = quantity;
         item.createdAt = LocalDateTime.now();
+        item.updatedAt = LocalDateTime.now();
         return item;
     }
 
