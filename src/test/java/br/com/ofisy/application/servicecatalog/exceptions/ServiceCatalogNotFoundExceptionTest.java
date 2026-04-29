@@ -8,85 +8,100 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class ServiceCatalogNotFoundExceptionTest {
 
     @Test
-    void shouldCreateExceptionWithMessage() {
+    void ofId_shouldBuildMessageWithIdLabel() {
         var id = "service-123";
 
-        var exception = new ServiceCatalogNotFoundException(id);
+        var exception = ServiceCatalogNotFoundException.ofId(id);
 
         assertThat(exception).isInstanceOf(RuntimeException.class);
-        assertThat(exception.getMessage()).contains(id);
-        assertThat(exception.getMessage()).contains("Serviço não encontrado");
+        assertThat(exception.getMessage()).isEqualTo("Serviço não encontrado com ID: " + id);
     }
 
     @Test
-    void shouldThrowExceptionWithCustomId() {
+    void ofName_shouldBuildMessageWithNameLabel() {
+        var name = "Troca de Óleo";
+
+        var exception = ServiceCatalogNotFoundException.ofName(name);
+
+        assertThat(exception).isInstanceOf(RuntimeException.class);
+        assertThat(exception.getMessage()).isEqualTo("Serviço não encontrado com nome: " + name);
+    }
+
+    @Test
+    void ofId_shouldBeThrowable() {
         var id = "test-service-id";
 
-        assertThatThrownBy(() -> {
-            throw new ServiceCatalogNotFoundException(id);
-        }).isInstanceOf(ServiceCatalogNotFoundException.class)
-                .hasMessageContaining("test-service-id")
+        assertThatThrownBy(() -> { throw ServiceCatalogNotFoundException.ofId(id); })
+                .isInstanceOf(ServiceCatalogNotFoundException.class)
+                .hasMessageContaining(id)
                 .hasMessageContaining("Serviço não encontrado com ID");
     }
 
     @Test
-    void shouldMaintainExceptionMessage() {
-        var id = "service-456";
-        var exception = new ServiceCatalogNotFoundException(id);
+    void ofName_shouldBeThrowable() {
+        var name = "Alinhamento";
 
-        var message = exception.getMessage();
-
-        assertThat(message).isEqualTo("Serviço não encontrado com ID: " + id);
+        assertThatThrownBy(() -> { throw ServiceCatalogNotFoundException.ofName(name); })
+                .isInstanceOf(ServiceCatalogNotFoundException.class)
+                .hasMessageContaining(name)
+                .hasMessageContaining("Serviço não encontrado com nome");
     }
 
     @Test
-    void shouldWorkWithDifferentIds() {
-        var id1 = "service-1";
-        var id2 = "service-2";
+    void factories_shouldProduceDifferentMessagesForSameValue() {
+        var value = "abc";
 
-        var exception1 = new ServiceCatalogNotFoundException(id1);
-        var exception2 = new ServiceCatalogNotFoundException(id2);
+        var byId = ServiceCatalogNotFoundException.ofId(value);
+        var byName = ServiceCatalogNotFoundException.ofName(value);
 
-        assertThat(exception1.getMessage()).contains(id1);
-        assertThat(exception2.getMessage()).contains(id2);
-        assertThat(exception1.getMessage()).isNotEqualTo(exception2.getMessage());
+        assertThat(byId.getMessage()).isNotEqualTo(byName.getMessage());
+        assertThat(byId.getMessage()).contains("ID");
+        assertThat(byName.getMessage()).contains("nome");
     }
 
     @Test
-    void shouldWorkWithNullId() {
-        var id = (String) null;
+    void ofId_shouldHandleNull() {
+        var exception = ServiceCatalogNotFoundException.ofId(null);
 
-        var exception = new ServiceCatalogNotFoundException(id);
-
-        assertThat(exception.getMessage()).contains("null");
-        assertThat(exception.getMessage()).contains("Serviço não encontrado com ID");
+        assertThat(exception.getMessage()).isEqualTo("Serviço não encontrado com ID: null");
     }
 
     @Test
-    void shouldWorkWithEmptyId() {
-        var id = "";
+    void ofName_shouldHandleNull() {
+        var exception = ServiceCatalogNotFoundException.ofName(null);
 
-        var exception = new ServiceCatalogNotFoundException(id);
-
-        assertThat(exception.getMessage()).contains("Serviço não encontrado com ID: ");
+        assertThat(exception.getMessage()).isEqualTo("Serviço não encontrado com nome: null");
     }
 
     @Test
-    void shouldWorkWithSpecialCharacters() {
+    void ofId_shouldHandleEmpty() {
+        var exception = ServiceCatalogNotFoundException.ofId("");
+
+        assertThat(exception.getMessage()).isEqualTo("Serviço não encontrado com ID: ");
+    }
+
+    @Test
+    void ofName_shouldHandleEmpty() {
+        var exception = ServiceCatalogNotFoundException.ofName("");
+
+        assertThat(exception.getMessage()).isEqualTo("Serviço não encontrado com nome: ");
+    }
+
+    @Test
+    void ofId_shouldHandleSpecialCharacters() {
         var id = "service@#$%^&*()";
 
-        var exception = new ServiceCatalogNotFoundException(id);
+        var exception = ServiceCatalogNotFoundException.ofId(id);
 
         assertThat(exception.getMessage()).contains(id);
     }
 
     @Test
-    void shouldWorkWithLongId() {
-        var id = "a".repeat(1000);
+    void ofName_shouldHandleLongValues() {
+        var name = "a".repeat(1000);
 
-        var exception = new ServiceCatalogNotFoundException(id);
+        var exception = ServiceCatalogNotFoundException.ofName(name);
 
-        assertThat(exception.getMessage()).contains(id);
+        assertThat(exception.getMessage()).contains(name);
     }
 }
-

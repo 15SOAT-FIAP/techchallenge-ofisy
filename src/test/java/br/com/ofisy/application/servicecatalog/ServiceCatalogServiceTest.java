@@ -142,7 +142,7 @@ class ServiceCatalogServiceTest {
 
         ServiceCatalogNotFoundException exception = assertThrows(ServiceCatalogNotFoundException.class,
                 () -> serviceCatalogService.findByName(name));
-        assertEquals("Serviço não encontrado com ID: " + name, exception.getMessage());
+        assertEquals("Serviço não encontrado com nome: " + name, exception.getMessage());
         verify(repository, times(1)).findByName(name);
     }
 }
