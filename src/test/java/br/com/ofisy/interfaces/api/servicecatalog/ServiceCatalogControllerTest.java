@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
-class ServiceControllerTest {
+class ServiceCatalogControllerTest {
 
     @Mock
     private ServiceCatalogService serviceCatalogService;
