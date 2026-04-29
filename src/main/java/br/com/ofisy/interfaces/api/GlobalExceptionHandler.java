@@ -4,6 +4,8 @@ import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsExcepti
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
 import br.com.ofisy.application.notification.exceptions.NotificationNotFoundException;
+import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
+import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
 import br.com.ofisy.application.user.exceptions.UserNotFoundException;
@@ -11,6 +13,9 @@ import br.com.ofisy.application.vehicle.exceptions.VehicleAlreadyExistsException
 import br.com.ofisy.application.vehicle.exceptions.VehicleLicensePlateNotFoundException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
+import br.com.ofisy.domain.quote.exceptions.InvalidQuoteDataException;
+import br.com.ofisy.domain.quote.exceptions.InvalidQuoteItemException;
+import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
 import br.com.ofisy.domain.serviceorder.exceptions.InvalidServiceOrderTransitionException;
 import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
 import org.springframework.http.HttpStatus;
@@ -159,6 +164,41 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleServiceOrderNotFound(ServiceOrderNotFoundException ex) {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         problem.setTitle("Ordem de serviço não encontrada");
+        return problem;
+    }
+
+    @ExceptionHandler(QuoteNotFoundException.class)
+    public ProblemDetail handleQuoteNotFound(QuoteNotFoundException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problem.setTitle("Orçamento não encontrado");
+        return problem;
+    }
+
+    @ExceptionHandler(InvalidQuoteStatusException.class)
+    public ProblemDetail handleInvalidQuoteStatus(InvalidQuoteStatusException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problem.setTitle("Status do orçamento inválido");
+        return problem;
+    }
+
+    @ExceptionHandler(QuoteItemAlreadyExistsException.class)
+    public ProblemDetail handleQuoteItemAlreadyExists(QuoteItemAlreadyExistsException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problem.setTitle("Item já existe no orçamento");
+        return problem;
+    }
+
+    @ExceptionHandler(InvalidQuoteDataException.class)
+    public ProblemDetail handleInvalidQuoteData(InvalidQuoteDataException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problem.setTitle("Dados do orçamento inválidos");
+        return problem;
+    }
+
+    @ExceptionHandler(InvalidQuoteItemException.class)
+    public ProblemDetail handleInvalidQuoteItem(InvalidQuoteItemException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problem.setTitle("Item do orçamento inválido");
         return problem;
     }
 }
