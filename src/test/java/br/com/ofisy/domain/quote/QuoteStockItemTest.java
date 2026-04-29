@@ -32,6 +32,7 @@ class QuoteStockItemTest {
             assertThat(item.getUnitPrice()).isEqualByComparingTo(new BigDecimal(PRICE_150));
             assertThat(item.getQuantity()).isEqualTo(3);
             assertThat(item.getStock()).isEqualTo(stock);
+            assertThat(item.getCreatedAt()).isNotNull();
         }
 
         @Test
@@ -51,8 +52,20 @@ class QuoteStockItemTest {
     class SetQuote {
 
         @Test
-        @DisplayName("Deve associar quote ao item")
+        @DisplayName("Deve associar quote a um item")
         void shouldSetQuoteToItem() {
+            var stock = mockStockItem1(new BigDecimal(PRICE_100));
+            var item = QuoteStockItem.create(stock, 2);
+            var quote = Quote.create(UUID.randomUUID(), List.of(item), List.of());
+
+            item.setQuote(quote);
+
+            assertThat(item.getQuote()).isEqualTo(quote);
+        }
+
+        @Test
+        @DisplayName("Deve associar quote a mais de um item")
+        void shouldSetQuoteToTwoItems() {
             var stock = mockStockItem1(new BigDecimal(PRICE_100));
             var stock2 = mockStockItem2(new BigDecimal(PRICE_1000));
             var item = QuoteStockItem.create(stock, 2);
@@ -60,7 +73,7 @@ class QuoteStockItemTest {
             var quote = Quote.create(UUID.randomUUID(), List.of(item, item2), List.of());
 
             item.setQuote(quote);
-
+            item2.setQuote(quote);
             assertThat(item.getQuote()).isEqualTo(quote);
         }
     }
