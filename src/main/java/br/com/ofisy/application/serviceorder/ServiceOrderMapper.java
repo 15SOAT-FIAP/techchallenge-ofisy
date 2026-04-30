@@ -2,6 +2,7 @@ package br.com.ofisy.application.serviceorder;
 
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderRequestDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderResponseDTO;
+import br.com.ofisy.application.serviceorder.dto.ServiceOrderStatusResponseDTO;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -37,6 +38,19 @@ public class ServiceOrderMapper {
                 request.customerId(),
                 request.report(),
                 createdBy
+        );
+    }
+
+    public static ServiceOrderStatusResponseDTO toStatusResponseDTO(ServiceOrder serviceOrder) {
+        if (serviceOrder == null) {
+            throw new IllegalArgumentException("ServiceOrder não pode ser nulo");
+        }
+        return new ServiceOrderStatusResponseDTO(
+                serviceOrder.getId(),
+                serviceOrder.getVehicleId(),
+                serviceOrder.getCustomerId(),
+                serviceOrder.getStatus(),
+                serviceOrder.getUpdatedAt()
         );
     }
 }

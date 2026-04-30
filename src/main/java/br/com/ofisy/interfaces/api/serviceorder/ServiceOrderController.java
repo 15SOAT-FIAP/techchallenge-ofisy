@@ -3,6 +3,7 @@ package br.com.ofisy.interfaces.api.serviceorder;
 import br.com.ofisy.application.serviceorder.ServiceOrderService;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderRequestDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderResponseDTO;
+import br.com.ofisy.application.serviceorder.dto.ServiceOrderStatusResponseDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -51,6 +52,11 @@ public class ServiceOrderController implements ServiceOrderApi {
             @ParameterObject @PageableDefault(size = 10, sort = "finishedAt", direction = Sort.Direction.ASC) Pageable pageable) {
 
         return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.listFinished(pageable));
+    }
+
+    @GetMapping("/{id}/status")
+    public ResponseEntity<ServiceOrderStatusResponseDTO> getStatusById(@PathVariable UUID id) {
+        return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.getStatus(id));
     }
 
     @PatchMapping("/{id}/start-diagnostic")
