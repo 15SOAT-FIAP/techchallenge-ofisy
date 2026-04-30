@@ -32,4 +32,7 @@ target/
 *.log
 logs/
 
+# Reports
+zap-reports/
+
 !uploads/.gitkeep
