@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,6 +31,7 @@ public class VehicleController implements VehicleApi {
     private final VehicleService vehicleService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT')")
     public ResponseEntity<Page<VehicleResponseDTO>> getAllVehicles(
             @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
 
@@ -37,6 +39,7 @@ public class VehicleController implements VehicleApi {
     }
 
     @GetMapping("/customers/{customerId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT')")
     public ResponseEntity<List<VehicleResponseDTO>> getVehicleFromCustomerId(
             @PathVariable UUID customerId) {
 
@@ -44,6 +47,7 @@ public class VehicleController implements VehicleApi {
     }
 
     @GetMapping(params = "licensePlate")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT')")
     public ResponseEntity<VehicleResponseDTO> getVehicleByLicensePlate(
             @RequestParam(required = false) String licensePlate) {
 
@@ -51,6 +55,7 @@ public class VehicleController implements VehicleApi {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT')")
     public ResponseEntity<VehicleResponseDTO> getVehicleById(
             @PathVariable UUID id) {
 
@@ -58,6 +63,7 @@ public class VehicleController implements VehicleApi {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT')")
     public ResponseEntity<VehicleResponseDTO> registerVehicle(
     @Valid @RequestBody VehicleRequestDTO request) {
 

@@ -15,17 +15,17 @@ import java.util.UUID;
 @Tag(name = "API de Notificações")
 public interface NotificationApi {
 
-    @Operation(summary = "Listar todas as notificações")
+    @Operation(summary = "Listar todas as notificações - API sem autenticação")
     @ApiResponse(responseCode = "200", description = "Notificações listadas com sucesso")
     @GetMapping
     ResponseEntity<List<NotificationResponseDTO>> findAll();
 
-    @Operation(summary = "Listar notificações não lidas")
+    @Operation(summary = "Listar notificações não lidas - API sem autenticação")
     @ApiResponse(responseCode = "200", description = "Notificações não lidas listadas com sucesso")
     @GetMapping("/unread")
     ResponseEntity<List<NotificationResponseDTO>> findUnread();
 
-    @Operation(summary = "Marcar notificação como lida")
+    @Operation(summary = "Marcar notificação como lida - API sem autenticação")
     @ApiResponse(responseCode = "200", description = "Notificação marcada como lida com sucesso")
     @ApiResponse(responseCode = "404", description = "Notificação não encontrada")
     @PatchMapping("/{id}/read")

@@ -13,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,6 +34,7 @@ public class ServiceOrderController implements ServiceOrderApi {
     private final ServiceOrderService serviceOrderService;
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT')")
     public ResponseEntity<ServiceOrderResponseDTO> receiveServiceOrder(
             @Valid @RequestBody ServiceOrderRequestDTO request,
             @AuthenticationPrincipal UserDetails user) {
@@ -41,6 +43,7 @@ public class ServiceOrderController implements ServiceOrderApi {
     }
 
     @GetMapping("/received")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
     public ResponseEntity<Page<ServiceOrderResponseDTO>> listReceived(
             @ParameterObject @PageableDefault(size = 10, sort = "updatedAt", direction = Sort.Direction.ASC) Pageable pageable) {
 
@@ -48,6 +51,7 @@ public class ServiceOrderController implements ServiceOrderApi {
     }
 
     @GetMapping("/finished")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
     public ResponseEntity<Page<ServiceOrderResponseDTO>> listFinished(
             @ParameterObject @PageableDefault(size = 10, sort = "finishedAt", direction = Sort.Direction.ASC) Pageable pageable) {
 
@@ -60,11 +64,13 @@ public class ServiceOrderController implements ServiceOrderApi {
     }
 
     @PatchMapping("/{id}/start-diagnostic")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
     public ResponseEntity<ServiceOrderResponseDTO> startDiagnosticServiceOrder(@PathVariable UUID id) {
         return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.startDiagnostic(id));
     }
 
     @PatchMapping("/{id}/deliver")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
     public ResponseEntity<ServiceOrderResponseDTO> deliverToCustomerServiceOrder(@PathVariable UUID id) {
         return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.deliverToCustomer(id));
     }
