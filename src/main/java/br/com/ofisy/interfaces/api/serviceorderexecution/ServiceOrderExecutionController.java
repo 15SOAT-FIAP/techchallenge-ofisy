@@ -48,6 +48,7 @@ public class ServiceOrderExecutionController implements ServiceOrderExecutionApi
     }
 
     @GetMapping(params = "status")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
     public ResponseEntity<Page<ServiceOrderExecutionResponseDTO>> getByStatus(
             @RequestParam String status,
             @ParameterObject @PageableDefault(size = 10) Pageable pageable) {

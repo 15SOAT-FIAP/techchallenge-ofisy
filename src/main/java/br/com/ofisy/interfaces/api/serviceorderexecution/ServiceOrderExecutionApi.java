@@ -35,7 +35,7 @@ public interface ServiceOrderExecutionApi {
             @RequestParam UUID serviceCatalogId,
             Pageable pageable);
 
-    @Operation(summary = "Listar serviços de ordem de serviço por status - API sem autenticação")
+    @Operation(summary = "Listar serviços de ordem de serviço por status - Roles autorizadas: (ADMIN, ATTENDANT, MECHANIC)")
     @ApiResponse(responseCode = "200", description = "Serviços listados com sucesso")
     @GetMapping(params = "status")
     ResponseEntity<Page<ServiceOrderExecutionResponseDTO>> getByStatus(
