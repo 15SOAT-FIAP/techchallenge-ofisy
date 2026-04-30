@@ -77,14 +77,22 @@ Os relatórios são salvos no diretório `./zap-reports/`:
 
 Abra o arquivo no navegador: `./zap-reports/full-report.html`
 
-### Limitações atuais
+### Tipos de testes executados
+- Análise passiva:
+  - Headers de segurança
+  - Cookies
+  - Vazamento de informações
+- Testes ativos:
+  - SQL Injection
+  - XSS
+  - SSRF
+  - Path Traversal
+  - Command Injection
 
-- O scan não autentica automaticamente
-- Apenas endpoints públicos são testados
-- Endpoints protegidos (JWT/autenticação) não são analisados
+### Autenticação
 
-### Próximos passos
+Esta configuração executa testes de segurança automatizados com autenticação via JWT, permitindo a análise de endpoints protegidos.
 
-- Adicionar autenticação (JWT) no scan para expandir a cobertura
-- Importar especificação OpenAPI (/v3/api-docs)
-- Integrar com pipeline CI/CD
+- O ZAP realiza login automático via /api/v1/login
+- Extrai o token JWT da resposta
+- Injeta o token no header Authorization das requisições
