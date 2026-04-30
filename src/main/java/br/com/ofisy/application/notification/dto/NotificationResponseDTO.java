@@ -7,6 +7,7 @@ public record NotificationResponseDTO(
         UUID id,
         String type,
         UUID stockId,
+        UUID quoteId,
         String message,
         Boolean read,
         LocalDateTime createdAt,

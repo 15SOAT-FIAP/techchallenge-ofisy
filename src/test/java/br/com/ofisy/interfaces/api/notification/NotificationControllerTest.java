@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -100,7 +99,7 @@ class NotificationControllerTest extends ControllerTestBase {
         @Test
         void shouldReturn200WhenMarkAsReadSuccessfully() throws Exception {
             var id = UUID.randomUUID();
-            var dto = new NotificationResponseDTO(id, "LOW_STOCK", null, "Estoque baixo", true, NOW, NOW);
+            var dto = new NotificationResponseDTO(id, "LOW_STOCK", null, null, "Estoque baixo", true, NOW, NOW);
             when(notificationService.markAsRead(id)).thenReturn(dto);
 
             mockMvc.perform(patch(BASE_URL + "/{id}/read", id)
@@ -133,6 +132,6 @@ class NotificationControllerTest extends ControllerTestBase {
     }
 
     private NotificationResponseDTO responseDTO(String type, String message) {
-        return new NotificationResponseDTO(UUID.randomUUID(), type, null, message, false, NOW, NOW);
+        return new NotificationResponseDTO(UUID.randomUUID(), type, null, null, message, false, NOW, NOW);
     }
 }
