@@ -9,6 +9,8 @@ import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException
 import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
+import br.com.ofisy.application.stock.exceptions.InsufficientStockException;
+import br.com.ofisy.application.stock.exceptions.StockNotFoundException;
 import br.com.ofisy.application.user.exceptions.UserNotFoundException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleAlreadyExistsException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleLicensePlateNotFoundException;
@@ -207,6 +209,20 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleInvalidQuoteItem(InvalidQuoteItemException ex) {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         problem.setTitle("Item do orçamento inválido");
+        return problem;
+    }
+
+    @ExceptionHandler(StockNotFoundException.class)
+    public ProblemDetail handleStockNotFound(StockNotFoundException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problem.setTitle("Estoque não encontrado");
+        return problem;
+    }
+
+    @ExceptionHandler(InsufficientStockException.class)
+    public ProblemDetail handleInsufficientStock(InsufficientStockException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problem.setTitle("Estoque insuficiente");
         return problem;
     }
 }
