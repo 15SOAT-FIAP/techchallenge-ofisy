@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -38,6 +37,42 @@ class NotificationControllerTest extends ControllerTestBase {
 
     @MockitoBean
     private NotificationService notificationService;
+
+    @Nested
+    class GetNotificationById {
+
+        @Test
+        void shouldReturn200WithNotificationWhenFound() throws Exception {
+            var id = UUID.randomUUID();
+            var dto = new NotificationResponseDTO(id, "LOW_STOCK", null, null, "Estoque baixo para Radiador", false, NOW, NOW);
+            when(notificationService.findById(id)).thenReturn(dto);
+
+            mockMvc.perform(get(BASE_URL + "/{id}", id))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id").value(id.toString()))
+                    .andExpect(jsonPath("$.type").value("LOW_STOCK"))
+                    .andExpect(jsonPath("$.message").value("Estoque baixo para Radiador"))
+                    .andExpect(jsonPath("$.read").value(false));
+
+            verify(notificationService).findById(id);
+        }
+
+        @Test
+        void shouldReturn404WhenNotificationNotFound() throws Exception {
+            var id = UUID.randomUUID();
+            when(notificationService.findById(id)).thenThrow(new NotificationNotFoundException(id));
+
+            mockMvc.perform(get(BASE_URL + "/{id}", id))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.title").value("Notificação não encontrada"));
+        }
+
+        @Test
+        void shouldReturn400WhenIdIsNotAValidUUID() throws Exception {
+            mockMvc.perform(get(BASE_URL + "/{id}", "not-a-uuid"))
+                    .andExpect(status().isBadRequest());
+        }
+    }
 
     @Nested
     class GetAllNotifications {
@@ -100,7 +135,7 @@ class NotificationControllerTest extends ControllerTestBase {
         @Test
         void shouldReturn200WhenMarkAsReadSuccessfully() throws Exception {
             var id = UUID.randomUUID();
-            var dto = new NotificationResponseDTO(id, "LOW_STOCK", null, "Estoque baixo", true, NOW, NOW);
+            var dto = new NotificationResponseDTO(id, "LOW_STOCK", null, null, "Estoque baixo", true, NOW, NOW);
             when(notificationService.markAsRead(id)).thenReturn(dto);
 
             mockMvc.perform(patch(BASE_URL + "/{id}/read", id)
@@ -133,6 +168,6 @@ class NotificationControllerTest extends ControllerTestBase {
     }
 
     private NotificationResponseDTO responseDTO(String type, String message) {
-        return new NotificationResponseDTO(UUID.randomUUID(), type, null, message, false, NOW, NOW);
+        return new NotificationResponseDTO(UUID.randomUUID(), type, null, null, message, false, NOW, NOW);
     }
 }

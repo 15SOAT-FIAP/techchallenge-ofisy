@@ -21,7 +21,7 @@ class NotificationMapperTest {
         NotificationType type = NotificationType.LOW_STOCK;
         String message = "Estoque baixo para Radiador";
 
-        Notification notification = Notification.create(type, stockId, message);
+        Notification notification = Notification.createForStock(stockId, message);
         setIdViaReflection(notification, id);
         notification.markAsRead();
 
@@ -30,6 +30,7 @@ class NotificationMapperTest {
         assertThat(dto.id()).isEqualTo(id);
         assertThat(dto.type()).isEqualTo(type.name());
         assertThat(dto.stockId()).isEqualTo(stockId);
+        assertThat(dto.quoteId()).isNull();
         assertThat(dto.message()).isEqualTo(message);
         assertThat(dto.read()).isTrue();
         assertThat(dto.createdAt()).isNotNull();
@@ -43,7 +44,7 @@ class NotificationMapperTest {
         NotificationType type = NotificationType.QUOTE_GENERATED;
         String message = "Orçamento #123 gerado";
 
-        Notification notification = Notification.create(type, null, message);
+        Notification notification = Notification.createForQuote(null, message);
         setIdViaReflection(notification, id);
 
         NotificationResponseDTO dto = NotificationMapper.toDTO(notification);
@@ -51,6 +52,7 @@ class NotificationMapperTest {
         assertThat(dto.id()).isEqualTo(id);
         assertThat(dto.type()).isEqualTo(type.name());
         assertThat(dto.stockId()).isNull();
+        assertThat(dto.quoteId()).isNull();
         assertThat(dto.message()).isEqualTo(message);
         assertThat(dto.read()).isFalse();
     }

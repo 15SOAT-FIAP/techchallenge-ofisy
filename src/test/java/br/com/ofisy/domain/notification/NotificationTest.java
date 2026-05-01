@@ -1,6 +1,5 @@
 package br.com.ofisy.domain.notification;
 
-import br.com.ofisy.domain.notification.NotificationType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -17,7 +16,7 @@ class NotificationTest {
         NotificationType type = NotificationType.LOW_STOCK;
         String message = "Estoque baixo para Radiador";
 
-        Notification notification = Notification.create(type, stockId, message);
+        Notification notification = Notification.createForStock(stockId, message);
 
         assertThat(notification.getId()).isNull();
         assertThat(notification.getType()).isEqualTo(type);
@@ -34,7 +33,7 @@ class NotificationTest {
         NotificationType type = NotificationType.QUOTE_GENERATED;
         String message = "Orçamento #123 gerado";
 
-        Notification notification = Notification.create(type, null, message);
+        Notification notification = Notification.createForQuote(null, message);
 
         assertThat(notification.getType()).isEqualTo(type);
         assertThat(notification.getStockId()).isNull();
@@ -45,7 +44,7 @@ class NotificationTest {
     @Test
     @DisplayName("Deve marcar notificação como lida")
     void shouldMarkAsRead() {
-        Notification notification = Notification.create(NotificationType.LOW_STOCK, UUID.randomUUID(), "Estoque baixo");
+        Notification notification = Notification.createForStock(UUID.randomUUID(), "Estoque baixo");
 
         assertThat(notification.getRead()).isFalse();
 
@@ -57,17 +56,12 @@ class NotificationTest {
     @Test
     @DisplayName("Deve atualizar updatedAt ao marcar como lida")
     void shouldUpdateUpdatedAtWhenMarkAsRead() {
-        Notification notification = Notification.create(NotificationType.LOW_STOCK, UUID.randomUUID(), "Estoque baixo");
+        Notification notification = Notification.createForStock(UUID.randomUUID(), "Estoque baixo");
         var initialUpdatedAt = notification.getUpdatedAt();
-
-        try {
-            Thread.sleep(10);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
 
         notification.markAsRead();
 
         assertThat(notification.getUpdatedAt()).isAfterOrEqualTo(initialUpdatedAt);
     }
+
 }

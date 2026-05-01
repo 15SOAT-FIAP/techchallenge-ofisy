@@ -4,13 +4,14 @@ import br.com.ofisy.application.notification.dto.NotificationResponseDTO;
 import br.com.ofisy.application.notification.exceptions.NotificationNotFoundException;
 import br.com.ofisy.domain.notification.Notification;
 import br.com.ofisy.domain.notification.NotificationRepository;
-import br.com.ofisy.domain.notification.NotificationType;
+import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.stock.Stock;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 @Service
@@ -27,20 +28,21 @@ public class NotificationService {
                 stock.getQuantity(),
                 stock.getMinThreshold()
         );
-        Notification notification = Notification.create(NotificationType.LOW_STOCK, stock.getId(), message);
+        Notification notification = Notification.createForStock(stock.getId(), message);
         Notification saved = notificationRepository.save(notification);
         return NotificationMapper.toDTO(saved);
     }
 
     @Transactional
-    public NotificationResponseDTO createQuoteNotification(String quoteNumber, String customerName, Double totalValue) {
+    public NotificationResponseDTO createQuoteNotification(Quote quote) {
         String message = String.format(
-                "Orçamento #%s gerado para o cliente '%s'. Valor total: R$ %.2f",
-                quoteNumber,
-                customerName,
-                totalValue
+                Locale.US,
+                "Orçamento #%s gerado para a ordem de serviço '%s'. Valor total: R$ %.2f",
+                quote.getId(),
+                quote.getServiceOrderId(),
+                quote.getTotalPrice()
         );
-        Notification notification = Notification.create(NotificationType.QUOTE_GENERATED, null, message);
+        Notification notification = Notification.createForQuote(quote.getId(), message);
         Notification saved = notificationRepository.save(notification);
         return NotificationMapper.toDTO(saved);
     }
@@ -57,6 +59,13 @@ public class NotificationService {
         return notificationRepository.findByRead(false).stream()
                 .map(NotificationMapper::toDTO)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public NotificationResponseDTO findById(UUID id) {
+        Notification notification = notificationRepository.findById(id)
+                .orElseThrow(() -> new NotificationNotFoundException(id));
+        return NotificationMapper.toDTO(notification);
     }
 
     @Transactional

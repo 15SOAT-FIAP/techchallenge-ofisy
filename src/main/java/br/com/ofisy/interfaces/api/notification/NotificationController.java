@@ -17,6 +17,11 @@ public class NotificationController implements NotificationApi {
     private final NotificationService notificationService;
 
 
+    @GetMapping("/{id}")
+    public ResponseEntity<NotificationResponseDTO> findById(@PathVariable UUID id) {
+        return ResponseEntity.ok(notificationService.findById(id));
+    }
+
     @GetMapping
     public ResponseEntity<List<NotificationResponseDTO>> findAll() {
         return ResponseEntity.ok(notificationService.findAll());
