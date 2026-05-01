@@ -15,6 +15,12 @@ import java.util.UUID;
 @Tag(name = "API de Notificações")
 public interface NotificationApi {
 
+    @Operation(summary = "Buscar notificação por ID - API sem autenticação")
+    @ApiResponse(responseCode = "200", description = "Notificação encontrada com sucesso")
+    @ApiResponse(responseCode = "404", description = "Notificação não encontrada")
+    @GetMapping("/{id}")
+    ResponseEntity<NotificationResponseDTO> findById(@PathVariable UUID id);
+
     @Operation(summary = "Listar todas as notificações - API sem autenticação")
     @ApiResponse(responseCode = "200", description = "Notificações listadas com sucesso")
     @GetMapping

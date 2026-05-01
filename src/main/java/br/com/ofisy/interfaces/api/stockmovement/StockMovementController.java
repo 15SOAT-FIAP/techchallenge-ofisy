@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/stockMovements")
+@RequestMapping("/api/v1/stock-movements")
 @RequiredArgsConstructor
 public class StockMovementController implements StockMovementApi {
 

@@ -1,0 +1,84 @@
+env:
+  contexts:
+    - name: ofisy
+      urls:
+        - http://app:8080
+      includePaths:
+        - http://app:8080/api/v1/.*
+      excludePaths:
+        - http://app:8080/api/v1/login
+      authentication:
+        method: json
+        parameters:
+          loginPageUrl: http://app:8080/api/v1/login
+          loginRequestUrl: http://app:8080/api/v1/login
+          loginRequestBody: '{"email":"{%username%}","password":"{%password%}"}'
+        verification:
+          method: response
+          loggedInRegex: '\Q 200\E'
+          loggedOutRegex: '\Q 401\E'
+      sessionManagement:
+        method: headers
+        parameters:
+          Authorization: "Bearer {%json:token%}"
+      users:
+        - name: admin
+          credentials:
+            username: ${ADMIN_LOGIN}
+            password: ${ADMIN_PASSWORD}
+  parameters:
+    failOnError: false
+    failOnWarning: false
+    progressToStdout: true
+
+jobs:
+  - type: passiveScan-config
+    parameters:
+      maxAlertsPerRule: 10
+      scanOnlyInScope: true
+
+  - type: openapi
+    parameters:
+      apiUrl: http://app:8080/v3/api-docs
+      targetUrl: http://app:8080
+      context: ofisy
+
+  - type: spider
+    parameters:
+      context: ofisy
+      user: admin
+      maxDuration: 3
+      threadCount: 2
+
+  - type: passiveScan-wait
+    parameters:
+      maxDuration: 5
+
+  - type: activeScan
+    parameters:
+      context: ofisy
+      user: admin
+      maxRuleDurationInMins: 2
+      maxScanDurationInMins: 15
+      threadPerHost: 2
+      policyDefinition:
+        defaultStrength: low
+        defaultThreshold: medium
+
+  - type: report
+    parameters:
+      template: traditional-html
+      reportDir: /zap/wrk
+      reportFile: full-report
+
+  - type: report
+    parameters:
+      template: traditional-json
+      reportDir: /zap/wrk
+      reportFile: full-report
+
+  - type: report
+    parameters:
+      template: traditional-xml
+      reportDir: /zap/wrk
+      reportFile: full-report
