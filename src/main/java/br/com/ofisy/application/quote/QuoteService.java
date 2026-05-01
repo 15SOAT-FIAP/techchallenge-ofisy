@@ -1,6 +1,7 @@
 package br.com.ofisy.application.quote;
 
 import br.com.ofisy.application.quote.dto.*;
+import br.com.ofisy.application.quote.exceptions.QuoteAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
 import br.com.ofisy.application.stock.StockService;
@@ -32,6 +33,9 @@ public class QuoteService {
 
     @Transactional
     public QuoteResponseDTO create(UUID serviceOrderId, CreateQuoteRequestDTO request) {
+        if (quoteRepository.existsByServiceOrderId(request.serviceOrderId())) {
+            throw new QuoteAlreadyExistsException(request.serviceOrderId());
+        }
         List<QuoteStockItem> stockItems = buildStockItems(request.stockItems());
         List<QuoteServiceItem> serviceItems = buildServiceItems(
                 request.serviceItems() != null ? request.serviceItems() : List.of()
