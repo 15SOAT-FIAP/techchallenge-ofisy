@@ -46,5 +46,15 @@ public class ServiceOrderExecutionRepositoryImpl implements ServiceOrderExecutio
     public Page<ServiceOrderExecution> findByStatus(ServiceOrderExecutionStatus status, Pageable pageable) {
         return jpa.findByStatus(status, pageable);
     }
+
+    @Override
+    public boolean existsByServiceOrderIdAndStatusNot(UUID serviceOrderId, ServiceOrderExecutionStatus status) {
+        return jpa.existsByServiceOrderIdAndStatusNot(serviceOrderId, status);
+    }
+
+    @Override
+    public boolean existsByServiceOrderId(UUID serviceOrderId) {
+        return jpa.existsByServiceOrderId(serviceOrderId);
+    }
 }
 

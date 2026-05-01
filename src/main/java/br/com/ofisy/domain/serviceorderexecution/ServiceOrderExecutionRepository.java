@@ -19,5 +19,9 @@ public interface ServiceOrderExecutionRepository {
     Page<ServiceOrderExecution> findByServiceOrderId(UUID serviceOrderId, Pageable pageable);
 
     Page<ServiceOrderExecution> findByStatus(ServiceOrderExecutionStatus status, Pageable pageable);
+
+    boolean existsByServiceOrderIdAndStatusNot(UUID serviceOrderId, ServiceOrderExecutionStatus status);
+
+    boolean existsByServiceOrderId(UUID serviceOrderId);
 }
 
