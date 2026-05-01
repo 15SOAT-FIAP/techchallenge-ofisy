@@ -221,7 +221,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InsufficientStockException.class)
     public ProblemDetail handleInsufficientStock(InsufficientStockException ex) {
-        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         problem.setTitle("Estoque insuficiente");
         return problem;
     }
