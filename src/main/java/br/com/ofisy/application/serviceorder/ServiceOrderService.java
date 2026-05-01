@@ -70,6 +70,14 @@ public class ServiceOrderService {
     }
 
     @Transactional
+    public void finish(UUID id) {
+        var serviceOrder = serviceOrderRepository.findById(id)
+                .orElseThrow(() -> new ServiceOrderNotFoundException(id));
+        serviceOrder.finish();
+        serviceOrderRepository.save(serviceOrder);
+    }
+
+    @Transactional
     public ServiceOrderResponseDTO deliverToCustomer(UUID id) {
         var serviceOrder = serviceOrderRepository.findById(id)
                 .orElseThrow(() -> new ServiceOrderNotFoundException(id));
