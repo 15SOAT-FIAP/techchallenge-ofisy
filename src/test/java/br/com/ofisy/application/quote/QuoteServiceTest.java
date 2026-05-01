@@ -94,7 +94,7 @@ class QuoteServiceTest {
             when(quoteRepository.save(any())).thenReturn(quote);
             when(mapper.toResponse(quote)).thenReturn(response);
 
-            var result = quoteService.create(request);
+            var result = quoteService.create(request.serviceOrderId(), request);
 
             assertThat(result).isNotNull();
             verify(stockService).consumeStock(stockId, 2);
@@ -120,7 +120,7 @@ class QuoteServiceTest {
             when(stockService.consumeStock(eq(stockId), anyInt()))
                     .thenReturn(mock(StockResponseDTO.class));
 
-            assertThatThrownBy(() -> quoteService.create(request))
+            assertThatThrownBy(() -> quoteService.create(request.serviceOrderId(), request))
                     .isInstanceOf(QuoteItemAlreadyExistsException.class);
 
             verify(quoteRepository, never()).save(any());
@@ -139,7 +139,7 @@ class QuoteServiceTest {
 
             when(stockRepository.findById(stockId)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> quoteService.create(request))
+            assertThatThrownBy(() -> quoteService.create(request.serviceOrderId(), request))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining(stockId.toString());
 
@@ -173,7 +173,7 @@ class QuoteServiceTest {
             when(quoteRepository.save(any())).thenReturn(quote);
             when(mapper.toResponse(quote)).thenReturn(response);
 
-            var result = quoteService.create(request);
+            var result = quoteService.create(request.serviceOrderId(), request);
 
             assertThat(result).isNotNull();
             verify(stockService).consumeStock(stockId, 2);
@@ -207,7 +207,7 @@ class QuoteServiceTest {
             when(serviceOrderExecutionRepository.findById(serviceOrderExecutionId)).thenReturn(Optional.of(execution));
             when(serviceCatalogRepository.findById(any())).thenReturn(Optional.of(service));
 
-            assertThatThrownBy(() -> quoteService.create(request))
+            assertThatThrownBy(() -> quoteService.create(request.serviceOrderId(), request))
                     .isInstanceOf(QuoteItemAlreadyExistsException.class);
 
             verify(quoteRepository, never()).save(any());
@@ -229,7 +229,7 @@ class QuoteServiceTest {
             when(stockRepository.findById(stockId)).thenReturn(Optional.of(stock));
             when(serviceOrderExecutionRepository.findById(serviceOrderExecutionId)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> quoteService.create(request))
+            assertThatThrownBy(() -> quoteService.create(request.serviceOrderId(), request))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining(serviceOrderExecutionId.toString());
 
@@ -257,7 +257,7 @@ class QuoteServiceTest {
             when(serviceOrderExecutionRepository.findById(serviceOrderExecutionId)).thenReturn(Optional.of(execution));
             when(serviceCatalogRepository.findById(any())).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> quoteService.create(request))
+            assertThatThrownBy(() -> quoteService.create(request.serviceOrderId(), request))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("não encontrado");
 

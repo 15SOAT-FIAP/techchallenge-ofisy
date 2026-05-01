@@ -31,13 +31,13 @@ public class QuoteService {
     private final QuoteMapper mapper;
 
     @Transactional
-    public QuoteResponseDTO create(CreateQuoteRequestDTO request) {
+    public QuoteResponseDTO create(UUID serviceOrderId, CreateQuoteRequestDTO request) {
         List<QuoteStockItem> stockItems = buildStockItems(request.stockItems());
         List<QuoteServiceItem> serviceItems = buildServiceItems(
                 request.serviceItems() != null ? request.serviceItems() : List.of()
         );
 
-        Quote quote = Quote.create(request.serviceOrderId(), stockItems, serviceItems);
+        Quote quote = Quote.create(serviceOrderId, stockItems, serviceItems);
         return mapper.toResponse(quoteRepository.save(quote));
     }
 
