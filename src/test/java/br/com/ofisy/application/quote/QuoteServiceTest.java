@@ -1,6 +1,7 @@
 package br.com.ofisy.application.quote;
 
 import br.com.ofisy.application.quote.dto.*;
+import br.com.ofisy.application.quote.exceptions.QuoteAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
 import br.com.ofisy.application.stock.StockService;
@@ -90,6 +91,7 @@ class QuoteServiceTest {
                     List.of()
             );
 
+            when(quoteRepository.existsByServiceOrderId(request.serviceOrderId())).thenReturn(false);
             when(stockRepository.findById(stockId)).thenReturn(Optional.of(stock));
             when(quoteRepository.save(any())).thenReturn(quote);
             when(mapper.toResponse(quote)).thenReturn(response);
@@ -99,6 +101,28 @@ class QuoteServiceTest {
             assertThat(result).isNotNull();
             verify(stockService).consumeStock(stockId, 2);
             verify(quoteRepository).save(any());
+        }
+
+        @Test
+        @DisplayName("Deve lançar exceção quando já existe orçamento para a OS")
+        void shouldThrowExceptionWhenQuoteAlreadyExistsForServiceOrder() {
+            UUID serviceOrderId = UUID.randomUUID();
+            Stock stock = mockStock();
+
+            CreateQuoteRequestDTO request = new CreateQuoteRequestDTO(
+                    serviceOrderId,
+                    List.of(new StockItemRequestDTO(stock.getId(), 2)),
+                    List.of()
+            );
+
+            when(quoteRepository.existsByServiceOrderId(serviceOrderId)).thenReturn(true);
+
+            assertThatThrownBy(() -> quoteService.create(serviceOrderId, request))
+                    .isInstanceOf(QuoteAlreadyExistsException.class)
+                    .hasMessageContaining(serviceOrderId.toString());
+
+            verify(quoteRepository, never()).save(any());
+            verify(stockService, never()).consumeStock(any(), anyInt());
         }
 
         @Test
@@ -116,6 +140,7 @@ class QuoteServiceTest {
                     List.of()
             );
 
+            when(quoteRepository.existsByServiceOrderId(request.serviceOrderId())).thenReturn(false);
             when(stockRepository.findById(stockId)).thenReturn(Optional.of(stock));
             when(stockService.consumeStock(eq(stockId), anyInt()))
                     .thenReturn(mock(StockResponseDTO.class));
@@ -137,6 +162,7 @@ class QuoteServiceTest {
                     List.of()
             );
 
+            when(quoteRepository.existsByServiceOrderId(request.serviceOrderId())).thenReturn(false);
             when(stockRepository.findById(stockId)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> quoteService.create(request.serviceOrderId(), request))
@@ -167,6 +193,7 @@ class QuoteServiceTest {
                     List.of(new ServiceItemRequestDTO(serviceOrderExecutionId))
             );
 
+            when(quoteRepository.existsByServiceOrderId(request.serviceOrderId())).thenReturn(false);
             when(stockRepository.findById(stockId)).thenReturn(Optional.of(stock));
             when(serviceOrderExecutionRepository.findById(serviceOrderExecutionId)).thenReturn(Optional.of(execution));
             when(serviceCatalogRepository.findById(any())).thenReturn(Optional.of(service));
@@ -203,6 +230,7 @@ class QuoteServiceTest {
                     )
             );
 
+            when(quoteRepository.existsByServiceOrderId(request.serviceOrderId())).thenReturn(false);
             when(stockRepository.findById(stockId)).thenReturn(Optional.of(stock));
             when(serviceOrderExecutionRepository.findById(serviceOrderExecutionId)).thenReturn(Optional.of(execution));
             when(serviceCatalogRepository.findById(any())).thenReturn(Optional.of(service));
@@ -226,6 +254,7 @@ class QuoteServiceTest {
                     List.of(new ServiceItemRequestDTO(serviceOrderExecutionId))
             );
 
+            when(quoteRepository.existsByServiceOrderId(request.serviceOrderId())).thenReturn(false);
             when(stockRepository.findById(stockId)).thenReturn(Optional.of(stock));
             when(serviceOrderExecutionRepository.findById(serviceOrderExecutionId)).thenReturn(Optional.empty());
 
@@ -253,6 +282,7 @@ class QuoteServiceTest {
                     List.of(new ServiceItemRequestDTO(serviceOrderExecutionId))
             );
 
+            when(quoteRepository.existsByServiceOrderId(request.serviceOrderId())).thenReturn(false);
             when(stockRepository.findById(stockId)).thenReturn(Optional.of(stock));
             when(serviceOrderExecutionRepository.findById(serviceOrderExecutionId)).thenReturn(Optional.of(execution));
             when(serviceCatalogRepository.findById(any())).thenReturn(Optional.empty());

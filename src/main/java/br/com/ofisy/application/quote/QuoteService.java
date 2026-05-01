@@ -33,8 +33,8 @@ public class QuoteService {
 
     @Transactional
     public QuoteResponseDTO create(UUID serviceOrderId, CreateQuoteRequestDTO request) {
-        if (quoteRepository.existsByServiceOrderId(request.serviceOrderId())) {
-            throw new QuoteAlreadyExistsException(request.serviceOrderId());
+        if (quoteRepository.existsByServiceOrderId(serviceOrderId)) {
+            throw new QuoteAlreadyExistsException(serviceOrderId);
         }
         List<QuoteStockItem> stockItems = buildStockItems(request.stockItems());
         List<QuoteServiceItem> serviceItems = buildServiceItems(
