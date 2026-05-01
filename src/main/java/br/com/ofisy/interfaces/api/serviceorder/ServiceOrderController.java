@@ -1,5 +1,7 @@
 package br.com.ofisy.interfaces.api.serviceorder;
 
+import br.com.ofisy.application.quote.dto.CreateQuoteRequestDTO;
+import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
 import br.com.ofisy.application.serviceorder.ServiceOrderService;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderRequestDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderResponseDTO;
@@ -38,6 +40,14 @@ public class ServiceOrderController implements ServiceOrderApi {
             @AuthenticationPrincipal UserDetails user) {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(serviceOrderService.create(request, user.getUsername()));
+    }
+
+    @PostMapping("/{id}/quote")
+    public ResponseEntity<QuoteResponseDTO> generateQuote(
+            @PathVariable UUID id,
+            @Valid @RequestBody CreateQuoteRequestDTO request) {
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(serviceOrderService.generateQuote(id, request));
     }
 
     @GetMapping("/received")

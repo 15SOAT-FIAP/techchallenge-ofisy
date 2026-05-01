@@ -1,6 +1,10 @@
 package br.com.ofisy.application.serviceorder;
 
 import br.com.ofisy.application.customer.CustomerService;
+import br.com.ofisy.application.notification.NotificationService;
+import br.com.ofisy.application.quote.QuoteService;
+import br.com.ofisy.application.quote.dto.CreateQuoteRequestDTO;
+import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderRequestDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderResponseDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderStatusResponseDTO;
@@ -26,6 +30,8 @@ public class ServiceOrderService {
     private final CustomerService customerService;
     private final VehicleService vehicleService;
     private final UserService userService;
+    private final NotificationService notificationService;
+    private final QuoteService quoteService;
 
     @Transactional
     public ServiceOrderResponseDTO create(ServiceOrderRequestDTO request, String createdByEmail) {
@@ -67,6 +73,17 @@ public class ServiceOrderService {
                 .orElseThrow(() -> new ServiceOrderNotFoundException(id));
         serviceOrder.startDiagnostic();
         return ServiceOrderMapper.toResponseDTO(serviceOrderRepository.save(serviceOrder));
+    }
+
+    @Transactional
+    public QuoteResponseDTO generateQuote(UUID id, CreateQuoteRequestDTO request) {
+        var serviceOrder = serviceOrderRepository.findById(id)
+                .orElseThrow(() -> new ServiceOrderNotFoundException(id));
+        var quote = quoteService.create(id, request);
+        serviceOrder.sendToApproval();
+        var customer = customerService.identifyCustomerById(serviceOrder.getCustomerId());
+        notificationService.createQuoteNotification(quote.id(), customer.name(), quote.totalPrice());
+        return quote;
     }
 
     @Transactional
