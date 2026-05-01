@@ -48,13 +48,15 @@ public class ServiceOrderExecutionRepositoryImpl implements ServiceOrderExecutio
     }
 
     @Override
-    public boolean existsByServiceOrderIdAndStatusNot(UUID serviceOrderId, ServiceOrderExecutionStatus status) {
-        return jpa.existsByServiceOrderIdAndStatusNot(serviceOrderId, status);
+    public long countByServiceOrderId(UUID serviceOrderId) {
+        return jpa.countByServiceOrderId(serviceOrderId);
     }
 
     @Override
-    public boolean existsByServiceOrderId(UUID serviceOrderId) {
-        return jpa.existsByServiceOrderId(serviceOrderId);
+    public long countByServiceOrderIdAndStatus(UUID serviceOrderId, ServiceOrderExecutionStatus serviceOrderExecutionStatus) {
+        return jpa.countByServiceOrderIdAndStatus(serviceOrderId, serviceOrderExecutionStatus);
     }
+
+
 }
 

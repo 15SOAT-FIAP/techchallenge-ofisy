@@ -116,8 +116,9 @@ public class ServiceOrderExecutionService {
     }
 
     private boolean allServicesFinished(UUID serviceOrderId) {
-        return !repository.existsByServiceOrderIdAndStatusNot(serviceOrderId, ServiceOrderExecutionStatus.COMPLETED)
-                && repository.existsByServiceOrderId(serviceOrderId);
-    }
+        long totalServices = repository.countByServiceOrderId(serviceOrderId);
+        long totalServicesCompleted = repository.countByServiceOrderIdAndStatus(serviceOrderId, ServiceOrderExecutionStatus.COMPLETED);
 
+        return totalServices > 0 && totalServices == totalServicesCompleted;
+    }
 }

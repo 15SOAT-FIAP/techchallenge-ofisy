@@ -20,8 +20,8 @@ public interface ServiceOrderExecutionRepository {
 
     Page<ServiceOrderExecution> findByStatus(ServiceOrderExecutionStatus status, Pageable pageable);
 
-    boolean existsByServiceOrderIdAndStatusNot(UUID serviceOrderId, ServiceOrderExecutionStatus status);
+    long countByServiceOrderId(UUID serviceOrderId);
 
-    boolean existsByServiceOrderId(UUID serviceOrderId);
+    long countByServiceOrderIdAndStatus(UUID serviceOrderId, ServiceOrderExecutionStatus serviceOrderExecutionStatus);
 }
 

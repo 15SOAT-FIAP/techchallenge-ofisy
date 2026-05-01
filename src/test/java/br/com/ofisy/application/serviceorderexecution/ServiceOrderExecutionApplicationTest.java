@@ -183,8 +183,9 @@ class ServiceOrderExecutionApplicationTest {
 
             when(repository.findById(id)).thenReturn(Optional.of(serviceOrderExecution));
             when(repository.save(any(ServiceOrderExecution.class))).thenAnswer(inv -> inv.getArgument(0));
-            when(repository.existsByServiceOrderIdAndStatusNot(serviceOrderId, ServiceOrderExecutionStatus.COMPLETED))
-                    .thenReturn(true);
+            when(repository.countByServiceOrderId(serviceOrderId)).thenReturn(2L);
+            when(repository.countByServiceOrderIdAndStatus(serviceOrderId, ServiceOrderExecutionStatus.COMPLETED))
+                    .thenReturn(1L);
 
             var result = application.complete(id);
 
@@ -205,9 +206,9 @@ class ServiceOrderExecutionApplicationTest {
 
             when(repository.findById(id)).thenReturn(Optional.of(serviceOrderExecution));
             when(repository.save(any(ServiceOrderExecution.class))).thenAnswer(inv -> inv.getArgument(0));
-            when(repository.existsByServiceOrderIdAndStatusNot(serviceOrderId, ServiceOrderExecutionStatus.COMPLETED))
-                    .thenReturn(false);
-            when(repository.existsByServiceOrderId(serviceOrderId)).thenReturn(true);
+            when(repository.countByServiceOrderId(serviceOrderId)).thenReturn(2L);
+            when(repository.countByServiceOrderIdAndStatus(serviceOrderId, ServiceOrderExecutionStatus.COMPLETED))
+                    .thenReturn(2L);
 
             application.complete(id);
 
@@ -223,9 +224,9 @@ class ServiceOrderExecutionApplicationTest {
 
             when(repository.findById(id)).thenReturn(Optional.of(serviceOrderExecution));
             when(repository.save(any(ServiceOrderExecution.class))).thenAnswer(inv -> inv.getArgument(0));
-            when(repository.existsByServiceOrderIdAndStatusNot(serviceOrderId, ServiceOrderExecutionStatus.COMPLETED))
-                    .thenReturn(false);
-            when(repository.existsByServiceOrderId(serviceOrderId)).thenReturn(false);
+            when(repository.countByServiceOrderId(serviceOrderId)).thenReturn(0L);
+            when(repository.countByServiceOrderIdAndStatus(serviceOrderId, ServiceOrderExecutionStatus.COMPLETED))
+                    .thenReturn(0L);
 
             application.complete(id);
 

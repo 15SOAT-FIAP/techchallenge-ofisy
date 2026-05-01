@@ -15,8 +15,8 @@ public interface JpaServiceOrderExecutionRepository extends JpaRepository<Servic
 
     Page<ServiceOrderExecution> findByServiceOrderId(UUID serviceOrderId, Pageable pageable);
 
-    boolean existsByServiceOrderIdAndStatusNot(UUID serviceOrderId, ServiceOrderExecutionStatus status);
+    long countByServiceOrderId(UUID serviceOrderId);
 
-    boolean existsByServiceOrderId(UUID serviceOrderId);
+    long countByServiceOrderIdAndStatus(UUID serviceOrderId, ServiceOrderExecutionStatus serviceOrderExecutionStatus);
 }
 
