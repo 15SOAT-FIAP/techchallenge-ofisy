@@ -1,0 +1,27 @@
+services:
+  zap:
+    image: zaproxy/zap-stable:latest
+    container_name: ofisy-zap
+    environment:
+      ADMIN_LOGIN: ${ADMIN_LOGIN}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      JAVA_OPTS: "-Xmx1g"
+    command: >
+      bash -c "
+      echo 'Aguardando a aplicação subir...' &&
+      until curl -s http://app:8080/actuator/health > /dev/null; do sleep 5; done &&
+      echo 'Aplicação disponível! Iniciando scan autenticado...' &&
+      zap.sh -cmd -autorun /zap/wrk/zap-plan.yaml
+      "
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2g
+    cpus: 2.0
+    mem_limit: 2g
+    volumes:
+      - ./zap-reports:/zap/wrk
+      - ./zap/zap-plan.yaml:/zap/wrk/zap-plan.yaml:ro
+    depends_on:
+      - app

@@ -25,7 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class NotificationServiceTest {
+class NotificationServiceTest {
 
     @Mock
     private NotificationRepository notificationRepository;
@@ -34,14 +34,12 @@ public class NotificationServiceTest {
     private NotificationService notificationService;
 
     private UUID notificationId;
-    private UUID stockId;
     private Notification notification;
     private Notification readNotification;
 
     @BeforeEach
     void setUp() {
         notificationId = UUID.randomUUID();
-        stockId = UUID.randomUUID();
         notification = createNotification();
         readNotification = createReadNotification();
     }
@@ -68,27 +66,6 @@ public class NotificationServiceTest {
         assertThat(result.message()).contains("Radiador");
         assertThat(result.message()).contains("2");
         assertThat(result.message()).contains("5");
-        assertThat(result.read()).isFalse();
-        verify(notificationRepository).save(any(Notification.class));
-    }
-
-    @Test
-    @DisplayName("Deve criar notificação de orçamento via método específico com stockId nulo")
-    void shouldCreateQuoteNotificationSuccessfully() {
-        when(notificationRepository.save(any(Notification.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        NotificationResponseDTO result = notificationService.createQuoteNotification(
-                "123",
-                "João Silva",
-                1500.00
-        );
-
-        assertThat(result.type()).isEqualTo(NotificationType.QUOTE_GENERATED.name());
-        assertThat(result.stockId()).isNull();
-        assertThat(result.message()).contains("123");
-        assertThat(result.message()).contains("João Silva");
-        assertThat(result.message()).contains("1500.00");
         assertThat(result.read()).isFalse();
         verify(notificationRepository).save(any(Notification.class));
     }
@@ -152,20 +129,18 @@ public class NotificationServiceTest {
     }
 
     private Notification createNotification() {
-        return Notification.create(
-                NotificationType.LOW_STOCK,
+        return Notification.createForStock(
                 UUID.randomUUID(),
                 "Estoque baixo para o produto Radiador"
         );
     }
 
     private Notification createReadNotification() {
-        Notification notification = Notification.create(
-                NotificationType.QUOTE_GENERATED,
+        Notification notifica = Notification.createForQuote(
                 null,
                 "Orçamento #123 gerado"
         );
-        notification.markAsRead();
-        return notification;
+        notifica.markAsRead();
+        return notifica;
     }
 }

@@ -49,3 +49,50 @@ Na primeira execução, o projeto `ofisy` será criado automaticamente no SonarQ
 - Acesse: http://localhost:9000/
 - Verifique a última análise executada
   - Para mais detalhes, pode clicar no projeto `ofisy` que será exibido uma visão geral das últimas análises executadas
+
+## Testes de Segurança (OWASP ZAP)
+
+### Executando os testes (Completo)
+
+#### 1. Subir aplicação junto com o ZAP
+```bash
+docker compose -f compose.yaml -f compose.zap.yaml up --build
+```
+
+O processo irá:
+
+1. Subir a aplicação
+2. Aguardar o serviço ficar disponível
+3. Executar o scan automatizado de segurança
+
+### Relatórios Gerados
+
+Os relatórios são salvos no diretório `./zap-reports/`:
+
+- `full-report.html` - Relatório visual completo
+- `full-report.json` - Útil para integração com CI/CD
+- `full-report.xml` - Útil para integração com CI/CD e ferramentas externas
+
+### Como visualizar o relatório
+
+Abra o arquivo no navegador: `./zap-reports/full-report.html`
+
+### Tipos de testes executados
+- Análise passiva:
+  - Headers de segurança
+  - Cookies
+  - Vazamento de informações
+- Testes ativos:
+  - SQL Injection
+  - XSS
+  - SSRF
+  - Path Traversal
+  - Command Injection
+
+### Autenticação
+
+Esta configuração executa testes de segurança automatizados com autenticação via JWT, permitindo a análise de endpoints protegidos.
+
+- O ZAP realiza login automático via /api/v1/login
+- Extrai o token JWT da resposta
+- Injeta o token no header Authorization das requisições
