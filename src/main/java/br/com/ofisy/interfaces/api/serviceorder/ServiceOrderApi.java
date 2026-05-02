@@ -48,13 +48,13 @@ public interface ServiceOrderApi {
     @ApiResponse(responseCode = "409", description = "Transição de estado inválida")
     ResponseEntity<ServiceOrderResponseDTO> deliverToCustomerServiceOrder(UUID id);
 
-    @Operation(summary = "Cancelar uma ordem de serviço")
+    @Operation(summary = "Cancelar uma ordem de serviço - Roles autorizadas: (ADMIN, ATTENDANT, MECHANIC)")
     @ApiResponse(responseCode = "200", description = "Ordem de serviço cancelada com sucesso")
     @ApiResponse(responseCode = "404", description = "Ordem de serviço não encontrada")
     @ApiResponse(responseCode = "409", description = "Transição de estado inválida")
     ResponseEntity<ServiceOrderResponseDTO> cancelServiceOrder(UUID id);
 
-    @Operation(summary = "Gerar orçamento para uma ordem de serviço")
+    @Operation(summary = "Gerar orçamento para uma ordem de serviço - Roles autorizadas: (ADMIN, ATTENDANT, MECHANIC)")
     @ApiResponse(responseCode = "201", description = "Orçamento gerado com sucesso")
     @ApiResponse(responseCode = "404", description = "Ordem de serviço não encontrada")
     ResponseEntity<QuoteResponseDTO> generateQuote(UUID id, CreateQuoteRequestDTO request);

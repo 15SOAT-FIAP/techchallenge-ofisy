@@ -45,6 +45,7 @@ public class ServiceOrderController implements ServiceOrderApi {
     }
 
     @PostMapping("/{id}/quote")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
     public ResponseEntity<QuoteResponseDTO> generateQuote(
             @PathVariable UUID id,
             @Valid @RequestBody CreateQuoteRequestDTO request) {
@@ -86,6 +87,7 @@ public class ServiceOrderController implements ServiceOrderApi {
     }
 
     @PatchMapping("/{id}/cancel")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
     public ResponseEntity<ServiceOrderResponseDTO> cancelServiceOrder(@PathVariable UUID id) {
         return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.close(id));
     }
