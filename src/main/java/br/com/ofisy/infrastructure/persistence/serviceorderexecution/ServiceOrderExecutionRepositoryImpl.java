@@ -8,6 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -58,5 +60,10 @@ public class ServiceOrderExecutionRepositoryImpl implements ServiceOrderExecutio
     }
 
 
+
+    @Override
+    public List<ServiceOrderExecution> findByServiceOrderIdAndStatusIn(UUID serviceOrderId, Collection<ServiceOrderExecutionStatus> statuses) {
+        return jpa.findByServiceOrderIdAndStatusIn(serviceOrderId, statuses);
+    }
 }
 

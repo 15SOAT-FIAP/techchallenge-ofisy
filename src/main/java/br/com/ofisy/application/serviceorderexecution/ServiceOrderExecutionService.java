@@ -83,6 +83,19 @@ public class ServiceOrderExecutionService {
     }
 
     @Transactional
+    public void cancelPending(UUID serviceOrderId) {
+        List<ServiceOrderExecutionStatus> activeStatuses = List.of(
+                ServiceOrderExecutionStatus.PENDING,
+                ServiceOrderExecutionStatus.IN_PROGRESS
+        );
+        repository.findByServiceOrderIdAndStatusIn(serviceOrderId, activeStatuses)
+                .forEach(execution -> {
+                    execution.cancel();
+                    repository.save(execution);
+                });
+    }
+
+    @Transactional
     public ServiceOrderExecutionResponseDTO start(UUID id) {
         ServiceOrderExecution service = repository.findById(id)
                 .orElseThrow(() -> new ServiceOrderExecutionNotFoundException(id));
