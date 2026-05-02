@@ -44,26 +44,48 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 @Tag("integration")
 class ServiceOrderIntegrationTest extends IntegrationTestBase {
 
-    @Autowired private ServiceOrderService serviceOrderService;
-    @Autowired private QuoteService quoteService;
-    @Autowired private CustomerRepository customerRepository;
-    @Autowired private VehicleRepository vehicleRepository;
-    @Autowired private UserRepository userRepository;
-    @Autowired private StockRepository stockRepository;
-    @Autowired private ServiceCatalogRepository serviceCatalogRepository;
-    @Autowired private ServiceOrderExecutionRepository serviceOrderExecutionRepository;
-    @Autowired private NotificationRepository notificationRepository;
+    public static final String PRICE_300 = "300.00";
+    public static final String PRICE_100 = "100.00";
+    public static final String PRICE_200 = "200.00";
+    public static final String PRICE_400 = "400.0";
+
+    @Autowired
+    private ServiceOrderService serviceOrderService;
+
+    @Autowired
+    private QuoteService quoteService;
+
+    @Autowired
+    private CustomerRepository customerRepository;
+
+    @Autowired
+    private VehicleRepository vehicleRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private StockRepository stockRepository;
+
+    @Autowired
+    private ServiceCatalogRepository serviceCatalogRepository;
+
+    @Autowired
+    private ServiceOrderExecutionRepository serviceOrderExecutionRepository;
+
+    @Autowired
+    private NotificationRepository notificationRepository;
 
     private UUID customerId;
     private UUID vehicleId;
     private UUID stockId;
-    private UUID serviceOrderExecutionId;
+    private UUID stockId2;
+    private UUID serviceCatalogId;
     private String userEmail;
 
     @BeforeEach
@@ -84,18 +106,19 @@ class ServiceOrderIntegrationTest extends IntegrationTestBase {
         vehicleId = vehicle.getId();
 
         Stock stock = stockRepository.save(
-                Stock.create("Peça OS Teste", "Peça para testes de OS", 10, new BigDecimal("100.00"), "Testes", 2)
+                Stock.create("Peça OS Teste", "Peça para testes de OS", 10, new BigDecimal(PRICE_100), "Testes", 2)
         );
         stockId = stock.getId();
 
-        ServiceCatalog serviceCatalog = serviceCatalogRepository.save(
-                ServiceCatalog.create("Serviço OS Teste", "Serviço para testes de OS", new BigDecimal("200.00"))
+        Stock stock2 = stockRepository.save(
+                Stock.create("Peça OS Teste 2", "Peça 2 para testes de OS", 10, new BigDecimal(PRICE_200), "Testes", 2)
         );
+        stockId2 = stock2.getId();
 
-        ServiceOrderExecution execution = serviceOrderExecutionRepository.save(
-                ServiceOrderExecution.create(serviceCatalog.getId(), UUID.randomUUID())
+        ServiceCatalog serviceCatalog = serviceCatalogRepository.save(
+                ServiceCatalog.create("Serviço OS Teste", "Serviço para testes de OS", new BigDecimal(PRICE_200))
         );
-        serviceOrderExecutionId = execution.getId();
+        serviceCatalogId = serviceCatalog.getId();
     }
 
     @Nested
@@ -263,10 +286,12 @@ class ServiceOrderIntegrationTest extends IntegrationTestBase {
     class GenerateQuote {
 
         @Test
-        @DisplayName("Deve gerar orçamento com itens de estoque e mudar status para AWAITING_APPROVAL")
+        @DisplayName("Deve gerar orçamento completo e mudar status para AWAITING_APPROVAL")
         void shouldGenerateQuoteWithStockItemsAndChangeStatus() {
             UUID osId = createAndStartDiagnostic();
-            var request = stockOnlyQuoteRequest(osId, 1);
+            UUID serviceOrderExecutionId = generateServiceOrderExecution();
+
+            var request = fullQuoteRequest(osId, serviceOrderExecutionId, 2);
 
             var quote = serviceOrderService.generateQuote(osId, request);
 
@@ -280,28 +305,16 @@ class ServiceOrderIntegrationTest extends IntegrationTestBase {
         }
 
         @Test
-        @DisplayName("Deve gerar orçamento com itens de estoque e serviço")
+        @DisplayName("Deve gerar orçamento com itens de estoque e serviço e validar o total completo da OS")
         void shouldGenerateQuoteWithStockAndServiceItems() {
             UUID osId = createAndStartDiagnostic();
+            UUID serviceOrderExecutionId = generateServiceOrderExecution();
 
-            ServiceOrderExecution execution = serviceOrderExecutionRepository.save(
-                    ServiceOrderExecution.create(
-                            serviceCatalogRepository.findByName("Serviço OS Teste").orElseThrow().getId(),
-                            osId
-                    )
-            );
-
-            var request = new CreateQuoteRequestDTO(
-                    osId,
-                    List.of(new StockItemRequestDTO(stockId, 1)),
-                    List.of(new ServiceItemRequestDTO(execution.getId()))
-            );
-
-            var quote = serviceOrderService.generateQuote(osId, request);
+            var quote = serviceOrderService.generateQuote(osId, fullQuoteRequest(osId, serviceOrderExecutionId, 2));
 
             assertThat(quote.stockItems()).hasSize(1);
             assertThat(quote.serviceItems()).hasSize(1);
-            assertThat(quote.totalPrice()).isEqualByComparingTo(new BigDecimal("300.00"));
+            assertThat(quote.totalPrice()).isEqualByComparingTo(new BigDecimal(PRICE_400));
         }
 
         @Test
@@ -335,7 +348,8 @@ class ServiceOrderIntegrationTest extends IntegrationTestBase {
         @DisplayName("Deve lançar exceção ao gerar orçamento duplicado para a OS")
         void shouldThrowExceptionWhenQuoteAlreadyExists() {
             UUID osId = createAndStartDiagnostic();
-            CreateQuoteRequestDTO quoteRequestDTO = fullQuoteRequest(osId, 1);
+
+            CreateQuoteRequestDTO quoteRequestDTO = stockOnlyQuoteRequest(osId, 1);
             serviceOrderService.generateQuote(osId, quoteRequestDTO);
 
             assertThatThrownBy(() -> serviceOrderService.generateQuote(osId, quoteRequestDTO))
@@ -350,7 +364,7 @@ class ServiceOrderIntegrationTest extends IntegrationTestBase {
                     osId,
                     List.of(
                             new StockItemRequestDTO(stockId, 1),
-                            new StockItemRequestDTO(stockId, 1)
+                            new StockItemRequestDTO(stockId, 2)
                     ),
                     List.of()
             );
@@ -363,12 +377,15 @@ class ServiceOrderIntegrationTest extends IntegrationTestBase {
         @DisplayName("Deve consumir estoque ao gerar orçamento")
         void shouldConsumeStockWhenGeneratingQuote() {
             UUID osId = createAndStartDiagnostic();
-            var quantityBefore = stockRepository.findById(stockId).orElseThrow().getQuantity();
+            var stock1QuantityBefore = stockRepository.findById(stockId).orElseThrow().getQuantity();
+            var stock2QuantityBefore = stockRepository.findById(stockId2).orElseThrow().getQuantity();
 
             serviceOrderService.generateQuote(osId, stockOnlyQuoteRequest(osId, 2));
 
-            var quantityAfter = stockRepository.findById(stockId).orElseThrow().getQuantity();
-            assertThat(quantityAfter).isEqualTo(quantityBefore - 2);
+            var stock1QuantityAfter = stockRepository.findById(stockId).orElseThrow().getQuantity();
+            var stock2QuantityAfter = stockRepository.findById(stockId2).orElseThrow().getQuantity();
+            assertThat(stock1QuantityAfter).isEqualTo(stock1QuantityBefore - 2);
+            assertThat(stock2QuantityAfter).isEqualTo(stock2QuantityBefore - 2);
         }
 
         @Test
@@ -419,7 +436,9 @@ class ServiceOrderIntegrationTest extends IntegrationTestBase {
         @DisplayName("Deve reprovar orçamento pendente com motivo")
         void shouldReproveQuoteWithReason() {
             UUID osId = createAndStartDiagnostic();
-            var quote = serviceOrderService.generateQuote(osId, stockOnlyQuoteRequest(osId, 1));
+            UUID serviceOrderExecutionId = generateServiceOrderExecution();
+
+            var quote = serviceOrderService.generateQuote(osId, fullQuoteRequest(osId, serviceOrderExecutionId, 1));
 
             var response = quoteService.reprove(quote.id(), new ReproveQuoteRequestDTO("Outra oficina passou um orçamento mais em conta"));
 
@@ -432,7 +451,9 @@ class ServiceOrderIntegrationTest extends IntegrationTestBase {
         @DisplayName("Deve lançar exceção ao reprovar orçamento não pendente")
         void shouldThrowExceptionWhenReprovingNonPendingQuote() {
             UUID osId = createAndStartDiagnostic();
-            var quote = serviceOrderService.generateQuote(osId, stockOnlyQuoteRequest(osId, 1));
+            UUID serviceOrderExecutionId = generateServiceOrderExecution();
+
+            var quote = serviceOrderService.generateQuote(osId, fullQuoteRequest(osId, serviceOrderExecutionId, 1));
             quoteService.approve(quote.id());
 
             UUID quoteId = quote.id();
@@ -501,16 +522,24 @@ class ServiceOrderIntegrationTest extends IntegrationTestBase {
     private CreateQuoteRequestDTO stockOnlyQuoteRequest(UUID serviceOrderId, int quantity) {
         return new CreateQuoteRequestDTO(
                 serviceOrderId,
-                List.of(new StockItemRequestDTO(stockId, quantity)),
+                List.of(new StockItemRequestDTO(stockId, quantity), new StockItemRequestDTO(stockId2, quantity)),
                 List.of()
         );
     }
 
-    private CreateQuoteRequestDTO fullQuoteRequest(UUID serviceOrderId, int quantity) {
+    private CreateQuoteRequestDTO fullQuoteRequest(UUID serviceOrderId, UUID serviceOrderExecutionId, int quantity) {
         return new CreateQuoteRequestDTO(
                 serviceOrderId,
                 List.of(new StockItemRequestDTO(stockId, quantity)),
                 List.of(new ServiceItemRequestDTO(serviceOrderExecutionId))
         );
+    }
+
+    private UUID generateServiceOrderExecution() {
+        ServiceOrderExecution execution = serviceOrderExecutionRepository.save(
+                ServiceOrderExecution.create(serviceCatalogId, UUID.randomUUID())
+        );
+
+        return execution.getId();
     }
 }
