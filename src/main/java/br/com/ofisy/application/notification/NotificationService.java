@@ -1,6 +1,7 @@
 package br.com.ofisy.application.notification;
 
 import br.com.ofisy.application.notification.dto.NotificationResponseDTO;
+import br.com.ofisy.application.notification.dto.QuoteNotificationRequestDTO;
 import br.com.ofisy.application.notification.exceptions.NotificationNotFoundException;
 import br.com.ofisy.domain.notification.Notification;
 import br.com.ofisy.domain.notification.NotificationRepository;
@@ -35,15 +36,15 @@ public class NotificationService {
     }
 
     @Transactional
-    public NotificationResponseDTO createQuoteNotification(Quote quote) {
+    public NotificationResponseDTO createQuoteNotification(QuoteNotificationRequestDTO request) {
         String message = String.format(
                 Locale.US,
                 "Orçamento #%s gerado para a ordem de serviço '%s'. Valor total: R$ %.2f",
-                quote.getId(),
-                quote.getServiceOrderId(),
-                quote.getTotalPrice()
+                request.id(),
+                request.serviceOrderId(),
+                request.totalPrice()
         );
-        Notification notification = Notification.createForQuote(quote.getId(), message);
+        Notification notification = Notification.createForQuote(request.id(), message);
         Notification saved = notificationRepository.save(notification);
         return NotificationMapper.toDTO(saved);
     }
