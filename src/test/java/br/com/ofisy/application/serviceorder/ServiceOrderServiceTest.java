@@ -7,6 +7,7 @@ import br.com.ofisy.application.notification.NotificationService;
 import br.com.ofisy.application.quote.QuoteService;
 import br.com.ofisy.application.quote.dto.CreateQuoteRequestDTO;
 import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
+import br.com.ofisy.application.quote.dto.ReproveQuoteRequestDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderRequestDTO;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
@@ -454,6 +455,84 @@ class ServiceOrderServiceTest {
         }
     }
 
+    @Nested
+    class ApproveQuote {
+        @Test
+        void shouldApproveQuoteSuccessfully() {
+            var quoteId = UUID.randomUUID();
+            var serviceOrder = serviceOrderAwaitingApproval();
+            var approvedQuoteResponse = approvedQuoteResponse(quoteId);
+
+            when(quoteService.approve(quoteId)).thenReturn(approvedQuoteResponse);
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
+            when(serviceOrderRepository.save(serviceOrder)).thenReturn(serviceOrder);
+
+            var result = serviceOrderService.approveQuote(quoteId);
+
+            assertThat(result).isEqualTo(approvedQuoteResponse);
+            assertThat(approvedQuoteResponse.status()).isEqualTo(QuoteStatus.APPROVED);
+            assertThat(serviceOrder.getStatus()).isEqualTo(ServiceOrderStatus.AWAITING_EXECUTION);
+
+            verify(quoteService).approve(quoteId);
+            verify(serviceOrderRepository).save(serviceOrder);
+        }
+
+        @Test
+        void shouldThrowServiceOrderNotFoundExceptionWhenOrderDoesNotExist() {
+            var quoteId = UUID.randomUUID();
+            var response = quoteResponse(quoteId);
+
+            when(quoteService.approve(quoteId)).thenReturn(response);
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> serviceOrderService.approveQuote(quoteId))
+                    .isInstanceOf(ServiceOrderNotFoundException.class);
+
+            verify(serviceOrderRepository, never()).save(any());
+        }
+    }
+
+    @Nested
+    class ReproveQuote {
+        @Test
+        void shouldReproveQuoteSuccessfully() {
+            var quoteId = UUID.randomUUID();
+            var serviceOrder = serviceOrderAwaitingApproval();
+            var quoteRefusalReason = "Preço muito alto";
+            var reprovedQuoteRequest = new ReproveQuoteRequestDTO(quoteRefusalReason);
+            var reprovedQuoteResponse = reprovedQuoteResponse(quoteId, quoteRefusalReason);
+
+            when(quoteService.reprove(quoteId, reprovedQuoteRequest)).thenReturn(reprovedQuoteResponse);
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
+            when(serviceOrderRepository.save(serviceOrder)).thenReturn(serviceOrder);
+
+            var result = serviceOrderService.reproveQuote(quoteId, reprovedQuoteRequest);
+
+            assertThat(result).isEqualTo(reprovedQuoteResponse);
+            assertThat(reprovedQuoteResponse.status()).isEqualTo(QuoteStatus.REPROVED);
+            assertThat(reprovedQuoteRequest.reason()).isEqualTo(reprovedQuoteResponse.quoteRefusalReason());
+            assertThat(serviceOrder.getStatus()).isEqualTo(ServiceOrderStatus.CANCELLED);
+
+            verify(quoteService).reprove(quoteId, reprovedQuoteRequest);
+            verify(serviceOrderRepository).save(serviceOrder);
+        }
+
+        @Test
+        void shouldThrowServiceOrderNotFoundExceptionWhenOrderDoesNotExist() {
+            var quoteId = UUID.randomUUID();
+            var request = new ReproveQuoteRequestDTO("Preço muito alto");
+            var response = quoteResponse(quoteId);
+
+            when(quoteService.reprove(quoteId, request)).thenReturn(response);
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> serviceOrderService.reproveQuote(quoteId, request))
+                    .isInstanceOf(ServiceOrderNotFoundException.class);
+
+            verify(serviceOrderRepository, never()).save(any());
+        }
+    }
+
     private ServiceOrderRequestDTO validRequest() {
         return new ServiceOrderRequestDTO(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, VALID_REPORT);
     }
@@ -502,6 +581,18 @@ class ServiceOrderServiceTest {
     private QuoteResponseDTO quoteResponse(UUID quoteId) {
         return new QuoteResponseDTO(quoteId, VALID_SERVICE_ORDER_ID, QuoteStatus.PENDING,
                 new BigDecimal("1500.00"), null, List.of(), List.of(),
+                LocalDateTime.now(), LocalDateTime.now());
+    }
+
+    private QuoteResponseDTO approvedQuoteResponse(UUID quoteId) {
+        return new QuoteResponseDTO(quoteId, VALID_SERVICE_ORDER_ID, QuoteStatus.APPROVED,
+                new BigDecimal("1500.00"), null, List.of(), List.of(),
+                LocalDateTime.now(), LocalDateTime.now());
+    }
+
+    private QuoteResponseDTO reprovedQuoteResponse(UUID quoteId, String reason) {
+        return new QuoteResponseDTO(quoteId, VALID_SERVICE_ORDER_ID, QuoteStatus.REPROVED,
+                new BigDecimal("1500.00"), reason, List.of(), List.of(),
                 LocalDateTime.now(), LocalDateTime.now());
     }
 

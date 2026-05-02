@@ -1,12 +1,15 @@
 package br.com.ofisy.interfaces.api.serviceorder;
 
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
+import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
+import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
 import br.com.ofisy.application.serviceorder.ServiceOrderService;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderResponseDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderStatusResponseDTO;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
+import br.com.ofisy.domain.quote.QuoteStatus;
 import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
 import br.com.ofisy.domain.serviceorder.exceptions.InvalidServiceOrderTransitionException;
 import br.com.ofisy.interfaces.api.GlobalExceptionHandler;
@@ -30,11 +33,13 @@ import org.springframework.security.web.method.annotation.AuthenticationPrincipa
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -427,6 +432,158 @@ class ServiceOrderControllerTest {
             return new ServiceOrderResponseDTO(
                     ORDER_ID, VALID_VEHICLE_ID, VALID_CUSTOMER_ID,
                     "Barulho na suspensão", "CANCELLED", UUID.randomUUID(), NOW, null, NOW);
+        }
+    }
+
+    @Nested
+    class ApproveQuote {
+
+        private static final UUID QUOTE_ID = UUID.randomUUID();
+        private static final UUID ORDER_ID = UUID.randomUUID();
+
+        @Test
+        void shouldReturn200WhenQuoteIsApproved() throws Exception {
+            when(serviceOrderService.approveQuote(QUOTE_ID))
+                    .thenReturn(mockApprovedResponse());
+
+            mockMvc.perform(patch(BASE_URL + "/quote/{id}/approve", QUOTE_ID))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id").value(QUOTE_ID.toString()))
+                    .andExpect(jsonPath("$.serviceOrderId").value(ORDER_ID.toString()))
+                    .andExpect(jsonPath("$.status").value("APPROVED"))
+                    .andExpect(jsonPath("$.totalPrice").value(1500.00))
+                    .andExpect(jsonPath("$.quoteRefusalReason").doesNotExist());
+        }
+
+        @Test
+        void shouldReturn404WhenQuoteDoesNotExist() throws Exception {
+            when(serviceOrderService.approveQuote(QUOTE_ID))
+                    .thenThrow(new QuoteNotFoundException(QUOTE_ID));
+
+            mockMvc.perform(patch(BASE_URL + "/quote/{id}/approve", QUOTE_ID))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.title").value("Orçamento não encontrado"));
+        }
+
+        @Test
+        void shouldReturn409WhenTransitionIsInvalid() throws Exception {
+            when(serviceOrderService.approveQuote(QUOTE_ID))
+                    .thenThrow(new InvalidServiceOrderTransitionException(
+                            ServiceOrderStatus.AWAITING_APPROVAL,
+                            ServiceOrderStatus.AWAITING_EXECUTION
+                    ));
+
+            mockMvc.perform(patch(BASE_URL + "/quote/{id}/approve", QUOTE_ID))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.title").value("Transição de status inválida"));
+        }
+
+        @Test
+        void shouldReturn400WhenIdIsInvalidUuid() throws Exception {
+            mockMvc.perform(patch(BASE_URL + "/quote/{id}/approve", "invalid-uuid"))
+                    .andExpect(status().isBadRequest());
+        }
+
+        private QuoteResponseDTO mockApprovedResponse() {
+            return new QuoteResponseDTO(
+                    QUOTE_ID,
+                    ORDER_ID,
+                    QuoteStatus.APPROVED,
+                    new BigDecimal("1500.00"),
+                    null,
+                    List.of(),
+                    List.of(),
+                    NOW,
+                    NOW
+            );
+        }
+    }
+
+    @Nested
+    class ReproveQuote {
+
+        private static final UUID QUOTE_ID = UUID.randomUUID();
+        private static final UUID ORDER_ID = UUID.randomUUID();
+
+        @Test
+        void shouldReturn200WhenQuoteIsReproved() throws Exception {
+            when(serviceOrderService.reproveQuote(eq(QUOTE_ID), any()))
+                    .thenReturn(mockReprovedResponse());
+
+            mockMvc.perform(patch(BASE_URL + "/quote/{id}/reprove", QUOTE_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                {
+                                    "reason": "Preço muito alto"
+                                }
+                                """))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id").value(QUOTE_ID.toString()))
+                    .andExpect(jsonPath("$.serviceOrderId").value(ORDER_ID.toString()))
+                    .andExpect(jsonPath("$.status").value("REPROVED"))
+                    .andExpect(jsonPath("$.totalPrice").value(1500.00))
+                    .andExpect(jsonPath("$.quoteRefusalReason").value("Preço muito alto"));
+        }
+
+        @Test
+        void shouldReturn404WhenQuoteDoesNotExist() throws Exception {
+            when(serviceOrderService.reproveQuote(eq(QUOTE_ID), any()))
+                    .thenThrow(new QuoteNotFoundException(QUOTE_ID));
+
+            mockMvc.perform(patch(BASE_URL + "/quote/{id}/reprove", QUOTE_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                {
+                                    "reason": "Motivo"
+                                }
+                                """))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.title").value("Orçamento não encontrado"));
+        }
+
+        @Test
+        void shouldReturn409WhenTransitionIsInvalid() throws Exception {
+            when(serviceOrderService.reproveQuote(eq(QUOTE_ID), any()))
+                    .thenThrow(new InvalidServiceOrderTransitionException(
+                            ServiceOrderStatus.AWAITING_APPROVAL,
+                            ServiceOrderStatus.CANCELLED
+                    ));
+
+            mockMvc.perform(patch(BASE_URL + "/quote/{id}/reprove", QUOTE_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                {
+                                    "reason": "Motivo"
+                                }
+                                """))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.title").value("Transição de status inválida"));
+        }
+
+        @Test
+        void shouldReturn400WhenIdIsInvalidUuid() throws Exception {
+            mockMvc.perform(patch(BASE_URL + "/quote/{id}/reprove", "invalid-uuid")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                {
+                                    "reason": "Motivo"
+                                }
+                                """))
+                    .andExpect(status().isBadRequest());
+        }
+
+        private QuoteResponseDTO mockReprovedResponse() {
+            return new QuoteResponseDTO(
+                    QUOTE_ID,
+                    ORDER_ID,
+                    QuoteStatus.REPROVED,
+                    new BigDecimal("1500.00"),
+                    "Preço muito alto",
+                    List.of(),
+                    List.of(),
+                    NOW,
+                    NOW
+            );
         }
     }
 

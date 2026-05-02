@@ -2,6 +2,7 @@ package br.com.ofisy.interfaces.api.serviceorder;
 
 import br.com.ofisy.application.quote.dto.CreateQuoteRequestDTO;
 import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
+import br.com.ofisy.application.quote.dto.ReproveQuoteRequestDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderRequestDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderResponseDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderStatusResponseDTO;
@@ -58,4 +59,16 @@ public interface ServiceOrderApi {
     @ApiResponse(responseCode = "201", description = "Orçamento gerado com sucesso")
     @ApiResponse(responseCode = "404", description = "Ordem de serviço não encontrada")
     ResponseEntity<QuoteResponseDTO> generateQuote(UUID id, CreateQuoteRequestDTO request);
+
+    @Operation(summary = "Aprovar orçamento para uma ordem de serviço")
+    @ApiResponse(responseCode = "200", description = "Orçamento aprovado com sucesso")
+    @ApiResponse(responseCode = "404", description = "Orçamento não encontrado")
+    @ApiResponse(responseCode = "409", description = "Transição de estado inválida")
+    ResponseEntity<QuoteResponseDTO> approveQuote(UUID id);
+
+    @Operation(summary = "Reprovar orçamento para uma ordem de serviço")
+    @ApiResponse(responseCode = "200", description = "Orçamento reprovado com sucesso")
+    @ApiResponse(responseCode = "404", description = "Orçamento não encontrado")
+    @ApiResponse(responseCode = "409", description = "Transição de estado inválida")
+    ResponseEntity<QuoteResponseDTO> reproveQuote(UUID id, ReproveQuoteRequestDTO reproveQuoteRequestDTO);
 }

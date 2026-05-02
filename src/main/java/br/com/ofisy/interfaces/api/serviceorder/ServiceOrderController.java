@@ -2,6 +2,7 @@ package br.com.ofisy.interfaces.api.serviceorder;
 
 import br.com.ofisy.application.quote.dto.CreateQuoteRequestDTO;
 import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
+import br.com.ofisy.application.quote.dto.ReproveQuoteRequestDTO;
 import br.com.ofisy.application.serviceorder.ServiceOrderService;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderRequestDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderResponseDTO;
@@ -90,5 +91,17 @@ public class ServiceOrderController implements ServiceOrderApi {
     @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
     public ResponseEntity<ServiceOrderResponseDTO> cancelServiceOrder(@PathVariable UUID id) {
         return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.close(id));
+    }
+
+    @PatchMapping("/quote/{id}/approve")
+    public ResponseEntity<QuoteResponseDTO> approveQuote(@PathVariable UUID id) {
+        return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.approveQuote(id));
+    }
+
+    @PatchMapping("/quote/{id}/reprove")
+    public ResponseEntity<QuoteResponseDTO> reproveQuote(
+            @PathVariable UUID id,
+            @RequestBody ReproveQuoteRequestDTO reproveQuoteRequestDTO) {
+        return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.reproveQuote(id, reproveQuoteRequestDTO));
     }
 }

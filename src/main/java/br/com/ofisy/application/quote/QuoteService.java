@@ -45,14 +45,12 @@ public class QuoteService {
         return mapper.toResponse(quoteRepository.save(quote));
     }
 
-    @Transactional
     public QuoteResponseDTO approve(UUID id) {
         Quote quote = findQuoteById(id);
         quote.approve();
         return mapper.toResponse(quoteRepository.save(quote));
     }
 
-    @Transactional
     public QuoteResponseDTO reprove(UUID id, ReproveQuoteRequestDTO request) {
         Quote quote = findQuoteById(id);
         quote.reprove(request.reason());
