@@ -1,16 +1,27 @@
 package br.com.ofisy.integration;
 
+import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
+import br.com.ofisy.application.quote.QuoteService;
 import br.com.ofisy.application.quote.dto.CreateQuoteRequestDTO;
+import br.com.ofisy.application.quote.dto.ReproveQuoteRequestDTO;
 import br.com.ofisy.application.quote.dto.ServiceItemRequestDTO;
 import br.com.ofisy.application.quote.dto.StockItemRequestDTO;
+import br.com.ofisy.application.quote.exceptions.QuoteAlreadyExistsException;
+import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
+import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
 import br.com.ofisy.application.serviceorder.ServiceOrderService;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderRequestDTO;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
+import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
+import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
 import br.com.ofisy.domain.customer.CpfCnpj;
 import br.com.ofisy.domain.customer.Customer;
 import br.com.ofisy.domain.customer.CustomerRepository;
 import br.com.ofisy.domain.notification.NotificationRepository;
 import br.com.ofisy.domain.notification.NotificationType;
+import br.com.ofisy.domain.quote.QuoteStatus;
+import br.com.ofisy.domain.quote.exceptions.InvalidQuoteDataException;
+import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
 import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
@@ -40,6 +51,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class ServiceOrderIntegrationTest extends IntegrationTestBase {
 
     @Autowired private ServiceOrderService serviceOrderService;
+    @Autowired private QuoteService quoteService;
     @Autowired private CustomerRepository customerRepository;
     @Autowired private VehicleRepository vehicleRepository;
     @Autowired private UserRepository userRepository;
@@ -51,6 +63,7 @@ class ServiceOrderIntegrationTest extends IntegrationTestBase {
     private UUID customerId;
     private UUID vehicleId;
     private UUID stockId;
+    private UUID serviceOrderExecutionId;
     private String userEmail;
 
     @BeforeEach
@@ -74,10 +87,15 @@ class ServiceOrderIntegrationTest extends IntegrationTestBase {
                 Stock.create("Peça OS Teste", "Peça para testes de OS", 10, new BigDecimal("100.00"), "Testes", 2)
         );
         stockId = stock.getId();
-    }
 
-    private ServiceOrderRequestDTO defaultRequest() {
-        return new ServiceOrderRequestDTO(vehicleId, customerId, "Relatório de teste da OS");
+        ServiceCatalog serviceCatalog = serviceCatalogRepository.save(
+                ServiceCatalog.create("Serviço OS Teste", "Serviço para testes de OS", new BigDecimal("200.00"))
+        );
+
+        ServiceOrderExecution execution = serviceOrderExecutionRepository.save(
+                ServiceOrderExecution.create(serviceCatalog.getId(), UUID.randomUUID())
+        );
+        serviceOrderExecutionId = execution.getId();
     }
 
     @Nested
@@ -103,28 +121,28 @@ class ServiceOrderIntegrationTest extends IntegrationTestBase {
             Customer otherCustomer = customerRepository.save(
                     Customer.create(new CpfCnpj("11144477735"), "Maria Teste", "maria.teste@ofisy.com", "11988888888")
             );
-            var request = new ServiceOrderRequestDTO(vehicleId, otherCustomer.getId(), "Relatório");
+            var request = new ServiceOrderRequestDTO(vehicleId, otherCustomer.getId(), "Relatório de teste da OS");
 
             assertThatThrownBy(() -> serviceOrderService.create(request, userEmail))
-                    .isInstanceOf(RuntimeException.class);
+                    .isInstanceOf(VehicleNotOwnedByCustomerException.class);
         }
 
         @Test
         @DisplayName("Deve lançar exceção quando cliente não encontrado")
         void shouldThrowExceptionWhenCustomerNotFound() {
-            var request = new ServiceOrderRequestDTO(vehicleId, UUID.randomUUID(), "Relatório");
+            var request = new ServiceOrderRequestDTO(vehicleId, UUID.randomUUID(), "Relatório de teste da OS");
 
             assertThatThrownBy(() -> serviceOrderService.create(request, userEmail))
-                    .isInstanceOf(RuntimeException.class);
+                    .isInstanceOf(CustomerNotFoundException.class);
         }
 
         @Test
         @DisplayName("Deve lançar exceção quando veículo não encontrado")
         void shouldThrowExceptionWhenVehicleNotFound() {
-            var request = new ServiceOrderRequestDTO(UUID.randomUUID(), customerId, "Relatório");
+            var request = new ServiceOrderRequestDTO(UUID.randomUUID(), customerId, "Relatório de teste da OS");
 
             assertThatThrownBy(() -> serviceOrderService.create(request, userEmail))
-                    .isInstanceOf(RuntimeException.class);
+                    .isInstanceOf(VehicleNotFoundException.class);
         }
     }
 
@@ -136,7 +154,6 @@ class ServiceOrderIntegrationTest extends IntegrationTestBase {
         @DisplayName("Deve iniciar diagnóstico com sucesso")
         void shouldStartDiagnosticSuccessfully() {
             var created = serviceOrderService.create(defaultRequest(), userEmail);
-
             var response = serviceOrderService.startDiagnostic(created.id());
 
             assertThat(response.status()).isEqualTo(ServiceOrderStatus.IN_DIAGNOSTIC.name());
@@ -164,98 +181,6 @@ class ServiceOrderIntegrationTest extends IntegrationTestBase {
     }
 
     @Nested
-    @DisplayName("generateQuote")
-    class GenerateQuote {
-
-        @Test
-        @DisplayName("Deve gerar orçamento e mudar status da OS para AWAITING_APPROVAL")
-        void shouldGenerateQuoteAndChangeStatusToAwaitingApproval() {
-            var created = serviceOrderService.create(defaultRequest(), userEmail);
-            serviceOrderService.startDiagnostic(created.id());
-
-            var quoteRequest = new CreateQuoteRequestDTO(
-                    created.id(),
-                    List.of(new StockItemRequestDTO(stockId, 1)),
-                    List.of()
-            );
-
-            var quote = serviceOrderService.generateQuote(created.id(), quoteRequest);
-
-            assertThat(quote).isNotNull();
-            assertThat(quote.serviceOrderId()).isEqualTo(created.id());
-
-            var status = serviceOrderService.getStatus(created.id());
-            assertThat(status.status()).isEqualTo(ServiceOrderStatus.AWAITING_APPROVAL);
-        }
-
-        @Test
-        @DisplayName("Deve criar notificação ao gerar orçamento")
-        void shouldCreateNotificationWhenGeneratingQuote() {
-            var created = serviceOrderService.create(defaultRequest(), userEmail);
-            serviceOrderService.startDiagnostic(created.id());
-
-            var quoteRequest = new CreateQuoteRequestDTO(
-                    created.id(),
-                    List.of(new StockItemRequestDTO(stockId, 1)),
-                    List.of()
-            );
-
-            var quote = serviceOrderService.generateQuote(created.id(), quoteRequest);
-
-            var notifications = notificationRepository.findAll().stream()
-                    .filter(n -> n.getType() == NotificationType.QUOTE_GENERATED)
-                    .filter(n -> quote.id().equals(n.getQuoteId()))
-                    .toList();
-
-            assertThat(notifications).hasSize(1);
-            assertThat(notifications.getFirst().getRead()).isFalse();
-        }
-
-        @Test
-        @DisplayName("Deve gerar orçamento com itens de serviço e notificar")
-        void shouldGenerateQuoteWithServiceItemsAndNotify() {
-            var created = serviceOrderService.create(defaultRequest(), userEmail);
-            serviceOrderService.startDiagnostic(created.id());
-
-            ServiceOrderExecution execution = serviceOrderExecutionRepository.save(
-                    ServiceOrderExecution.create(
-                            serviceCatalogRepository.findAll(PageRequest.of(0, 1)).getContent().getFirst().getId(),
-                            created.id()
-                    )
-            );
-
-            var quoteRequest = new CreateQuoteRequestDTO(
-                    created.id(),
-                    List.of(new StockItemRequestDTO(stockId, 1)),
-                    List.of(new ServiceItemRequestDTO(execution.getId()))
-            );
-
-            var quote = serviceOrderService.generateQuote(created.id(), quoteRequest);
-
-            assertThat(quote.serviceItems()).hasSize(1);
-            assertThat(quote.stockItems()).hasSize(1);
-
-            var notifications = notificationRepository.findAll().stream()
-                    .filter(n -> n.getType() == NotificationType.QUOTE_GENERATED)
-                    .toList();
-            assertThat(notifications).hasSize(1);
-        }
-
-        @Test
-        @DisplayName("Deve lançar exceção ao gerar orçamento de OS não encontrada")
-        void shouldThrowExceptionWhenServiceOrderNotFound() {
-            var quoteRequest = new CreateQuoteRequestDTO(
-                    UUID.randomUUID(),
-                    List.of(new StockItemRequestDTO(stockId, 1)),
-                    List.of()
-            );
-            UUID quoteId = UUID.randomUUID();
-            assertThatThrownBy(() -> serviceOrderService.generateQuote(quoteId, quoteRequest))
-                    .isInstanceOf(ServiceOrderNotFoundException.class);
-        }
-    }
-
-    @Nested
     @DisplayName("close")
     class Close {
 
@@ -263,7 +188,6 @@ class ServiceOrderIntegrationTest extends IntegrationTestBase {
         @DisplayName("Deve cancelar ordem de serviço com sucesso")
         void shouldCloseServiceOrderSuccessfully() {
             var created = serviceOrderService.create(defaultRequest(), userEmail);
-
             var response = serviceOrderService.close(created.id());
 
             assertThat(response.status()).isEqualTo(ServiceOrderStatus.CANCELLED.name());
@@ -332,5 +256,261 @@ class ServiceOrderIntegrationTest extends IntegrationTestBase {
             assertThatThrownBy(() -> serviceOrderService.deliverToCustomer(id))
                     .isInstanceOf(InvalidServiceOrderTransitionException.class);
         }
+    }
+
+    @Nested
+    @DisplayName("generateQuote")
+    class GenerateQuote {
+
+        @Test
+        @DisplayName("Deve gerar orçamento com itens de estoque e mudar status para AWAITING_APPROVAL")
+        void shouldGenerateQuoteWithStockItemsAndChangeStatus() {
+            UUID osId = createAndStartDiagnostic();
+            var request = stockOnlyQuoteRequest(osId, 1);
+
+            var quote = serviceOrderService.generateQuote(osId, request);
+
+            assertThat(quote).isNotNull();
+            assertThat(quote.serviceOrderId()).isEqualTo(osId);
+            assertThat(quote.status()).isEqualTo(QuoteStatus.PENDING);
+            assertThat(quote.stockItems()).hasSize(1);
+
+            var status = serviceOrderService.getStatus(osId);
+            assertThat(status.status()).isEqualTo(ServiceOrderStatus.AWAITING_APPROVAL);
+        }
+
+        @Test
+        @DisplayName("Deve gerar orçamento com itens de estoque e serviço")
+        void shouldGenerateQuoteWithStockAndServiceItems() {
+            UUID osId = createAndStartDiagnostic();
+
+            ServiceOrderExecution execution = serviceOrderExecutionRepository.save(
+                    ServiceOrderExecution.create(
+                            serviceCatalogRepository.findByName("Serviço OS Teste").orElseThrow().getId(),
+                            osId
+                    )
+            );
+
+            var request = new CreateQuoteRequestDTO(
+                    osId,
+                    List.of(new StockItemRequestDTO(stockId, 1)),
+                    List.of(new ServiceItemRequestDTO(execution.getId()))
+            );
+
+            var quote = serviceOrderService.generateQuote(osId, request);
+
+            assertThat(quote.stockItems()).hasSize(1);
+            assertThat(quote.serviceItems()).hasSize(1);
+            assertThat(quote.totalPrice()).isEqualByComparingTo(new BigDecimal("300.00"));
+        }
+
+        @Test
+        @DisplayName("Deve criar notificação ao gerar orçamento")
+        void shouldCreateNotificationWhenGeneratingQuote() {
+            UUID osId = createAndStartDiagnostic();
+            var request = stockOnlyQuoteRequest(osId, 1);
+
+            var quote = serviceOrderService.generateQuote(osId, request);
+
+            var notifications = notificationRepository.findAll().stream()
+                    .filter(n -> n.getType() == NotificationType.QUOTE_GENERATED)
+                    .filter(n -> quote.id().equals(n.getQuoteId()))
+                    .toList();
+
+            assertThat(notifications).hasSize(1);
+            assertThat(notifications.getFirst().getRead()).isFalse();
+        }
+
+        @Test
+        @DisplayName("Deve lançar exceção quando ambas as listas estão vazias")
+        void shouldThrowExceptionWhenBothListsAreEmpty() {
+            UUID osId = createAndStartDiagnostic();
+            var request = new CreateQuoteRequestDTO(osId, List.of(), List.of());
+
+            assertThatThrownBy(() -> serviceOrderService.generateQuote(osId, request))
+                    .isInstanceOf(InvalidQuoteDataException.class);
+        }
+
+        @Test
+        @DisplayName("Deve lançar exceção ao gerar orçamento duplicado para a OS")
+        void shouldThrowExceptionWhenQuoteAlreadyExists() {
+            UUID osId = createAndStartDiagnostic();
+            CreateQuoteRequestDTO quoteRequestDTO = fullQuoteRequest(osId, 1);
+            serviceOrderService.generateQuote(osId, quoteRequestDTO);
+
+            assertThatThrownBy(() -> serviceOrderService.generateQuote(osId, quoteRequestDTO))
+                    .isInstanceOf(QuoteAlreadyExistsException.class);
+        }
+
+        @Test
+        @DisplayName("Deve lançar exceção quando item de estoque duplicado")
+        void shouldThrowExceptionWhenDuplicateStockItem() {
+            UUID osId = createAndStartDiagnostic();
+            var request = new CreateQuoteRequestDTO(
+                    osId,
+                    List.of(
+                            new StockItemRequestDTO(stockId, 1),
+                            new StockItemRequestDTO(stockId, 1)
+                    ),
+                    List.of()
+            );
+
+            assertThatThrownBy(() -> serviceOrderService.generateQuote(osId, request))
+                    .isInstanceOf(QuoteItemAlreadyExistsException.class);
+        }
+
+        @Test
+        @DisplayName("Deve consumir estoque ao gerar orçamento")
+        void shouldConsumeStockWhenGeneratingQuote() {
+            UUID osId = createAndStartDiagnostic();
+            var quantityBefore = stockRepository.findById(stockId).orElseThrow().getQuantity();
+
+            serviceOrderService.generateQuote(osId, stockOnlyQuoteRequest(osId, 2));
+
+            var quantityAfter = stockRepository.findById(stockId).orElseThrow().getQuantity();
+            assertThat(quantityAfter).isEqualTo(quantityBefore - 2);
+        }
+
+        @Test
+        @DisplayName("Deve lançar exceção ao gerar orçamento de OS não encontrada")
+        void shouldThrowExceptionWhenServiceOrderNotFound() {
+            UUID randomId = UUID.randomUUID();
+            var request = stockOnlyQuoteRequest(randomId, 1);
+
+            assertThatThrownBy(() -> serviceOrderService.generateQuote(randomId, request))
+                    .isInstanceOf(ServiceOrderNotFoundException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("approveQuote")
+    class ApproveQuote {
+
+        @Test
+        @DisplayName("Deve aprovar orçamento pendente")
+        void shouldApproveQuote() {
+            UUID osId = createAndStartDiagnostic();
+            var quote = serviceOrderService.generateQuote(osId, stockOnlyQuoteRequest(osId, 1));
+
+            var response = quoteService.approve(quote.id());
+
+            assertThat(response.status()).isEqualTo(QuoteStatus.APPROVED);
+            assertThat(response.updatedAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Deve lançar exceção ao aprovar orçamento não pendente")
+        void shouldThrowExceptionWhenApprovingNonPendingQuote() {
+            UUID osId = createAndStartDiagnostic();
+            var quote = serviceOrderService.generateQuote(osId, stockOnlyQuoteRequest(osId, 1));
+            quoteService.approve(quote.id());
+            UUID quoteId = quote.id();
+
+            assertThatThrownBy(() -> quoteService.approve(quoteId))
+                    .isInstanceOf(InvalidQuoteStatusException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("reproveQuote")
+    class ReproveQuote {
+
+        @Test
+        @DisplayName("Deve reprovar orçamento pendente com motivo")
+        void shouldReproveQuoteWithReason() {
+            UUID osId = createAndStartDiagnostic();
+            var quote = serviceOrderService.generateQuote(osId, stockOnlyQuoteRequest(osId, 1));
+
+            var response = quoteService.reprove(quote.id(), new ReproveQuoteRequestDTO("Outra oficina passou um orçamento mais em conta"));
+
+            assertThat(response.status()).isEqualTo(QuoteStatus.REPROVED);
+            assertThat(response.quoteRefusalReason()).isEqualTo("Outra oficina passou um orçamento mais em conta");
+            assertThat(response.updatedAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Deve lançar exceção ao reprovar orçamento não pendente")
+        void shouldThrowExceptionWhenReprovingNonPendingQuote() {
+            UUID osId = createAndStartDiagnostic();
+            var quote = serviceOrderService.generateQuote(osId, stockOnlyQuoteRequest(osId, 1));
+            quoteService.approve(quote.id());
+
+            UUID quoteId = quote.id();
+            ReproveQuoteRequestDTO reproveQuoteRequestDTO = new ReproveQuoteRequestDTO("Achei o valor do orçamento muito alto para meu bolso");
+            assertThatThrownBy(() -> quoteService.reprove(quoteId, reproveQuoteRequestDTO))
+                    .isInstanceOf(InvalidQuoteStatusException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("findQuote")
+    class FindQuote {
+
+        @Test
+        @DisplayName("Deve retornar orçamento por ID")
+        void shouldReturnQuoteById() {
+            UUID osId = createAndStartDiagnostic();
+            var quote = serviceOrderService.generateQuote(osId, stockOnlyQuoteRequest(osId, 1));
+
+            var response = quoteService.findById(quote.id());
+
+            assertThat(response).isNotNull();
+            assertThat(response.id()).isEqualTo(quote.id());
+            assertThat(response.serviceOrderId()).isEqualTo(osId);
+        }
+
+        @Test
+        @DisplayName("Deve lançar exceção quando orçamento não encontrado")
+        void shouldThrowExceptionWhenQuoteNotFound() {
+            UUID quoteId = UUID.randomUUID();
+            assertThatThrownBy(() -> quoteService.findById(quoteId))
+                    .isInstanceOf(QuoteNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("Deve retornar orçamento por OS")
+        void shouldReturnQuoteByServiceOrderId() {
+            UUID osId = createAndStartDiagnostic();
+            serviceOrderService.generateQuote(osId, stockOnlyQuoteRequest(osId, 1));
+
+            var response = quoteService.findByServiceOrderId(osId);
+
+            assertThat(response).hasSize(1);
+            assertThat(response.getFirst().serviceOrderId()).isEqualTo(osId);
+        }
+
+        @Test
+        @DisplayName("Deve retornar lista vazia quando não há orçamentos para a OS")
+        void shouldReturnEmptyListWhenNoQuotes() {
+            var response = quoteService.findByServiceOrderId(UUID.randomUUID());
+
+            assertThat(response).isEmpty();
+        }
+    }
+
+    private ServiceOrderRequestDTO defaultRequest() {
+        return new ServiceOrderRequestDTO(vehicleId, customerId, "Relatório de teste da OS");
+    }
+
+    private UUID createAndStartDiagnostic() {
+        var created = serviceOrderService.create(defaultRequest(), userEmail);
+        serviceOrderService.startDiagnostic(created.id());
+        return created.id();
+    }
+
+    private CreateQuoteRequestDTO stockOnlyQuoteRequest(UUID serviceOrderId, int quantity) {
+        return new CreateQuoteRequestDTO(
+                serviceOrderId,
+                List.of(new StockItemRequestDTO(stockId, quantity)),
+                List.of()
+        );
+    }
+
+    private CreateQuoteRequestDTO fullQuoteRequest(UUID serviceOrderId, int quantity) {
+        return new CreateQuoteRequestDTO(
+                serviceOrderId,
+                List.of(new StockItemRequestDTO(stockId, quantity)),
+                List.of(new ServiceItemRequestDTO(serviceOrderExecutionId))
+        );
     }
 }
