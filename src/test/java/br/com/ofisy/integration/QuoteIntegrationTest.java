@@ -7,6 +7,7 @@ import br.com.ofisy.application.quote.dto.ServiceItemRequestDTO;
 import br.com.ofisy.application.quote.dto.StockItemRequestDTO;
 import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
+import br.com.ofisy.application.stock.dto.CreateStockRequestDTO;
 import br.com.ofisy.domain.customer.CpfCnpj;
 import br.com.ofisy.domain.customer.Customer;
 import br.com.ofisy.domain.customer.CustomerRepository;
@@ -33,7 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,32 +42,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @Tag("integration")
 class QuoteIntegrationTest extends IntegrationTestBase {
 
-    @Autowired
-    private QuoteService quoteService;
-
-    @Autowired
-    private QuoteRepository quoteRepository;
-
-    @Autowired
-    private StockRepository stockRepository;
-
-    @Autowired
-    private ServiceCatalogRepository serviceCatalogRepository;
-
-    @Autowired
-    private ServiceOrderRepository serviceOrderRepository;
-
-    @Autowired
-    private ServiceOrderExecutionRepository serviceOrderExecutionRepository;
-
-    @Autowired
-    private CustomerRepository customerRepository;
-
-    @Autowired
-    private VehicleRepository vehicleRepository;
-
-    @Autowired
-    private UserRepository userRepository;
+    @Autowired private QuoteService quoteService;
+    @Autowired private QuoteRepository quoteRepository;
+    @Autowired private StockRepository stockRepository;
+    @Autowired private ServiceCatalogRepository serviceCatalogRepository;
+    @Autowired private ServiceOrderRepository serviceOrderRepository;
+    @Autowired private ServiceOrderExecutionRepository serviceOrderExecutionRepository;
+    @Autowired private CustomerRepository customerRepository;
+    @Autowired private VehicleRepository vehicleRepository;
+    @Autowired private UserRepository userRepository;
 
     private UUID serviceOrderId;
     private UUID stockId;
@@ -107,6 +90,30 @@ class QuoteIntegrationTest extends IntegrationTestBase {
         serviceOrderExecutionId = execution.getId();
     }
 
+    private CreateQuoteRequestDTO stockOnlyRequest(int quantity) {
+        return new CreateQuoteRequestDTO(
+                serviceOrderId,
+                List.of(new StockItemRequestDTO(stockId, quantity)),
+                List.of()
+        );
+    }
+
+    private CreateQuoteRequestDTO serviceOnlyRequest() {
+        return new CreateQuoteRequestDTO(
+                serviceOrderId,
+                List.of(),
+                List.of(new ServiceItemRequestDTO(serviceOrderExecutionId))
+        );
+    }
+
+    private CreateQuoteRequestDTO fullRequest(int quantity) {
+        return new CreateQuoteRequestDTO(
+                serviceOrderId,
+                List.of(new StockItemRequestDTO(stockId, quantity)),
+                List.of(new ServiceItemRequestDTO(serviceOrderExecutionId))
+        );
+    }
+
     @Nested
     @DisplayName("create")
     class Create {
@@ -114,13 +121,7 @@ class QuoteIntegrationTest extends IntegrationTestBase {
         @Test
         @DisplayName("Deve criar orçamento com itens de estoque com sucesso")
         void shouldCreateQuoteWithStockItemsSuccessfully() {
-            var request = new CreateQuoteRequestDTO(
-                    serviceOrderId,
-                    List.of(new StockItemRequestDTO(stockId, 2)),
-                    List.of()
-            );
-
-            var response = quoteService.create(request);
+            var response = quoteService.create(serviceOrderId, stockOnlyRequest(2));
 
             assertThat(response).isNotNull();
             assertThat(response.serviceOrderId()).isEqualTo(serviceOrderId);
@@ -131,21 +132,74 @@ class QuoteIntegrationTest extends IntegrationTestBase {
         }
 
         @Test
+        @DisplayName("Deve criar orçamento com itens de estoque e serviço com sucesso")
+        void shouldCreateQuoteWithStockAndServiceItemsSuccessfully() {
+            var response = quoteService.create(serviceOrderId, fullRequest(1));
+
+            assertThat(response).isNotNull();
+            assertThat(response.status()).isEqualTo(QuoteStatus.PENDING);
+            assertThat(response.totalPrice()).isEqualByComparingTo(new BigDecimal("470.00"));
+            assertThat(response.stockItems()).hasSize(1);
+            assertThat(response.serviceItems()).hasSize(1);
+        }
+
+        @Test
         @DisplayName("Deve criar orçamento apenas com itens de serviço com sucesso")
         void shouldCreateQuoteWithOnlyServiceItemsSuccessfully() {
-            var request = new CreateQuoteRequestDTO(
-                    serviceOrderId,
-                    List.of(),
-                    List.of(new ServiceItemRequestDTO(serviceOrderExecutionId))
-            );
-
-            var response = quoteService.create(request);
+            var response = quoteService.create(serviceOrderId, serviceOnlyRequest());
 
             assertThat(response).isNotNull();
             assertThat(response.status()).isEqualTo(QuoteStatus.PENDING);
             assertThat(response.totalPrice()).isEqualByComparingTo(new BigDecimal("350.00"));
             assertThat(response.stockItems()).isEmpty();
             assertThat(response.serviceItems()).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("Deve lançar exceção quando ambas as listas estão vazias")
+        void shouldThrowExceptionWhenBothListsAreEmpty() {
+            var request = new CreateQuoteRequestDTO(serviceOrderId, List.of(), List.of());
+
+            assertThatThrownBy(() -> quoteService.create(serviceOrderId, request))
+                    .isInstanceOf(InvalidQuoteDataException.class);
+        }
+
+        @Test
+        @DisplayName("Deve lançar exceção quando já existe orçamento para a OS")
+        void shouldThrowExceptionWhenQuoteAlreadyExistsForServiceOrder() {
+
+            CreateQuoteRequestDTO quoteRequestDTO = stockOnlyRequest(1);
+            quoteService.create(serviceOrderId, quoteRequestDTO);
+
+            assertThatThrownBy(() -> quoteService.create(serviceOrderId, quoteRequestDTO))
+                    .isInstanceOf(RuntimeException.class);
+        }
+
+        @Test
+        @DisplayName("Deve lançar exceção quando item de serviço duplicado")
+        void shouldThrowExceptionWhenDuplicateServiceItem() {
+            var request = new CreateQuoteRequestDTO(
+                    serviceOrderId,
+                    List.of(new StockItemRequestDTO(stockId, 1)),
+                    List.of(
+                            new ServiceItemRequestDTO(serviceOrderExecutionId),
+                            new ServiceItemRequestDTO(serviceOrderExecutionId)
+                    )
+            );
+
+            assertThatThrownBy(() -> quoteService.create(serviceOrderId, request))
+                    .isInstanceOf(QuoteItemAlreadyExistsException.class);
+        }
+
+        @Test
+        @DisplayName("Deve consumir estoque ao criar orçamento")
+        void shouldConsumeStockWhenCreatingQuote() {
+            var quantityBefore = stockRepository.findById(stockId).orElseThrow().getQuantity();
+
+            quoteService.create(serviceOrderId, stockOnlyRequest(2));
+
+            var quantityAfter = stockRepository.findById(stockId).orElseThrow().getQuantity();
+            assertThat(quantityAfter).isEqualTo(quantityBefore - 2);
         }
 
         @Test
@@ -167,75 +221,11 @@ class QuoteIntegrationTest extends IntegrationTestBase {
                     )
             );
 
-            var response = quoteService.create(request);
+            var response = quoteService.create(serviceOrderId, request);
 
             assertThat(response.stockItems()).hasSize(1);
             assertThat(response.serviceItems()).hasSize(2);
             assertThat(response.totalPrice()).isEqualByComparingTo(new BigDecimal("670.00"));
-        }
-
-        @Test
-        @DisplayName("Deve lançar exceção quando item de serviço duplicado")
-        void shouldThrowExceptionWhenDuplicateServiceItem() {
-            var request = new CreateQuoteRequestDTO(
-                    serviceOrderId,
-                    List.of(new StockItemRequestDTO(stockId, 1)),
-                    List.of(
-                            new ServiceItemRequestDTO(serviceOrderExecutionId),
-                            new ServiceItemRequestDTO(serviceOrderExecutionId)
-                    )
-            );
-
-            assertThatThrownBy(() -> quoteService.create(request))
-                    .isInstanceOf(QuoteItemAlreadyExistsException.class);
-        }
-
-        @Test
-        @DisplayName("Deve criar orçamento com itens de estoque e serviço com sucesso")
-        void shouldCreateQuoteWithStockAndServiceItemsSuccessfully() {
-            var request = new CreateQuoteRequestDTO(
-                    serviceOrderId,
-                    List.of(new StockItemRequestDTO(stockId, 1)),
-                    List.of(new ServiceItemRequestDTO(serviceOrderExecutionId))
-            );
-
-            var response = quoteService.create(request);
-
-            assertThat(response).isNotNull();
-            assertThat(response.status()).isEqualTo(QuoteStatus.PENDING);
-            assertThat(response.totalPrice()).isEqualByComparingTo(new BigDecimal("470.00"));
-            assertThat(response.stockItems()).hasSize(1);
-            assertThat(response.serviceItems()).hasSize(1);
-        }
-
-        @Test
-        @DisplayName("Deve lançar exceção quando ambas as listas estão vazias")
-        void shouldThrowExceptionWhenBothListsAreEmpty() {
-            var request = new CreateQuoteRequestDTO(
-                    serviceOrderId,
-                    List.of(),
-                    List.of()
-            );
-
-            assertThatThrownBy(() -> quoteService.create(request))
-                    .isInstanceOf(InvalidQuoteDataException.class);
-        }
-
-        @Test
-        @DisplayName("Deve consumir estoque ao criar orçamento")
-        void shouldConsumeStockWhenCreatingQuote() {
-            var quantityBefore = stockRepository.findById(stockId).orElseThrow().getQuantity();
-
-            var request = new CreateQuoteRequestDTO(
-                    serviceOrderId,
-                    List.of(new StockItemRequestDTO(stockId, 2)),
-                    List.of()
-            );
-
-            quoteService.create(request);
-
-            var quantityAfter = stockRepository.findById(stockId).orElseThrow().getQuantity();
-            assertThat(quantityAfter).isEqualTo(quantityBefore - 2);
         }
     }
 
@@ -246,12 +236,7 @@ class QuoteIntegrationTest extends IntegrationTestBase {
         @Test
         @DisplayName("Deve retornar orçamento quando encontrado")
         void shouldReturnQuoteWhenFound() {
-            var request = new CreateQuoteRequestDTO(
-                    serviceOrderId,
-                    List.of(new StockItemRequestDTO(stockId, 1)),
-                    List.of()
-            );
-            var created = quoteService.create(request);
+            var created = quoteService.create(serviceOrderId, stockOnlyRequest(1));
 
             var response = quoteService.findById(created.id());
 
@@ -262,7 +247,8 @@ class QuoteIntegrationTest extends IntegrationTestBase {
         @Test
         @DisplayName("Deve lançar exceção quando orçamento não encontrado")
         void shouldThrowExceptionWhenQuoteNotFound() {
-            assertThatThrownBy(() -> quoteService.findById(UUID.randomUUID()))
+            UUID quoteId = UUID.randomUUID();
+            assertThatThrownBy(() -> quoteService.findById(quoteId))
                     .isInstanceOf(QuoteNotFoundException.class);
         }
     }
@@ -274,12 +260,7 @@ class QuoteIntegrationTest extends IntegrationTestBase {
         @Test
         @DisplayName("Deve retornar orçamentos da ordem de serviço")
         void shouldReturnQuotesByServiceOrderId() {
-            var request = new CreateQuoteRequestDTO(
-                    serviceOrderId,
-                    List.of(new StockItemRequestDTO(stockId, 1)),
-                    List.of()
-            );
-            quoteService.create(request);
+            quoteService.create(serviceOrderId, stockOnlyRequest(1));
 
             var response = quoteService.findByServiceOrderId(serviceOrderId);
 
@@ -303,12 +284,7 @@ class QuoteIntegrationTest extends IntegrationTestBase {
         @Test
         @DisplayName("Deve aprovar orçamento pendente")
         void shouldApproveQuote() {
-            var request = new CreateQuoteRequestDTO(
-                    serviceOrderId,
-                    List.of(new StockItemRequestDTO(stockId, 1)),
-                    List.of()
-            );
-            var created = quoteService.create(request);
+            var created = quoteService.create(serviceOrderId, stockOnlyRequest(1));
 
             var response = quoteService.approve(created.id());
 
@@ -317,34 +293,25 @@ class QuoteIntegrationTest extends IntegrationTestBase {
         }
 
         @Test
-        @DisplayName("Deve lançar exceção ao aprovar orçamento não pendente")
-        void shouldThrowExceptionWhenApprovingNonPendingQuote() {
-            var request = new CreateQuoteRequestDTO(
-                    serviceOrderId,
-                    List.of(new StockItemRequestDTO(stockId, 1)),
-                    List.of()
-            );
-            var created = quoteService.create(request);
-            quoteService.approve(created.id());
-
-            assertThatThrownBy(() -> quoteService.approve(created.id()))
-                    .isInstanceOf(InvalidQuoteStatusException.class);
-        }
-
-        @Test
         @DisplayName("Deve aprovar orçamento com itens de serviço")
         void shouldApproveQuoteWithServiceItems() {
-            var request = new CreateQuoteRequestDTO(
-                    serviceOrderId,
-                    List.of(new StockItemRequestDTO(stockId, 1)),
-                    List.of(new ServiceItemRequestDTO(serviceOrderExecutionId))
-            );
-            var created = quoteService.create(request);
+            var created = quoteService.create(serviceOrderId, fullRequest(1));
 
             var response = quoteService.approve(created.id());
 
             assertThat(response.status()).isEqualTo(QuoteStatus.APPROVED);
             assertThat(response.serviceItems()).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("Deve lançar exceção ao aprovar orçamento não pendente")
+        void shouldThrowExceptionWhenApprovingNonPendingQuote() {
+            var created = quoteService.create(serviceOrderId, stockOnlyRequest(1));
+            UUID quoteId = created.id();
+            quoteService.approve(quoteId);
+
+            assertThatThrownBy(() -> quoteService.approve(quoteId))
+                    .isInstanceOf(InvalidQuoteStatusException.class);
         }
     }
 
@@ -355,12 +322,7 @@ class QuoteIntegrationTest extends IntegrationTestBase {
         @Test
         @DisplayName("Deve reprovar orçamento pendente com motivo")
         void shouldReproveQuoteWithReason() {
-            var request = new CreateQuoteRequestDTO(
-                    serviceOrderId,
-                    List.of(new StockItemRequestDTO(stockId, 1)),
-                    List.of()
-            );
-            var created = quoteService.create(request);
+            var created = quoteService.create(serviceOrderId, stockOnlyRequest(1));
 
             var response = quoteService.reprove(created.id(), new ReproveQuoteRequestDTO("Valor muito alto"));
 
@@ -370,35 +332,26 @@ class QuoteIntegrationTest extends IntegrationTestBase {
         }
 
         @Test
-        @DisplayName("Deve lançar exceção ao reprovar orçamento não pendente")
-        void shouldThrowExceptionWhenReprovingNonPendingQuote() {
-            var request = new CreateQuoteRequestDTO(
-                    serviceOrderId,
-                    List.of(new StockItemRequestDTO(stockId, 1)),
-                    List.of()
-            );
-            var created = quoteService.create(request);
-            quoteService.approve(created.id());
-
-            assertThatThrownBy(() -> quoteService.reprove(created.id(), new ReproveQuoteRequestDTO("Motivo")))
-                    .isInstanceOf(InvalidQuoteStatusException.class);
-        }
-
-        @Test
         @DisplayName("Deve reprovar orçamento com itens de serviço com motivo")
         void shouldReproveQuoteWithServiceItemsAndReason() {
-            var request = new CreateQuoteRequestDTO(
-                    serviceOrderId,
-                    List.of(new StockItemRequestDTO(stockId, 1)),
-                    List.of(new ServiceItemRequestDTO(serviceOrderExecutionId))
-            );
-            var created = quoteService.create(request);
+            var created = quoteService.create(serviceOrderId, fullRequest(1));
 
             var response = quoteService.reprove(created.id(), new ReproveQuoteRequestDTO("Serviço muito caro"));
 
             assertThat(response.status()).isEqualTo(QuoteStatus.REPROVED);
             assertThat(response.quoteRefusalReason()).isEqualTo("Serviço muito caro");
             assertThat(response.serviceItems()).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("Deve lançar exceção ao reprovar orçamento não pendente")
+        void shouldThrowExceptionWhenReprovingNonPendingQuote() {
+            var created = quoteService.create(serviceOrderId, stockOnlyRequest(1));
+            UUID quoteId = created.id();
+            quoteService.approve(quoteId);
+            ReproveQuoteRequestDTO reproveQuoteRequestDTO = new ReproveQuoteRequestDTO("Não gostei do valor do orçamento fornecido");
+            assertThatThrownBy(() -> quoteService.reprove(quoteId, reproveQuoteRequestDTO))
+                    .isInstanceOf(InvalidQuoteStatusException.class);
         }
     }
 }
