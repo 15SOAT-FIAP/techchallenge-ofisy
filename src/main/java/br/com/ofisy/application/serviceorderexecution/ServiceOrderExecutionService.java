@@ -1,5 +1,6 @@
 package br.com.ofisy.application.serviceorderexecution;
 
+import br.com.ofisy.application.serviceorder.ServiceOrderService;
 import br.com.ofisy.application.serviceorderexecution.dto.ServiceOrderExecutionRequestDTO;
 import br.com.ofisy.application.serviceorderexecution.dto.ServiceOrderExecutionResponseDTO;
 import br.com.ofisy.application.serviceorderexecution.exceptions.ServiceOrderExecutionNotFoundException;
@@ -20,6 +21,7 @@ import java.util.UUID;
 public class ServiceOrderExecutionService {
 
     private final ServiceOrderExecutionRepository repository;
+    private final ServiceOrderService serviceOrderService;
 
     @Transactional
     public ServiceOrderExecutionResponseDTO create(ServiceOrderExecutionRequestDTO dto) {
@@ -65,7 +67,11 @@ public class ServiceOrderExecutionService {
         ServiceOrderExecution service = repository.findById(id)
                 .orElseThrow(() -> new ServiceOrderExecutionNotFoundException(id));
         service.complete();
-        return ServiceOrderExecutionMapper.toDTO(repository.save(service));
+        ServiceOrderExecution savedService = repository.save(service);
+        if (allServicesFinished(savedService.getServiceOrderId())) {
+            serviceOrderService.finish(savedService.getServiceOrderId());
+        }
+        return ServiceOrderExecutionMapper.toDTO(savedService);
     }
 
     @Transactional
@@ -109,4 +115,10 @@ public class ServiceOrderExecutionService {
         return completedCount > 0 ? (double) totalMinutes / completedCount : 0.0;
     }
 
+    private boolean allServicesFinished(UUID serviceOrderId) {
+        long totalServices = repository.countByServiceOrderId(serviceOrderId);
+        long totalServicesCompleted = repository.countByServiceOrderIdAndStatus(serviceOrderId, ServiceOrderExecutionStatus.COMPLETED);
+
+        return totalServices > 0 && totalServices == totalServicesCompleted;
+    }
 }

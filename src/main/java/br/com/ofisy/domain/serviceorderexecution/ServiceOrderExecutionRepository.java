@@ -19,5 +19,9 @@ public interface ServiceOrderExecutionRepository {
     Page<ServiceOrderExecution> findByServiceOrderId(UUID serviceOrderId, Pageable pageable);
 
     Page<ServiceOrderExecution> findByStatus(ServiceOrderExecutionStatus status, Pageable pageable);
+
+    long countByServiceOrderId(UUID serviceOrderId);
+
+    long countByServiceOrderIdAndStatus(UUID serviceOrderId, ServiceOrderExecutionStatus serviceOrderExecutionStatus);
 }
 

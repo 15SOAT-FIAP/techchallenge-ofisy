@@ -46,5 +46,17 @@ public class ServiceOrderExecutionRepositoryImpl implements ServiceOrderExecutio
     public Page<ServiceOrderExecution> findByStatus(ServiceOrderExecutionStatus status, Pageable pageable) {
         return jpa.findByStatus(status, pageable);
     }
+
+    @Override
+    public long countByServiceOrderId(UUID serviceOrderId) {
+        return jpa.countByServiceOrderId(serviceOrderId);
+    }
+
+    @Override
+    public long countByServiceOrderIdAndStatus(UUID serviceOrderId, ServiceOrderExecutionStatus serviceOrderExecutionStatus) {
+        return jpa.countByServiceOrderIdAndStatus(serviceOrderId, serviceOrderExecutionStatus);
+    }
+
+
 }
 
