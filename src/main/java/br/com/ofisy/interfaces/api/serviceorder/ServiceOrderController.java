@@ -78,4 +78,9 @@ public class ServiceOrderController implements ServiceOrderApi {
     public ResponseEntity<ServiceOrderResponseDTO> deliverToCustomerServiceOrder(@PathVariable UUID id) {
         return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.deliverToCustomer(id));
     }
+
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<ServiceOrderResponseDTO> cancelServiceOrder(@PathVariable UUID id) {
+        return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.close(id));
+    }
 }

@@ -11,6 +11,7 @@ import br.com.ofisy.application.serviceorder.dto.ServiceOrderResponseDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderStatusResponseDTO;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
+import br.com.ofisy.application.serviceorderexecution.ServiceOrderExecutionService;
 import br.com.ofisy.application.user.UserService;
 import br.com.ofisy.application.vehicle.VehicleService;
 import br.com.ofisy.domain.serviceorder.ServiceOrderRepository;
@@ -33,6 +34,7 @@ public class ServiceOrderService {
     private final UserService userService;
     private final NotificationService notificationService;
     private final QuoteService quoteService;
+    private final ServiceOrderExecutionService serviceOrderExecutionService;
 
     @Transactional
     public ServiceOrderResponseDTO create(ServiceOrderRequestDTO request, String createdByEmail) {
@@ -52,6 +54,8 @@ public class ServiceOrderService {
     public ServiceOrderResponseDTO close(UUID id) {
         var serviceOrder = serviceOrderRepository.findById(id)
                 .orElseThrow(() -> new ServiceOrderNotFoundException(id));
+
+        serviceOrderExecutionService.cancelPending(id);
         serviceOrder.cancel();
         return ServiceOrderMapper.toResponseDTO(serviceOrderRepository.save(serviceOrder));
     }

@@ -10,6 +10,7 @@ import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderRequestDTO;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
+import br.com.ofisy.application.serviceorderexecution.ServiceOrderExecutionService;
 import br.com.ofisy.application.user.UserService;
 import br.com.ofisy.application.user.exceptions.EmailNotFoundException;
 import br.com.ofisy.application.vehicle.VehicleService;
@@ -68,6 +69,8 @@ class ServiceOrderServiceTest {
     private NotificationService notificationService;
     @Mock
     private QuoteService quoteService;
+    @Mock
+    private ServiceOrderExecutionService serviceOrderExecutionService;
 
     @InjectMocks
     private ServiceOrderService serviceOrderService;
@@ -387,6 +390,31 @@ class ServiceOrderServiceTest {
 
             assertThatThrownBy(() -> serviceOrderService.close(VALID_SERVICE_ORDER_ID))
                     .isInstanceOf(InvalidServiceOrderTransitionException.class);
+        }
+
+        @Test
+        void shouldCallCancelPendingBeforeCancellingOrder() {
+            var serviceOrder = serviceOrderAwaitingApproval();
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
+            when(serviceOrderRepository.save(serviceOrder)).thenAnswer(inv -> inv.getArgument(0));
+
+            serviceOrderService.close(VALID_SERVICE_ORDER_ID);
+
+            verify(serviceOrderExecutionService).cancelPending(VALID_SERVICE_ORDER_ID);
+            verify(serviceOrderRepository).save(any());
+        }
+
+        @Test
+        void shouldNotSaveOrderWhenCancelPendingThrows() {
+            var serviceOrder = serviceOrderAwaitingApproval();
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
+            doThrow(new RuntimeException("cancellation failed"))
+                    .when(serviceOrderExecutionService).cancelPending(VALID_SERVICE_ORDER_ID);
+
+            assertThatThrownBy(() -> serviceOrderService.close(VALID_SERVICE_ORDER_ID))
+                    .isInstanceOf(RuntimeException.class);
+
+            verify(serviceOrderRepository, never()).save(any());
         }
     }
 

@@ -314,6 +314,38 @@ class ServiceOrderExecutionApplicationTest {
     }
 
     @Nested
+    class CancelPendingByServiceOrderId {
+
+        @Test
+        void shouldCancelPendingAndInProgressExecutions() {
+            var serviceOrderId = UUID.randomUUID();
+            var pending = ServiceOrderExecution.create(UUID.randomUUID(), serviceOrderId);
+            var inProgress = ServiceOrderExecution.create(UUID.randomUUID(), serviceOrderId);
+            inProgress.start();
+
+            when(repository.findByServiceOrderIdAndStatusIn(any(), any())).thenReturn(List.of(pending, inProgress));
+            when(repository.save(any(ServiceOrderExecution.class))).thenAnswer(inv -> inv.getArgument(0));
+
+            application.cancelPending(serviceOrderId);
+
+            verify(repository, times(2)).save(any(ServiceOrderExecution.class));
+            assertThat(pending.getStatus()).isEqualTo(ServiceOrderExecutionStatus.CANCELLED);
+            assertThat(inProgress.getStatus()).isEqualTo(ServiceOrderExecutionStatus.CANCELLED);
+        }
+
+        @Test
+        void shouldDoNothingWhenNoActiveExecutionsExist() {
+            var serviceOrderId = UUID.randomUUID();
+
+            when(repository.findByServiceOrderIdAndStatusIn(any(), any())).thenReturn(Collections.emptyList());
+
+            application.cancelPending(serviceOrderId);
+
+            verify(repository, never()).save(any(ServiceOrderExecution.class));
+        }
+    }
+
+    @Nested
     class GetAverageExecutionTimeByService {
 
         @Test
