@@ -63,10 +63,12 @@ public interface ServiceOrderApi {
     @Operation(summary = "Aprovar orçamento para uma ordem de serviço")
     @ApiResponse(responseCode = "200", description = "Orçamento aprovado com sucesso")
     @ApiResponse(responseCode = "404", description = "Orçamento não encontrado")
+    @ApiResponse(responseCode = "409", description = "Transição de estado inválida")
     ResponseEntity<QuoteResponseDTO> approveQuote(UUID id);
 
     @Operation(summary = "Reprovar orçamento para uma ordem de serviço")
     @ApiResponse(responseCode = "200", description = "Orçamento reprovado com sucesso")
     @ApiResponse(responseCode = "404", description = "Orçamento não encontrado")
+    @ApiResponse(responseCode = "409", description = "Transição de estado inválida")
     ResponseEntity<QuoteResponseDTO> reproveQuote(UUID id, ReproveQuoteRequestDTO reproveQuoteRequestDTO);
 }

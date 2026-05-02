@@ -93,7 +93,7 @@ public class ServiceOrderController implements ServiceOrderApi {
     @PatchMapping("/quote/{id}/reprove")
     public ResponseEntity<QuoteResponseDTO> reproveQuote(
             @PathVariable UUID id,
-            @RequestBody @Valid ReproveQuoteRequestDTO reproveQuoteRequestDTO) {
+            @RequestBody ReproveQuoteRequestDTO reproveQuoteRequestDTO) {
         return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.reproveQuote(id, reproveQuoteRequestDTO));
     }
 }
