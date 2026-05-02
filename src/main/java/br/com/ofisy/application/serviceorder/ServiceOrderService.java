@@ -1,6 +1,9 @@
 package br.com.ofisy.application.serviceorder;
 
 import br.com.ofisy.application.customer.CustomerService;
+import br.com.ofisy.application.quote.QuoteService;
+import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
+import br.com.ofisy.application.quote.dto.ReproveQuoteRequestDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderRequestDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderResponseDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderStatusResponseDTO;
@@ -26,6 +29,7 @@ public class ServiceOrderService {
     private final CustomerService customerService;
     private final VehicleService vehicleService;
     private final UserService userService;
+    private final QuoteService quoteService;
 
     @Transactional
     public ServiceOrderResponseDTO create(ServiceOrderRequestDTO request, String createdByEmail) {
@@ -82,5 +86,31 @@ public class ServiceOrderService {
         var serviceOrder = serviceOrderRepository.findById(id)
                 .orElseThrow(() -> new ServiceOrderNotFoundException(id));
         return ServiceOrderMapper.toStatusResponseDTO(serviceOrder);
+    }
+
+    @Transactional
+    public QuoteResponseDTO approveQuote(UUID quoteId) {
+        QuoteResponseDTO quoteResponseDTO = quoteService.approve(quoteId);
+
+        var serviceOrder = serviceOrderRepository.findById(quoteResponseDTO.serviceOrderId())
+                .orElseThrow(() -> new ServiceOrderNotFoundException(quoteResponseDTO.serviceOrderId()));
+
+        serviceOrder.approve();
+        serviceOrderRepository.save(serviceOrder);
+
+        return quoteResponseDTO;
+    }
+
+    @Transactional
+    public QuoteResponseDTO reproveQuote(UUID quoteId, ReproveQuoteRequestDTO requestDTO) {
+        QuoteResponseDTO quoteResponseDTO = quoteService.reprove(quoteId, requestDTO);
+
+        var serviceOrder = serviceOrderRepository.findById(quoteResponseDTO.serviceOrderId())
+                .orElseThrow(() -> new ServiceOrderNotFoundException(quoteResponseDTO.serviceOrderId()));
+
+        serviceOrder.cancel();
+        serviceOrderRepository.save(serviceOrder);
+
+        return quoteResponseDTO;
     }
 }
