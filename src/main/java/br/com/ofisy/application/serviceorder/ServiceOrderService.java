@@ -2,6 +2,7 @@ package br.com.ofisy.application.serviceorder;
 
 import br.com.ofisy.application.customer.CustomerService;
 import br.com.ofisy.application.notification.NotificationService;
+import br.com.ofisy.application.notification.dto.QuoteNotificationRequestDTO;
 import br.com.ofisy.application.quote.QuoteService;
 import br.com.ofisy.application.quote.dto.CreateQuoteRequestDTO;
 import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
@@ -81,8 +82,9 @@ public class ServiceOrderService {
                 .orElseThrow(() -> new ServiceOrderNotFoundException(id));
         var quote = quoteService.create(id, request);
         serviceOrder.sendToApproval();
-        var customer = customerService.identifyCustomerById(serviceOrder.getCustomerId());
-        notificationService.createQuoteNotification(quote.id(), customer.name(), quote.totalPrice());
+        serviceOrderRepository.save(serviceOrder);
+        var quoteNotification = new QuoteNotificationRequestDTO(quote.id(), id, quote.totalPrice());
+        notificationService.createQuoteNotification(quoteNotification);
         return quote;
     }
 
