@@ -1,10 +1,11 @@
-package br.com.ofisy.integration.quote;
+package br.com.ofisy.integration;
 
 import br.com.ofisy.application.quote.QuoteService;
 import br.com.ofisy.application.quote.dto.CreateQuoteRequestDTO;
 import br.com.ofisy.application.quote.dto.ReproveQuoteRequestDTO;
 import br.com.ofisy.application.quote.dto.ServiceItemRequestDTO;
 import br.com.ofisy.application.quote.dto.StockItemRequestDTO;
+import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
 import br.com.ofisy.domain.customer.CpfCnpj;
 import br.com.ofisy.domain.customer.Customer;
@@ -27,12 +28,12 @@ import br.com.ofisy.domain.user.UserRepository;
 import br.com.ofisy.domain.vehicle.LicensePlate;
 import br.com.ofisy.domain.vehicle.Vehicle;
 import br.com.ofisy.domain.vehicle.VehicleRepository;
-import br.com.ofisy.integration.IntegrationTestBase;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -127,6 +128,66 @@ class QuoteIntegrationTest extends IntegrationTestBase {
             assertThat(response.totalPrice()).isEqualByComparingTo(new BigDecimal("240.00"));
             assertThat(response.stockItems()).hasSize(1);
             assertThat(response.serviceItems()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Deve criar orçamento apenas com itens de serviço com sucesso")
+        void shouldCreateQuoteWithOnlyServiceItemsSuccessfully() {
+            var request = new CreateQuoteRequestDTO(
+                    serviceOrderId,
+                    List.of(),
+                    List.of(new ServiceItemRequestDTO(serviceOrderExecutionId))
+            );
+
+            var response = quoteService.create(request);
+
+            assertThat(response).isNotNull();
+            assertThat(response.status()).isEqualTo(QuoteStatus.PENDING);
+            assertThat(response.totalPrice()).isEqualByComparingTo(new BigDecimal("350.00"));
+            assertThat(response.stockItems()).isEmpty();
+            assertThat(response.serviceItems()).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("Deve calcular total corretamente com múltiplos serviços")
+        void shouldCalculateTotalCorrectlyWithMultipleServiceItems() {
+            ServiceCatalog serviceCatalog2 = serviceCatalogRepository.save(
+                    ServiceCatalog.create("Serviço de Teste 2", "Segundo serviço para testes", new BigDecimal("200.00"))
+            );
+            ServiceOrderExecution execution2 = serviceOrderExecutionRepository.save(
+                    ServiceOrderExecution.create(serviceCatalog2.getId(), serviceOrderId)
+            );
+
+            var request = new CreateQuoteRequestDTO(
+                    serviceOrderId,
+                    List.of(new StockItemRequestDTO(stockId, 1)),
+                    List.of(
+                            new ServiceItemRequestDTO(serviceOrderExecutionId),
+                            new ServiceItemRequestDTO(execution2.getId())
+                    )
+            );
+
+            var response = quoteService.create(request);
+
+            assertThat(response.stockItems()).hasSize(1);
+            assertThat(response.serviceItems()).hasSize(2);
+            assertThat(response.totalPrice()).isEqualByComparingTo(new BigDecimal("670.00"));
+        }
+
+        @Test
+        @DisplayName("Deve lançar exceção quando item de serviço duplicado")
+        void shouldThrowExceptionWhenDuplicateServiceItem() {
+            var request = new CreateQuoteRequestDTO(
+                    serviceOrderId,
+                    List.of(new StockItemRequestDTO(stockId, 1)),
+                    List.of(
+                            new ServiceItemRequestDTO(serviceOrderExecutionId),
+                            new ServiceItemRequestDTO(serviceOrderExecutionId)
+                    )
+            );
+
+            assertThatThrownBy(() -> quoteService.create(request))
+                    .isInstanceOf(QuoteItemAlreadyExistsException.class);
         }
 
         @Test
@@ -269,6 +330,22 @@ class QuoteIntegrationTest extends IntegrationTestBase {
             assertThatThrownBy(() -> quoteService.approve(created.id()))
                     .isInstanceOf(InvalidQuoteStatusException.class);
         }
+
+        @Test
+        @DisplayName("Deve aprovar orçamento com itens de serviço")
+        void shouldApproveQuoteWithServiceItems() {
+            var request = new CreateQuoteRequestDTO(
+                    serviceOrderId,
+                    List.of(new StockItemRequestDTO(stockId, 1)),
+                    List.of(new ServiceItemRequestDTO(serviceOrderExecutionId))
+            );
+            var created = quoteService.create(request);
+
+            var response = quoteService.approve(created.id());
+
+            assertThat(response.status()).isEqualTo(QuoteStatus.APPROVED);
+            assertThat(response.serviceItems()).hasSize(1);
+        }
     }
 
     @Nested
@@ -305,6 +382,23 @@ class QuoteIntegrationTest extends IntegrationTestBase {
 
             assertThatThrownBy(() -> quoteService.reprove(created.id(), new ReproveQuoteRequestDTO("Motivo")))
                     .isInstanceOf(InvalidQuoteStatusException.class);
+        }
+
+        @Test
+        @DisplayName("Deve reprovar orçamento com itens de serviço com motivo")
+        void shouldReproveQuoteWithServiceItemsAndReason() {
+            var request = new CreateQuoteRequestDTO(
+                    serviceOrderId,
+                    List.of(new StockItemRequestDTO(stockId, 1)),
+                    List.of(new ServiceItemRequestDTO(serviceOrderExecutionId))
+            );
+            var created = quoteService.create(request);
+
+            var response = quoteService.reprove(created.id(), new ReproveQuoteRequestDTO("Serviço muito caro"));
+
+            assertThat(response.status()).isEqualTo(QuoteStatus.REPROVED);
+            assertThat(response.quoteRefusalReason()).isEqualTo("Serviço muito caro");
+            assertThat(response.serviceItems()).hasSize(1);
         }
     }
 }
