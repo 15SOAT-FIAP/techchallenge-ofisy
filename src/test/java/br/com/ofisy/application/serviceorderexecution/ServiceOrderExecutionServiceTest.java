@@ -1,6 +1,6 @@
 package br.com.ofisy.application.serviceorderexecution;
 
-import br.com.ofisy.application.serviceorder.ServiceOrderService;
+import br.com.ofisy.application.serviceorder.ServiceOrderFinalizationService;
 import br.com.ofisy.application.serviceorderexecution.dto.ServiceOrderExecutionRequestDTO;
 import br.com.ofisy.application.serviceorderexecution.exceptions.ServiceOrderExecutionNotFoundException;
 import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecution;
@@ -27,13 +27,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ServiceOrderExecutionApplicationTest {
+class ServiceOrderExecutionServiceTest {
 
     @Mock
     private ServiceOrderExecutionRepository repository;
 
     @Mock
-    private ServiceOrderService serviceOrderService;
+    private ServiceOrderFinalizationService finalizationService;
 
     @InjectMocks
     private ServiceOrderExecutionService application;
@@ -194,7 +194,7 @@ class ServiceOrderExecutionApplicationTest {
             assertThat(result.finishedAt()).isNotNull();
             verify(repository).findById(id);
             verify(repository).save(any(ServiceOrderExecution.class));
-            verify(serviceOrderService, never()).finish(any());
+            verify(finalizationService, never()).finish(any());
         }
 
         @Test
@@ -212,7 +212,7 @@ class ServiceOrderExecutionApplicationTest {
 
             application.complete(id);
 
-            verify(serviceOrderService).finish(serviceOrderId);
+            verify(finalizationService).finish(serviceOrderId);
         }
 
         @Test
@@ -230,7 +230,7 @@ class ServiceOrderExecutionApplicationTest {
 
             application.complete(id);
 
-            verify(serviceOrderService, never()).finish(any());
+            verify(finalizationService, never()).finish(any());
         }
 
         @Test
@@ -243,7 +243,7 @@ class ServiceOrderExecutionApplicationTest {
                     .isInstanceOf(ServiceOrderExecutionNotFoundException.class);
 
             verify(repository, never()).save(any(ServiceOrderExecution.class));
-            verify(serviceOrderService, never()).finish(any());
+            verify(finalizationService, never()).finish(any());
         }
     }
 
@@ -313,39 +313,7 @@ class ServiceOrderExecutionApplicationTest {
         }
     }
 
-    @Nested
-    class CancelPendingByServiceOrderId {
-
-        @Test
-        void shouldCancelPendingAndInProgressExecutions() {
-            var serviceOrderId = UUID.randomUUID();
-            var pending = ServiceOrderExecution.create(UUID.randomUUID(), serviceOrderId);
-            var inProgress = ServiceOrderExecution.create(UUID.randomUUID(), serviceOrderId);
-            inProgress.start();
-
-            when(repository.findByServiceOrderIdAndStatusIn(any(), any())).thenReturn(List.of(pending, inProgress));
-            when(repository.save(any(ServiceOrderExecution.class))).thenAnswer(inv -> inv.getArgument(0));
-
-            application.cancelPending(serviceOrderId);
-
-            verify(repository, times(2)).save(any(ServiceOrderExecution.class));
-            assertThat(pending.getStatus()).isEqualTo(ServiceOrderExecutionStatus.CANCELLED);
-            assertThat(inProgress.getStatus()).isEqualTo(ServiceOrderExecutionStatus.CANCELLED);
-        }
-
-        @Test
-        void shouldDoNothingWhenNoActiveExecutionsExist() {
-            var serviceOrderId = UUID.randomUUID();
-
-            when(repository.findByServiceOrderIdAndStatusIn(any(), any())).thenReturn(Collections.emptyList());
-
-            application.cancelPending(serviceOrderId);
-
-            verify(repository, never()).save(any(ServiceOrderExecution.class));
-        }
-    }
-
-    @Nested
+@Nested
     class GetAverageExecutionTimeByService {
 
         @Test
