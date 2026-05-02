@@ -1,6 +1,6 @@
 package br.com.ofisy.application.serviceorderexecution;
 
-import br.com.ofisy.application.serviceorder.ServiceOrderService;
+import br.com.ofisy.application.serviceorder.ServiceOrderFinalizationService;
 import br.com.ofisy.application.serviceorderexecution.dto.ServiceOrderExecutionRequestDTO;
 import br.com.ofisy.application.serviceorderexecution.dto.ServiceOrderExecutionResponseDTO;
 import br.com.ofisy.application.serviceorderexecution.exceptions.ServiceOrderExecutionNotFoundException;
@@ -21,7 +21,7 @@ import java.util.UUID;
 public class ServiceOrderExecutionService {
 
     private final ServiceOrderExecutionRepository repository;
-    private final ServiceOrderService serviceOrderService;
+    private final ServiceOrderFinalizationService finalizationService;
 
     @Transactional
     public ServiceOrderExecutionResponseDTO create(ServiceOrderExecutionRequestDTO dto) {
@@ -69,7 +69,7 @@ public class ServiceOrderExecutionService {
         service.complete();
         ServiceOrderExecution savedService = repository.save(service);
         if (allServicesFinished(savedService.getServiceOrderId())) {
-            serviceOrderService.finish(savedService.getServiceOrderId());
+            finalizationService.finish(savedService.getServiceOrderId());
         }
         return ServiceOrderExecutionMapper.toDTO(savedService);
     }
@@ -80,19 +80,6 @@ public class ServiceOrderExecutionService {
                 .orElseThrow(() -> new ServiceOrderExecutionNotFoundException(id));
         service.cancel();
         return ServiceOrderExecutionMapper.toDTO(repository.save(service));
-    }
-
-    @Transactional
-    public void cancelPending(UUID serviceOrderId) {
-        List<ServiceOrderExecutionStatus> activeStatuses = List.of(
-                ServiceOrderExecutionStatus.PENDING,
-                ServiceOrderExecutionStatus.IN_PROGRESS
-        );
-        repository.findByServiceOrderIdAndStatusIn(serviceOrderId, activeStatuses)
-                .forEach(execution -> {
-                    execution.cancel();
-                    repository.save(execution);
-                });
     }
 
     @Transactional

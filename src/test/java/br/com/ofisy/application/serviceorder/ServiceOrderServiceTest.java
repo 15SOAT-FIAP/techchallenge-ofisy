@@ -10,7 +10,7 @@ import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderRequestDTO;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
-import br.com.ofisy.application.serviceorderexecution.ServiceOrderExecutionService;
+import br.com.ofisy.application.serviceorder.ServiceOrderFinalizationService;
 import br.com.ofisy.application.user.UserService;
 import br.com.ofisy.application.user.exceptions.EmailNotFoundException;
 import br.com.ofisy.application.vehicle.VehicleService;
@@ -70,7 +70,7 @@ class ServiceOrderServiceTest {
     @Mock
     private QuoteService quoteService;
     @Mock
-    private ServiceOrderExecutionService serviceOrderExecutionService;
+    private ServiceOrderFinalizationService finalizationService;
 
     @InjectMocks
     private ServiceOrderService serviceOrderService;
@@ -400,7 +400,7 @@ class ServiceOrderServiceTest {
 
             serviceOrderService.close(VALID_SERVICE_ORDER_ID);
 
-            verify(serviceOrderExecutionService).cancelPending(VALID_SERVICE_ORDER_ID);
+            verify(finalizationService).cancelPending(VALID_SERVICE_ORDER_ID);
             verify(serviceOrderRepository).save(any());
         }
 
@@ -409,7 +409,7 @@ class ServiceOrderServiceTest {
             var serviceOrder = serviceOrderAwaitingApproval();
             when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
             doThrow(new RuntimeException("cancellation failed"))
-                    .when(serviceOrderExecutionService).cancelPending(VALID_SERVICE_ORDER_ID);
+                    .when(finalizationService).cancelPending(VALID_SERVICE_ORDER_ID);
 
             assertThatThrownBy(() -> serviceOrderService.close(VALID_SERVICE_ORDER_ID))
                     .isInstanceOf(RuntimeException.class);

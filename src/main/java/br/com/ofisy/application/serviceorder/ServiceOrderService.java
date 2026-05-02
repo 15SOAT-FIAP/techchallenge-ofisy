@@ -34,7 +34,7 @@ public class ServiceOrderService {
     private final UserService userService;
     private final NotificationService notificationService;
     private final QuoteService quoteService;
-    private final ServiceOrderExecutionService serviceOrderExecutionService;
+    private final ServiceOrderFinalizationService finalizationService;
 
     @Transactional
     public ServiceOrderResponseDTO create(ServiceOrderRequestDTO request, String createdByEmail) {
@@ -55,7 +55,7 @@ public class ServiceOrderService {
         var serviceOrder = serviceOrderRepository.findById(id)
                 .orElseThrow(() -> new ServiceOrderNotFoundException(id));
 
-        serviceOrderExecutionService.cancelPending(id);
+        finalizationService.cancelPending(id);
         serviceOrder.cancel();
         return ServiceOrderMapper.toResponseDTO(serviceOrderRepository.save(serviceOrder));
     }
@@ -90,14 +90,6 @@ public class ServiceOrderService {
         var quoteNotification = new QuoteNotificationRequestDTO(quote.id(), id, quote.totalPrice());
         notificationService.createQuoteNotification(quoteNotification);
         return quote;
-    }
-
-    @Transactional
-    public void finish(UUID id) {
-        var serviceOrder = serviceOrderRepository.findById(id)
-                .orElseThrow(() -> new ServiceOrderNotFoundException(id));
-        serviceOrder.finish();
-        serviceOrderRepository.save(serviceOrder);
     }
 
     @Transactional
