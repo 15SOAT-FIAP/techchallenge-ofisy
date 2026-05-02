@@ -52,7 +52,7 @@ class ServiceOrderIntegrationTest extends IntegrationTestBase {
     public static final String PRICE_300 = "300.00";
     public static final String PRICE_100 = "100.00";
     public static final String PRICE_200 = "200.00";
-    public static final String PRICE_400 = "400.0";
+    public static final String PRICE_400 = "400.00";
 
     @Autowired
     private ServiceOrderService serviceOrderService;

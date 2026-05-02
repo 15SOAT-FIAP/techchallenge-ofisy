@@ -15,6 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Tag("integration")
 class StockIntegrationTest extends IntegrationTestBase {
 
+    public static final String PRICE_100 = "100.00";
     @Autowired
     private StockService stockService;
 
@@ -27,7 +28,7 @@ class StockIntegrationTest extends IntegrationTestBase {
     void setUp() {
         var created = stockService.create(new CreateStockRequestDTO(
                 "Peça de Teste Stock", "Peça exclusiva para testes de integração",
-                10, new BigDecimal("100.00"), "Testes", 2
+                10, new BigDecimal(PRICE_100), "Testes", 2
         ));
         stockId = created.id();
     }
