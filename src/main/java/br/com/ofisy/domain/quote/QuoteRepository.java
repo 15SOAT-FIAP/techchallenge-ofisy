@@ -12,4 +12,5 @@ public interface QuoteRepository {
 
     List<Quote> findByServiceOrderId(UUID serviceOrderId);
 
+    boolean existsByServiceOrderId(UUID serviceOrderId);
 }

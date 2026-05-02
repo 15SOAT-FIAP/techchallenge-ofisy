@@ -1,6 +1,7 @@
 package br.com.ofisy.application.quote;
 
 import br.com.ofisy.application.quote.dto.*;
+import br.com.ofisy.application.quote.exceptions.QuoteAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
 import br.com.ofisy.application.stock.StockService;
@@ -31,13 +32,16 @@ public class QuoteService {
     private final QuoteMapper mapper;
 
     @Transactional
-    public QuoteResponseDTO create(CreateQuoteRequestDTO request) {
+    public QuoteResponseDTO create(UUID serviceOrderId, CreateQuoteRequestDTO request) {
+        if (quoteRepository.existsByServiceOrderId(serviceOrderId)) {
+            throw new QuoteAlreadyExistsException(serviceOrderId);
+        }
         List<QuoteStockItem> stockItems = buildStockItems(request.stockItems());
         List<QuoteServiceItem> serviceItems = buildServiceItems(
                 request.serviceItems() != null ? request.serviceItems() : List.of()
         );
 
-        Quote quote = Quote.create(request.serviceOrderId(), stockItems, serviceItems);
+        Quote quote = Quote.create(serviceOrderId, stockItems, serviceItems);
         return mapper.toResponse(quoteRepository.save(quote));
     }
 

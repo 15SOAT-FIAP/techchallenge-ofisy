@@ -26,7 +26,7 @@ public class Quote {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private UUID serviceOrderId;
 
     @Column(nullable = false)

@@ -1,5 +1,7 @@
 package br.com.ofisy.interfaces.api.serviceorder;
 
+import br.com.ofisy.application.quote.dto.CreateQuoteRequestDTO;
+import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderRequestDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderResponseDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderStatusResponseDTO;
@@ -45,4 +47,9 @@ public interface ServiceOrderApi {
     @ApiResponse(responseCode = "404", description = "Ordem de serviço não encontrada")
     @ApiResponse(responseCode = "409", description = "Transição de estado inválida")
     ResponseEntity<ServiceOrderResponseDTO> deliverToCustomerServiceOrder(UUID id);
+
+    @Operation(summary = "Gerar orçamento para uma ordem de serviço")
+    @ApiResponse(responseCode = "201", description = "Orçamento gerado com sucesso")
+    @ApiResponse(responseCode = "404", description = "Ordem de serviço não encontrada")
+    ResponseEntity<QuoteResponseDTO> generateQuote(UUID id, CreateQuoteRequestDTO request);
 }

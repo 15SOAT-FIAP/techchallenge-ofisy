@@ -1,6 +1,7 @@
 package br.com.ofisy.application.notification;
 
 import br.com.ofisy.application.notification.dto.NotificationResponseDTO;
+import br.com.ofisy.application.notification.dto.QuoteNotificationRequestDTO;
 import br.com.ofisy.application.notification.exceptions.NotificationNotFoundException;
 import br.com.ofisy.domain.notification.Notification;
 import br.com.ofisy.domain.notification.NotificationRepository;
@@ -14,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -66,6 +68,27 @@ class NotificationServiceTest {
         assertThat(result.message()).contains("Radiador");
         assertThat(result.message()).contains("2");
         assertThat(result.message()).contains("5");
+        assertThat(result.read()).isFalse();
+        verify(notificationRepository).save(any(Notification.class));
+    }
+
+    @Test
+    @DisplayName("Deve criar notificação de orçamento gerado com QuoteNotificationRequestDTO")
+    void shouldCreateQuoteNotificationSuccessfully() {
+        when(notificationRepository.save(any(Notification.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        var quoteId = UUID.randomUUID();
+        var serviceOrderId = UUID.randomUUID();
+        var request = new QuoteNotificationRequestDTO(quoteId, serviceOrderId, new BigDecimal("1500.00"));
+
+        NotificationResponseDTO result = notificationService.createQuoteNotification(request);
+
+        assertThat(result.type()).isEqualTo(NotificationType.QUOTE_GENERATED.name());
+        assertThat(result.quoteId()).isEqualTo(quoteId);
+        assertThat(result.message()).contains(quoteId.toString());
+        assertThat(result.message()).contains(serviceOrderId.toString());
+        assertThat(result.message()).contains("1500.00");
         assertThat(result.read()).isFalse();
         verify(notificationRepository).save(any(Notification.class));
     }
