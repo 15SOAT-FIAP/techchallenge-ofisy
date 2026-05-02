@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 @Tag(name = "Autenticação via JWT Token para APIs administrativas")
 public interface LoginApi {
 
-    @Operation(summary = "Realizar login e obter o token JWT")
+    @Operation(summary = "Realizar login e obter o token JWT - API sem autenticação")
     @ApiResponse(responseCode = "200", description = "Login realizado com sucesso, token JWT retornado")
     @ApiResponse(responseCode = "400", description = "Dados inválidos", content = @Content(schema = @Schema(implementation = Void.class)))
     @ApiResponse(responseCode = "401", description = "Email ou senha inválidos", content = @Content(schema = @Schema(implementation = Void.class)))

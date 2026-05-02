@@ -16,24 +16,24 @@ import java.util.UUID;
 @Tag(name = "API de Clientes")
 public interface CustomerApi {
 
-    @Operation(summary = "Listar clientes com paginação ou por CPF/CNPJ")
+    @Operation(summary = "Listar clientes com paginação ou por CPF/CNPJ - Roles autorizadas: (ADMIN, ATTENDANT)")
     @ApiResponse(responseCode = "200", description = "Clientes listados com sucesso")
     @GetMapping
     ResponseEntity<Page<CustomerResponseDTO>> getAllCustomers(Pageable pageable);
 
-    @Operation(summary = "Obter cliente por ID")
+    @Operation(summary = "Obter cliente por ID - Roles autorizadas: (ADMIN, ATTENDANT)")
     @ApiResponse(responseCode = "200", description = "Cliente encontrado com sucesso")
     @ApiResponse(responseCode = "404", description = "Cliente não encontrado")
     @GetMapping("/{id}")
     ResponseEntity<CustomerResponseDTO> getCustomerById(UUID id);
 
-    @Operation(summary = "Listar clientes com paginação ou por CPF/CNPJ")
+    @Operation(summary = "Listar clientes com paginação ou por CPF/CNPJ - Roles autorizadas: (ADMIN, ATTENDANT)")
     @ApiResponse(responseCode = "200", description = "Cliente encontrado com sucesso")
     @ApiResponse(responseCode = "404", description = "Cliente não encontrado")
     @GetMapping(params = "cpfCnpj")
     ResponseEntity<CustomerResponseDTO> getCustomerByCpfCnpj(String cpfCnpj);
 
-    @Operation(summary = "Registrar um novo cliente")
+    @Operation(summary = "Registrar um novo cliente - Roles autorizadas: (ADMIN, ATTENDANT)")
     @ApiResponse(responseCode = "201", description = "Cliente registrado com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados de cliente inválidos")
     @PostMapping
