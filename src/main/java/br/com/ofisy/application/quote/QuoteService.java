@@ -113,7 +113,7 @@ public class QuoteService {
                 );
             }
 
-            ServiceCatalog service = findServiceById(serviceOrderExecution.getId());
+            ServiceCatalog service = findServiceById(serviceOrderExecution.getServiceCatalogId());
             items.add(QuoteServiceItem.create(serviceOrderExecution, service.getPrice()));
         }
 
