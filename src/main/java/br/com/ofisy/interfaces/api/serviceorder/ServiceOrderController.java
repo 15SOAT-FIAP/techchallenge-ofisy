@@ -1,5 +1,6 @@
 package br.com.ofisy.interfaces.api.serviceorder;
 
+import br.com.ofisy.application.quote.dto.CreateQuoteRequestDTO;
 import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
 import br.com.ofisy.application.quote.dto.ReproveQuoteRequestDTO;
 import br.com.ofisy.application.serviceorder.ServiceOrderService;
@@ -42,6 +43,14 @@ public class ServiceOrderController implements ServiceOrderApi {
         return ResponseEntity.status(HttpStatus.CREATED).body(serviceOrderService.create(request, user.getUsername()));
     }
 
+    @PostMapping("/{id}/quote")
+    public ResponseEntity<QuoteResponseDTO> generateQuote(
+            @PathVariable UUID id,
+            @Valid @RequestBody CreateQuoteRequestDTO request) {
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(serviceOrderService.generateQuote(id, request));
+    }
+
     @GetMapping("/received")
     public ResponseEntity<Page<ServiceOrderResponseDTO>> listReceived(
             @ParameterObject @PageableDefault(size = 10, sort = "updatedAt", direction = Sort.Direction.ASC) Pageable pageable) {
@@ -69,6 +78,11 @@ public class ServiceOrderController implements ServiceOrderApi {
     @PatchMapping("/{id}/deliver")
     public ResponseEntity<ServiceOrderResponseDTO> deliverToCustomerServiceOrder(@PathVariable UUID id) {
         return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.deliverToCustomer(id));
+    }
+
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<ServiceOrderResponseDTO> cancelServiceOrder(@PathVariable UUID id) {
+        return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.close(id));
     }
 
     @PatchMapping("/quote/{id}/approve")
