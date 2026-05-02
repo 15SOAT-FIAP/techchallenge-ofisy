@@ -1,8 +1,8 @@
 package br.com.ofisy.application.serviceorder;
 
 import br.com.ofisy.application.customer.CustomerService;
-import br.com.ofisy.application.customer.dto.CustomerResponseDTO;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
+import br.com.ofisy.application.notification.dto.QuoteNotificationRequestDTO;
 import br.com.ofisy.application.notification.NotificationService;
 import br.com.ofisy.application.quote.QuoteService;
 import br.com.ofisy.application.quote.dto.CreateQuoteRequestDTO;
@@ -291,13 +291,14 @@ class ServiceOrderServiceTest {
 
             when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
             when(quoteService.create(VALID_SERVICE_ORDER_ID, request)).thenReturn(quote);
-            when(customerService.identifyCustomerById(VALID_CUSTOMER_ID)).thenReturn(customerResponse());
+            when(serviceOrderRepository.save(serviceOrder)).thenReturn(serviceOrder);
 
             var result = serviceOrderService.generateQuote(VALID_SERVICE_ORDER_ID, request);
 
             assertThat(result).isEqualTo(quote);
             assertThat(serviceOrder.getStatus()).isEqualTo(ServiceOrderStatus.AWAITING_APPROVAL);
-            verify(notificationService).createQuoteNotification(quoteId, "João Silva", new BigDecimal("1500.00"));
+            verify(serviceOrderRepository).save(serviceOrder);
+            verify(notificationService).createQuoteNotification(new QuoteNotificationRequestDTO(quoteId, VALID_SERVICE_ORDER_ID, new BigDecimal("1500.00")));
         }
 
         @Test
@@ -308,8 +309,7 @@ class ServiceOrderServiceTest {
                     .isInstanceOf(ServiceOrderNotFoundException.class);
 
             verify(quoteService, never()).create(any(), any());
-            verify(customerService, never()).identifyCustomerById(any());
-            verify(notificationService, never()).createQuoteNotification(any(), any(), any());
+            verify(notificationService, never()).createQuoteNotification(any());
         }
 
         @Test
@@ -322,8 +322,7 @@ class ServiceOrderServiceTest {
             assertThatThrownBy(() -> serviceOrderService.generateQuote(VALID_SERVICE_ORDER_ID, request))
                     .isInstanceOf(InvalidServiceOrderTransitionException.class);
 
-            verify(customerService, never()).identifyCustomerById(any());
-            verify(notificationService, never()).createQuoteNotification(any(), any(), any());
+            verify(notificationService, never()).createQuoteNotification(any());
         }
     }
 
@@ -466,11 +465,6 @@ class ServiceOrderServiceTest {
         var order = ServiceOrder.receive(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, VALID_REPORT, VALID_USER_ID);
         order.startDiagnostic();
         return order;
-    }
-
-    private CustomerResponseDTO customerResponse() {
-        return new CustomerResponseDTO(VALID_CUSTOMER_ID, "12345678900", "João Silva",
-                "joao@example.com", "11999990000", LocalDateTime.now(), LocalDateTime.now());
     }
 
     private CreateQuoteRequestDTO quoteRequest() {
