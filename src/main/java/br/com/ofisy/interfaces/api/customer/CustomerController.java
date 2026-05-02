@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -23,6 +24,7 @@ public class CustomerController implements CustomerApi {
     private final CustomerService customerService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT')")
     public ResponseEntity<Page<CustomerResponseDTO>> getAllCustomers(
             @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
 
@@ -30,12 +32,14 @@ public class CustomerController implements CustomerApi {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT')")
     public ResponseEntity<CustomerResponseDTO> getCustomerById(@PathVariable UUID id) {
 
         return ResponseEntity.ok(customerService.identifyCustomerById(id));
     }
 
     @GetMapping(params = "cpfCnpj")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT')")
     public ResponseEntity<CustomerResponseDTO> getCustomerByCpfCnpj(
             @RequestParam(required = false) String cpfCnpj) {
 
@@ -43,6 +47,7 @@ public class CustomerController implements CustomerApi {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT')")
     public ResponseEntity<CustomerResponseDTO> registerCustomer(@Valid @RequestBody CustomerRequestDTO requestDTO) {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(customerService.registerCustomer(requestDTO));

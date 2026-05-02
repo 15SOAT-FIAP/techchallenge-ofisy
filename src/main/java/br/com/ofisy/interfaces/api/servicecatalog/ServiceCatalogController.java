@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -24,6 +25,7 @@ public class ServiceCatalogController implements ServiceCatalogApi {
     private final ServiceOrderExecutionService serviceOrderExecutionService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
     public ResponseEntity<Page<ServiceCatalogResponseDTO>> getAll(
             @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
 
@@ -31,6 +33,7 @@ public class ServiceCatalogController implements ServiceCatalogApi {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
     public ResponseEntity<ServiceCatalogResponseDTO> getById(@PathVariable UUID id) {
 
         return ResponseEntity.status(HttpStatus.OK).body(serviceCatalogService.findById(id));
@@ -38,6 +41,7 @@ public class ServiceCatalogController implements ServiceCatalogApi {
     }
 
     @GetMapping(params = "name")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
     public ResponseEntity<ServiceCatalogResponseDTO> getByName(@RequestParam String name) {
 
         return ResponseEntity.ok(serviceCatalogService.findByName(name));
@@ -45,12 +49,14 @@ public class ServiceCatalogController implements ServiceCatalogApi {
     }
 
     @GetMapping("execution_time_average/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
     public ResponseEntity<Double> getExecutionTimeAverage(@PathVariable UUID id) {
 
         return ResponseEntity.ok(serviceOrderExecutionService.getAverageExecutionTimeByService(id));
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
     public ResponseEntity<ServiceCatalogResponseDTO> create(
             @Valid @RequestBody ServiceCatalogRequestDTO dto) {
 

@@ -14,13 +14,13 @@ import java.util.UUID;
 @Tag(name = "API de Movimentação de estoque")
 public interface StockMovementApi {
 
-    @Operation(summary = "Listar todas as movimentações de estoque com paginação")
+    @Operation(summary = "Listar todas as movimentações de estoque com paginação - Roles autorizadas: (ADMIN, STOCKMAN)")
     @ApiResponse(responseCode = "200", description = "Movimentações de estoque listadas com sucesso - sem stockId")
     @GetMapping
     ResponseEntity<Page<StockMovementResponseDTO>> getAllStockMovements(
             Pageable pageable);
 
-    @Operation(summary = "Listar movimentações de estoque específico")
+    @Operation(summary = "Listar movimentações de estoque específico - Roles autorizadas: (ADMIN, STOCKMAN)")
     @ApiResponse(responseCode = "200", description = "Movimentações de estoque listadas com sucesso - stockId")
     @ApiResponse(responseCode = "404", description = "Movimentações de estoque não encontradas")
     @GetMapping(params = "stockId")

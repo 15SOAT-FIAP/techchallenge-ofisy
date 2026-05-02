@@ -15,33 +15,33 @@ import java.util.UUID;
 @Tag(name = "API de Serviços")
 public interface ServiceCatalogApi {
 
-    @Operation(summary = "Listar serviços com paginação")
+    @Operation(summary = "Listar serviços com paginação - Roles autorizadas: (ADMIN, ATTENDANT, MECHANIC)")
     @ApiResponse(responseCode = "200", description = "Serviços listados com sucesso")
     @GetMapping
     ResponseEntity<Page<ServiceCatalogResponseDTO>> getAll(
             Pageable pageable);
 
-    @Operation(summary = "Obter serviço por ID")
+    @Operation(summary = "Obter serviço por ID - Roles autorizadas: (ADMIN, ATTENDANT, MECHANIC)")
     @ApiResponse(responseCode = "200", description = "Serviço listado com sucesso")
     @ApiResponse(responseCode = "404", description = "Serviço não encontrado")
     @GetMapping("/{id}")
     ResponseEntity<ServiceCatalogResponseDTO> getById(
             @PathVariable UUID id);
 
-    @Operation(summary = "Obter serviço por nome")
+    @Operation(summary = "Obter serviço por nome - Roles autorizadas: (ADMIN, ATTENDANT, MECHANIC)")
     @ApiResponse(responseCode = "200", description = "Serviço listado com sucesso")
     @ApiResponse(responseCode = "404", description = "Serviço não encontrado")
     @GetMapping(params = "name")
     ResponseEntity<ServiceCatalogResponseDTO> getByName(
             @RequestParam String name);
 
-    @Operation(summary = "Obter tempo médio de execução de um serviço")
+    @Operation(summary = "Obter tempo médio de execução de um serviço - Roles autorizadas: (ADMIN, ATTENDANT, MECHANIC)")
     @ApiResponse(responseCode = "200", description = "Tempo médio calculado com sucesso")
     @GetMapping("execution_time_average/{id}")
     ResponseEntity<Double> getExecutionTimeAverage(
             @PathVariable UUID id);
 
-    @Operation(summary = "Criar um novo serviço")
+    @Operation(summary = "Criar um novo serviço - Roles autorizadas: (ADMIN, ATTENDANT, MECHANIC)")
     @ApiResponse(responseCode = "201", description = "Serviço cadastrado com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados para criação de serviço inválidos")
     @PostMapping

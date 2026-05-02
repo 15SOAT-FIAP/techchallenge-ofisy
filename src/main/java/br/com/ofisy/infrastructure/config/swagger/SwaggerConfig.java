@@ -20,7 +20,7 @@ public class SwaggerConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("Ofisy API")
-                        .description("Sistema de gestão de oficina automotiva")
+                        .description("Sistema de gestão de oficina automotiva Ofisy")
                         .version("1.0.0")
                         .contact(new Contact()
                                 .name("15SOAT - Grupo 38")))

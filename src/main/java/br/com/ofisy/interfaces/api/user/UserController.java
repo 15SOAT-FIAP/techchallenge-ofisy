@@ -5,12 +5,7 @@ import br.com.ofisy.application.user.dto.CreateUserRequestDTO;
 import br.com.ofisy.application.user.dto.ModifyUserRoleRequestDTO;
 import br.com.ofisy.application.user.dto.UpdatePasswordRequestDTO;
 import br.com.ofisy.application.user.dto.UserResponseDTO;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -27,7 +22,6 @@ import java.util.UUID;
 @RestController()
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
-@SecurityRequirement(name = "Bearer Token")
 public class UserController implements UserApi {
 
     private final UserService userService;
