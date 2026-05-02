@@ -1,5 +1,7 @@
 package br.com.ofisy.interfaces.api.serviceorder;
 
+import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
+import br.com.ofisy.application.quote.dto.ReproveQuoteRequestDTO;
 import br.com.ofisy.application.serviceorder.ServiceOrderService;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderRequestDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderResponseDTO;
@@ -67,5 +69,10 @@ public class ServiceOrderController implements ServiceOrderApi {
     @PatchMapping("/{id}/deliver")
     public ResponseEntity<ServiceOrderResponseDTO> deliverToCustomerServiceOrder(@PathVariable UUID id) {
         return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.deliverToCustomer(id));
+    }
+
+    @PatchMapping("/quote/{id}/approve")
+    public ResponseEntity<QuoteResponseDTO> approveQuote(@PathVariable UUID id) {
+        return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.approveQuote(id));
     }
 }
