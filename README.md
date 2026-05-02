@@ -68,15 +68,19 @@ A combinação dessas tecnologias permite a construção de um backend robusto e
 
 - `application.yml` — configurações para subir o servidor em ambiente local, sendo banco via Docker e a aplicação na IDE;
 - `application-docker.yml` — configurações para subir o ambiente completo via Docker;
+- `application-test.yml` — configurações dedicadas para testes integrados;
 - `pom.xml` — dependências do projeto gerenciadas via Maven;
 - `Dockerfile` — instruções para o Docker buildar a aplicação;
 - `compose.yaml` — orquestração dos containers da aplicação e do banco, permitindo subir o ambiente completo em qualquer lugar, por qualquer pessoa. Segue a nomenclatura mais recente para esse tipo de arquivo;
 - `compose.db.yaml` — configurações para subir apenas o container do banco para desenvolvimento local;
+- `compose.sonar.yaml` - configurações para Sonar;
+- `compose.zap.yaml` - configurações para OWASP ZAP;
+- `compose.test.yaml` - configurações para subir banco dedicado aos testes integrados para não comprometer dados da base real;
 - `.dockerignore` — instruções para que o Docker ignore determinados arquivos e pastas durante o build, reduzindo o tamanho da imagem gerada;
 - `.gitignore` — instruções para que o Git ignore determinados tipos, pastas e denominações de arquivos;
 - `.env` — variáveis sensíveis utilizadas no projeto. Este arquivo **não é versionado**;
-- `.env.example` — arquivo de exemplo do `.env` para criação do ambiente local.
-
+- `.env.example` — arquivo de exemplo do `.env` para criação do ambiente local;
+- `run-integration-tests.sh` — script para execução dos testes integrados de forma simplificada.
 ---
 
 ## Configuração do ambiente para execução
@@ -190,3 +194,4 @@ docker compose -f compose.db.yaml up -d
 ## Documentação Adicional
 - **[Guia de Testes](docs/TESTING.md)** - Instruções para executar análises de cobertura de testes e segurança
 - **[Guia de Flyway](docs/FLYWAY.md)** - Instruções para criar e executar migrations
+- **[Guia de Testes Integrados](docs/INTEGRATION_TESTS.md)** - Instruções para testes integrados
