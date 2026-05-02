@@ -4,6 +4,7 @@ import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsExcepti
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
 import br.com.ofisy.application.notification.exceptions.NotificationNotFoundException;
+import br.com.ofisy.application.quote.exceptions.QuoteAlreadyExistsException;
 import br.com.ofisy.application.servicecatalog.exceptions.ServiceCatalogNotFoundException;
 import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
@@ -223,6 +224,13 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleInsufficientStock(InsufficientStockException ex) {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         problem.setTitle("Estoque insuficiente");
+        return problem;
+    }
+
+    @ExceptionHandler(QuoteAlreadyExistsException.class)
+    public ProblemDetail handleQuoteAlreadyExists(QuoteAlreadyExistsException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problem.setTitle("Orçamento já existe para a ordem de serviço");
         return problem;
     }
 }

@@ -29,4 +29,9 @@ public class QuoteRepositoryImpl implements QuoteRepository {
     public List<Quote> findByServiceOrderId(UUID serviceOrderId) {
         return jpaQuoteRepository.findByServiceOrderId(serviceOrderId);
     }
+
+    @Override
+    public boolean existsByServiceOrderId(UUID serviceOrderId) {
+        return jpaQuoteRepository.existsByServiceOrderId(serviceOrderId);
+    }
 }

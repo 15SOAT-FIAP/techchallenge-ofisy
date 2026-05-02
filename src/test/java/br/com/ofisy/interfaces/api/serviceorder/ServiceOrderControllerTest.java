@@ -380,6 +380,56 @@ class ServiceOrderControllerTest {
         }
     }
 
+    @Nested
+    class CancelServiceOrder {
+
+        private static final UUID ORDER_ID = UUID.randomUUID();
+
+        @Test
+        void shouldReturn200WithCancelledServiceOrder() throws Exception {
+            when(serviceOrderService.close(ORDER_ID)).thenReturn(mockCancelledResponse());
+
+            mockMvc.perform(patch(BASE_URL + "/{id}/cancel", ORDER_ID))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status").value("CANCELLED"))
+                    .andExpect(jsonPath("$.id").value(ORDER_ID.toString()))
+                    .andExpect(jsonPath("$.vehicleId").value(VALID_VEHICLE_ID.toString()))
+                    .andExpect(jsonPath("$.customerId").value(VALID_CUSTOMER_ID.toString()));
+        }
+
+        @Test
+        void shouldReturn404WhenOrderDoesNotExist() throws Exception {
+            when(serviceOrderService.close(ORDER_ID))
+                    .thenThrow(new ServiceOrderNotFoundException(ORDER_ID));
+
+            mockMvc.perform(patch(BASE_URL + "/{id}/cancel", ORDER_ID))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.title").value("Ordem de serviço não encontrada"));
+        }
+
+        @Test
+        void shouldReturn409WhenTransitionIsInvalid() throws Exception {
+            when(serviceOrderService.close(ORDER_ID))
+                    .thenThrow(new InvalidServiceOrderTransitionException(ServiceOrderStatus.CANCELLED, ServiceOrderStatus.CANCELLED));
+
+            mockMvc.perform(patch(BASE_URL + "/{id}/cancel", ORDER_ID))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.title").value("Transição de status inválida"));
+        }
+
+        @Test
+        void shouldReturn400WhenIdIsNotAValidUuid() throws Exception {
+            mockMvc.perform(patch(BASE_URL + "/{id}/cancel", "not-a-uuid"))
+                    .andExpect(status().isBadRequest());
+        }
+
+        private ServiceOrderResponseDTO mockCancelledResponse() {
+            return new ServiceOrderResponseDTO(
+                    ORDER_ID, VALID_VEHICLE_ID, VALID_CUSTOMER_ID,
+                    "Barulho na suspensão", "CANCELLED", UUID.randomUUID(), NOW, null, NOW);
+        }
+    }
+
     private String validBody() {
         return """
                 {
