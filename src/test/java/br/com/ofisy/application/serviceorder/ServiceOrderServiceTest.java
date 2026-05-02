@@ -2,14 +2,21 @@ package br.com.ofisy.application.serviceorder;
 
 import br.com.ofisy.application.customer.CustomerService;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
+import br.com.ofisy.application.notification.dto.QuoteNotificationRequestDTO;
+import br.com.ofisy.application.notification.NotificationService;
+import br.com.ofisy.application.quote.QuoteService;
+import br.com.ofisy.application.quote.dto.CreateQuoteRequestDTO;
+import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderRequestDTO;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
+import br.com.ofisy.application.serviceorder.ServiceOrderFinalizationService;
 import br.com.ofisy.application.user.UserService;
 import br.com.ofisy.application.user.exceptions.EmailNotFoundException;
 import br.com.ofisy.application.vehicle.VehicleService;
 import br.com.ofisy.application.vehicle.dto.VehicleResponseDTO;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
+import br.com.ofisy.domain.quote.QuoteStatus;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import br.com.ofisy.domain.serviceorder.ServiceOrderRepository;
 import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
@@ -26,6 +33,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -57,6 +65,12 @@ class ServiceOrderServiceTest {
     private VehicleService vehicleService;
     @Mock
     private UserService userService;
+    @Mock
+    private NotificationService notificationService;
+    @Mock
+    private QuoteService quoteService;
+    @Mock
+    private ServiceOrderFinalizationService finalizationService;
 
     @InjectMocks
     private ServiceOrderService serviceOrderService;
@@ -269,6 +283,53 @@ class ServiceOrderServiceTest {
     }
 
     @Nested
+    class GenerateQuote {
+
+        @Test
+        void shouldGenerateQuoteSuccessfully() {
+            var serviceOrder = inDiagnosticServiceOrder();
+            var request = quoteRequest();
+            var quoteId = UUID.randomUUID();
+            var quote = quoteResponse(quoteId);
+
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
+            when(quoteService.create(VALID_SERVICE_ORDER_ID, request)).thenReturn(quote);
+            when(serviceOrderRepository.save(serviceOrder)).thenReturn(serviceOrder);
+
+            var result = serviceOrderService.generateQuote(VALID_SERVICE_ORDER_ID, request);
+
+            assertThat(result).isEqualTo(quote);
+            assertThat(serviceOrder.getStatus()).isEqualTo(ServiceOrderStatus.AWAITING_APPROVAL);
+            verify(serviceOrderRepository).save(serviceOrder);
+            verify(notificationService).createQuoteNotification(new QuoteNotificationRequestDTO(quoteId, VALID_SERVICE_ORDER_ID, new BigDecimal("1500.00")));
+        }
+
+        @Test
+        void shouldThrowServiceOrderNotFoundExceptionWhenOrderDoesNotExist() {
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> serviceOrderService.generateQuote(VALID_SERVICE_ORDER_ID, quoteRequest()))
+                    .isInstanceOf(ServiceOrderNotFoundException.class);
+
+            verify(quoteService, never()).create(any(), any());
+            verify(notificationService, never()).createQuoteNotification(any());
+        }
+
+        @Test
+        void shouldThrowInvalidTransitionWhenOrderIsNotInDiagnostic() {
+            var serviceOrder = receivedServiceOrder();
+            var request = quoteRequest();
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
+            when(quoteService.create(VALID_SERVICE_ORDER_ID, request)).thenReturn(quoteResponse(UUID.randomUUID()));
+
+            assertThatThrownBy(() -> serviceOrderService.generateQuote(VALID_SERVICE_ORDER_ID, request))
+                    .isInstanceOf(InvalidServiceOrderTransitionException.class);
+
+            verify(notificationService, never()).createQuoteNotification(any());
+        }
+    }
+
+    @Nested
     class DeliverToCustomerServiceOrder {
 
         @Test
@@ -329,6 +390,31 @@ class ServiceOrderServiceTest {
 
             assertThatThrownBy(() -> serviceOrderService.close(VALID_SERVICE_ORDER_ID))
                     .isInstanceOf(InvalidServiceOrderTransitionException.class);
+        }
+
+        @Test
+        void shouldCallCancelPendingBeforeCancellingOrder() {
+            var serviceOrder = serviceOrderAwaitingApproval();
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
+            when(serviceOrderRepository.save(serviceOrder)).thenAnswer(inv -> inv.getArgument(0));
+
+            serviceOrderService.close(VALID_SERVICE_ORDER_ID);
+
+            verify(finalizationService).cancelPending(VALID_SERVICE_ORDER_ID);
+            verify(serviceOrderRepository).save(any());
+        }
+
+        @Test
+        void shouldNotSaveOrderWhenCancelPendingThrows() {
+            var serviceOrder = serviceOrderAwaitingApproval();
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
+            doThrow(new RuntimeException("cancellation failed"))
+                    .when(finalizationService).cancelPending(VALID_SERVICE_ORDER_ID);
+
+            assertThatThrownBy(() -> serviceOrderService.close(VALID_SERVICE_ORDER_ID))
+                    .isInstanceOf(RuntimeException.class);
+
+            verify(serviceOrderRepository, never()).save(any());
         }
     }
 
@@ -401,6 +487,22 @@ class ServiceOrderServiceTest {
         order.startDiagnostic();
         order.sendToApproval();
         return order;
+    }
+
+    private ServiceOrder inDiagnosticServiceOrder() {
+        var order = ServiceOrder.receive(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, VALID_REPORT, VALID_USER_ID);
+        order.startDiagnostic();
+        return order;
+    }
+
+    private CreateQuoteRequestDTO quoteRequest() {
+        return new CreateQuoteRequestDTO(VALID_SERVICE_ORDER_ID, List.of(), List.of());
+    }
+
+    private QuoteResponseDTO quoteResponse(UUID quoteId) {
+        return new QuoteResponseDTO(quoteId, VALID_SERVICE_ORDER_ID, QuoteStatus.PENDING,
+                new BigDecimal("1500.00"), null, List.of(), List.of(),
+                LocalDateTime.now(), LocalDateTime.now());
     }
 
     private ServiceOrder cancelledServiceOrder() {

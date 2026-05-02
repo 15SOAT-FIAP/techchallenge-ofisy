@@ -50,9 +50,6 @@ public class ServiceOrder {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-//    private List<ServiceOrderExecution> services = new ArrayList<>();
-//    private List<Quote> quotes = new ArrayList<>();
-
     private ServiceOrder(UUID vehicleId, UUID customerId, String report, UUID createdBy) {
         this.vehicleId = vehicleId;
         this.customerId = customerId;

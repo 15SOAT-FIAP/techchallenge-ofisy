@@ -9,4 +9,6 @@ import java.util.UUID;
 public interface JpaQuoteRepository extends JpaRepository<Quote, UUID> {
 
     List<Quote> findByServiceOrderId(UUID serviceOrderId);
+
+    boolean existsByServiceOrderId(UUID serviceOrderId);
 }

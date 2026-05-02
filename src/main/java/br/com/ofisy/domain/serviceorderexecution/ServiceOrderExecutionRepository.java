@@ -3,6 +3,8 @@ package br.com.ofisy.domain.serviceorderexecution;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,5 +21,11 @@ public interface ServiceOrderExecutionRepository {
     Page<ServiceOrderExecution> findByServiceOrderId(UUID serviceOrderId, Pageable pageable);
 
     Page<ServiceOrderExecution> findByStatus(ServiceOrderExecutionStatus status, Pageable pageable);
+
+    long countByServiceOrderId(UUID serviceOrderId);
+
+    long countByServiceOrderIdAndStatus(UUID serviceOrderId, ServiceOrderExecutionStatus serviceOrderExecutionStatus);
+
+    List<ServiceOrderExecution> findByServiceOrderIdAndStatusIn(UUID serviceOrderId, Collection<ServiceOrderExecutionStatus> statuses);
 }
 

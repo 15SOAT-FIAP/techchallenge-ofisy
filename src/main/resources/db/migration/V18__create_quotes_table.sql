@@ -1,7 +1,7 @@
 CREATE TABLE quotes
 (
     id                   UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-    service_order_id     UUID        NOT NULL,
+    service_order_id     UUID        NOT NULL UNIQUE,
     status               VARCHAR(20) NOT NULL DEFAULT 'PENDING',
     total_price          DECIMAL(10, 2) NOT NULL,
     quote_refusal_reason TEXT,
