@@ -3,8 +3,6 @@ services:
     image: zaproxy/zap-stable:latest
     container_name: ofisy-zap
     environment:
-      ADMIN_LOGIN: ${ADMIN_LOGIN}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       JAVA_OPTS: "-Xmx1g"
     command: >
       bash -c "
