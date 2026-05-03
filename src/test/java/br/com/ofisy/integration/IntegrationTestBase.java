@@ -1,7 +1,18 @@
 package br.com.ofisy.integration;
 
+import br.com.ofisy.infrastructure.persistence.customer.JpaCustomerRepository;
+import br.com.ofisy.infrastructure.persistence.notification.JpaNotificationRepository;
+import br.com.ofisy.infrastructure.persistence.quote.JpaQuoteRepository;
+import br.com.ofisy.infrastructure.persistence.servicecatalog.JpaServiceCatalogRepository;
+import br.com.ofisy.infrastructure.persistence.serviceorder.JpaServiceOrderRepository;
+import br.com.ofisy.infrastructure.persistence.serviceorderexecution.JpaServiceOrderExecutionRepository;
+import br.com.ofisy.infrastructure.persistence.stock.JpaStockRepository;
+import br.com.ofisy.infrastructure.persistence.stockmovement.JpaStockMovementRepository;
+import br.com.ofisy.infrastructure.persistence.user.JpaUserRepository;
+import br.com.ofisy.infrastructure.persistence.vehicle.JpaVehicleRepository;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -42,10 +53,45 @@ public abstract class IntegrationTestBase {
     @Autowired
     protected PasswordEncoder passwordEncoder;
 
+    @Autowired private 
+    JpaNotificationRepository notificationRepository;
+    @Autowired 
+    private JpaQuoteRepository quoteRepository;
+    @Autowired 
+    private JpaServiceOrderExecutionRepository serviceOrderExecutionRepository;
+    @Autowired 
+    private JpaServiceOrderRepository serviceOrderRepository;
+    @Autowired 
+    private JpaStockMovementRepository stockMovementRepository;
+    @Autowired 
+    private JpaStockRepository stockRepository;
+    @Autowired 
+    private JpaServiceCatalogRepository serviceCatalogRepository;
+    @Autowired 
+    private JpaVehicleRepository vehicleRepository;
+    @Autowired 
+    private JpaCustomerRepository customerRepository;
+    @Autowired 
+    private JpaUserRepository userRepository;
+
     @BeforeEach
     void setUpRestAssured() {
         RestAssured.port = port;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+    }
+
+    @AfterEach
+    void cleanDatabase() {
+        notificationRepository.deleteAll();
+        quoteRepository.deleteAll();
+        serviceOrderExecutionRepository.deleteAll();
+        serviceOrderRepository.deleteAll();
+        stockMovementRepository.deleteAll();
+        stockRepository.deleteAll();
+        serviceCatalogRepository.deleteAll();
+        vehicleRepository.deleteAll();
+        customerRepository.deleteAll();
+        userRepository.deleteAll();
     }
 
     protected String obtainToken(String email, String rawPassword) {
