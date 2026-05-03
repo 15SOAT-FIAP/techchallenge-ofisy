@@ -1,0 +1,62 @@
+package br.com.ofisy.integration;
+
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.postgresql.PostgreSQLContainer;
+
+import java.util.Map;
+
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = {
+                "jwt.secret=test-secret-key-minimum-256-bits-long-for-hs256-algorithm-ok",
+                "jwt.expiration=86400000",
+                "spring.docker.compose.enabled=false"
+        }
+)
+public abstract class IntegrationTestBase {
+
+    static final PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:16");
+
+    static {
+        postgres.start();
+    }
+
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+    }
+
+    @LocalServerPort
+    protected int port;
+
+    @Autowired
+    protected PasswordEncoder passwordEncoder;
+
+    @BeforeEach
+    void setUpRestAssured() {
+        RestAssured.port = port;
+        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+    }
+
+    protected String obtainToken(String email, String rawPassword) {
+        return RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(Map.of("email", email, "password", rawPassword))
+                .when()
+                .post("/api/v1/login")
+                .then()
+                .statusCode(200)
+                .extract()
+                .path("token");
+    }
+}
