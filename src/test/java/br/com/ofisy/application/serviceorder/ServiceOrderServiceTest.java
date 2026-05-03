@@ -11,7 +11,6 @@ import br.com.ofisy.application.quote.dto.ReproveQuoteRequestDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderRequestDTO;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
-import br.com.ofisy.application.serviceorder.ServiceOrderFinalizationService;
 import br.com.ofisy.application.user.UserService;
 import br.com.ofisy.application.user.exceptions.EmailNotFoundException;
 import br.com.ofisy.application.vehicle.VehicleService;

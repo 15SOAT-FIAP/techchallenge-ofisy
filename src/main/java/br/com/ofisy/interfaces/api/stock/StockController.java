@@ -4,7 +4,6 @@ import br.com.ofisy.application.stock.StockService;
 import br.com.ofisy.application.stock.dto.CreateStockRequestDTO;
 import br.com.ofisy.application.stock.dto.StockResponseDTO;
 import br.com.ofisy.application.stock.dto.UpdateStockRequestDTO;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;

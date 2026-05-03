@@ -5,7 +5,6 @@ import br.com.ofisy.application.user.dto.CreateUserRequestDTO;
 import br.com.ofisy.application.user.dto.ModifyUserRoleRequestDTO;
 import br.com.ofisy.application.user.dto.UpdatePasswordRequestDTO;
 import br.com.ofisy.application.user.dto.UserResponseDTO;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;

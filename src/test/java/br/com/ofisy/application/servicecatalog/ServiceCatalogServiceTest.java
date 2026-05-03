@@ -36,7 +36,6 @@ class ServiceCatalogServiceTest {
 
     private ServiceCatalogRequestDTO requestDTO;
     private ServiceCatalog serviceCatalog;
-    private ServiceCatalogResponseDTO responseDTO;
     private UUID serviceCatalogId;
 
     @BeforeEach
@@ -56,14 +55,6 @@ class ServiceCatalogServiceTest {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        responseDTO = new ServiceCatalogResponseDTO(
-                serviceCatalogId,
-                "Oil Change",
-                "Change engine oil",
-                new BigDecimal("50.00"),
-                serviceCatalog.getCreatedAt(),
-                serviceCatalog.getUpdatedAt()
-        );
     }
 
     @Test

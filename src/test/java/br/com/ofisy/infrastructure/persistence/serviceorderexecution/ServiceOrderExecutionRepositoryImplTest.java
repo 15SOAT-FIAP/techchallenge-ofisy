@@ -104,7 +104,6 @@ class ServiceOrderExecutionRepositoryImplTest {
         @Test
         void shouldRespectPagination() {
             var service1 = createValidServiceOrderExecution();
-            var service2 = createValidServiceOrderExecution();
             var pageable = Pageable.ofSize(1);
             var page = new PageImpl<>(List.of(service1), pageable, 2);
 

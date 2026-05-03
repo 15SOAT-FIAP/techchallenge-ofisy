@@ -50,7 +50,6 @@ class ServiceOrderExecutionServiceTest {
             var serviceCatalogId = UUID.randomUUID();
             var serviceOrderId = UUID.randomUUID();
             var dto = new ServiceOrderExecutionRequestDTO(serviceCatalogId, serviceOrderId);
-            var expectedService = ServiceOrderExecution.create(serviceCatalogId, serviceOrderId);
 
             when(repository.save(any(ServiceOrderExecution.class))).thenAnswer(inv -> inv.getArgument(0));
 
