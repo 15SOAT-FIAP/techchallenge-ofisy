@@ -63,8 +63,8 @@ public abstract class IntegrationTestBase {
     private JpaServiceOrderRepository serviceOrderRepository;
     @Autowired 
     private JpaStockMovementRepository stockMovementRepository;
-    @Autowired 
-    private JpaStockRepository stockRepository;
+    @Autowired
+    protected JpaStockRepository stockRepository;
     @Autowired 
     private JpaServiceCatalogRepository serviceCatalogRepository;
     @Autowired 

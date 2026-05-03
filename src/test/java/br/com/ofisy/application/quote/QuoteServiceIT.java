@@ -18,16 +18,6 @@ import br.com.ofisy.domain.user.UserRepository;
 import br.com.ofisy.domain.vehicle.LicensePlate;
 import br.com.ofisy.domain.vehicle.Vehicle;
 import br.com.ofisy.domain.vehicle.VehicleRepository;
-import br.com.ofisy.infrastructure.persistence.notification.JpaNotificationRepository;
-import br.com.ofisy.infrastructure.persistence.quote.JpaQuoteRepository;
-import br.com.ofisy.infrastructure.persistence.servicecatalog.JpaServiceCatalogRepository;
-import br.com.ofisy.infrastructure.persistence.serviceorder.JpaServiceOrderRepository;
-import br.com.ofisy.infrastructure.persistence.serviceorderexecution.JpaServiceOrderExecutionRepository;
-import br.com.ofisy.infrastructure.persistence.stock.JpaStockRepository;
-import br.com.ofisy.infrastructure.persistence.stockmovement.JpaStockMovementRepository;
-import br.com.ofisy.infrastructure.persistence.user.JpaUserRepository;
-import br.com.ofisy.infrastructure.persistence.vehicle.JpaVehicleRepository;
-import br.com.ofisy.infrastructure.persistence.customer.JpaCustomerRepository;
 import br.com.ofisy.integration.IntegrationTestBase;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,31 +31,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class QuoteServiceIT extends IntegrationTestBase {
 
-    @Autowired 
+    @Autowired
     private QuoteService quoteService;
-    @Autowired 
+    @Autowired
     private ServiceOrderService serviceOrderService;
-
-    @Autowired 
-    private JpaServiceOrderRepository serviceOrderRepository;
-    @Autowired 
-    private JpaQuoteRepository quoteRepository;
-    @Autowired 
-    private JpaNotificationRepository notificationRepository;
-    @Autowired 
-    private JpaServiceOrderExecutionRepository serviceOrderExecutionRepository;
-    @Autowired 
-    private JpaUserRepository userRepository;
-    @Autowired 
-    private JpaCustomerRepository customerRepository;
-    @Autowired 
-    private JpaVehicleRepository vehicleRepository;
-    @Autowired
-    private JpaStockRepository stockRepository;
-    @Autowired
-    private JpaStockMovementRepository stockMovementRepository;
-    @Autowired
-    private JpaServiceCatalogRepository serviceCatalogRepository;
 
     @Autowired 
     private CustomerRepository customerDomainRepository;
@@ -104,20 +73,6 @@ class QuoteServiceIT extends IntegrationTestBase {
                 Stock.create("Peça Quote IT", "Peça para testes de quote service", 10, new BigDecimal("150.00"), "Testes", 2)
         );
         stockId = stock.getId();
-    }
-
-    @AfterEach
-    void tearDown() {
-        notificationRepository.deleteAll();
-        quoteRepository.deleteAll();
-        serviceOrderExecutionRepository.deleteAll();
-        serviceOrderRepository.deleteAll();
-        stockMovementRepository.deleteAll();
-        stockRepository.deleteAll();
-        serviceCatalogRepository.deleteAll();
-        vehicleRepository.deleteAll();
-        customerRepository.deleteAll();
-        userRepository.deleteAll();
     }
 
     @Nested

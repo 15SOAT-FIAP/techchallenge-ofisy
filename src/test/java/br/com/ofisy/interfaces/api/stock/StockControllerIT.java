@@ -7,10 +7,6 @@ import br.com.ofisy.domain.stock.StockRepository;
 import br.com.ofisy.domain.user.Role;
 import br.com.ofisy.domain.user.User;
 import br.com.ofisy.domain.user.UserRepository;
-import br.com.ofisy.infrastructure.persistence.notification.JpaNotificationRepository;
-import br.com.ofisy.infrastructure.persistence.stock.JpaStockRepository;
-import br.com.ofisy.infrastructure.persistence.stockmovement.JpaStockMovementRepository;
-import br.com.ofisy.infrastructure.persistence.user.JpaUserRepository;
 import br.com.ofisy.integration.IntegrationTestBase;
 import io.restassured.RestAssured;
 import org.junit.jupiter.api.*;
@@ -24,19 +20,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 class StockControllerIT extends IntegrationTestBase {
 
     @Autowired
-    private JpaStockRepository stockRepository;
-    @Autowired
-    private JpaStockMovementRepository stockMovementRepository;
-    @Autowired
-    private JpaNotificationRepository notificationRepository;
-    @Autowired
-    private JpaUserRepository userRepository;
-
-    @Autowired 
     private StockRepository stockDomainRepository;
-    @Autowired 
+    @Autowired
     private UserRepository userDomainRepository;
-    @Autowired 
+    @Autowired
     private NotificationRepository notificationDomainRepository;
 
     private UUID stockId;
@@ -54,14 +41,6 @@ class StockControllerIT extends IntegrationTestBase {
                 Stock.create("Peça Stock Ctrl IT", "Peça para testes de stock controller", 10, new BigDecimal("100.00"), "Testes", 2)
         );
         stockId = stock.getId();
-    }
-
-    @AfterEach
-    void tearDown() {
-        notificationRepository.deleteAll();
-        stockMovementRepository.deleteAll();
-        stockRepository.deleteAll();
-        userRepository.deleteAll();
     }
 
     @Nested

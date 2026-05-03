@@ -6,10 +6,6 @@ import br.com.ofisy.domain.notification.NotificationType;
 import br.com.ofisy.domain.user.Role;
 import br.com.ofisy.domain.user.User;
 import br.com.ofisy.domain.user.UserRepository;
-import br.com.ofisy.infrastructure.persistence.notification.JpaNotificationRepository;
-import br.com.ofisy.infrastructure.persistence.stock.JpaStockRepository;
-import br.com.ofisy.infrastructure.persistence.stockmovement.JpaStockMovementRepository;
-import br.com.ofisy.infrastructure.persistence.user.JpaUserRepository;
 import br.com.ofisy.integration.IntegrationTestBase;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,17 +20,8 @@ class StockServiceIT extends IntegrationTestBase {
     @Autowired private StockService stockService;
 
     @Autowired
-    private JpaStockRepository stockRepository;
-    @Autowired
-    private JpaStockMovementRepository stockMovementRepository;
-    @Autowired
-    private JpaNotificationRepository notificationRepository;
-    @Autowired
-    private JpaUserRepository userRepository;
-
-    @Autowired 
     private UserRepository userDomainRepository;
-    @Autowired 
+    @Autowired
     private NotificationRepository notificationDomainRepository;
 
     private UUID stockId;
@@ -49,14 +36,6 @@ class StockServiceIT extends IntegrationTestBase {
                 "Peça Stock Svc IT", "Peça para testes de stock service", 10, new BigDecimal("100.00"), "Testes", 2
         ));
         stockId = created.id();
-    }
-
-    @AfterEach
-    void tearDown() {
-        notificationRepository.deleteAll();
-        stockMovementRepository.deleteAll();
-        stockRepository.deleteAll();
-        userRepository.deleteAll();
     }
 
     @Nested
