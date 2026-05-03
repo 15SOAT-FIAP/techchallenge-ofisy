@@ -3,7 +3,10 @@ package br.com.ofisy.application.serviceorderexecution;
 import br.com.ofisy.application.serviceorderexecution.dto.ServiceOrderExecutionRequestDTO;
 import br.com.ofisy.application.serviceorderexecution.dto.ServiceOrderExecutionResponseDTO;
 import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecution;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ServiceOrderExecutionMapper {
 
     public static ServiceOrderExecution toDomain(ServiceOrderExecutionRequestDTO request) {

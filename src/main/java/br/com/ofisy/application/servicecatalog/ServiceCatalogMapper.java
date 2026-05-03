@@ -3,7 +3,10 @@ package br.com.ofisy.application.servicecatalog;
 import br.com.ofisy.application.servicecatalog.dto.ServiceCatalogRequestDTO;
 import br.com.ofisy.application.servicecatalog.dto.ServiceCatalogResponseDTO;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ServiceCatalogMapper {
 
     public static ServiceCatalog toDomain(ServiceCatalogRequestDTO request) {

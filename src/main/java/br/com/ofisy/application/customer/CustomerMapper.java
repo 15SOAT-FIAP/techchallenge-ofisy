@@ -4,13 +4,10 @@ import br.com.ofisy.application.customer.dto.CustomerRequestDTO;
 import br.com.ofisy.application.customer.dto.CustomerResponseDTO;
 import br.com.ofisy.domain.customer.CpfCnpj;
 import br.com.ofisy.domain.customer.Customer;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class CustomerMapper {
-
-    private CustomerMapper() {
-        /* This utility class should not be instantiated */
-    }
-
 
     public static Customer toDomain(CustomerRequestDTO request) {
         if (request == null) {
