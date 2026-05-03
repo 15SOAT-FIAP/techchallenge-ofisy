@@ -94,7 +94,8 @@ class QuoteServiceIT extends IntegrationTestBase {
         @Test
         @DisplayName("Deve lançar exceção quando orçamento não encontrado")
         void shouldThrowExceptionWhenQuoteNotFound() {
-            assertThatThrownBy(() -> quoteService.findById(UUID.randomUUID()))
+            var randomId = UUID.randomUUID();
+            assertThatThrownBy(() -> quoteService.findById(randomId))
                     .isInstanceOf(QuoteNotFoundException.class);
         }
     }

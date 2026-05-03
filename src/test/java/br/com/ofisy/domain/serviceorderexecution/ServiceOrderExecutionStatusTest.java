@@ -37,10 +37,10 @@ class ServiceOrderExecutionStatusTest {
 
     @Test
     void shouldConvertToString() {
-        assertThat(ServiceOrderExecutionStatus.PENDING.toString()).isEqualTo("PENDING");
-        assertThat(ServiceOrderExecutionStatus.COMPLETED.toString()).isEqualTo("COMPLETED");
-        assertThat(ServiceOrderExecutionStatus.CANCELLED.toString()).isEqualTo("CANCELLED");
-        assertThat(ServiceOrderExecutionStatus.IN_PROGRESS.toString()).isEqualTo("IN_PROGRESS");
+        assertThat(ServiceOrderExecutionStatus.PENDING.toString()).hasToString("PENDING");
+        assertThat(ServiceOrderExecutionStatus.COMPLETED.toString()).hasToString("COMPLETED");
+        assertThat(ServiceOrderExecutionStatus.CANCELLED.toString()).hasToString("CANCELLED");
+        assertThat(ServiceOrderExecutionStatus.IN_PROGRESS.toString()).hasToString("IN_PROGRESS");
     }
 
     @Test

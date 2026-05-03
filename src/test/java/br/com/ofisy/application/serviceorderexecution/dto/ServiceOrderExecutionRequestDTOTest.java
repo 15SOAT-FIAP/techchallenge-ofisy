@@ -81,7 +81,7 @@ class ServiceOrderExecutionRequestDTOTest {
         var dto1 = new ServiceOrderExecutionRequestDTO(serviceCatalogId, serviceOrderId);
         var dto2 = new ServiceOrderExecutionRequestDTO(serviceCatalogId, serviceOrderId);
         
-        assertThat(dto1.hashCode()).isEqualTo(dto2.hashCode());
+        assertThat(dto1.hashCode()).hasSameHashCodeAs(dto2.hashCode());
     }
 
     @Test
@@ -92,10 +92,11 @@ class ServiceOrderExecutionRequestDTOTest {
         var dto = new ServiceOrderExecutionRequestDTO(serviceCatalogId, serviceOrderId);
         var toString = dto.toString();
         
-        assertThat(toString).contains("serviceCatalogId");
-        assertThat(toString).contains("serviceOrderId");
-        assertThat(toString).contains(serviceCatalogId.toString());
-        assertThat(toString).contains(serviceOrderId.toString());
+        assertThat(toString)
+                .contains("serviceCatalogId")
+                .contains("serviceOrderId")
+                .contains(serviceCatalogId.toString())
+                .contains(serviceOrderId.toString());
     }
 
     @Test

@@ -88,8 +88,9 @@ class ServiceOrderExecutionServiceTest {
 
             var result = application.findById(id);
 
-            assertThat(result).isNotNull();
-            assertThat(result).isEqualTo(ServiceOrderExecutionMapper.toDTO(serviceOrderExecution));
+            assertThat(result)
+                    .isNotNull()
+                    .isEqualTo(ServiceOrderExecutionMapper.toDTO(serviceOrderExecution));
             verify(repository).findById(id);
         }
 
@@ -366,8 +367,9 @@ class ServiceOrderExecutionServiceTest {
 
             var result = application.getAverageExecutionTimeByService(serviceCatalogId);
 
-            assertThat(result).isGreaterThan(0);
-            assertThat(result).isLessThanOrEqualTo(10.0);
+            assertThat(result)
+                    .isGreaterThan(0)
+                            .isLessThanOrEqualTo(10.0);
         }
 
         @Test

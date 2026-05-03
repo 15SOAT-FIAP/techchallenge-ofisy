@@ -7,7 +7,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class StockMovementTest {
+class StockMovementTest {
 
     @Test
     @DisplayName("Deve registrar moviementação de entrada no estoque")
