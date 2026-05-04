@@ -11,7 +11,6 @@ import br.com.ofisy.application.quote.dto.ReproveQuoteRequestDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderRequestDTO;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
-import br.com.ofisy.application.serviceorder.ServiceOrderFinalizationService;
 import br.com.ofisy.application.user.UserService;
 import br.com.ofisy.application.user.exceptions.EmailNotFoundException;
 import br.com.ofisy.application.vehicle.VehicleService;
@@ -173,9 +172,9 @@ class ServiceOrderServiceTest {
 
             assertThat(result.getTotalElements()).isEqualTo(1);
             assertThat(result.getContent()).hasSize(1);
-            assertThat(result.getContent().get(0).status()).isEqualTo("RECEIVED");
-            assertThat(result.getContent().get(0).vehicleId()).isEqualTo(VALID_VEHICLE_ID);
-            assertThat(result.getContent().get(0).customerId()).isEqualTo(VALID_CUSTOMER_ID);
+            assertThat(result.getContent().getFirst().status()).isEqualTo("RECEIVED");
+            assertThat(result.getContent().getFirst().vehicleId()).isEqualTo(VALID_VEHICLE_ID);
+            assertThat(result.getContent().getFirst().customerId()).isEqualTo(VALID_CUSTOMER_ID);
         }
 
         @Test
@@ -219,9 +218,9 @@ class ServiceOrderServiceTest {
 
             assertThat(result.getTotalElements()).isEqualTo(1);
             assertThat(result.getContent()).hasSize(1);
-            assertThat(result.getContent().get(0).status()).isEqualTo("FINISHED");
-            assertThat(result.getContent().get(0).vehicleId()).isEqualTo(VALID_VEHICLE_ID);
-            assertThat(result.getContent().get(0).customerId()).isEqualTo(VALID_CUSTOMER_ID);
+            assertThat(result.getContent().getFirst().status()).isEqualTo("FINISHED");
+            assertThat(result.getContent().getFirst().vehicleId()).isEqualTo(VALID_VEHICLE_ID);
+            assertThat(result.getContent().getFirst().customerId()).isEqualTo(VALID_CUSTOMER_ID);
         }
 
         @Test
@@ -309,7 +308,8 @@ class ServiceOrderServiceTest {
         void shouldThrowServiceOrderNotFoundExceptionWhenOrderDoesNotExist() {
             when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> serviceOrderService.generateQuote(VALID_SERVICE_ORDER_ID, quoteRequest()))
+            var request = quoteRequest();
+            assertThatThrownBy(() -> serviceOrderService.generateQuote(VALID_SERVICE_ORDER_ID, request))
                     .isInstanceOf(ServiceOrderNotFoundException.class);
 
             verify(quoteService, never()).create(any(), any());

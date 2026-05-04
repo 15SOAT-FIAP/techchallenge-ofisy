@@ -97,7 +97,7 @@ class ServiceCatalogRequestDTOTest {
         var dto1 = new ServiceCatalogRequestDTO(price, name, description);
         var dto2 = new ServiceCatalogRequestDTO(price, name, description);
 
-        assertThat(dto1.hashCode()).isEqualTo(dto2.hashCode());
+        assertThat(dto1.hashCode()).hasSameHashCodeAs(dto2.hashCode());
     }
 
     @Test
@@ -105,20 +105,23 @@ class ServiceCatalogRequestDTOTest {
         var dto = new ServiceCatalogRequestDTO(new BigDecimal("150.00"), "Serviço", "Descrição");
         var toString = dto.toString();
 
-        assertThat(toString).contains("price");
-        assertThat(toString).contains("name");
-        assertThat(toString).contains("description");
-        assertThat(toString).contains("150.00");
-        assertThat(toString).contains("Serviço");
-        assertThat(toString).contains("Descrição");
+        assertThat(toString)
+                .contains("price")
+                .contains("name")
+                .contains("description")
+                .contains("150.00")
+                .contains("Serviço")
+                .contains("Descrição");
     }
 
     @Test
     void shouldBeRecordType() {
         var dto = new ServiceCatalogRequestDTO(new BigDecimal("100.00"), "Nome", "Descrição");
 
-        assertThat(dto).isNotNull();
-        assertThat(dto.getClass().isRecord()).isTrue();
+        assertThat(dto)
+                .isNotNull()
+                .extracting(d -> d.getClass().isRecord())
+                .isEqualTo(true);
     }
 
     @Test

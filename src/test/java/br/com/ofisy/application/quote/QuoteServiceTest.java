@@ -140,12 +140,13 @@ class QuoteServiceTest {
                     List.of()
             );
 
-            when(quoteRepository.existsByServiceOrderId(request.serviceOrderId())).thenReturn(false);
+            var serviceOrderId = request.serviceOrderId();
+            when(quoteRepository.existsByServiceOrderId(serviceOrderId)).thenReturn(false);
             when(stockRepository.findById(stockId)).thenReturn(Optional.of(stock));
             when(stockService.consumeStock(eq(stockId), anyInt()))
                     .thenReturn(mock(StockResponseDTO.class));
 
-            assertThatThrownBy(() -> quoteService.create(request.serviceOrderId(), request))
+            assertThatThrownBy(() -> quoteService.create(serviceOrderId, request))
                     .isInstanceOf(QuoteItemAlreadyExistsException.class);
 
             verify(quoteRepository, never()).save(any());
@@ -162,10 +163,11 @@ class QuoteServiceTest {
                     List.of()
             );
 
-            when(quoteRepository.existsByServiceOrderId(request.serviceOrderId())).thenReturn(false);
+            var serviceOrderId = request.serviceOrderId();
+            when(quoteRepository.existsByServiceOrderId(serviceOrderId)).thenReturn(false);
             when(stockRepository.findById(stockId)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> quoteService.create(request.serviceOrderId(), request))
+            assertThatThrownBy(() -> quoteService.create(serviceOrderId, request))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining(stockId.toString());
 
@@ -230,12 +232,13 @@ class QuoteServiceTest {
                     )
             );
 
-            when(quoteRepository.existsByServiceOrderId(request.serviceOrderId())).thenReturn(false);
+            var serviceOrderId = request.serviceOrderId();
+            when(quoteRepository.existsByServiceOrderId(serviceOrderId)).thenReturn(false);
             when(stockRepository.findById(stockId)).thenReturn(Optional.of(stock));
             when(serviceOrderExecutionRepository.findById(serviceOrderExecutionId)).thenReturn(Optional.of(execution));
             when(serviceCatalogRepository.findById(any())).thenReturn(Optional.of(service));
 
-            assertThatThrownBy(() -> quoteService.create(request.serviceOrderId(), request))
+            assertThatThrownBy(() -> quoteService.create(serviceOrderId, request))
                     .isInstanceOf(QuoteItemAlreadyExistsException.class);
 
             verify(quoteRepository, never()).save(any());
@@ -254,11 +257,12 @@ class QuoteServiceTest {
                     List.of(new ServiceItemRequestDTO(serviceOrderExecutionId))
             );
 
-            when(quoteRepository.existsByServiceOrderId(request.serviceOrderId())).thenReturn(false);
+            var serviceOrderId = request.serviceOrderId();
+            when(quoteRepository.existsByServiceOrderId(serviceOrderId)).thenReturn(false);
             when(stockRepository.findById(stockId)).thenReturn(Optional.of(stock));
             when(serviceOrderExecutionRepository.findById(serviceOrderExecutionId)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> quoteService.create(request.serviceOrderId(), request))
+            assertThatThrownBy(() -> quoteService.create(serviceOrderId, request))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining(serviceOrderExecutionId.toString());
 
@@ -282,12 +286,13 @@ class QuoteServiceTest {
                     List.of(new ServiceItemRequestDTO(serviceOrderExecutionId))
             );
 
-            when(quoteRepository.existsByServiceOrderId(request.serviceOrderId())).thenReturn(false);
+            var serviceOrderId = request.serviceOrderId();
+            when(quoteRepository.existsByServiceOrderId(serviceOrderId)).thenReturn(false);
             when(stockRepository.findById(stockId)).thenReturn(Optional.of(stock));
             when(serviceOrderExecutionRepository.findById(serviceOrderExecutionId)).thenReturn(Optional.of(execution));
             when(serviceCatalogRepository.findById(any())).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> quoteService.create(request.serviceOrderId(), request))
+            assertThatThrownBy(() -> quoteService.create(serviceOrderId, request))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("não encontrado");
 

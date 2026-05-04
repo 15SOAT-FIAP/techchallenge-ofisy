@@ -47,7 +47,7 @@ class CustomerResponseDTOTest {
     @Test
     void shouldNotBeEqualForDifferentData() {
         var now = LocalDateTime.now();
-        var dto1 = new CustomerResponseDTO(UUID.fromString("6032c49a-6e85-4e6e-9d49-0050d8471136"), "52998224725", "John", "john@mail.com", "111", now, now);;
+        var dto1 = new CustomerResponseDTO(UUID.fromString("6032c49a-6e85-4e6e-9d49-0050d8471136"), "52998224725", "John", "john@mail.com", "111", now, now);
         var dto2 = new CustomerResponseDTO(UUID.fromString("6032c49a-6e85-4e6e-9d49-0050d8471137"), "11222333000181", "Jane", "jane@mail.com", "222", now, now);
 
         assertThat(dto1).isNotEqualTo(dto2);

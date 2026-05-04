@@ -3,7 +3,9 @@ package br.com.ofisy.application.stock;
 import br.com.ofisy.application.stock.dto.CreateStockRequestDTO;
 import br.com.ofisy.application.stock.dto.StockResponseDTO;
 import br.com.ofisy.domain.stock.Stock;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class StockMapper {
 
     public static Stock toDomain(CreateStockRequestDTO request) {

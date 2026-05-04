@@ -2,12 +2,10 @@ package br.com.ofisy.application.notification;
 
 import br.com.ofisy.application.notification.dto.NotificationResponseDTO;
 import br.com.ofisy.domain.notification.Notification;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class NotificationMapper {
-
-    private NotificationMapper() {
-        /* This utility class should not be instantiated */
-    }
 
     public static NotificationResponseDTO toDTO(Notification notification) {
         if (notification == null) {

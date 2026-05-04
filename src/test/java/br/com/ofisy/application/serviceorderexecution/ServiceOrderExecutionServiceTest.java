@@ -50,7 +50,6 @@ class ServiceOrderExecutionServiceTest {
             var serviceCatalogId = UUID.randomUUID();
             var serviceOrderId = UUID.randomUUID();
             var dto = new ServiceOrderExecutionRequestDTO(serviceCatalogId, serviceOrderId);
-            var expectedService = ServiceOrderExecution.create(serviceCatalogId, serviceOrderId);
 
             when(repository.save(any(ServiceOrderExecution.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -89,8 +88,9 @@ class ServiceOrderExecutionServiceTest {
 
             var result = application.findById(id);
 
-            assertThat(result).isNotNull();
-            assertThat(result).isEqualTo(ServiceOrderExecutionMapper.toDTO(serviceOrderExecution));
+            assertThat(result)
+                    .isNotNull()
+                    .isEqualTo(ServiceOrderExecutionMapper.toDTO(serviceOrderExecution));
             verify(repository).findById(id);
         }
 
@@ -367,8 +367,9 @@ class ServiceOrderExecutionServiceTest {
 
             var result = application.getAverageExecutionTimeByService(serviceCatalogId);
 
-            assertThat(result).isGreaterThan(0);
-            assertThat(result).isLessThanOrEqualTo(10.0);
+            assertThat(result)
+                    .isGreaterThan(0)
+                            .isLessThanOrEqualTo(10.0);
         }
 
         @Test

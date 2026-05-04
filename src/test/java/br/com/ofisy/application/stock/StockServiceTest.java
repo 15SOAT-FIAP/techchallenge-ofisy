@@ -26,7 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class StockServiceTest {
+class StockServiceTest {
 
     @Mock
     private StockRepository stockRepository;
@@ -130,7 +130,8 @@ public class StockServiceTest {
     void shouldThrowExceptionWhenStockNotFound() {
         when(stockRepository.findById(stock.getId())).thenReturn(Optional.empty());
 
-        assertThrows(StockNotFoundException.class, () -> stockService.addStock(stock.getId(), 10));
+        var stockId = stock.getId();
+        assertThrows(StockNotFoundException.class, () -> stockService.addStock(stockId, 10));
         verify(stockRepository, never()).save(any(Stock.class));
     }
 
@@ -139,9 +140,10 @@ public class StockServiceTest {
     void shouldThrowExceptionWhenInsufficientStock() {
         when(stockRepository.findById(lowStock.getId())).thenReturn(Optional.of(lowStock));
 
+        var stockId = lowStock.getId();
         assertThrows(
                 InsufficientStockException.class,
-                () -> stockService.consumeStock(lowStock.getId(), 100)
+                () -> stockService.consumeStock(stockId, 100)
         );
 
         verify(stockRepository, never()).save(any(Stock.class));

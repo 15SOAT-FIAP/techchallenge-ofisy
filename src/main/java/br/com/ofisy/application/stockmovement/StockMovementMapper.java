@@ -3,7 +3,9 @@ package br.com.ofisy.application.stockmovement;
 import br.com.ofisy.application.stockmovement.dto.StockMovementRequestDTO;
 import br.com.ofisy.application.stockmovement.dto.StockMovementResponseDTO;
 import br.com.ofisy.domain.stockmovement.StockMovement;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class StockMovementMapper {
 
     public static StockMovement toDomain(StockMovementRequestDTO request) {

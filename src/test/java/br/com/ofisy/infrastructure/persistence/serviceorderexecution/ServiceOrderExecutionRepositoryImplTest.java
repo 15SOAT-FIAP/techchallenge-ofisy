@@ -45,8 +45,9 @@ class ServiceOrderExecutionRepositoryImplTest {
 
             var result = repository.save(serviceOrderExecution);
 
-            assertThat(result).isNotNull();
-            assertThat(result).isEqualTo(serviceOrderExecution);
+            assertThat(result)
+                    .isNotNull()
+                    .isEqualTo(serviceOrderExecution);
             verify(jpa).save(serviceOrderExecution);
         }
 
@@ -104,7 +105,6 @@ class ServiceOrderExecutionRepositoryImplTest {
         @Test
         void shouldRespectPagination() {
             var service1 = createValidServiceOrderExecution();
-            var service2 = createValidServiceOrderExecution();
             var pageable = Pageable.ofSize(1);
             var page = new PageImpl<>(List.of(service1), pageable, 2);
 
@@ -131,8 +131,7 @@ class ServiceOrderExecutionRepositoryImplTest {
 
             var result = repository.findById(id);
 
-            assertThat(result).isPresent();
-            assertThat(result.get()).isEqualTo(serviceOrderExecution);
+            assertThat(result).contains(serviceOrderExecution);
             verify(jpa).findById(id);
         }
 

@@ -172,7 +172,8 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @Test
         @DisplayName("Deve lançar exceção ao iniciar diagnóstico de OS não encontrada")
         void shouldThrowExceptionWhenServiceOrderNotFound() {
-            assertThatThrownBy(() -> serviceOrderService.startDiagnostic(UUID.randomUUID()))
+            var randomId = UUID.randomUUID();
+            assertThatThrownBy(() -> serviceOrderService.startDiagnostic(randomId))
                     .isInstanceOf(ServiceOrderNotFoundException.class);
         }
 
@@ -204,7 +205,8 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @Test
         @DisplayName("Deve lançar exceção ao cancelar OS não encontrada")
         void shouldThrowExceptionWhenServiceOrderNotFound() {
-            assertThatThrownBy(() -> serviceOrderService.close(UUID.randomUUID()))
+            var randomId = UUID.randomUUID();
+            assertThatThrownBy(() -> serviceOrderService.close(randomId))
                     .isInstanceOf(ServiceOrderNotFoundException.class);
         }
     }
@@ -227,7 +229,8 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @Test
         @DisplayName("Deve lançar exceção quando OS não encontrada")
         void shouldThrowExceptionWhenServiceOrderNotFound() {
-            assertThatThrownBy(() -> serviceOrderService.getStatus(UUID.randomUUID()))
+            var randomId = UUID.randomUUID();
+            assertThatThrownBy(() -> serviceOrderService.getStatus(randomId))
                     .isInstanceOf(ServiceOrderNotFoundException.class);
         }
     }
@@ -312,8 +315,9 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @DisplayName("Deve lançar exceção quando ambas as listas estão vazias")
         void shouldThrowExceptionWhenBothListsAreEmpty() {
             var serviceOrderId = createAndStartDiagnostic();
+            var quoteRequest = new CreateQuoteRequestDTO(serviceOrderId, List.of(), List.of());
 
-            assertThatThrownBy(() -> serviceOrderService.generateQuote(serviceOrderId, new CreateQuoteRequestDTO(serviceOrderId, List.of(), List.of())))
+            assertThatThrownBy(() -> serviceOrderService.generateQuote(serviceOrderId, quoteRequest))
                     .isInstanceOf(InvalidQuoteDataException.class);
         }
 
@@ -357,8 +361,9 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @DisplayName("Deve lançar exceção ao gerar orçamento de OS não encontrada")
         void shouldThrowExceptionWhenServiceOrderNotFound() {
             var randomId = UUID.randomUUID();
+            var stockOnlyQuoteRequest = stockOnlyQuoteRequest(randomId, 1);
 
-            assertThatThrownBy(() -> serviceOrderService.generateQuote(randomId, stockOnlyQuoteRequest(randomId, 1)))
+            assertThatThrownBy(() -> serviceOrderService.generateQuote(randomId, stockOnlyQuoteRequest))
                     .isInstanceOf(ServiceOrderNotFoundException.class);
         }
     }
@@ -417,8 +422,9 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
             var quote = serviceOrderService.generateQuote(serviceOrderId, stockOnlyQuoteRequest(serviceOrderId, 1));
             serviceOrderService.approveQuote(quote.id());
             UUID quoteId = quote.id();
+            var reproveQuoteRequest = new ReproveQuoteRequestDTO("Motivo");
 
-            assertThatThrownBy(() -> serviceOrderService.reproveQuote(quoteId, new ReproveQuoteRequestDTO("Motivo")))
+            assertThatThrownBy(() -> serviceOrderService.reproveQuote(quoteId, reproveQuoteRequest))
                     .isInstanceOf(InvalidQuoteStatusException.class);
         }
     }

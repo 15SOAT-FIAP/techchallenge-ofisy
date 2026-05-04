@@ -8,7 +8,6 @@ import br.com.ofisy.application.quote.dto.StockItemRequestDTO;
 import br.com.ofisy.domain.customer.CpfCnpj;
 import br.com.ofisy.domain.customer.Customer;
 import br.com.ofisy.domain.customer.CustomerRepository;
-import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
 import br.com.ofisy.domain.stock.Stock;
 import br.com.ofisy.domain.stock.StockRepository;
@@ -95,7 +94,8 @@ class QuoteServiceIT extends IntegrationTestBase {
         @Test
         @DisplayName("Deve lançar exceção quando orçamento não encontrado")
         void shouldThrowExceptionWhenQuoteNotFound() {
-            assertThatThrownBy(() -> quoteService.findById(UUID.randomUUID()))
+            var randomId = UUID.randomUUID();
+            assertThatThrownBy(() -> quoteService.findById(randomId))
                     .isInstanceOf(QuoteNotFoundException.class);
         }
     }

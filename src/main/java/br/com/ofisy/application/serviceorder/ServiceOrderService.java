@@ -12,7 +12,6 @@ import br.com.ofisy.application.serviceorder.dto.ServiceOrderResponseDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderStatusResponseDTO;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
-import br.com.ofisy.application.serviceorderexecution.ServiceOrderExecutionService;
 import br.com.ofisy.application.user.UserService;
 import br.com.ofisy.application.vehicle.VehicleService;
 import br.com.ofisy.domain.serviceorder.ServiceOrderRepository;
