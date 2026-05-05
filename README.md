@@ -147,10 +147,10 @@ docker compose -f compose.db.yaml up -d
 - Para realizar o login seguir os seguintes passos:
   1. Acessar a API de Login: http://localhost:8080/swagger-ui/index.html#/Autentica%C3%A7%C3%A3o%20via%20JWT%20Token%20para%20APIs%20administrativas
   2. Utilizar os usuários abaixo de acordo com a ROLE disponível, sendo:
-     3. ADMIN - Usuário administrador
-     4. ATTENDANT - Usuário atendente
-     5. MECHANIC - Usuário mecânico
-     6. STOCKMAN - Usuário almoxarife
+        - ADMIN - Usuário administrador
+        - ATTENDANT - Usuário atendente
+        - MECHANIC - Usuário mecânico
+        - STOCKMAN - Usuário almoxarife
   3. Receber o JWT token no login
   4. Adicionar o token no campo Bearer Token do componente Authorize do Swagger
   5. Acessar as APIs que possuem autorização para o usuário logado
