@@ -43,13 +43,6 @@ jobs:
       targetUrl: http://app:8080
       context: ofisy
 
-  - type: spider
-    parameters:
-      context: ofisy
-      user: admin
-      maxDuration: 3
-      threadCount: 2
-
   - type: passiveScan-wait
     parameters:
       maxDuration: 5
@@ -61,9 +54,6 @@ jobs:
       maxRuleDurationInMins: 2
       maxScanDurationInMins: 15
       threadPerHost: 2
-      policyDefinition:
-        defaultStrength: low
-        defaultThreshold: medium
 
   - type: report
     parameters:
