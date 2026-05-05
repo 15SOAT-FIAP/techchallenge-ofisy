@@ -4,6 +4,8 @@ services:
     container_name: ofisy-zap
     environment:
       JAVA_OPTS: "-Xmx1g"
+      ADMIN_LOGIN: ${ADMIN_LOGIN}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
     command: >
       bash -c "
       echo 'Aguardando a aplicação subir...' &&
