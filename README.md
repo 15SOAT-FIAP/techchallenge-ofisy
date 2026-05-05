@@ -21,7 +21,6 @@ br.com.ofisy
 ├── infrastructure/       # Implementações técnicas externas ao domínio
 │   ├── config/           # Configurações transversais (segurança, Swagger, etc.)
 │   ├── persistence/      # Implementa os repositórios do domínio (Spring Data JPA)
-│   └── messaging/        # Publica e consome eventos
 └── interfaces/
     └── api/              # Controllers REST (endpoints)
 ```
@@ -44,24 +43,25 @@ A combinação dessas tecnologias permite a construção de um backend robusto e
 
 ## Dependências
 
-| Dependência              | Descrição                                                                                                                                                                                       | Artefato                                |
-|--------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------|
-| Spring Web	              | Dependência para criação de APIs RESTful, incluindo o servidor web (Tomcat), mapeamento de rotas e controllers	                                                                                 | `spring-boot-starter-web`               |
-| Spring Data JPA	         | Dependência para gerenciar a comunicação com o banco de dados. Além de acelerar o desenvolvimento e reduzir o código boilerplate, permite a utilização de objetos ORM dentre outras facilidades | 	`spring-boot-starter-data-jpa`         |
-| Spring Security	         | Dependência para tratar autenticação e autorização da aplicação                                                                                                                                 | 	`spring-boot-starter-security`         |
-| Spring Security JWT      | Dependência para tratar autenticação e autorização da aplicação. Exigência de utilização de JWT para entrega do projeto em APIs administrativas.                                                | 	`jjwt-api`, `jjwt-impl`,`jjwt-jackson` |
-| OpenAPI / Swagger	       | Dependência para documentação e exposição das APIs/rotas criadas para o projeto via Swagger nesta fase 1.	                                                                                      | `springdoc-openapi-starter-webmvc-ui`   |
-| Spring Validation        | 	Dependência para validação de DTOs e beans	                                                                                                                                                    | `spring-boot-starter-validation`        |
-| PostgreSQL	              | Dependência para o banco de dados PostgreSQL                                                                                                                                                    | 	`postgresql`                           |
-| Docker Compose	          | Dependência para permitir utilização de docker compose para aplicação                                                                                                                           | 	`spring-boot-docker-compose`           |
-| Lombok                   | 	Dependência para permitir redução de código boilerplate através de anotações, gerando automaticamente getters, setters, construtores etc.	                                                     | `lombok`                                |
-| Spring Actuator          | 	Dependência utilizada para obter endpoints de monitoramento e observabilidade da aplicação, como verificação de saúde (/actuator/health), métricas entre outras informações	                   | `spring-boot-starter-actuator`          |
-| Spring Boot Test         | 	Dependência para escrita de testes automatizados, incluindo suporte a testes unitários e de integração com JUnit e Mockito	                                                                    | `spring-boot-starter-test`              |
-| Spring Boot Webmvc Test  |   Dependência que permite testar de forma isolada a camada de Controller (Web), simulando requisições HTTP, validando rotas, parâmetros de entrada e o JSON de retorno sem subir o servidor completo | `spring-boot-webmvc-test`               |
-| Spring Security Test     | 	Dependência para testes de endpoints protegidos, permitindo simular usuários autenticados e verificar comportamentos de segurança nos testes	                                                  | `spring-security-test`                  |
+| Dependência                | Descrição                                                                                                                                                                                       | Artefato                                |
+|----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------|
+| Spring Web	                | Dependência para criação de APIs RESTful, incluindo o servidor web (Tomcat), mapeamento de rotas e controllers	                                                                                 | `spring-boot-starter-web`               |
+| Spring Data JPA	           | Dependência para gerenciar a comunicação com o banco de dados. Além de acelerar o desenvolvimento e reduzir o código boilerplate, permite a utilização de objetos ORM dentre outras facilidades | 	`spring-boot-starter-data-jpa`         |
+| Spring Security	           | Dependência para tratar autenticação e autorização da aplicação                                                                                                                                 | 	`spring-boot-starter-security`         |
+| Spring Security JWT        | Dependência para tratar autenticação e autorização da aplicação. Exigência de utilização de JWT para entrega do projeto em APIs administrativas.                                                | 	`jjwt-api`, `jjwt-impl`,`jjwt-jackson` |
+| OpenAPI / Swagger	         | Dependência para documentação e exposição das APIs/rotas criadas para o projeto via Swagger nesta fase 1.	                                                                                      | `springdoc-openapi-starter-webmvc-ui`   |
+| Spring Validation          | 	Dependência para validação de DTOs e beans	                                                                                                                                                    | `spring-boot-starter-validation`        |
+| PostgreSQL	                | Dependência para o banco de dados PostgreSQL                                                                                                                                                    | 	`postgresql`                           |
+| Docker Compose	            | Dependência para permitir utilização de docker compose para aplicação                                                                                                                           | 	`spring-boot-docker-compose`           |
+| Lombok                     | 	Dependência para permitir redução de código boilerplate através de anotações, gerando automaticamente getters, setters, construtores etc.	                                                     | `lombok`                                |
+| Spring Actuator            | 	Dependência utilizada para obter endpoints de monitoramento e observabilidade da aplicação, como verificação de saúde (/actuator/health), métricas entre outras informações	                   | `spring-boot-starter-actuator`          |
+| Spring Boot Test           | 	Dependência para escrita de testes automatizados, incluindo suporte a testes unitários e de integração com JUnit e Mockito	                                                                    | `spring-boot-starter-test`              |
+| Spring Boot Webmvc Test    |   Dependência que permite testar de forma isolada a camada de Controller (Web), simulando requisições HTTP, validando rotas, parâmetros de entrada e o JSON de retorno sem subir o servidor completo | `spring-boot-webmvc-test`               |
+| Spring Security Test       | 	Dependência para testes de endpoints protegidos, permitindo simular usuários autenticados e verificar comportamentos de segurança nos testes	                                                  | `spring-security-test`                  |
 | Flyway Core                | Dependência principal do framework de migração de banco de dados, responsável por gerenciar o histórico de versões, executar scripts SQL automaticamente e garantir a integridade do esquema    | `flyway-core`                           |
 | Flyway Database PostgreSQL | Extensão específica do Flyway que adiciona suporte completo às funcionalidades do PostgreSQL, permitindo que o framework se comunique corretamente com o dialeto e driver desse banco           | `flyway-database-postgresql`            |
-
+| Testcontainers             | Dependência para criação de containers Docker durante os testes de integração, permitindo subir um banco PostgreSQL real de forma isolada e automatizada | `spring-boot-testcontainers`, `testcontainers-postgresql`, `testcontainers-junit-jupiter` |
+| REST Assured               | Dependência para testes de integração de APIs REST, permitindo realizar requisições HTTP e validar respostas de forma fluente e legível | `rest-assured` |
 ---
 
 ## Arquivos de Configuração
@@ -72,10 +72,12 @@ A combinação dessas tecnologias permite a construção de um backend robusto e
 - `Dockerfile` — instruções para o Docker buildar a aplicação;
 - `compose.yaml` — orquestração dos containers da aplicação e do banco, permitindo subir o ambiente completo em qualquer lugar, por qualquer pessoa. Segue a nomenclatura mais recente para esse tipo de arquivo;
 - `compose.db.yaml` — configurações para subir apenas o container do banco para desenvolvimento local;
+- `compose.sonar.yaml` — configurações para subir apenas o container do SonarQube para análise de qualidade, vulnerabilidades e cobertura de testes da aplicação;
+- `compose.zap.yaml` — configurações para subir apenas o container do OWASP ZAP para análise de vulnerabilidades da aplicação;
 - `.dockerignore` — instruções para que o Docker ignore determinados arquivos e pastas durante o build, reduzindo o tamanho da imagem gerada;
 - `.gitignore` — instruções para que o Git ignore determinados tipos, pastas e denominações de arquivos;
 - `.env` — variáveis sensíveis utilizadas no projeto. Este arquivo **não é versionado**;
-- `.env.example` — arquivo de exemplo do `.env` para criação do ambiente local.
+- `env.example` — arquivo de exemplo do `.env` para criação do ambiente local.
 
 ---
 
@@ -98,13 +100,13 @@ Acesse o repositório clonado.
 
 ### 2. Crie o arquivo `.env`
 
-O arquivo `.env.example` já contém os valores prontos para um novo ambiente ou avaliação. Para efetuar a cópia, execute o seguinte comando:
+O arquivo `env.example` já contém os valores prontos para um novo ambiente ou avaliação. Para efetuar a cópia, execute o seguinte comando:
 
 ```bash
 cp env.example .env
 ```
 
-> O `.env.example` possui credenciais funcionais para o ambiente de desenvolvimento e avaliação.
+> O `env.example` possui credenciais funcionais para o ambiente de desenvolvimento e avaliação.
 
 ---
 
