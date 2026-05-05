@@ -24,9 +24,9 @@ public class SwaggerConfig {
                         .version("1.0.0")
                         .contact(new Contact()
                                 .name("15SOAT - Grupo 38")))
-                .addSecurityItem(new SecurityRequirement().addList("Bearer Token"))
+                .addSecurityItem(new SecurityRequirement().addList("BearerToken"))
                 .components(new Components()
-                        .addSecuritySchemes("Bearer Token", new SecurityScheme()
+                        .addSecuritySchemes("BearerToken", new SecurityScheme()
                                 .type(SecurityScheme.Type.HTTP)
                                 .scheme(BEARER)
                                 .bearerFormat(JWT)));
