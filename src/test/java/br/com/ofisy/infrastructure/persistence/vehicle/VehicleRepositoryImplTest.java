@@ -130,18 +130,18 @@ class VehicleRepositoryImplTest {
         void shouldReturnVehicleWhenFound() {
             var licensePlate = new LicensePlate(VALID_PLATE);
             var vehicle = validVehicle();
-            when(jpa.findByLicensePlate(VALID_PLATE)).thenReturn(Optional.of(vehicle));
+            when(jpa.findByLicensePlateValue(VALID_PLATE)).thenReturn(Optional.of(vehicle));
 
             var result = repository.findByLicensePlate(licensePlate);
 
             assertThat(result).isPresent().contains(vehicle);
-            verify(jpa).findByLicensePlate(VALID_PLATE);
+            verify(jpa).findByLicensePlateValue(VALID_PLATE);
         }
 
         @Test
         void shouldReturnEmptyWhenNotFound() {
             var licensePlate = new LicensePlate(VALID_PLATE);
-            when(jpa.findByLicensePlate(VALID_PLATE)).thenReturn(Optional.empty());
+            when(jpa.findByLicensePlateValue(VALID_PLATE)).thenReturn(Optional.empty());
 
             var result = repository.findByLicensePlate(licensePlate);
 
