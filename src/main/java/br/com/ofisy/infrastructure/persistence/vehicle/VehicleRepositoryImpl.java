@@ -40,6 +40,6 @@ public class VehicleRepositoryImpl implements VehicleRepository {
 
     @Override
     public Optional<Vehicle> findByLicensePlate(LicensePlate licensePlate) {
-        return jpa.findByLicensePlate(licensePlate.getValue());
+        return jpa.findByLicensePlateValue(licensePlate.getValue());
     }
 }

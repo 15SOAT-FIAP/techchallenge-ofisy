@@ -10,5 +10,5 @@ import java.util.UUID;
 public interface JpaVehicleRepository extends JpaRepository<Vehicle, UUID> {
     List<Vehicle> findByCustomerId(UUID customerId);
 
-    Optional<Vehicle> findByLicensePlate(String value);
+    Optional<Vehicle> findByLicensePlateValue(String value);
 }
