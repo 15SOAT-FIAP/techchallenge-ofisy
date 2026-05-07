@@ -134,7 +134,7 @@ class QuoteServiceIT extends IntegrationTestBase {
     }
 
     private CreateQuoteRequestDTO quoteRequest(UUID serviceOrderId, int quantity) {
-        return new CreateQuoteRequestDTO(serviceOrderId,
+        return new CreateQuoteRequestDTO(
                 List.of(new StockItemRequestDTO(stockId, quantity)),
                 List.of());
     }

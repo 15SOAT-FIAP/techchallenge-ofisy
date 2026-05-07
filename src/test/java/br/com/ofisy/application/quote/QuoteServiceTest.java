@@ -85,18 +85,18 @@ class QuoteServiceTest {
             Quote quote = mockQuote();
             QuoteResponseDTO response = mockResponse(quote);
 
+            UUID serviceOrderId = UUID.randomUUID();
             CreateQuoteRequestDTO request = new CreateQuoteRequestDTO(
-                    UUID.randomUUID(),
                     List.of(new StockItemRequestDTO(stockId, 2)),
                     List.of()
             );
 
-            when(quoteRepository.existsByServiceOrderId(request.serviceOrderId())).thenReturn(false);
+            when(quoteRepository.existsByServiceOrderId(serviceOrderId)).thenReturn(false);
             when(stockRepository.findById(stockId)).thenReturn(Optional.of(stock));
             when(quoteRepository.save(any())).thenReturn(quote);
             when(mapper.toResponse(quote)).thenReturn(response);
 
-            var result = quoteService.create(request.serviceOrderId(), request);
+            var result = quoteService.create(serviceOrderId, request);
 
             assertThat(result).isNotNull();
             verify(stockService).consumeStock(stockId, 2);
@@ -110,7 +110,6 @@ class QuoteServiceTest {
             Stock stock = mockStock();
 
             CreateQuoteRequestDTO request = new CreateQuoteRequestDTO(
-                    serviceOrderId,
                     List.of(new StockItemRequestDTO(stock.getId(), 2)),
                     List.of()
             );
@@ -131,16 +130,14 @@ class QuoteServiceTest {
             Stock stock = mockStock();
             UUID stockId = stock.getId();
 
+            UUID serviceOrderId = UUID.randomUUID();
             CreateQuoteRequestDTO request = new CreateQuoteRequestDTO(
-                    UUID.randomUUID(),
                     List.of(
                             new StockItemRequestDTO(stockId, 2),
                             new StockItemRequestDTO(stockId, 1)
                     ),
                     List.of()
             );
-
-            var serviceOrderId = request.serviceOrderId();
             when(quoteRepository.existsByServiceOrderId(serviceOrderId)).thenReturn(false);
             when(stockRepository.findById(stockId)).thenReturn(Optional.of(stock));
             when(stockService.consumeStock(eq(stockId), anyInt()))
@@ -157,13 +154,12 @@ class QuoteServiceTest {
         void shouldThrowExceptionWhenStockNotFound() {
             UUID stockId = UUID.randomUUID();
 
+            UUID serviceOrderId = UUID.randomUUID();
             CreateQuoteRequestDTO request = new CreateQuoteRequestDTO(
-                    UUID.randomUUID(),
                     List.of(new StockItemRequestDTO(stockId, 2)),
                     List.of()
             );
 
-            var serviceOrderId = request.serviceOrderId();
             when(quoteRepository.existsByServiceOrderId(serviceOrderId)).thenReturn(false);
             when(stockRepository.findById(stockId)).thenReturn(Optional.empty());
 
@@ -189,20 +185,20 @@ class QuoteServiceTest {
             Quote quote = mockQuote();
             QuoteResponseDTO response = mockResponse(quote);
 
+            UUID serviceOrderId = UUID.randomUUID();
             CreateQuoteRequestDTO request = new CreateQuoteRequestDTO(
-                    UUID.randomUUID(),
                     List.of(new StockItemRequestDTO(stockId, 2)),
                     List.of(new ServiceItemRequestDTO(serviceOrderExecutionId))
             );
 
-            when(quoteRepository.existsByServiceOrderId(request.serviceOrderId())).thenReturn(false);
+            when(quoteRepository.existsByServiceOrderId(serviceOrderId)).thenReturn(false);
             when(stockRepository.findById(stockId)).thenReturn(Optional.of(stock));
             when(serviceOrderExecutionRepository.findById(serviceOrderExecutionId)).thenReturn(Optional.of(execution));
             when(serviceCatalogRepository.findById(any())).thenReturn(Optional.of(service));
             when(quoteRepository.save(any())).thenReturn(quote);
             when(mapper.toResponse(quote)).thenReturn(response);
 
-            var result = quoteService.create(request.serviceOrderId(), request);
+            var result = quoteService.create(serviceOrderId, request);
 
             assertThat(result).isNotNull();
             verify(stockService).consumeStock(stockId, 2);
@@ -223,16 +219,14 @@ class QuoteServiceTest {
 
             ServiceCatalog service = mockService();
 
+            UUID serviceOrderId = UUID.randomUUID();
             CreateQuoteRequestDTO request = new CreateQuoteRequestDTO(
-                    UUID.randomUUID(),
                     List.of(new StockItemRequestDTO(stockId, 2)),
                     List.of(
                             new ServiceItemRequestDTO(serviceOrderExecutionId),
                             new ServiceItemRequestDTO(serviceOrderExecutionId)
                     )
             );
-
-            var serviceOrderId = request.serviceOrderId();
             when(quoteRepository.existsByServiceOrderId(serviceOrderId)).thenReturn(false);
             when(stockRepository.findById(stockId)).thenReturn(Optional.of(stock));
             when(serviceOrderExecutionRepository.findById(serviceOrderExecutionId)).thenReturn(Optional.of(execution));
@@ -251,13 +245,12 @@ class QuoteServiceTest {
             UUID stockId = stock.getId();
             UUID serviceOrderExecutionId = UUID.randomUUID();
 
+            UUID serviceOrderId = UUID.randomUUID();
             CreateQuoteRequestDTO request = new CreateQuoteRequestDTO(
-                    UUID.randomUUID(),
                     List.of(new StockItemRequestDTO(stockId, 2)),
                     List.of(new ServiceItemRequestDTO(serviceOrderExecutionId))
             );
 
-            var serviceOrderId = request.serviceOrderId();
             when(quoteRepository.existsByServiceOrderId(serviceOrderId)).thenReturn(false);
             when(stockRepository.findById(stockId)).thenReturn(Optional.of(stock));
             when(serviceOrderExecutionRepository.findById(serviceOrderExecutionId)).thenReturn(Optional.empty());
@@ -280,13 +273,12 @@ class QuoteServiceTest {
             ServiceOrderExecution execution = mockServiceOrderExecution(serviceId);
             ReflectionTestUtils.setField(execution, "id", serviceOrderExecutionId);
 
+            UUID serviceOrderId = UUID.randomUUID();
             CreateQuoteRequestDTO request = new CreateQuoteRequestDTO(
-                    UUID.randomUUID(),
                     List.of(new StockItemRequestDTO(stockId, 2)),
                     List.of(new ServiceItemRequestDTO(serviceOrderExecutionId))
             );
 
-            var serviceOrderId = request.serviceOrderId();
             when(quoteRepository.existsByServiceOrderId(serviceOrderId)).thenReturn(false);
             when(stockRepository.findById(stockId)).thenReturn(Optional.of(stock));
             when(serviceOrderExecutionRepository.findById(serviceOrderExecutionId)).thenReturn(Optional.of(execution));
