@@ -420,6 +420,43 @@ class ServiceOrderServiceTest {
     }
 
     @Nested
+    class StartExecution {
+
+        @Test
+        void shouldTransitionToInProgressWhenOrderIsAwaitingExecution() {
+            var serviceOrder = awaitingExecutionServiceOrder();
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
+            when(serviceOrderRepository.save(serviceOrder)).thenAnswer(inv -> inv.getArgument(0));
+
+            serviceOrderService.startExecution(VALID_SERVICE_ORDER_ID);
+
+            assertThat(serviceOrder.getStatus()).isEqualTo(ServiceOrderStatus.IN_PROGRESS);
+            verify(serviceOrderRepository).save(serviceOrder);
+        }
+
+        @Test
+        void shouldNotSaveWhenOrderIsAlreadyInProgress() {
+            var serviceOrder = inProgressServiceOrder();
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
+
+            serviceOrderService.startExecution(VALID_SERVICE_ORDER_ID);
+
+            assertThat(serviceOrder.getStatus()).isEqualTo(ServiceOrderStatus.IN_PROGRESS);
+            verify(serviceOrderRepository, never()).save(any());
+        }
+
+        @Test
+        void shouldThrowServiceOrderNotFoundExceptionWhenOrderDoesNotExist() {
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> serviceOrderService.startExecution(VALID_SERVICE_ORDER_ID))
+                    .isInstanceOf(ServiceOrderNotFoundException.class);
+
+            verify(serviceOrderRepository, never()).save(any());
+        }
+    }
+
+    @Nested
     class GetStatusServiceOrder {
 
         @Test
@@ -599,6 +636,20 @@ class ServiceOrderServiceTest {
     private ServiceOrder cancelledServiceOrder() {
         var order = ServiceOrder.receive(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, VALID_REPORT, VALID_USER_ID);
         order.cancel();
+        return order;
+    }
+
+    private ServiceOrder awaitingExecutionServiceOrder() {
+        var order = ServiceOrder.receive(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, VALID_REPORT, VALID_USER_ID);
+        order.startDiagnostic();
+        order.sendToApproval();
+        order.approve();
+        return order;
+    }
+
+    private ServiceOrder inProgressServiceOrder() {
+        var order = awaitingExecutionServiceOrder();
+        order.startExecution();
         return order;
     }
 }
