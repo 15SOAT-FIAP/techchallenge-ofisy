@@ -315,7 +315,7 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @DisplayName("Deve lançar exceção quando ambas as listas estão vazias")
         void shouldThrowExceptionWhenBothListsAreEmpty() {
             var serviceOrderId = createAndStartDiagnostic();
-            var quoteRequest = new CreateQuoteRequestDTO(serviceOrderId, List.of(), List.of());
+            var quoteRequest = new CreateQuoteRequestDTO(List.of(), List.of());
 
             assertThatThrownBy(() -> serviceOrderService.generateQuote(serviceOrderId, quoteRequest))
                     .isInstanceOf(InvalidQuoteDataException.class);
@@ -336,7 +336,7 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @DisplayName("Deve lançar exceção ao gerar orçamento com item de estoque duplicado")
         void shouldThrowExceptionWhenDuplicateStockItem() {
             var serviceOrderId = createAndStartDiagnostic();
-            var req = new CreateQuoteRequestDTO(serviceOrderId,
+            var req = new CreateQuoteRequestDTO(
                     List.of(new StockItemRequestDTO(stockId, 1), new StockItemRequestDTO(stockId, 2)),
                     List.of());
 
@@ -448,13 +448,13 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
     }
 
     private CreateQuoteRequestDTO stockOnlyQuoteRequest(UUID serviceOrderId, int quantity) {
-        return new CreateQuoteRequestDTO(serviceOrderId,
+        return new CreateQuoteRequestDTO(
                 List.of(new StockItemRequestDTO(stockId, quantity), new StockItemRequestDTO(stockId2, quantity)),
                 List.of());
     }
 
     private CreateQuoteRequestDTO fullQuoteRequest(UUID serviceOrderId, UUID execId, int quantity) {
-        return new CreateQuoteRequestDTO(serviceOrderId,
+        return new CreateQuoteRequestDTO(
                 List.of(new StockItemRequestDTO(stockId, quantity)),
                 List.of(new ServiceItemRequestDTO(execId)));
     }

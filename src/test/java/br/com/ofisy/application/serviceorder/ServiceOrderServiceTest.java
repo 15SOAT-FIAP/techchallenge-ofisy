@@ -575,7 +575,7 @@ class ServiceOrderServiceTest {
     }
 
     private CreateQuoteRequestDTO quoteRequest() {
-        return new CreateQuoteRequestDTO(VALID_SERVICE_ORDER_ID, List.of(), List.of());
+        return new CreateQuoteRequestDTO(List.of(), List.of());
     }
 
     private QuoteResponseDTO quoteResponse(UUID quoteId) {
