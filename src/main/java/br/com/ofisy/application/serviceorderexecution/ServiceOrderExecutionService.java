@@ -1,6 +1,7 @@
 package br.com.ofisy.application.serviceorderexecution;
 
 import br.com.ofisy.application.serviceorder.ServiceOrderFinalizationService;
+import br.com.ofisy.application.serviceorder.ServiceOrderService;
 import br.com.ofisy.application.serviceorderexecution.dto.ServiceOrderExecutionRequestDTO;
 import br.com.ofisy.application.serviceorderexecution.dto.ServiceOrderExecutionResponseDTO;
 import br.com.ofisy.application.serviceorderexecution.exceptions.ServiceOrderExecutionNotFoundException;
@@ -22,6 +23,7 @@ public class ServiceOrderExecutionService {
 
     private final ServiceOrderExecutionRepository repository;
     private final ServiceOrderFinalizationService finalizationService;
+    private final ServiceOrderService serviceOrderService;
 
     @Transactional
     public ServiceOrderExecutionResponseDTO create(ServiceOrderExecutionRequestDTO dto) {
@@ -87,6 +89,7 @@ public class ServiceOrderExecutionService {
         ServiceOrderExecution service = repository.findById(id)
                 .orElseThrow(() -> new ServiceOrderExecutionNotFoundException(id));
         service.start();
+        serviceOrderService.startExecution(service.getServiceOrderId());
         return ServiceOrderExecutionMapper.toDTO(repository.save(service));
     }
 
