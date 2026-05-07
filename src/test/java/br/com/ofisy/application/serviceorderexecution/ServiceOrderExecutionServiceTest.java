@@ -1,6 +1,7 @@
 package br.com.ofisy.application.serviceorderexecution;
 
 import br.com.ofisy.application.serviceorder.ServiceOrderFinalizationService;
+import br.com.ofisy.application.serviceorder.ServiceOrderService;
 import br.com.ofisy.application.serviceorderexecution.dto.ServiceOrderExecutionRequestDTO;
 import br.com.ofisy.application.serviceorderexecution.exceptions.ServiceOrderExecutionNotFoundException;
 import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecution;
@@ -34,6 +35,9 @@ class ServiceOrderExecutionServiceTest {
 
     @Mock
     private ServiceOrderFinalizationService finalizationService;
+
+    @Mock
+    private ServiceOrderService serviceOrderService;
 
     @InjectMocks
     private ServiceOrderExecutionService application;
@@ -298,6 +302,7 @@ class ServiceOrderExecutionServiceTest {
             assertThat(result.startedAt()).isNotNull();
             verify(repository).findById(id);
             verify(repository).save(any(ServiceOrderExecution.class));
+            verify(serviceOrderService).startExecution(serviceOrderExecution.getServiceOrderId());
         }
 
         @Test
@@ -310,6 +315,7 @@ class ServiceOrderExecutionServiceTest {
                     .isInstanceOf(ServiceOrderExecutionNotFoundException.class);
 
             verify(repository, never()).save(any(ServiceOrderExecution.class));
+            verify(serviceOrderService, never()).startExecution(any());
         }
     }
 

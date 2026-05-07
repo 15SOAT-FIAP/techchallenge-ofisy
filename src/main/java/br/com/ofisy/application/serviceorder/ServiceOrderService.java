@@ -93,6 +93,16 @@ public class ServiceOrderService {
     }
 
     @Transactional
+    public void startExecution(UUID id) {
+        var serviceOrder = serviceOrderRepository.findById(id)
+                .orElseThrow(() -> new ServiceOrderNotFoundException(id));
+        if (serviceOrder.getStatus() == ServiceOrderStatus.AWAITING_EXECUTION) {
+            serviceOrder.startExecution();
+            serviceOrderRepository.save(serviceOrder);
+        }
+    }
+
+    @Transactional
     public ServiceOrderResponseDTO deliverToCustomer(UUID id) {
         var serviceOrder = serviceOrderRepository.findById(id)
                 .orElseThrow(() -> new ServiceOrderNotFoundException(id));

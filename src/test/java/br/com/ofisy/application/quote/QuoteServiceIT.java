@@ -82,7 +82,7 @@ class QuoteServiceIT extends IntegrationTestBase {
         @DisplayName("Deve retornar orçamento por ID")
         void shouldReturnQuoteById() {
             var serviceOrderId = createAndStartDiagnostic();
-            var quote = serviceOrderService.generateQuote(serviceOrderId, quoteRequest(serviceOrderId, 1));
+            var quote = serviceOrderService.generateQuote(serviceOrderId, quoteRequest(1));
 
             var response = quoteService.findById(quote.id());
 
@@ -108,7 +108,7 @@ class QuoteServiceIT extends IntegrationTestBase {
         @DisplayName("Deve retornar orçamentos por OS")
         void shouldReturnQuotesByServiceOrderId() {
             var serviceOrderId = createAndStartDiagnostic();
-            serviceOrderService.generateQuote(serviceOrderId, quoteRequest(serviceOrderId, 1));
+            serviceOrderService.generateQuote(serviceOrderId, quoteRequest(1));
 
             var response = quoteService.findByServiceOrderId(serviceOrderId);
 
@@ -133,7 +133,7 @@ class QuoteServiceIT extends IntegrationTestBase {
         return created.id();
     }
 
-    private CreateQuoteRequestDTO quoteRequest(UUID serviceOrderId, int quantity) {
+    private CreateQuoteRequestDTO quoteRequest(int quantity) {
         return new CreateQuoteRequestDTO(
                 List.of(new StockItemRequestDTO(stockId, quantity)),
                 List.of());

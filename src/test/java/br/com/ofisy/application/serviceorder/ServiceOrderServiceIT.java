@@ -276,7 +276,7 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
             var serviceOrderId = createAndStartDiagnostic();
             var execId = createServiceOrderExecution(serviceOrderId);
 
-            var quote = serviceOrderService.generateQuote(serviceOrderId, fullQuoteRequest(serviceOrderId, execId, 2));
+            var quote = serviceOrderService.generateQuote(serviceOrderId, fullQuoteRequest(execId, 2));
 
             assertThat(quote.serviceOrderId()).isEqualTo(serviceOrderId);
             assertThat(quote.status()).isEqualTo(QuoteStatus.PENDING);
@@ -289,7 +289,7 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
             var serviceOrderId = createAndStartDiagnostic();
             var execId = createServiceOrderExecution(serviceOrderId);
 
-            var quote = serviceOrderService.generateQuote(serviceOrderId, fullQuoteRequest(serviceOrderId, execId, 2));
+            var quote = serviceOrderService.generateQuote(serviceOrderId, fullQuoteRequest(execId, 2));
 
             assertThat(quote.stockItems()).hasSize(1);
             assertThat(quote.serviceItems()).hasSize(1);
@@ -300,7 +300,7 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @DisplayName("Deve criar notificação ao gerar orçamento")
         void shouldCreateNotificationWhenGeneratingQuote() {
             var serviceOrderId = createAndStartDiagnostic();
-            var quote = serviceOrderService.generateQuote(serviceOrderId, stockOnlyQuoteRequest(serviceOrderId, 1));
+            var quote = serviceOrderService.generateQuote(serviceOrderId, stockOnlyQuoteRequest(1));
 
             var notifications = notificationDomainRepository.findAll().stream()
                     .filter(n -> n.getType() == NotificationType.QUOTE_GENERATED)
@@ -325,7 +325,7 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @DisplayName("Deve lançar exceção ao gerar orçamento duplicado")
         void shouldThrowExceptionWhenQuoteAlreadyExists() {
             var serviceOrderId = createAndStartDiagnostic();
-            var req = stockOnlyQuoteRequest(serviceOrderId, 1);
+            var req = stockOnlyQuoteRequest(1);
             serviceOrderService.generateQuote(serviceOrderId, req);
 
             assertThatThrownBy(() -> serviceOrderService.generateQuote(serviceOrderId, req))
@@ -351,7 +351,7 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
             int before1 = stockRepository.findById(stockId).orElseThrow().getQuantity();
             int before2 = stockRepository.findById(stockId2).orElseThrow().getQuantity();
 
-            serviceOrderService.generateQuote(serviceOrderId, stockOnlyQuoteRequest(serviceOrderId, 2));
+            serviceOrderService.generateQuote(serviceOrderId, stockOnlyQuoteRequest(2));
 
             assertThat(stockRepository.findById(stockId).orElseThrow().getQuantity()).isEqualTo(before1 - 2);
             assertThat(stockRepository.findById(stockId2).orElseThrow().getQuantity()).isEqualTo(before2 - 2);
@@ -361,7 +361,7 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @DisplayName("Deve lançar exceção ao gerar orçamento de OS não encontrada")
         void shouldThrowExceptionWhenServiceOrderNotFound() {
             var randomId = UUID.randomUUID();
-            var stockOnlyQuoteRequest = stockOnlyQuoteRequest(randomId, 1);
+            var stockOnlyQuoteRequest = stockOnlyQuoteRequest(1);
 
             assertThatThrownBy(() -> serviceOrderService.generateQuote(randomId, stockOnlyQuoteRequest))
                     .isInstanceOf(ServiceOrderNotFoundException.class);
@@ -376,7 +376,7 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @DisplayName("Deve aprovar orçamento pendente")
         void shouldApproveQuote() {
             var serviceOrderId = createAndStartDiagnostic();
-            var quote = serviceOrderService.generateQuote(serviceOrderId, stockOnlyQuoteRequest(serviceOrderId, 1));
+            var quote = serviceOrderService.generateQuote(serviceOrderId, stockOnlyQuoteRequest(1));
 
             var response = serviceOrderService.approveQuote(quote.id());
 
@@ -388,7 +388,7 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @DisplayName("Deve lançar exceção ao aprovar orçamento não pendente")
         void shouldThrowExceptionWhenApprovingNonPendingQuote() {
             var serviceOrderId = createAndStartDiagnostic();
-            var quote = serviceOrderService.generateQuote(serviceOrderId, stockOnlyQuoteRequest(serviceOrderId, 1));
+            var quote = serviceOrderService.generateQuote(serviceOrderId, stockOnlyQuoteRequest(1));
             serviceOrderService.approveQuote(quote.id());
             UUID quoteId = quote.id();
 
@@ -406,7 +406,7 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         void shouldReproveQuoteWithReason() {
             var serviceOrderId = createAndStartDiagnostic();
             var execId = createServiceOrderExecution(serviceOrderId);
-            var quote = serviceOrderService.generateQuote(serviceOrderId, fullQuoteRequest(serviceOrderId, execId, 1));
+            var quote = serviceOrderService.generateQuote(serviceOrderId, fullQuoteRequest(execId, 1));
 
             var response = serviceOrderService.reproveQuote(quote.id(), new ReproveQuoteRequestDTO("Outra oficina passou um orçamento mais em conta"));
 
@@ -419,7 +419,7 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @DisplayName("Deve lançar exceção ao reprovar orçamento não pendente")
         void shouldThrowExceptionWhenReprovingNonPendingQuote() {
             var serviceOrderId = createAndStartDiagnostic();
-            var quote = serviceOrderService.generateQuote(serviceOrderId, stockOnlyQuoteRequest(serviceOrderId, 1));
+            var quote = serviceOrderService.generateQuote(serviceOrderId, stockOnlyQuoteRequest(1));
             serviceOrderService.approveQuote(quote.id());
             UUID quoteId = quote.id();
             var reproveQuoteRequest = new ReproveQuoteRequestDTO("Motivo");
@@ -447,13 +447,13 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         ).getId();
     }
 
-    private CreateQuoteRequestDTO stockOnlyQuoteRequest(UUID serviceOrderId, int quantity) {
+    private CreateQuoteRequestDTO stockOnlyQuoteRequest(int quantity) {
         return new CreateQuoteRequestDTO(
                 List.of(new StockItemRequestDTO(stockId, quantity), new StockItemRequestDTO(stockId2, quantity)),
                 List.of());
     }
 
-    private CreateQuoteRequestDTO fullQuoteRequest(UUID serviceOrderId, UUID execId, int quantity) {
+    private CreateQuoteRequestDTO fullQuoteRequest(UUID execId, int quantity) {
         return new CreateQuoteRequestDTO(
                 List.of(new StockItemRequestDTO(stockId, quantity)),
                 List.of(new ServiceItemRequestDTO(execId)));
