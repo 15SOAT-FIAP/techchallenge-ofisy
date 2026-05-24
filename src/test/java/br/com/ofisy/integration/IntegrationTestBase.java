@@ -1,6 +1,6 @@
 package br.com.ofisy.integration;
 
-import br.com.ofisy.infrastructure.persistence.customer.JpaCustomerRepository;
+import br.com.ofisy.adapters.gateways.customer.JpaCustomerRepository;
 import br.com.ofisy.infrastructure.persistence.notification.JpaNotificationRepository;
 import br.com.ofisy.infrastructure.persistence.quote.JpaQuoteRepository;
 import br.com.ofisy.infrastructure.persistence.servicecatalog.JpaServiceCatalogRepository;
