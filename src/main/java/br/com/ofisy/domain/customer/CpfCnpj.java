@@ -1,14 +1,11 @@
 package br.com.ofisy.domain.customer;
 
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
-import jakarta.persistence.Embeddable;
 import lombok.*;
 
-@Embeddable
 @Getter
 @EqualsAndHashCode
 @ToString
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CpfCnpj {
 
     private String value;
