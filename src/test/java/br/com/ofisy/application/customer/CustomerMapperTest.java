@@ -1,6 +1,7 @@
 package br.com.ofisy.application.customer;
 
-import br.com.ofisy.application.customer.dto.CustomerRequestDTO;
+import br.com.ofisy.interfaces.api.customer.CustomerMapper;
+import br.com.ofisy.interfaces.api.customer.dto.CustomerRequestDTO;
 import br.com.ofisy.domain.customer.CpfCnpj;
 import br.com.ofisy.domain.customer.Customer;
 import org.junit.jupiter.api.Nested;

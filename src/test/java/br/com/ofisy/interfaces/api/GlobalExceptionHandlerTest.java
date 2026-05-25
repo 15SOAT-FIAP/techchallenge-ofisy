@@ -1,9 +1,12 @@
 package br.com.ofisy.interfaces.api;
 
-import br.com.ofisy.application.customer.CustomerService;
 import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsException;
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
+import br.com.ofisy.application.customer.identifybycpfcnpj.IdentifyByCpfCnpjCustomerUseCase;
+import br.com.ofisy.application.customer.identifybyid.IdentifyByIdCustomerUseCase;
+import br.com.ofisy.application.customer.list.ListRegisteredCustomerUseCase;
+import br.com.ofisy.application.customer.register.RegisterCustomerUseCase;
 import br.com.ofisy.application.serviceorder.ServiceOrderService;
 import br.com.ofisy.application.user.UserService;
 import br.com.ofisy.application.user.dto.CreateUserRequestDTO;
@@ -55,7 +58,13 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private CustomerService customerService;
+    private RegisterCustomerUseCase registerCustomerUseCase;
+    @MockitoBean
+    private ListRegisteredCustomerUseCase listRegisteredCustomerUseCase;
+    @MockitoBean
+    private IdentifyByIdCustomerUseCase identifyByIdCustomerUseCase;
+    @MockitoBean
+    private IdentifyByCpfCnpjCustomerUseCase identifyByCpfCnpjCustomerUseCase;
 
     @MockitoBean
     private UserService userService;
@@ -75,7 +84,7 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
         @Test
         void shouldReturn404WhenCustomerNotFoundById() throws Exception {
             var id = UUID.randomUUID();
-            when(customerService.identifyCustomerById(any(UUID.class)))
+            when(identifyByIdCustomerUseCase.execute(any(UUID.class)))
                     .thenThrow(new CustomerNotFoundException(id));
 
             mockMvc.perform(get("/api/v1/customers/{id}", id))
@@ -87,7 +96,7 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
         @Test
         void shouldReturn404WhenCustomerNotFoundByCpfCnpj() throws Exception {
             var cpfCnpj = "52998224725";
-            when(customerService.identifyCustomerByCpfCnpj(cpfCnpj))
+            when(identifyByCpfCnpjCustomerUseCase.execute(cpfCnpj))
                     .thenThrow(new CustomerCpfCnpjNotFoundException(cpfCnpj));
 
             mockMvc.perform(get("/api/v1/customers").param("cpfCnpj", cpfCnpj))
@@ -103,7 +112,7 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
         @Test
         void shouldReturn409WhenCustomerAlreadyExists() throws Exception {
             var cpfCnpj = "52998224725";
-            when(customerService.registerCustomer(any()))
+            when(registerCustomerUseCase.execute(any()))
                     .thenThrow(new CustomerAlreadyExistsException(cpfCnpj));
 
             var body = """
@@ -131,7 +140,7 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
         @Test
         void shouldReturn400WhenCpfCnpjIsInvalid() throws Exception {
             var invalidCpfCnpj = "00000000000";
-            when(customerService.identifyCustomerByCpfCnpj(invalidCpfCnpj))
+            when(identifyByCpfCnpjCustomerUseCase.execute(invalidCpfCnpj))
                     .thenThrow(new InvalidCpfCnpjException(invalidCpfCnpj));
 
             mockMvc.perform(get("/api/v1/customers").param("cpfCnpj", invalidCpfCnpj))
@@ -146,7 +155,7 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
 
         @Test
         void shouldReturn400WhenIllegalArgumentIsThrown() throws Exception {
-            when(customerService.identifyCustomerById(any(UUID.class)))
+            when(identifyByIdCustomerUseCase.execute(any(UUID.class)))
                     .thenThrow(new IllegalArgumentException("ID não pode ser nulo"));
 
             mockMvc.perform(get("/api/v1/customers/{id}", UUID.randomUUID()))
@@ -378,7 +387,7 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
 
         @Test
         void shouldReturn409WhenStatusTransitionIsInvalid() throws Exception {
-            when(customerService.identifyCustomerById(any(UUID.class)))
+            when(identifyByIdCustomerUseCase.execute(any(UUID.class)))
                     .thenThrow(new InvalidServiceOrderTransitionException(
                             ServiceOrderStatus.RECEIVED, ServiceOrderStatus.DELIVERED));
 

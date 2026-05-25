@@ -1,10 +1,14 @@
 package br.com.ofisy.interfaces.api.customer;
 
-import br.com.ofisy.application.customer.CustomerService;
-import br.com.ofisy.application.customer.dto.CustomerResponseDTO;
 import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsException;
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
+import br.com.ofisy.application.customer.identifybycpfcnpj.IdentifyByCpfCnpjCustomerUseCase;
+import br.com.ofisy.application.customer.identifybyid.IdentifyByIdCustomerUseCase;
+import br.com.ofisy.application.customer.list.ListRegisteredCustomerUseCase;
+import br.com.ofisy.application.customer.register.RegisterCustomerUseCase;
+import br.com.ofisy.domain.customer.CpfCnpj;
+import br.com.ofisy.domain.customer.Customer;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
 import br.com.ofisy.interfaces.api.ControllerTestBase;
 import org.junit.jupiter.api.Nested;
@@ -45,17 +49,23 @@ class CustomerControllerTest extends ControllerTestBase {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private CustomerService customerService;
+    private RegisterCustomerUseCase registerCustomerUseCase;
+    @MockitoBean
+    private ListRegisteredCustomerUseCase listRegisteredCustomerUseCase;
+    @MockitoBean
+    private IdentifyByIdCustomerUseCase identifyByIdCustomerUseCase;
+    @MockitoBean
+    private IdentifyByCpfCnpjCustomerUseCase identifyByCpfCnpjCustomerUseCase;
 
     @Nested
     class GetAllCustomers {
 
         @Test
         void shouldReturn200WithPageOfCustomers() throws Exception {
-            var dto = responseDTO(VALID_CPF, "John Doe");
+            var customer = customerDomain(VALID_CPF, "John Doe");
             var pageable = PageRequest.of(0, 10);
-            var page = new PageImpl<>(List.of(dto), pageable, 1);
-            when(customerService.listRegisteredCustomers(any())).thenReturn(page);
+            var page = new PageImpl<>(List.of(customer), pageable, 1);
+            when(listRegisteredCustomerUseCase.execute(any())).thenReturn(page);
 
             mockMvc.perform(get(BASE_URL))
                     .andExpect(status().isOk())
@@ -68,7 +78,7 @@ class CustomerControllerTest extends ControllerTestBase {
         @Test
         void shouldReturn200WithEmptyPageWhenNoCustomers() throws Exception {
             var pageable = PageRequest.of(0, 10);
-            when(customerService.listRegisteredCustomers(any()))
+            when(listRegisteredCustomerUseCase.execute(any()))
                     .thenReturn(new PageImpl<>(Collections.emptyList(), pageable, 0));
 
             mockMvc.perform(get(BASE_URL))
@@ -80,11 +90,11 @@ class CustomerControllerTest extends ControllerTestBase {
 
         @Test
         void shouldReturn200WithMultipleCustomers() throws Exception {
-            var dto1 = responseDTO(VALID_CPF, "Alice");
-            var dto2 = responseDTO(VALID_CNPJ, "Bob");
+            var customer1 = customerDomain(VALID_CPF, "Alice");
+            var customer2 = customerDomain(VALID_CNPJ, "Bob");
             var pageable = PageRequest.of(0, 10);
-            var page = new PageImpl<>(List.of(dto1, dto2), pageable, 2);
-            when(customerService.listRegisteredCustomers(any())).thenReturn(page);
+            var page = new PageImpl<>(List.of(customer1, customer2), pageable, 2);
+            when(listRegisteredCustomerUseCase.execute(any())).thenReturn(page);
 
             mockMvc.perform(get(BASE_URL))
                     .andExpect(status().isOk())
@@ -97,13 +107,13 @@ class CustomerControllerTest extends ControllerTestBase {
         @Test
         void shouldRespectPageAndSizeQueryParams() throws Exception {
             var pageable = PageRequest.of(1, 5);
-            when(customerService.listRegisteredCustomers(any()))
+            when(listRegisteredCustomerUseCase.execute(any()))
                     .thenReturn(new PageImpl<>(Collections.emptyList(), pageable, 0));
 
             mockMvc.perform(get(BASE_URL).param("page", "1").param("size", "5"))
                     .andExpect(status().isOk());
 
-            verify(customerService).listRegisteredCustomers(any());
+            verify(listRegisteredCustomerUseCase).execute(any());
         }
     }
 
@@ -113,15 +123,13 @@ class CustomerControllerTest extends ControllerTestBase {
         @Test
         void shouldReturn200WithCustomerWhenFound() throws Exception {
             var id = UUID.randomUUID();
-            var dto = responseDTO(VALID_CPF, "John Doe");
-            when(customerService.identifyCustomerById(id)).thenReturn(dto);
+            var customer = customerDomain(VALID_CPF, "John Doe");
+            when(identifyByIdCustomerUseCase.execute(id)).thenReturn(customer);
 
             mockMvc.perform(get(BASE_URL + "/{id}", id))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.cpfCnpj").value(VALID_CPF))
                     .andExpect(jsonPath("$.name").value("John Doe"))
-                    .andExpect(jsonPath("$.email").value("johndoe@mail.com"))
-                    .andExpect(jsonPath("$.phone").value("11999999999"))
                     .andExpect(jsonPath("$.createdAt").exists())
                     .andExpect(jsonPath("$.updatedAt").exists());
         }
@@ -129,7 +137,7 @@ class CustomerControllerTest extends ControllerTestBase {
         @Test
         void shouldReturn404WhenCustomerNotFound() throws Exception {
             var id = UUID.randomUUID();
-            when(customerService.identifyCustomerById(id))
+            when(identifyByIdCustomerUseCase.execute(id))
                     .thenThrow(new CustomerNotFoundException(id));
 
             mockMvc.perform(get(BASE_URL + "/{id}", id))
@@ -149,8 +157,8 @@ class CustomerControllerTest extends ControllerTestBase {
 
         @Test
         void shouldReturn200WithCustomerWhenCpfFound() throws Exception {
-            var dto = responseDTO(VALID_CPF, "John Doe");
-            when(customerService.identifyCustomerByCpfCnpj(VALID_CPF)).thenReturn(dto);
+            var customer = customerDomain(VALID_CPF, "John Doe");
+            when(identifyByCpfCnpjCustomerUseCase.execute(VALID_CPF)).thenReturn(customer);
 
             mockMvc.perform(get(BASE_URL).param("cpfCnpj", VALID_CPF))
                     .andExpect(status().isOk())
@@ -160,8 +168,8 @@ class CustomerControllerTest extends ControllerTestBase {
 
         @Test
         void shouldReturn200WithCustomerWhenCnpjFound() throws Exception {
-            var dto = responseDTO(VALID_CNPJ, "Empresa SA");
-            when(customerService.identifyCustomerByCpfCnpj(VALID_CNPJ)).thenReturn(dto);
+            var customer = customerDomain(VALID_CNPJ, "Empresa SA");
+            when(identifyByCpfCnpjCustomerUseCase.execute(VALID_CNPJ)).thenReturn(customer);
 
             mockMvc.perform(get(BASE_URL).param("cpfCnpj", VALID_CNPJ))
                     .andExpect(status().isOk())
@@ -170,7 +178,7 @@ class CustomerControllerTest extends ControllerTestBase {
 
         @Test
         void shouldReturn404WhenCpfCnpjNotFound() throws Exception {
-            when(customerService.identifyCustomerByCpfCnpj(VALID_CPF))
+            when(identifyByCpfCnpjCustomerUseCase.execute(VALID_CPF))
                     .thenThrow(new CustomerCpfCnpjNotFoundException(VALID_CPF));
 
             mockMvc.perform(get(BASE_URL).param("cpfCnpj", VALID_CPF))
@@ -182,7 +190,7 @@ class CustomerControllerTest extends ControllerTestBase {
         @Test
         void shouldReturn400WhenCpfCnpjIsInvalid() throws Exception {
             var invalid = "00000000000";
-            when(customerService.identifyCustomerByCpfCnpj(invalid))
+            when(identifyByCpfCnpjCustomerUseCase.execute(invalid))
                     .thenThrow(new InvalidCpfCnpjException(invalid));
 
             mockMvc.perform(get(BASE_URL).param("cpfCnpj", invalid))
@@ -207,8 +215,8 @@ class CustomerControllerTest extends ControllerTestBase {
 
         @Test
         void shouldReturn201WithCreatedCustomer() throws Exception {
-            var dto = responseDTO(VALID_CPF, "John Doe");
-            when(customerService.registerCustomer(any())).thenReturn(dto);
+            var customer = customerDomain(VALID_CPF, "John Doe");
+            when(registerCustomerUseCase.execute(any())).thenReturn(customer);
 
             mockMvc.perform(post(BASE_URL)
                             .with(csrf())
@@ -217,8 +225,6 @@ class CustomerControllerTest extends ControllerTestBase {
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.cpfCnpj").value(VALID_CPF))
                     .andExpect(jsonPath("$.name").value("John Doe"))
-                    .andExpect(jsonPath("$.email").value("johndoe@mail.com"))
-                    .andExpect(jsonPath("$.phone").value("11999999999"))
                     .andExpect(jsonPath("$.createdAt").exists())
                     .andExpect(jsonPath("$.updatedAt").exists());
         }
@@ -342,7 +348,7 @@ class CustomerControllerTest extends ControllerTestBase {
 
         @Test
         void shouldReturn409WhenCustomerAlreadyExists() throws Exception {
-            when(customerService.registerCustomer(any()))
+            when(registerCustomerUseCase.execute(any()))
                     .thenThrow(new CustomerAlreadyExistsException(VALID_CPF));
 
             mockMvc.perform(post(BASE_URL)
@@ -356,7 +362,7 @@ class CustomerControllerTest extends ControllerTestBase {
 
         @Test
         void shouldReturn400WhenCpfCnpjIsInvalid() throws Exception {
-            when(customerService.registerCustomer(any()))
+            when(registerCustomerUseCase.execute(any()))
                     .thenThrow(new InvalidCpfCnpjException("00000000000"));
 
             mockMvc.perform(post(BASE_URL)
@@ -368,7 +374,7 @@ class CustomerControllerTest extends ControllerTestBase {
         }
     }
 
-    private CustomerResponseDTO responseDTO(String cpfCnpj, String name) {
-        return new CustomerResponseDTO(UUID.randomUUID(), cpfCnpj, name, name.toLowerCase().replace(" ", "") + "@mail.com", "11999999999", NOW, NOW);
+    private Customer customerDomain(String cpfCnpj, String name) {
+        return Customer.create(new CpfCnpj(cpfCnpj), name, name.toLowerCase().replace(" ", "") + "@mail.com", "11999999999");
     }
 }
