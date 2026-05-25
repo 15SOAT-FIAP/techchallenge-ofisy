@@ -1,8 +1,11 @@
 package br.com.ofisy.interfaces.api.customer;
 
-import br.com.ofisy.application.customer.CustomerService;
-import br.com.ofisy.application.customer.dto.CustomerRequestDTO;
-import br.com.ofisy.application.customer.dto.CustomerResponseDTO;
+import br.com.ofisy.interfaces.api.customer.dto.CustomerRequestDTO;
+import br.com.ofisy.interfaces.api.customer.dto.CustomerResponseDTO;
+import br.com.ofisy.application.customer.identifybycpfcnpj.IdentifyByCpfCnpjCustomerUseCase;
+import br.com.ofisy.application.customer.identifybyid.IdentifyByIdCustomerUseCase;
+import br.com.ofisy.application.customer.list.ListRegisteredCustomerUseCase;
+import br.com.ofisy.application.customer.register.RegisterCustomerUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -21,21 +24,24 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CustomerController implements CustomerApi {
 
-    private final CustomerService customerService;
+    private final RegisterCustomerUseCase registerCustomerUseCase;
+    private final ListRegisteredCustomerUseCase listRegisteredCustomerUseCase;
+    private final IdentifyByIdCustomerUseCase identifyByIdCustomerUseCase;
+    private final IdentifyByCpfCnpjCustomerUseCase identifyByCpfCnpjCustomerUseCase;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT')")
     public ResponseEntity<Page<CustomerResponseDTO>> getAllCustomers(
             @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
 
-        return ResponseEntity.ok(customerService.listRegisteredCustomers(pageable));
+        return ResponseEntity.ok(listRegisteredCustomerUseCase.execute(pageable).map(CustomerMapper::toDTO));
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT')")
     public ResponseEntity<CustomerResponseDTO> getCustomerById(@PathVariable UUID id) {
 
-        return ResponseEntity.ok(customerService.identifyCustomerById(id));
+        return ResponseEntity.ok(CustomerMapper.toDTO(identifyByIdCustomerUseCase.execute(id)));
     }
 
     @GetMapping(params = "cpfCnpj")
@@ -43,13 +49,15 @@ public class CustomerController implements CustomerApi {
     public ResponseEntity<CustomerResponseDTO> getCustomerByCpfCnpj(
             @RequestParam(required = false) String cpfCnpj) {
 
-        return ResponseEntity.ok(customerService.identifyCustomerByCpfCnpj(cpfCnpj));
+        return ResponseEntity.ok(CustomerMapper.toDTO(identifyByCpfCnpjCustomerUseCase.execute(cpfCnpj)));
     }
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT')")
     public ResponseEntity<CustomerResponseDTO> registerCustomer(@Valid @RequestBody CustomerRequestDTO requestDTO) {
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(customerService.registerCustomer(requestDTO));
+        var cmd = new RegisterCustomerUseCase.RegisterCustomerCommand(
+                requestDTO.cpfCnpj(), requestDTO.name(), requestDTO.email(), requestDTO.phone());
+        return ResponseEntity.status(HttpStatus.CREATED).body(CustomerMapper.toDTO(registerCustomerUseCase.execute(cmd)));
     }
 }

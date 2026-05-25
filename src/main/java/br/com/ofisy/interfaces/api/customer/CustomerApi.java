@@ -1,7 +1,7 @@
 package br.com.ofisy.interfaces.api.customer;
 
-import br.com.ofisy.application.customer.dto.CustomerRequestDTO;
-import br.com.ofisy.application.customer.dto.CustomerResponseDTO;
+import br.com.ofisy.interfaces.api.customer.dto.CustomerRequestDTO;
+import br.com.ofisy.interfaces.api.customer.dto.CustomerResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
