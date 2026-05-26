@@ -1,6 +1,6 @@
-package br.com.ofisy.application.customer.dto;
+package br.com.ofisy.adapters.controllers.customer.dto;
 
-import br.com.ofisy.interfaces.api.customer.dto.CustomerResponseDTO;
+import br.com.ofisy.adapters.controllers.customer.dto.CustomerResponseDTO;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;

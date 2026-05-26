@@ -1,4 +1,4 @@
-package br.com.ofisy.interfaces.api.customer;
+package br.com.ofisy.adapters.controllers.customer;
 
 import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsException;
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
