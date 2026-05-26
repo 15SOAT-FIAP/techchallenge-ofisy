@@ -1,6 +1,7 @@
 package br.com.ofisy.application.customer.register;
 
 import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsException;
+import br.com.ofisy.domain.customer.CpfCnpj;
 import br.com.ofisy.domain.customer.Customer;
 import br.com.ofisy.domain.customer.CustomerRepository;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,7 @@ public class RegisterCustomerService implements RegisterCustomerUseCase{
     @Override
     public Customer execute(RegisterCustomerCommand cmd) {
         Customer customer = Customer.create(
-                new br.com.ofisy.domain.customer.CpfCnpj(cmd.cpfCnpj()),
+                new CpfCnpj(cmd.cpfCnpj()),
                 cmd.name(),
                 cmd.email(),
                 cmd.phone()
