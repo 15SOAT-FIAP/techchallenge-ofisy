@@ -1,4 +1,4 @@
-package br.com.ofisy.interfaces.api.customer.dto;
+package br.com.ofisy.adapters.controllers.customer.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
