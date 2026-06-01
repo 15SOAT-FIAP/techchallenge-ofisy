@@ -1,4 +1,4 @@
-package br.com.ofisy.adapters.presenter.customer;
+package br.com.ofisy.adapters.presenters.customer;
 
 import br.com.ofisy.adapters.controllers.customer.dto.CustomerResponseDTO;
 import br.com.ofisy.domain.customer.CpfCnpj;

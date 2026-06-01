@@ -2,7 +2,7 @@ package br.com.ofisy.adapters.controllers.customer;
 
 import br.com.ofisy.adapters.controllers.customer.dto.CustomerRequestDTO;
 import br.com.ofisy.adapters.controllers.customer.dto.CustomerResponseDTO;
-import br.com.ofisy.adapters.presenter.customer.CustomerPresenter;
+import br.com.ofisy.adapters.presenters.customer.CustomerPresenter;
 import br.com.ofisy.application.customer.identifybycpfcnpj.IdentifyByCpfCnpjCustomerUseCase;
 import br.com.ofisy.application.customer.identifybyid.IdentifyByIdCustomerUseCase;
 import br.com.ofisy.application.customer.list.ListRegisteredCustomerUseCase;
