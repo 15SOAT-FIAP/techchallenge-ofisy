@@ -11,7 +11,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # ===== RUNTIME =====
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:21-jre-alpine
 
 RUN addgroup -S app && adduser -S app -G app
 
