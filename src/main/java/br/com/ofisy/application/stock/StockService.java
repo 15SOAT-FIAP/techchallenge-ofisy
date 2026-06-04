@@ -1,6 +1,7 @@
 package br.com.ofisy.application.stock;
 
-import br.com.ofisy.application.notification.NotificationService;
+import br.com.ofisy.application.notification.ports.in.CreateLowStockCommand;
+import br.com.ofisy.application.notification.usecases.CreateLowStockNotificationUseCase;
 import br.com.ofisy.application.stock.dto.CreateStockRequestDTO;
 import br.com.ofisy.application.stock.dto.StockResponseDTO;
 import br.com.ofisy.application.stock.dto.UpdateStockRequestDTO;
@@ -24,10 +25,8 @@ import java.util.UUID;
 public class StockService {
 
     private final StockMovementService stockMovementService;
-
     private final StockRepository stockRepository;
-
-    private final NotificationService notificationService;
+    private final CreateLowStockNotificationUseCase createLowStockNotificationUseCase;
 
     @Transactional
     public StockResponseDTO create(CreateStockRequestDTO createStockRequestDTO) {
@@ -106,7 +105,13 @@ public class StockService {
         Stock savedStock = stockRepository.save(stock);
 
         if (savedStock.isLowStock()) {
-            notificationService.createLowStockNotification(savedStock);
+            CreateLowStockCommand command = new CreateLowStockCommand(
+                savedStock.getId(),
+                savedStock.getProductName(),
+                savedStock.getQuantity(),
+                savedStock.getMinThreshold()
+            );
+            createLowStockNotificationUseCase.execute(command);
         }
 
         return StockMapper.toDTO(savedStock);

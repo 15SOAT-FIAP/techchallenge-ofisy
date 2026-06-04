@@ -6,7 +6,7 @@ import br.com.ofisy.application.stock.dto.UpdateStockRequestDTO;
 import br.com.ofisy.application.stock.exceptions.InsufficientStockException;
 import br.com.ofisy.application.stock.exceptions.StockNotFoundException;
 import br.com.ofisy.application.stockmovement.StockMovementService;
-import br.com.ofisy.application.notification.NotificationService;
+import br.com.ofisy.application.notification.usecases.CreateLowStockNotificationUseCase;
 import br.com.ofisy.domain.stock.Stock;
 import br.com.ofisy.domain.stock.StockRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +38,7 @@ class StockServiceTest {
     private StockService stockService;
 
     @Mock
-    private NotificationService notificationService;
+    private CreateLowStockNotificationUseCase createLowStockNotificationUseCase;
 
     private Stock stock;
 

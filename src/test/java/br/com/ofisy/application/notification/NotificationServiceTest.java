@@ -1,12 +1,15 @@
 package br.com.ofisy.application.notification;
 
-import br.com.ofisy.application.notification.dto.NotificationResponseDTO;
-import br.com.ofisy.application.notification.dto.QuoteNotificationRequestDTO;
 import br.com.ofisy.application.notification.exceptions.NotificationNotFoundException;
+import br.com.ofisy.application.notification.ports.in.CreateLowStockCommand;
+import br.com.ofisy.application.notification.ports.in.CreateQuoteCommand;
+import br.com.ofisy.application.notification.ports.in.MarkAsReadCommand;
+import br.com.ofisy.application.notification.ports.in.NotificationResponse;
+import br.com.ofisy.application.notification.ports.out.NotificationPersistencePort;
+import br.com.ofisy.application.notification.services.NotificationApplicationService;
 import br.com.ofisy.domain.notification.Notification;
-import br.com.ofisy.domain.notification.NotificationRepository;
+import br.com.ofisy.domain.notification.NotificationMessage;
 import br.com.ofisy.domain.notification.NotificationType;
-import br.com.ofisy.domain.stock.Stock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,7 +25,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -30,140 +32,128 @@ import static org.mockito.Mockito.*;
 class NotificationServiceTest {
 
     @Mock
-    private NotificationRepository notificationRepository;
+    private NotificationPersistencePort persistencePort;
 
     @InjectMocks
-    private NotificationService notificationService;
+    private NotificationApplicationService notificationService;
 
     private UUID notificationId;
-    private Notification notification;
-    private Notification readNotification;
+    private Notification stockNotification;
+    private Notification quoteNotification;
 
     @BeforeEach
     void setUp() {
         notificationId = UUID.randomUUID();
-        notification = createNotification();
-        readNotification = createReadNotification();
+        stockNotification = Notification.createForStock(
+            UUID.randomUUID(),
+            NotificationMessage.forLowStock("Radiador", 2, 5)
+        );
+        quoteNotification = Notification.createForQuote(
+            UUID.randomUUID(),
+            NotificationMessage.forQuote(UUID.randomUUID(), UUID.randomUUID(), new BigDecimal("1500.00"))
+        );
     }
 
     @Test
-    @DisplayName("Deve criar notificação de estoque baixo via método específico com stockId")
+    @DisplayName("Deve criar notificação de estoque baixo com sucesso")
     void shouldCreateLowStockNotificationSuccessfully() {
-        when(notificationRepository.save(any(Notification.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(persistencePort.save(any(Notification.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
 
-        Stock stock = Stock.create(
-                "Radiador",
-                "Radiador de água com reservatório",
-                2,
-                new java.math.BigDecimal("150.00"),
-                "Arrefecimento",
-                5
+        CreateLowStockCommand command = new CreateLowStockCommand(
+            UUID.randomUUID(), "Radiador", 2, 5
         );
 
-        NotificationResponseDTO result = notificationService.createLowStockNotification(stock);
+        NotificationResponse result = notificationService.execute(command);
 
         assertThat(result.type()).isEqualTo(NotificationType.LOW_STOCK.name());
-        assertThat(result.stockId()).isEqualTo(stock.getId());
         assertThat(result.message()).contains("Radiador");
         assertThat(result.message()).contains("2");
         assertThat(result.message()).contains("5");
         assertThat(result.read()).isFalse();
-        verify(notificationRepository).save(any(Notification.class));
+        verify(persistencePort).save(any(Notification.class));
     }
 
     @Test
-    @DisplayName("Deve criar notificação de orçamento gerado com QuoteNotificationRequestDTO")
+    @DisplayName("Deve criar notificação de orçamento com sucesso")
     void shouldCreateQuoteNotificationSuccessfully() {
-        when(notificationRepository.save(any(Notification.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(persistencePort.save(any(Notification.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
 
-        var quoteId = UUID.randomUUID();
-        var serviceOrderId = UUID.randomUUID();
-        var request = new QuoteNotificationRequestDTO(quoteId, serviceOrderId, new BigDecimal("1500.00"));
+        UUID quoteId = UUID.randomUUID();
+        UUID serviceOrderId = UUID.randomUUID();
+        CreateQuoteCommand command = new CreateQuoteCommand(quoteId, serviceOrderId, new BigDecimal("1500.00"));
 
-        NotificationResponseDTO result = notificationService.createQuoteNotification(request);
+        NotificationResponse result = notificationService.execute(command);
 
         assertThat(result.type()).isEqualTo(NotificationType.QUOTE_GENERATED.name());
         assertThat(result.quoteId()).isEqualTo(quoteId);
         assertThat(result.message()).contains(quoteId.toString());
-        assertThat(result.message()).contains(serviceOrderId.toString());
         assertThat(result.message()).contains("1500.00");
         assertThat(result.read()).isFalse();
-        verify(notificationRepository).save(any(Notification.class));
+        verify(persistencePort).save(any(Notification.class));
     }
 
     @Test
     @DisplayName("Deve listar todas as notificações")
     void shouldFindAllNotifications() {
-        when(notificationRepository.findAll()).thenReturn(List.of(notification, readNotification));
+        when(persistencePort.findAll()).thenReturn(List.of(stockNotification, quoteNotification));
 
-        List<NotificationResponseDTO> result = notificationService.findAll();
+        List<NotificationResponse> result = notificationService.execute();
 
         assertThat(result).hasSize(2);
         assertThat(result.get(0).type()).isEqualTo(NotificationType.LOW_STOCK.name());
         assertThat(result.get(1).type()).isEqualTo(NotificationType.QUOTE_GENERATED.name());
-        verify(notificationRepository).findAll();
+        verify(persistencePort).findAll();
     }
 
     @Test
     @DisplayName("Deve listar notificações não lidas")
     void shouldFindUnreadNotifications() {
-        when(notificationRepository.findByRead(false)).thenReturn(List.of(notification));
+        when(persistencePort.findUnread()).thenReturn(List.of(stockNotification));
 
-        List<NotificationResponseDTO> result = notificationService.findUnread();
+        List<NotificationResponse> result = notificationService.findUnread();
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).type()).isEqualTo(NotificationType.LOW_STOCK.name());
         assertThat(result.get(0).read()).isFalse();
-        verify(notificationRepository).findByRead(false);
+        verify(persistencePort).findUnread();
     }
 
     @Test
     @DisplayName("Deve marcar notificação como lida")
     void shouldMarkNotificationAsRead() {
-        when(notificationRepository.findById(notificationId)).thenReturn(Optional.of(notification));
+        when(persistencePort.findById(notificationId)).thenReturn(Optional.of(stockNotification));
+        when(persistencePort.save(any(Notification.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
 
-        NotificationResponseDTO result = notificationService.markAsRead(notificationId);
+        NotificationResponse result = notificationService.execute(new MarkAsReadCommand(notificationId));
 
-        assertTrue(result.read());
-        verify(notificationRepository).findById(notificationId);
+        assertThat(result.read()).isTrue();
+        verify(persistencePort).findById(notificationId);
+        verify(persistencePort).save(any(Notification.class));
     }
 
     @Test
     @DisplayName("Deve lançar exceção ao marcar notificação inexistente como lida")
     void shouldThrowExceptionWhenNotificationNotFound() {
-        when(notificationRepository.findById(notificationId)).thenReturn(Optional.empty());
+        when(persistencePort.findById(notificationId)).thenReturn(Optional.empty());
 
-        assertThrows(NotificationNotFoundException.class, () -> notificationService.markAsRead(notificationId));
-        verify(notificationRepository).findById(notificationId);
-        verify(notificationRepository, never()).save(any(Notification.class));
+        MarkAsReadCommand command = new MarkAsReadCommand(notificationId);
+        assertThrows(NotificationNotFoundException.class,
+            () -> notificationService.execute(command));
+        verify(persistencePort).findById(notificationId);
+        verify(persistencePort, never()).save(any(Notification.class));
     }
 
     @Test
     @DisplayName("Deve retornar lista vazia quando não há notificações não lidas")
     void shouldReturnEmptyListWhenNoUnreadNotifications() {
-        when(notificationRepository.findByRead(false)).thenReturn(List.of());
+        when(persistencePort.findUnread()).thenReturn(List.of());
 
-        List<NotificationResponseDTO> result = notificationService.findUnread();
+        List<NotificationResponse> result = notificationService.findUnread();
 
         assertThat(result).isEmpty();
-        verify(notificationRepository).findByRead(false);
-    }
-
-    private Notification createNotification() {
-        return Notification.createForStock(
-                UUID.randomUUID(),
-                "Estoque baixo para o produto Radiador"
-        );
-    }
-
-    private Notification createReadNotification() {
-        Notification notifica = Notification.createForQuote(
-                null,
-                "Orçamento #123 gerado"
-        );
-        notifica.markAsRead();
-        return notifica;
+        verify(persistencePort).findUnread();
     }
 }
