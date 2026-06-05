@@ -1,6 +1,5 @@
 package br.com.ofisy.application.serviceorder;
 
-import br.com.ofisy.application.customer.CustomerService;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
 import br.com.ofisy.application.notification.dto.QuoteNotificationRequestDTO;
 import br.com.ofisy.application.notification.NotificationService;
@@ -11,6 +10,7 @@ import br.com.ofisy.application.quote.dto.ReproveQuoteRequestDTO;
 import br.com.ofisy.application.serviceorder.dto.ServiceOrderRequestDTO;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
+import br.com.ofisy.application.customer.identifybyid.IdentifyByIdCustomerUseCase;
 import br.com.ofisy.application.user.UserService;
 import br.com.ofisy.application.user.exceptions.EmailNotFoundException;
 import br.com.ofisy.application.vehicle.VehicleService;
@@ -60,7 +60,7 @@ class ServiceOrderServiceTest {
     @Mock
     private ServiceOrderRepository serviceOrderRepository;
     @Mock
-    private CustomerService customerService;
+    private IdentifyByIdCustomerUseCase identifyByIdCustomerUseCase;
     @Mock
     private VehicleService vehicleService;
     @Mock
@@ -110,7 +110,7 @@ class ServiceOrderServiceTest {
         @Test
         void shouldThrowCustomerNotFoundExceptionWhenCustomerDoesNotExist() {
             doThrow(new CustomerNotFoundException(VALID_CUSTOMER_ID))
-                    .when(customerService).identifyCustomerById(VALID_CUSTOMER_ID);
+                    .when(identifyByIdCustomerUseCase).execute(VALID_CUSTOMER_ID);
 
             var request = validRequest();
             assertThatThrownBy(() -> serviceOrderService.create(request, VALID_EMAIL))

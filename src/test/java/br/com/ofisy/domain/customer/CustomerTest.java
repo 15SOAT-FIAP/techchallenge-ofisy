@@ -1,8 +1,10 @@
 package br.com.ofisy.domain.customer;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -123,5 +125,51 @@ class CustomerTest {
         assertThat(customer.getName()).isEmpty();
         assertThat(customer.getEmail()).isEmpty();
         assertThat(customer.getPhone()).isEmpty();
+    }
+
+    @Nested
+    class Reconstruct {
+
+        @Test
+        void shouldReconstructCustomerWithAllFields() {
+            var id = UUID.randomUUID();
+            var cpfCnpj = new CpfCnpj(VALID_CPF);
+            var createdAt = LocalDateTime.of(2024, 1, 10, 10, 0);
+            var updatedAt = LocalDateTime.of(2024, 1, 15, 12, 0);
+
+            var customer = Customer.reconstruct(id, cpfCnpj, VALID_NAME, VALID_EMAIL, VALID_PHONE, createdAt, updatedAt);
+
+            assertThat(customer.getId()).isEqualTo(id);
+            assertThat(customer.getCpfCnpj()).isEqualTo(cpfCnpj);
+            assertThat(customer.getName()).isEqualTo(VALID_NAME);
+            assertThat(customer.getEmail()).isEqualTo(VALID_EMAIL);
+            assertThat(customer.getPhone()).isEqualTo(VALID_PHONE);
+            assertThat(customer.getCreatedAt()).isEqualTo(createdAt);
+            assertThat(customer.getUpdatedAt()).isEqualTo(updatedAt);
+        }
+
+        @Test
+        void shouldNotOverwriteTimestampsWithNowWhenReconstructing() {
+            var id = UUID.randomUUID();
+            var createdAt = LocalDateTime.of(2020, 6, 1, 8, 0);
+            var updatedAt = LocalDateTime.of(2021, 3, 15, 9, 30);
+
+            var customer = Customer.reconstruct(id, new CpfCnpj(VALID_CPF), VALID_NAME, VALID_EMAIL, VALID_PHONE,
+                    createdAt, updatedAt);
+
+            assertThat(customer.getCreatedAt()).isEqualTo(createdAt);
+            assertThat(customer.getUpdatedAt()).isEqualTo(updatedAt);
+        }
+
+        @Test
+        void shouldReconstructWithNullId() {
+            var createdAt = LocalDateTime.now();
+            var updatedAt = LocalDateTime.now();
+
+            var customer = Customer.reconstruct(null, new CpfCnpj(VALID_CPF), VALID_NAME, VALID_EMAIL, VALID_PHONE,
+                    createdAt, updatedAt);
+
+            assertThat(customer.getId()).isNull();
+        }
     }
 }
