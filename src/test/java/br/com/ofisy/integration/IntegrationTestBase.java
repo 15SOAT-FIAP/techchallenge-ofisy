@@ -9,7 +9,7 @@ import br.com.ofisy.infrastructure.persistence.serviceorderexecution.JpaServiceO
 import br.com.ofisy.infrastructure.persistence.stock.JpaStockRepository;
 import br.com.ofisy.infrastructure.persistence.stockmovement.JpaStockMovementRepository;
 import br.com.ofisy.infrastructure.persistence.user.JpaUserRepository;
-import br.com.ofisy.infrastructure.persistence.vehicle.JpaVehicleRepository;
+import br.com.ofisy.adapters.gateways.vehicle.JpaVehicleRepository;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.AfterEach;
