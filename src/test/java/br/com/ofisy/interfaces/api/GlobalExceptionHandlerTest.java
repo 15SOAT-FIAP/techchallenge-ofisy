@@ -12,10 +12,14 @@ import br.com.ofisy.application.user.UserService;
 import br.com.ofisy.application.user.dto.CreateUserRequestDTO;
 import br.com.ofisy.application.user.dto.LoginRequestDTO;
 import br.com.ofisy.application.user.exceptions.UserNotFoundException;
-import br.com.ofisy.application.vehicle.VehicleService;
 import br.com.ofisy.application.vehicle.exceptions.VehicleAlreadyExistsException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleLicensePlateNotFoundException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
+import br.com.ofisy.application.vehicle.identifybyid.IdentifyVehicleByIdUseCase;
+import br.com.ofisy.application.vehicle.identifybylicenseplate.IdentifyVehicleByLicensePlateUseCase;
+import br.com.ofisy.application.vehicle.listall.ListRegisteredVehiclesUseCase;
+import br.com.ofisy.application.vehicle.listbycustomer.ListVehiclesByCustomerUseCase;
+import br.com.ofisy.application.vehicle.register.RegisterVehicleUseCase;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
 import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
 import br.com.ofisy.domain.serviceorder.exceptions.InvalidServiceOrderTransitionException;
@@ -23,7 +27,7 @@ import br.com.ofisy.domain.user.Role;
 import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
 import br.com.ofisy.adapters.controllers.customer.CustomerController;
 import br.com.ofisy.interfaces.api.serviceorder.ServiceOrderController;
-import br.com.ofisy.interfaces.api.vehicle.VehicleController;
+import br.com.ofisy.adapters.controllers.vehicle.VehicleController;
 import br.com.ofisy.interfaces.api.user.LoginController;
 import br.com.ofisy.interfaces.api.user.UserController;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -67,16 +71,24 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
     private IdentifyByCpfCnpjCustomerUseCase identifyByCpfCnpjCustomerUseCase;
 
     @MockitoBean
+    private ServiceOrderService serviceOrderService;
+
+    @MockitoBean
     private UserService userService;
 
     @MockitoBean
     private AuthenticationManager authenticationManager;
 
     @MockitoBean
-    private VehicleService vehicleService;
-
+    private RegisterVehicleUseCase registerVehicleUseCase;
     @MockitoBean
-    private ServiceOrderService serviceOrderService;
+    private ListRegisteredVehiclesUseCase listRegisteredVehiclesUseCase;
+    @MockitoBean
+    private ListVehiclesByCustomerUseCase listVehiclesByCustomerUseCase;
+    @MockitoBean
+    private IdentifyVehicleByIdUseCase identifyVehicleByIdUseCase;
+    @MockitoBean
+    private IdentifyVehicleByLicensePlateUseCase identifyVehicleByLicensePlateUseCase;
 
     @Nested
     class CustomerNotFound {
@@ -326,7 +338,7 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
         @Test
         void shouldReturn404WhenVehicleNotFoundById() throws Exception {
             var id = UUID.randomUUID();
-            when(vehicleService.identifyVehicleById(any(UUID.class)))
+            when(identifyVehicleByIdUseCase.execute(any(UUID.class)))
                     .thenThrow(new VehicleNotFoundException(id));
 
             mockMvc.perform(get("/api/v1/vehicles/{id}", id))
@@ -342,7 +354,7 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
         @Test
         void shouldReturn404WhenVehicleNotFoundByLicensePlate() throws Exception {
             var plate = "ABC1234";
-            when(vehicleService.identifyVehicleByLicensePlate(plate))
+            when(identifyVehicleByLicensePlateUseCase.execute(plate))
                     .thenThrow(new VehicleLicensePlateNotFoundException(plate));
 
             mockMvc.perform(get("/api/v1/vehicles").param("licensePlate", plate))
@@ -358,7 +370,7 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
         @Test
         void shouldReturn409WhenVehicleAlreadyExists() throws Exception {
             var plate = "ABC1234";
-            when(vehicleService.registerVehicle(any()))
+            when(registerVehicleUseCase.execute(any()))
                     .thenThrow(new VehicleAlreadyExistsException(plate));
 
             var body = """

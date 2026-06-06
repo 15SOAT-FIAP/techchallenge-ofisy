@@ -13,9 +13,10 @@ import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustome
 import br.com.ofisy.application.customer.identifybyid.IdentifyByIdCustomerUseCase;
 import br.com.ofisy.application.user.UserService;
 import br.com.ofisy.application.user.exceptions.EmailNotFoundException;
-import br.com.ofisy.application.vehicle.VehicleService;
-import br.com.ofisy.application.vehicle.dto.VehicleResponseDTO;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
+import br.com.ofisy.application.vehicle.identifybyid.IdentifyVehicleByIdUseCase;
+import br.com.ofisy.domain.vehicle.LicensePlate;
+import br.com.ofisy.domain.vehicle.Vehicle;
 import br.com.ofisy.domain.quote.QuoteStatus;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import br.com.ofisy.domain.serviceorder.ServiceOrderRepository;
@@ -62,7 +63,7 @@ class ServiceOrderServiceTest {
     @Mock
     private IdentifyByIdCustomerUseCase identifyByIdCustomerUseCase;
     @Mock
-    private VehicleService vehicleService;
+    private IdentifyVehicleByIdUseCase identifyVehicleByIdUseCase;
     @Mock
     private UserService userService;
     @Mock
@@ -80,7 +81,7 @@ class ServiceOrderServiceTest {
 
         @Test
         void shouldCreateServiceOrderSuccessfully() {
-            when(vehicleService.identifyVehicleById(VALID_VEHICLE_ID)).thenReturn(vehicleOwnedByCustomer());
+            when(identifyVehicleByIdUseCase.execute(VALID_VEHICLE_ID)).thenReturn(vehicleOwnedByCustomer());
             when(userService.getIdByEmail(VALID_EMAIL)).thenReturn(VALID_USER_ID);
             when(serviceOrderRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
@@ -97,7 +98,7 @@ class ServiceOrderServiceTest {
         @Test
         void shouldCreateServiceOrderWithNullReport() {
             var request = new ServiceOrderRequestDTO(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, null);
-            when(vehicleService.identifyVehicleById(VALID_VEHICLE_ID)).thenReturn(vehicleOwnedByCustomer());
+            when(identifyVehicleByIdUseCase.execute(VALID_VEHICLE_ID)).thenReturn(vehicleOwnedByCustomer());
             when(userService.getIdByEmail(VALID_EMAIL)).thenReturn(VALID_USER_ID);
             when(serviceOrderRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
@@ -122,7 +123,7 @@ class ServiceOrderServiceTest {
         @Test
         void shouldThrowVehicleNotFoundExceptionWhenVehicleDoesNotExist() {
             doThrow(new VehicleNotFoundException(VALID_VEHICLE_ID))
-                    .when(vehicleService).identifyVehicleById(VALID_VEHICLE_ID);
+                    .when(identifyVehicleByIdUseCase).execute(VALID_VEHICLE_ID);
 
             var request = validRequest();
             assertThatThrownBy(() -> serviceOrderService.create(request, VALID_EMAIL))
@@ -133,7 +134,7 @@ class ServiceOrderServiceTest {
 
         @Test
         void shouldThrowVehicleNotOwnedByCustomerExceptionWhenOwnershipMismatch() {
-            when(vehicleService.identifyVehicleById(VALID_VEHICLE_ID)).thenReturn(vehicleOwnedByOther());
+            when(identifyVehicleByIdUseCase.execute(VALID_VEHICLE_ID)).thenReturn(vehicleOwnedByOther());
 
             var request = validRequest();
             assertThatThrownBy(() -> serviceOrderService.create(request, VALID_EMAIL))
@@ -146,7 +147,7 @@ class ServiceOrderServiceTest {
 
         @Test
         void shouldThrowEmailNotFoundExceptionWhenUserDoesNotExist() {
-            when(vehicleService.identifyVehicleById(VALID_VEHICLE_ID)).thenReturn(vehicleOwnedByCustomer());
+            when(identifyVehicleByIdUseCase.execute(VALID_VEHICLE_ID)).thenReturn(vehicleOwnedByCustomer());
             doThrow(new EmailNotFoundException(VALID_EMAIL))
                     .when(userService).getIdByEmail(VALID_EMAIL);
 
@@ -574,13 +575,13 @@ class ServiceOrderServiceTest {
         return new ServiceOrderRequestDTO(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, VALID_REPORT);
     }
 
-    private VehicleResponseDTO vehicleOwnedByCustomer() {
-        return new VehicleResponseDTO(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, "ABC1234",
+    private Vehicle vehicleOwnedByCustomer() {
+        return Vehicle.reconstruct(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, new LicensePlate("ABC1234"),
                 "Civic", "Honda", "Preto", 2022, null, LocalDateTime.now(), LocalDateTime.now());
     }
 
-    private VehicleResponseDTO vehicleOwnedByOther() {
-        return new VehicleResponseDTO(VALID_VEHICLE_ID, UUID.randomUUID(), "ABC1234",
+    private Vehicle vehicleOwnedByOther() {
+        return Vehicle.reconstruct(VALID_VEHICLE_ID, UUID.randomUUID(), new LicensePlate("ABC1234"),
                 "Civic", "Honda", "Preto", 2022, null, LocalDateTime.now(), LocalDateTime.now());
     }
 

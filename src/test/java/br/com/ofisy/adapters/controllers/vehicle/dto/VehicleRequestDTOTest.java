@@ -1,4 +1,4 @@
-package br.com.ofisy.application.vehicle.dto;
+package br.com.ofisy.adapters.controllers.vehicle.dto;
 
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -31,7 +31,7 @@ class VehicleRequestDTOTest {
 
     @Test
     void shouldHaveNoViolationsWithValidData() {
-        var dto = new VehicleRequestDTO(VALID_CUSTOMER_ID, VALID_PLATE, VALID_MODEL, VALID_BRAND, VALID_COLOR, VALID_YEAR, null);
+        VehicleRequestDTO dto = new VehicleRequestDTO(VALID_CUSTOMER_ID, VALID_PLATE, VALID_MODEL, VALID_BRAND, VALID_COLOR, VALID_YEAR, null);
 
         var violations = validator.validate(dto);
 
@@ -43,7 +43,7 @@ class VehicleRequestDTOTest {
 
         @Test
         void shouldHaveViolationWhenCustomerIdIsNull() {
-            var dto = new VehicleRequestDTO(null, VALID_PLATE, VALID_MODEL, VALID_BRAND, VALID_COLOR, VALID_YEAR, null);
+            VehicleRequestDTO dto = new VehicleRequestDTO(null, VALID_PLATE, VALID_MODEL, VALID_BRAND, VALID_COLOR, VALID_YEAR, null);
 
             var violations = validator.validate(dto);
 
@@ -59,7 +59,7 @@ class VehicleRequestDTOTest {
         @NullAndEmptySource
         @ValueSource(strings = {"   "})
         void shouldHaveViolationWhenLicensePlateIsNullBlankOrEmpty(String plate) {
-            var dto = new VehicleRequestDTO(VALID_CUSTOMER_ID, plate, VALID_MODEL, VALID_BRAND, VALID_COLOR, VALID_YEAR, null);
+            VehicleRequestDTO dto = new VehicleRequestDTO(VALID_CUSTOMER_ID, plate, VALID_MODEL, VALID_BRAND, VALID_COLOR, VALID_YEAR, null);
 
             var violations = validator.validate(dto);
 
@@ -75,7 +75,7 @@ class VehicleRequestDTOTest {
         @NullAndEmptySource
         @ValueSource(strings = {"   "})
         void shouldHaveViolationWhenModelIsNullBlankOrEmpty(String model) {
-            var dto = new VehicleRequestDTO(VALID_CUSTOMER_ID, VALID_PLATE, model, VALID_BRAND, VALID_COLOR, VALID_YEAR, null);
+            VehicleRequestDTO dto = new VehicleRequestDTO(VALID_CUSTOMER_ID, VALID_PLATE, model, VALID_BRAND, VALID_COLOR, VALID_YEAR, null);
 
             var violations = validator.validate(dto);
 
@@ -91,7 +91,7 @@ class VehicleRequestDTOTest {
         @NullAndEmptySource
         @ValueSource(strings = {"   "})
         void shouldHaveViolationWhenBrandIsNullBlankOrEmpty(String brand) {
-            var dto = new VehicleRequestDTO(VALID_CUSTOMER_ID, VALID_PLATE, VALID_MODEL, brand, VALID_COLOR, VALID_YEAR, null);
+            VehicleRequestDTO dto = new VehicleRequestDTO(VALID_CUSTOMER_ID, VALID_PLATE, VALID_MODEL, brand, VALID_COLOR, VALID_YEAR, null);
 
             var violations = validator.validate(dto);
 
@@ -107,7 +107,7 @@ class VehicleRequestDTOTest {
         @NullAndEmptySource
         @ValueSource(strings = {"   "})
         void shouldHaveViolationWhenColorIsNullBlankOrEmpty(String color) {
-            var dto = new VehicleRequestDTO(VALID_CUSTOMER_ID, VALID_PLATE, VALID_MODEL, VALID_BRAND, color, VALID_YEAR, null);
+            VehicleRequestDTO dto = new VehicleRequestDTO(VALID_CUSTOMER_ID, VALID_PLATE, VALID_MODEL, VALID_BRAND, color, VALID_YEAR, null);
 
             var violations = validator.validate(dto);
 
@@ -121,7 +121,7 @@ class VehicleRequestDTOTest {
 
         @Test
         void shouldHaveViolationWhenYearIsNull() {
-            var dto = new VehicleRequestDTO(VALID_CUSTOMER_ID, VALID_PLATE, VALID_MODEL, VALID_BRAND, VALID_COLOR, null, null);
+            VehicleRequestDTO dto = new VehicleRequestDTO(VALID_CUSTOMER_ID, VALID_PLATE, VALID_MODEL, VALID_BRAND, VALID_COLOR, null, null);
 
             var violations = validator.validate(dto);
 
@@ -135,7 +135,7 @@ class VehicleRequestDTOTest {
 
         @Test
         void shouldHaveSixViolationsWhenAllRequiredFieldsAreNull() {
-            var dto = new VehicleRequestDTO(null, null, null, null, null, null, null);
+            VehicleRequestDTO dto = new VehicleRequestDTO(null, null, null, null, null, null, null);
 
             var violations = validator.validate(dto);
 
