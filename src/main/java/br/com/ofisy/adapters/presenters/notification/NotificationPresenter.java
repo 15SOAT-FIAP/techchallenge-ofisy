@@ -1,27 +1,26 @@
-package br.com.ofisy.application.notification;
+package br.com.ofisy.adapters.presenters.notification;
 
-import br.com.ofisy.application.notification.dto.NotificationResponseDTO;
 import br.com.ofisy.domain.notification.Notification;
+import br.com.ofisy.adapters.controllers.notification.dto.NotificationResponseDTO;
+import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
-@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
-public class NotificationMapper {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class NotificationPresenter {
 
-    public static NotificationResponseDTO toDTO(Notification notification) {
+    public static NotificationResponseDTO present(Notification notification) {
         if (notification == null) {
-            throw new IllegalArgumentException("Notification não pode ser nulo");
+            return null;
         }
-
         return new NotificationResponseDTO(
                 notification.getId(),
                 notification.getType().name(),
                 notification.getStockId(),
                 notification.getQuoteId(),
-                notification.getMessage(),
-                notification.getRead(),
+                notification.getMessage().getContent(),
+                notification.isRead(),
                 notification.getCreatedAt(),
                 notification.getUpdatedAt()
         );
     }
-
 }

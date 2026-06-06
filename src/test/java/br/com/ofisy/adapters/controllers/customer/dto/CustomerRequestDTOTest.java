@@ -1,6 +1,5 @@
 package br.com.ofisy.adapters.controllers.customer.dto;
 
-import br.com.ofisy.adapters.controllers.customer.dto.CustomerRequestDTO;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.BeforeAll;

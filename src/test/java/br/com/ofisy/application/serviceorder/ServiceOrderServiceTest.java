@@ -1,8 +1,7 @@
 package br.com.ofisy.application.serviceorder;
 
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
-import br.com.ofisy.application.notification.dto.QuoteNotificationRequestDTO;
-import br.com.ofisy.application.notification.NotificationService;
+import br.com.ofisy.application.notification.createquote.CreateQuoteNotificationUseCase;
 import br.com.ofisy.application.quote.QuoteService;
 import br.com.ofisy.application.quote.dto.CreateQuoteRequestDTO;
 import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
@@ -66,7 +65,7 @@ class ServiceOrderServiceTest {
     @Mock
     private UserService userService;
     @Mock
-    private NotificationService notificationService;
+    private CreateQuoteNotificationUseCase createQuoteNotificationUseCase;
     @Mock
     private QuoteService quoteService;
     @Mock
@@ -301,7 +300,7 @@ class ServiceOrderServiceTest {
             assertThat(result).isEqualTo(quote);
             assertThat(serviceOrder.getStatus()).isEqualTo(ServiceOrderStatus.AWAITING_APPROVAL);
             verify(serviceOrderRepository).save(serviceOrder);
-            verify(notificationService).createQuoteNotification(new QuoteNotificationRequestDTO(quoteId, VALID_SERVICE_ORDER_ID, new BigDecimal("1500.00")));
+            verify(createQuoteNotificationUseCase).execute(new CreateQuoteNotificationUseCase.CreateQuoteCommand(quoteId, VALID_SERVICE_ORDER_ID, new BigDecimal("1500.00")));
         }
 
         @Test
@@ -313,7 +312,7 @@ class ServiceOrderServiceTest {
                     .isInstanceOf(ServiceOrderNotFoundException.class);
 
             verify(quoteService, never()).create(any(), any());
-            verify(notificationService, never()).createQuoteNotification(any());
+            verify(createQuoteNotificationUseCase, never()).execute(any());
         }
 
         @Test
@@ -326,7 +325,7 @@ class ServiceOrderServiceTest {
             assertThatThrownBy(() -> serviceOrderService.generateQuote(VALID_SERVICE_ORDER_ID, request))
                     .isInstanceOf(InvalidServiceOrderTransitionException.class);
 
-            verify(notificationService, never()).createQuoteNotification(any());
+            verify(createQuoteNotificationUseCase, never()).execute(any());
         }
     }
 

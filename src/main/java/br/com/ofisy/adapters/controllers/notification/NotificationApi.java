@@ -1,6 +1,6 @@
-package br.com.ofisy.interfaces.api.notification;
+package br.com.ofisy.adapters.controllers.notification;
 
-import br.com.ofisy.application.notification.dto.NotificationResponseDTO;
+import br.com.ofisy.adapters.controllers.notification.dto.NotificationResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;

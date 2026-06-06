@@ -78,7 +78,9 @@ class RegisterCustomerServiceTest {
         void shouldThrowCustomerAlreadyExistsExceptionWhenCpfCnpjAlreadyRegistered(String cpfCnpj) {
             when(customerRepository.findByCpfCnpj(any(CpfCnpj.class))).thenReturn(Optional.of(validCustomer()));
 
-            assertThatThrownBy(() -> registerCustomerService.execute(validCommand(cpfCnpj)))
+            var command = validCommand(cpfCnpj);
+
+            assertThatThrownBy(() -> registerCustomerService.execute(command))
                     .isInstanceOf(CustomerAlreadyExistsException.class)
                     .hasMessageContaining(cpfCnpj);
 

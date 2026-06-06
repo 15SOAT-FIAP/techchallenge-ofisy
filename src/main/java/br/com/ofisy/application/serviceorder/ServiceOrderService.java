@@ -1,7 +1,6 @@
 package br.com.ofisy.application.serviceorder;
 
-import br.com.ofisy.application.notification.NotificationService;
-import br.com.ofisy.application.notification.dto.QuoteNotificationRequestDTO;
+import br.com.ofisy.application.notification.createquote.CreateQuoteNotificationUseCase;
 import br.com.ofisy.application.quote.QuoteService;
 import br.com.ofisy.application.quote.dto.CreateQuoteRequestDTO;
 import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
@@ -32,7 +31,7 @@ public class ServiceOrderService {
     private final IdentifyByIdCustomerUseCase identifyByIdCustomerUseCase;
     private final VehicleService vehicleService;
     private final UserService userService;
-    private final NotificationService notificationService;
+    private final CreateQuoteNotificationUseCase createQuoteNotificationUseCase;
     private final QuoteService quoteService;
     private final ServiceOrderFinalizationService finalizationService;
 
@@ -87,8 +86,13 @@ public class ServiceOrderService {
         var quote = quoteService.create(id, request);
         serviceOrder.sendToApproval();
         serviceOrderRepository.save(serviceOrder);
-        var quoteNotification = new QuoteNotificationRequestDTO(quote.id(), id, quote.totalPrice());
-        notificationService.createQuoteNotification(quoteNotification);
+        createQuoteNotificationUseCase.execute(
+                new CreateQuoteNotificationUseCase.CreateQuoteCommand(
+                        quote.id(),
+                        id,
+                        quote.totalPrice()
+                )
+        );
         return quote;
     }
 
