@@ -50,7 +50,7 @@ public class NotificationController implements NotificationApi {
     @Override
     @PatchMapping("/{id}/read")
     public ResponseEntity<NotificationResponseDTO> markAsRead(@PathVariable UUID id) {
-        var cmd = new MarkNotificationAsReadUseCase.MarkAsReadCommand(id);
+        MarkNotificationAsReadUseCase.MarkAsReadCommand cmd = new MarkNotificationAsReadUseCase.MarkAsReadCommand(id);
         return ResponseEntity.ok(NotificationPresenter.present(markNotificationAsReadUseCase.execute(cmd)));
     }
 }

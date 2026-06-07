@@ -15,12 +15,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 class NotificationPresenterTest {
 
     @Test
-    @DisplayName("Deve retornar null se a notificação for nula")
-    void shouldReturnNullWhenNotificationIsNull() {
-        assertThat(NotificationPresenter.present(null)).isNull();
-    }
-
-    @Test
     @DisplayName("Deve mapear todos os campos corretamente ao apresentar uma notificação")
     void shouldMapAllFieldsCorrectly() {
         UUID id = UUID.randomUUID();

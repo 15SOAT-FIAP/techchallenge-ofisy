@@ -9,9 +9,6 @@ import lombok.NoArgsConstructor;
 public class NotificationPresenter {
 
     public static NotificationResponseDTO present(Notification notification) {
-        if (notification == null) {
-            return null;
-        }
         return new NotificationResponseDTO(
                 notification.getId(),
                 notification.getType().name(),
