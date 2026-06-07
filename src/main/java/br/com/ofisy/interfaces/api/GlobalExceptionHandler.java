@@ -17,6 +17,7 @@ import br.com.ofisy.application.vehicle.exceptions.VehicleAlreadyExistsException
 import br.com.ofisy.application.vehicle.exceptions.VehicleLicensePlateNotFoundException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
+import br.com.ofisy.domain.notification.exceptions.InvalidNotificationMessageException;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteDataException;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteItemException;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
@@ -49,6 +50,13 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleInvalidCpfCnpj(InvalidCpfCnpjException ex) {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         problem.setTitle("CPF/CNPJ inválido");
+        return problem;
+    }
+
+    @ExceptionHandler(InvalidNotificationMessageException.class)
+    public ProblemDetail handleInvalidNotificationMessage(InvalidNotificationMessageException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problem.setTitle("Mensagem de notificação inválida");
         return problem;
     }
 

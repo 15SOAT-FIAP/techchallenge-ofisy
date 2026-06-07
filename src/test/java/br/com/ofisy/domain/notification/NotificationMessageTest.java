@@ -1,5 +1,6 @@
 package br.com.ofisy.domain.notification;
 
+import br.com.ofisy.domain.notification.exceptions.InvalidNotificationMessageException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -15,11 +16,11 @@ class NotificationMessageTest {
     @DisplayName("Deve validar NotificationMessage com erro de nulo ou vazio")
     void shouldValidateNotificationMessageContent() {
         assertThatThrownBy(() -> NotificationMessage.fromString(null))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(InvalidNotificationMessageException.class)
                 .hasMessage("Mensagem não pode ser vazia");
 
         assertThatThrownBy(() -> NotificationMessage.fromString("   "))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(InvalidNotificationMessageException.class)
                 .hasMessage("Mensagem não pode ser vazia");
     }
 
@@ -46,7 +47,7 @@ class NotificationMessageTest {
     void shouldThrowWhenMessageLengthIsGreaterThan255() {
         String longMessage = "a".repeat(256);
         assertThatThrownBy(() -> NotificationMessage.fromString(longMessage))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(InvalidNotificationMessageException.class)
                 .hasMessage("Mensagem não pode ter mais de 255 caracteres");
     }
 }

@@ -1,5 +1,7 @@
 package br.com.ofisy.domain.notification;
 
+import br.com.ofisy.domain.notification.exceptions.InvalidNotificationMessageException;
+
 import java.math.BigDecimal;
 import java.util.Locale;
 import java.util.Objects;
@@ -11,10 +13,10 @@ public final class NotificationMessage {
 
     private NotificationMessage(String content) {
         if (content == null || content.trim().isEmpty()) {
-            throw new IllegalArgumentException("Mensagem não pode ser vazia");
+            throw new InvalidNotificationMessageException("Mensagem não pode ser vazia");
         }
         if (content.length() > 255) {
-            throw new IllegalArgumentException("Mensagem não pode ter mais de 255 caracteres");
+            throw new InvalidNotificationMessageException("Mensagem não pode ter mais de 255 caracteres");
         }
         this.content = content;
     }

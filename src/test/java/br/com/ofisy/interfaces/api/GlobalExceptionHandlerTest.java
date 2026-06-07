@@ -17,6 +17,7 @@ import br.com.ofisy.application.vehicle.exceptions.VehicleAlreadyExistsException
 import br.com.ofisy.application.vehicle.exceptions.VehicleLicensePlateNotFoundException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
+import br.com.ofisy.domain.notification.exceptions.InvalidNotificationMessageException;
 import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
 import br.com.ofisy.domain.serviceorder.exceptions.InvalidServiceOrderTransitionException;
 import br.com.ofisy.domain.user.Role;
@@ -147,6 +148,22 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.title").value("CPF/CNPJ inválido"))
                     .andExpect(jsonPath("$.detail").value("CPF ou CNPJ inválido: " + invalidCpfCnpj));
+        }
+    }
+
+    @Nested
+    class InvalidNotificationMessage {
+
+        @Test
+        void shouldReturn400WhenNotificationMessageIsInvalid() throws Exception {
+            var message = "Mensagem inválida";
+            when(identifyByIdCustomerUseCase.execute(any(UUID.class)))
+                    .thenThrow(new InvalidNotificationMessageException(message));
+
+            mockMvc.perform(get("/api/v1/customers/{id}", UUID.randomUUID()))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.title").value("Mensagem de notificação inválida"))
+                    .andExpect(jsonPath("$.detail").value(message));
         }
     }
 
