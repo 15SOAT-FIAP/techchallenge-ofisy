@@ -1,7 +1,6 @@
 package br.com.ofisy.application.customer.identifybyid;
 
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
-import br.com.ofisy.application.customer.identifybyid.IdentifyByIdCustomerService;
 import br.com.ofisy.domain.customer.CpfCnpj;
 import br.com.ofisy.domain.customer.Customer;
 import br.com.ofisy.domain.customer.CustomerRepository;

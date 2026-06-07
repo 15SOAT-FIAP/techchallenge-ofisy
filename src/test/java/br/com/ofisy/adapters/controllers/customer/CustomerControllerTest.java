@@ -22,7 +22,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -43,7 +42,6 @@ class CustomerControllerTest extends ControllerTestBase {
     private static final String BASE_URL = "/api/v1/customers";
     private static final String VALID_CPF = "52998224725";
     private static final String VALID_CNPJ = "11222333000181";
-    private static final LocalDateTime NOW = LocalDateTime.now();
 
     @Autowired
     private MockMvc mockMvc;

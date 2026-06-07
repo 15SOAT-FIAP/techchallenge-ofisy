@@ -385,7 +385,7 @@ class ServiceOrderControllerIT extends IntegrationTestBase {
                     .toList();
 
             assertThat(notifications).hasSize(1);
-            assertThat(notifications.getFirst().getRead()).isFalse();
+            assertThat(notifications.getFirst().isRead()).isFalse();
         }
 
         @Test

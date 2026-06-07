@@ -1,4 +1,4 @@
-package br.com.ofisy.application.notification.dto;
+package br.com.ofisy.adapters.controllers.notification.dto;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

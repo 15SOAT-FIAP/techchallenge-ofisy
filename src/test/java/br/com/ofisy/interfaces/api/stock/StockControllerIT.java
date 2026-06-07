@@ -77,8 +77,8 @@ class StockControllerIT extends IntegrationTestBase {
                     .toList();
 
             assertThat(notifications).hasSize(1);
-            assertThat(notifications.getFirst().getMessage()).contains("Peça Stock Ctrl IT");
-            assertThat(notifications.getFirst().getRead()).isFalse();
+            assertThat(notifications.getFirst().getMessage().getContent()).contains("Peça Stock Ctrl IT");
+            assertThat(notifications.getFirst().isRead()).isFalse();
         }
 
         @Test
