@@ -12,9 +12,10 @@ import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundExce
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
 import br.com.ofisy.application.customer.identifybyid.IdentifyByIdCustomerUseCase;
 import br.com.ofisy.application.user.UserService;
-import br.com.ofisy.application.vehicle.VehicleService;
+import br.com.ofisy.application.vehicle.identifybyid.IdentifyVehicleByIdUseCase;
 import br.com.ofisy.domain.serviceorder.ServiceOrderRepository;
 import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
+import br.com.ofisy.domain.vehicle.Vehicle;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,7 +30,7 @@ public class ServiceOrderService {
 
     private final ServiceOrderRepository serviceOrderRepository;
     private final IdentifyByIdCustomerUseCase identifyByIdCustomerUseCase;
-    private final VehicleService vehicleService;
+    private final IdentifyVehicleByIdUseCase identifyVehicleByIdUseCase;
     private final UserService userService;
     private final CreateQuoteNotificationUseCase createQuoteNotificationUseCase;
     private final QuoteService quoteService;
@@ -38,8 +39,8 @@ public class ServiceOrderService {
     @Transactional
     public ServiceOrderResponseDTO create(ServiceOrderRequestDTO request, String createdByEmail) {
         identifyByIdCustomerUseCase.execute(request.customerId());
-        var vehicle = vehicleService.identifyVehicleById(request.vehicleId());
-        if (!vehicle.customerId().equals(request.customerId())) {
+        Vehicle vehicle = identifyVehicleByIdUseCase.execute(request.vehicleId());
+        if (!vehicle.getCustomerId().equals(request.customerId())) {
             throw new VehicleNotOwnedByCustomerException(request.vehicleId(), request.customerId());
         }
 

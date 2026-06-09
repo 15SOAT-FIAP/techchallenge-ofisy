@@ -1,10 +1,15 @@
-package br.com.ofisy.interfaces.api.vehicle;
+package br.com.ofisy.adapters.controllers.vehicle;
 
-import br.com.ofisy.application.vehicle.VehicleService;
-import br.com.ofisy.application.vehicle.dto.VehicleResponseDTO;
 import br.com.ofisy.application.vehicle.exceptions.VehicleAlreadyExistsException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleLicensePlateNotFoundException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
+import br.com.ofisy.application.vehicle.identifybyid.IdentifyVehicleByIdUseCase;
+import br.com.ofisy.application.vehicle.identifybylicenseplate.IdentifyVehicleByLicensePlateUseCase;
+import br.com.ofisy.application.vehicle.listall.ListRegisteredVehiclesUseCase;
+import br.com.ofisy.application.vehicle.listbycustomer.ListVehiclesByCustomerUseCase;
+import br.com.ofisy.application.vehicle.register.RegisterVehicleUseCase;
+import br.com.ofisy.domain.vehicle.LicensePlate;
+import br.com.ofisy.domain.vehicle.Vehicle;
 import br.com.ofisy.interfaces.api.ControllerTestBase;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -37,6 +42,7 @@ class VehicleControllerTest extends ControllerTestBase {
 
     private static final String BASE_URL = "/api/v1/vehicles";
     private static final String VALID_PLATE = "ABC1234";
+    private static final UUID VALID_ID = UUID.randomUUID();
     private static final UUID VALID_CUSTOMER_ID = UUID.randomUUID();
     private static final LocalDateTime NOW = LocalDateTime.now();
 
@@ -44,17 +50,25 @@ class VehicleControllerTest extends ControllerTestBase {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private VehicleService vehicleService;
+    private RegisterVehicleUseCase registerVehicleUseCase;
+    @MockitoBean
+    private ListRegisteredVehiclesUseCase listRegisteredVehiclesUseCase;
+    @MockitoBean
+    private ListVehiclesByCustomerUseCase listVehiclesByCustomerUseCase;
+    @MockitoBean
+    private IdentifyVehicleByIdUseCase identifyVehicleByIdUseCase;
+    @MockitoBean
+    private IdentifyVehicleByLicensePlateUseCase identifyVehicleByLicensePlateUseCase;
 
     @Nested
     class GetAllVehicles {
 
         @Test
         void shouldReturn200WithPageOfVehicles() throws Exception {
-            var dto = responseDTO(VALID_PLATE, VALID_CUSTOMER_ID);
-            var pageable = PageRequest.of(0, 10);
-            var page = new PageImpl<>(List.of(dto), pageable, 1);
-            when(vehicleService.listRegisteredVehicles(any())).thenReturn(page);
+            Vehicle vehicle = validVehicle();
+            PageRequest pageable = PageRequest.of(0, 10);
+            PageImpl<Vehicle> page = new PageImpl<>(List.of(vehicle), pageable, 1);
+            when(listRegisteredVehiclesUseCase.execute(any())).thenReturn(page);
 
             mockMvc.perform(get(BASE_URL))
                     .andExpect(status().isOk())
@@ -65,8 +79,8 @@ class VehicleControllerTest extends ControllerTestBase {
 
         @Test
         void shouldReturn200WithEmptyPage() throws Exception {
-            var pageable = PageRequest.of(0, 10);
-            when(vehicleService.listRegisteredVehicles(any()))
+            PageRequest pageable = PageRequest.of(0, 10);
+            when(listRegisteredVehiclesUseCase.execute(any()))
                     .thenReturn(new PageImpl<>(Collections.emptyList(), pageable, 0));
 
             mockMvc.perform(get(BASE_URL))
@@ -78,14 +92,14 @@ class VehicleControllerTest extends ControllerTestBase {
 
         @Test
         void shouldRespectPageAndSizeQueryParams() throws Exception {
-            var pageable = PageRequest.of(1, 5);
-            when(vehicleService.listRegisteredVehicles(any()))
+            PageRequest pageable = PageRequest.of(1, 5);
+            when(listRegisteredVehiclesUseCase.execute(any()))
                     .thenReturn(new PageImpl<>(Collections.emptyList(), pageable, 0));
 
             mockMvc.perform(get(BASE_URL).param("page", "1").param("size", "5"))
                     .andExpect(status().isOk());
 
-            verify(vehicleService).listRegisteredVehicles(any());
+            verify(listRegisteredVehiclesUseCase).execute(any());
         }
     }
 
@@ -94,8 +108,7 @@ class VehicleControllerTest extends ControllerTestBase {
 
         @Test
         void shouldReturn200WithListOfVehicles() throws Exception {
-            var dto = responseDTO(VALID_PLATE, VALID_CUSTOMER_ID);
-            when(vehicleService.listVehiclesFromCustomer(VALID_CUSTOMER_ID)).thenReturn(List.of(dto));
+            when(listVehiclesByCustomerUseCase.execute(VALID_CUSTOMER_ID)).thenReturn(List.of(validVehicle()));
 
             mockMvc.perform(get(BASE_URL + "/customers/{customerId}", VALID_CUSTOMER_ID))
                     .andExpect(status().isOk())
@@ -105,7 +118,7 @@ class VehicleControllerTest extends ControllerTestBase {
 
         @Test
         void shouldReturn200WithEmptyListWhenNoneFound() throws Exception {
-            when(vehicleService.listVehiclesFromCustomer(VALID_CUSTOMER_ID)).thenReturn(List.of());
+            when(listVehiclesByCustomerUseCase.execute(VALID_CUSTOMER_ID)).thenReturn(List.of());
 
             mockMvc.perform(get(BASE_URL + "/customers/{customerId}", VALID_CUSTOMER_ID))
                     .andExpect(status().isOk())
@@ -119,8 +132,7 @@ class VehicleControllerTest extends ControllerTestBase {
 
         @Test
         void shouldReturn200WithVehicleWhenFound() throws Exception {
-            var dto = responseDTO(VALID_PLATE, VALID_CUSTOMER_ID);
-            when(vehicleService.identifyVehicleByLicensePlate(VALID_PLATE)).thenReturn(dto);
+            when(identifyVehicleByLicensePlateUseCase.execute(VALID_PLATE)).thenReturn(validVehicle());
 
             mockMvc.perform(get(BASE_URL).param("licensePlate", VALID_PLATE))
                     .andExpect(status().isOk())
@@ -130,7 +142,7 @@ class VehicleControllerTest extends ControllerTestBase {
 
         @Test
         void shouldReturn404WhenNotFound() throws Exception {
-            when(vehicleService.identifyVehicleByLicensePlate(VALID_PLATE))
+            when(identifyVehicleByLicensePlateUseCase.execute(VALID_PLATE))
                     .thenThrow(new VehicleLicensePlateNotFoundException(VALID_PLATE));
 
             mockMvc.perform(get(BASE_URL).param("licensePlate", VALID_PLATE))
@@ -144,11 +156,9 @@ class VehicleControllerTest extends ControllerTestBase {
 
         @Test
         void shouldReturn200WithVehicleWhenFound() throws Exception {
-            var id = UUID.randomUUID();
-            var dto = responseDTO(VALID_PLATE, VALID_CUSTOMER_ID);
-            when(vehicleService.identifyVehicleById(id)).thenReturn(dto);
+            when(identifyVehicleByIdUseCase.execute(VALID_ID)).thenReturn(validVehicle());
 
-            mockMvc.perform(get(BASE_URL + "/{id}", id))
+            mockMvc.perform(get(BASE_URL + "/{id}", VALID_ID))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.licensePlate").value(VALID_PLATE))
                     .andExpect(jsonPath("$.model").value("Civic"))
@@ -161,11 +171,10 @@ class VehicleControllerTest extends ControllerTestBase {
 
         @Test
         void shouldReturn404WhenNotFound() throws Exception {
-            var id = UUID.randomUUID();
-            when(vehicleService.identifyVehicleById(id))
-                    .thenThrow(new VehicleNotFoundException(id));
+            when(identifyVehicleByIdUseCase.execute(VALID_ID))
+                    .thenThrow(new VehicleNotFoundException(VALID_ID));
 
-            mockMvc.perform(get(BASE_URL + "/{id}", id))
+            mockMvc.perform(get(BASE_URL + "/{id}", VALID_ID))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.title").value("Veículo não encontrado"));
         }
@@ -195,8 +204,7 @@ class VehicleControllerTest extends ControllerTestBase {
 
         @Test
         void shouldReturn201WithCreatedVehicle() throws Exception {
-            var dto = responseDTO(VALID_PLATE, VALID_CUSTOMER_ID);
-            when(vehicleService.registerVehicle(any())).thenReturn(dto);
+            when(registerVehicleUseCase.execute(any())).thenReturn(validVehicle());
 
             mockMvc.perform(post(BASE_URL)
                             .with(csrf())
@@ -236,7 +244,7 @@ class VehicleControllerTest extends ControllerTestBase {
 
         @Test
         void shouldReturn409WhenVehicleAlreadyExists() throws Exception {
-            when(vehicleService.registerVehicle(any()))
+            when(registerVehicleUseCase.execute(any()))
                     .thenThrow(new VehicleAlreadyExistsException(VALID_PLATE));
 
             mockMvc.perform(post(BASE_URL)
@@ -249,7 +257,8 @@ class VehicleControllerTest extends ControllerTestBase {
         }
     }
 
-    private VehicleResponseDTO responseDTO(String plate, UUID customerId) {
-        return new VehicleResponseDTO(UUID.randomUUID(), customerId, plate, "Civic", "Honda", "Preto", 2022, null, NOW, NOW);
+    private Vehicle validVehicle() {
+        return Vehicle.reconstruct(VALID_ID, VALID_CUSTOMER_ID, new LicensePlate(VALID_PLATE),
+                "Civic", "Honda", "Preto", 2022, null, NOW, NOW);
     }
 }

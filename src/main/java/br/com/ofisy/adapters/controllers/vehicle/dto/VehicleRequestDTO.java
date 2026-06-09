@@ -1,4 +1,4 @@
-package br.com.ofisy.application.vehicle.dto;
+package br.com.ofisy.adapters.controllers.vehicle.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

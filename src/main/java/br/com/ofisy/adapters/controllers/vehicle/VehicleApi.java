@@ -1,8 +1,7 @@
-package br.com.ofisy.interfaces.api.vehicle;
+package br.com.ofisy.adapters.controllers.vehicle;
 
-
-import br.com.ofisy.application.vehicle.dto.VehicleRequestDTO;
-import br.com.ofisy.application.vehicle.dto.VehicleResponseDTO;
+import br.com.ofisy.adapters.controllers.vehicle.dto.VehicleRequestDTO;
+import br.com.ofisy.adapters.controllers.vehicle.dto.VehicleResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
