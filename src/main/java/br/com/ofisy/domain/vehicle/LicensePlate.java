@@ -1,7 +1,6 @@
 package br.com.ofisy.domain.vehicle;
 
 import br.com.ofisy.domain.vehicle.exceptions.InvalidLicensePlateException;
-import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -10,7 +9,6 @@ import lombok.ToString;
 
 import java.util.Objects;
 
-@Embeddable
 @Getter
 @EqualsAndHashCode
 @ToString
