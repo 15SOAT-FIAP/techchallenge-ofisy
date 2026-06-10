@@ -5,9 +5,18 @@ import br.com.ofisy.adapters.controllers.serviceorder.dto.ServiceOrderStatusResp
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
 import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
 import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
-import br.com.ofisy.application.serviceorder.ServiceOrderService;
+import br.com.ofisy.application.serviceorder.approvequote.ApproveServiceOrderQuoteUseCase;
+import br.com.ofisy.application.serviceorder.cancel.CancelServiceOrderUseCase;
+import br.com.ofisy.application.serviceorder.create.CreateServiceOrderUseCase;
+import br.com.ofisy.application.serviceorder.delivertocustomer.DeliverToCustomerUseCase;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
+import br.com.ofisy.application.serviceorder.generatequote.GenerateServiceOrderQuoteUseCase;
+import br.com.ofisy.application.serviceorder.getstatus.GetServiceOrderStatusUseCase;
+import br.com.ofisy.application.serviceorder.listfinished.ListFinishedServiceOrdersUseCase;
+import br.com.ofisy.application.serviceorder.listreceived.ListReceivedServiceOrdersUseCase;
+import br.com.ofisy.application.serviceorder.reprovequote.ReproveServiceOrderQuoteUseCase;
+import br.com.ofisy.application.serviceorder.startdiagnostic.StartDiagnosticUseCase;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
 import br.com.ofisy.domain.quote.QuoteStatus;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
@@ -19,6 +28,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
@@ -30,6 +40,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -39,6 +50,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -59,22 +71,51 @@ class ServiceOrderControllerTest {
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 1, 1, 12, 0);
 
     @Mock
-    private ServiceOrderService serviceOrderService;
+    private CreateServiceOrderUseCase createServiceOrderUseCase;
+    @Mock
+    private CancelServiceOrderUseCase cancelServiceOrderUseCase;
+    @Mock
+    private ListReceivedServiceOrdersUseCase listReceivedServiceOrdersUseCase;
+    @Mock
+    private ListFinishedServiceOrdersUseCase listFinishedServiceOrdersUseCase;
+    @Mock
+    private StartDiagnosticUseCase startDiagnosticUseCase;
+    @Mock
+    private DeliverToCustomerUseCase deliverToCustomerUseCase;
+    @Mock
+    private GetServiceOrderStatusUseCase getServiceOrderStatusUseCase;
+    @Mock
+    private GenerateServiceOrderQuoteUseCase generateServiceOrderQuoteUseCase;
+    @Mock
+    private ApproveServiceOrderQuoteUseCase approveServiceOrderQuoteUseCase;
+    @Mock
+    private ReproveServiceOrderQuoteUseCase reproveServiceOrderQuoteUseCase;
 
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders
-                .standaloneSetup(new ServiceOrderController(serviceOrderService))
+                .standaloneSetup(new ServiceOrderController(
+                        createServiceOrderUseCase,
+                        cancelServiceOrderUseCase,
+                        listReceivedServiceOrdersUseCase,
+                        listFinishedServiceOrdersUseCase,
+                        startDiagnosticUseCase,
+                        deliverToCustomerUseCase,
+                        getServiceOrderStatusUseCase,
+                        generateServiceOrderQuoteUseCase,
+                        approveServiceOrderQuoteUseCase,
+                        reproveServiceOrderQuoteUseCase))
                 .setCustomArgumentResolvers(
                         new AuthenticationPrincipalArgumentResolver(),
                         new PageableHandlerMethodArgumentResolver())
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
 
-        var mockUser = User.withUsername(MOCK_USER_EMAIL).password("").roles("ATTENDANT").build();
-        var auth = new UsernamePasswordAuthenticationToken(mockUser, null, mockUser.getAuthorities());
+        UserDetails mockUser = User.withUsername(MOCK_USER_EMAIL).password("").roles("ATTENDANT").build();
+        UsernamePasswordAuthenticationToken auth =
+                new UsernamePasswordAuthenticationToken(mockUser, null, mockUser.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
     }
 
@@ -88,7 +129,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn201WithCreatedServiceOrder() throws Exception {
-            when(serviceOrderService.create(any(), any(), any(), any())).thenReturn(mockServiceOrder(ServiceOrderStatus.RECEIVED));
+            when(createServiceOrderUseCase.execute(any())).thenReturn(mockServiceOrder(ServiceOrderStatus.RECEIVED));
 
             mockMvc.perform(post(BASE_URL)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -139,7 +180,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn404WhenCustomerNotFound() throws Exception {
-            when(serviceOrderService.create(any(), any(), any(), any()))
+            when(createServiceOrderUseCase.execute(any()))
                     .thenThrow(new CustomerNotFoundException(VALID_CUSTOMER_ID));
 
             mockMvc.perform(post(BASE_URL)
@@ -151,7 +192,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn404WhenVehicleNotFound() throws Exception {
-            when(serviceOrderService.create(any(), any(), any(), any()))
+            when(createServiceOrderUseCase.execute(any()))
                     .thenThrow(new VehicleNotFoundException(VALID_VEHICLE_ID));
 
             mockMvc.perform(post(BASE_URL)
@@ -163,7 +204,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn422WhenVehicleNotOwnedByCustomer() throws Exception {
-            when(serviceOrderService.create(any(), any(), any(), any()))
+            when(createServiceOrderUseCase.execute(any()))
                     .thenThrow(new VehicleNotOwnedByCustomerException(VALID_VEHICLE_ID, VALID_CUSTOMER_ID));
 
             mockMvc.perform(post(BASE_URL)
@@ -179,9 +220,9 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn200WithPageOfReceivedServiceOrders() throws Exception {
-            var serviceOrder = mockServiceOrder(ServiceOrderStatus.RECEIVED);
+            ServiceOrder serviceOrder = mockServiceOrder(ServiceOrderStatus.RECEIVED);
             Page<ServiceOrder> page = new PageImpl<>(List.of(serviceOrder), PageRequest.of(0, 10), 1);
-            when(serviceOrderService.listReceived(any(Pageable.class))).thenReturn(page);
+            when(listReceivedServiceOrdersUseCase.execute(any(Pageable.class))).thenReturn(page);
 
             mockMvc.perform(get(BASE_URL + "/received"))
                     .andExpect(status().isOk())
@@ -194,7 +235,7 @@ class ServiceOrderControllerTest {
         @Test
         void shouldReturn200WithEmptyPageWhenNoReceivedOrders() throws Exception {
             Page<ServiceOrder> page = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
-            when(serviceOrderService.listReceived(any(Pageable.class))).thenReturn(page);
+            when(listReceivedServiceOrdersUseCase.execute(any(Pageable.class))).thenReturn(page);
 
             mockMvc.perform(get(BASE_URL + "/received"))
                     .andExpect(status().isOk())
@@ -203,20 +244,19 @@ class ServiceOrderControllerTest {
         }
 
         @Test
-        void shouldForwardPageableParametersToService() throws Exception {
+        void shouldForwardPageableParametersToUseCase() throws Exception {
             Page<ServiceOrder> page = new PageImpl<>(List.of(), PageRequest.of(2, 5), 0);
-            when(serviceOrderService.listReceived(any(Pageable.class))).thenReturn(page);
+            when(listReceivedServiceOrdersUseCase.execute(any(Pageable.class))).thenReturn(page);
 
             mockMvc.perform(get(BASE_URL + "/received")
                             .param("page", "2")
                             .param("size", "5"))
                     .andExpect(status().isOk());
 
-            var captor = org.mockito.ArgumentCaptor.forClass(Pageable.class);
-            verify(serviceOrderService).listReceived(captor.capture());
-            var captured = captor.getValue();
-            org.assertj.core.api.Assertions.assertThat(captured.getPageNumber()).isEqualTo(2);
-            org.assertj.core.api.Assertions.assertThat(captured.getPageSize()).isEqualTo(5);
+            ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+            verify(listReceivedServiceOrdersUseCase).execute(captor.capture());
+            assertThat(captor.getValue().getPageNumber()).isEqualTo(2);
+            assertThat(captor.getValue().getPageSize()).isEqualTo(5);
         }
     }
 
@@ -225,9 +265,9 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn200WithPageOfFinishedServiceOrders() throws Exception {
-            var serviceOrder = mockServiceOrder(ServiceOrderStatus.FINISHED);
+            ServiceOrder serviceOrder = mockServiceOrder(ServiceOrderStatus.FINISHED);
             Page<ServiceOrder> page = new PageImpl<>(List.of(serviceOrder), PageRequest.of(0, 10), 1);
-            when(serviceOrderService.listFinished(any(Pageable.class))).thenReturn(page);
+            when(listFinishedServiceOrdersUseCase.execute(any(Pageable.class))).thenReturn(page);
 
             mockMvc.perform(get(BASE_URL + "/finished"))
                     .andExpect(status().isOk())
@@ -240,7 +280,7 @@ class ServiceOrderControllerTest {
         @Test
         void shouldReturn200WithEmptyPageWhenNoFinishedOrders() throws Exception {
             Page<ServiceOrder> page = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
-            when(serviceOrderService.listFinished(any(Pageable.class))).thenReturn(page);
+            when(listFinishedServiceOrdersUseCase.execute(any(Pageable.class))).thenReturn(page);
 
             mockMvc.perform(get(BASE_URL + "/finished"))
                     .andExpect(status().isOk())
@@ -249,20 +289,19 @@ class ServiceOrderControllerTest {
         }
 
         @Test
-        void shouldForwardPageableParametersToService() throws Exception {
+        void shouldForwardPageableParametersToUseCase() throws Exception {
             Page<ServiceOrder> page = new PageImpl<>(List.of(), PageRequest.of(2, 5), 0);
-            when(serviceOrderService.listFinished(any(Pageable.class))).thenReturn(page);
+            when(listFinishedServiceOrdersUseCase.execute(any(Pageable.class))).thenReturn(page);
 
             mockMvc.perform(get(BASE_URL + "/finished")
                             .param("page", "2")
                             .param("size", "5"))
                     .andExpect(status().isOk());
 
-            var captor = org.mockito.ArgumentCaptor.forClass(Pageable.class);
-            verify(serviceOrderService).listFinished(captor.capture());
-            var captured = captor.getValue();
-            org.assertj.core.api.Assertions.assertThat(captured.getPageNumber()).isEqualTo(2);
-            org.assertj.core.api.Assertions.assertThat(captured.getPageSize()).isEqualTo(5);
+            ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+            verify(listFinishedServiceOrdersUseCase).execute(captor.capture());
+            assertThat(captor.getValue().getPageNumber()).isEqualTo(2);
+            assertThat(captor.getValue().getPageSize()).isEqualTo(5);
         }
     }
 
@@ -273,7 +312,8 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn200WithServiceOrderStatus() throws Exception {
-            when(serviceOrderService.getStatus(ORDER_ID)).thenReturn(mockServiceOrderWithId(ORDER_ID, ServiceOrderStatus.RECEIVED));
+            when(getServiceOrderStatusUseCase.execute(ORDER_ID))
+                    .thenReturn(mockServiceOrderWithId(ORDER_ID, ServiceOrderStatus.RECEIVED));
 
             mockMvc.perform(get(BASE_URL + "/{id}/status", ORDER_ID))
                     .andExpect(status().isOk())
@@ -285,7 +325,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn404WhenOrderDoesNotExist() throws Exception {
-            when(serviceOrderService.getStatus(ORDER_ID))
+            when(getServiceOrderStatusUseCase.execute(ORDER_ID))
                     .thenThrow(new ServiceOrderNotFoundException(ORDER_ID));
 
             mockMvc.perform(get(BASE_URL + "/{id}/status", ORDER_ID))
@@ -301,7 +341,8 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn200WithUpdatedServiceOrder() throws Exception {
-            when(serviceOrderService.startDiagnostic(ORDER_ID)).thenReturn(mockServiceOrder(ServiceOrderStatus.IN_DIAGNOSTIC));
+            when(startDiagnosticUseCase.execute(ORDER_ID))
+                    .thenReturn(mockServiceOrder(ServiceOrderStatus.IN_DIAGNOSTIC));
 
             mockMvc.perform(patch(BASE_URL + "/{id}/start-diagnostic", ORDER_ID))
                     .andExpect(status().isOk())
@@ -310,7 +351,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn404WhenOrderDoesNotExist() throws Exception {
-            when(serviceOrderService.startDiagnostic(ORDER_ID))
+            when(startDiagnosticUseCase.execute(ORDER_ID))
                     .thenThrow(new ServiceOrderNotFoundException(ORDER_ID));
 
             mockMvc.perform(patch(BASE_URL + "/{id}/start-diagnostic", ORDER_ID))
@@ -320,8 +361,9 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn409WhenTransitionIsInvalid() throws Exception {
-            when(serviceOrderService.startDiagnostic(ORDER_ID))
-                    .thenThrow(new InvalidServiceOrderTransitionException(ServiceOrderStatus.IN_DIAGNOSTIC, ServiceOrderStatus.IN_DIAGNOSTIC));
+            when(startDiagnosticUseCase.execute(ORDER_ID))
+                    .thenThrow(new InvalidServiceOrderTransitionException(
+                            ServiceOrderStatus.IN_DIAGNOSTIC, ServiceOrderStatus.IN_DIAGNOSTIC));
 
             mockMvc.perform(patch(BASE_URL + "/{id}/start-diagnostic", ORDER_ID))
                     .andExpect(status().isConflict())
@@ -336,7 +378,8 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn200WithDeliveredServiceOrder() throws Exception {
-            when(serviceOrderService.deliverToCustomer(ORDER_ID)).thenReturn(mockServiceOrder(ServiceOrderStatus.DELIVERED));
+            when(deliverToCustomerUseCase.execute(ORDER_ID))
+                    .thenReturn(mockServiceOrder(ServiceOrderStatus.DELIVERED));
 
             mockMvc.perform(patch(BASE_URL + "/{id}/deliver", ORDER_ID))
                     .andExpect(status().isOk())
@@ -345,7 +388,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn404WhenOrderDoesNotExist() throws Exception {
-            when(serviceOrderService.deliverToCustomer(ORDER_ID))
+            when(deliverToCustomerUseCase.execute(ORDER_ID))
                     .thenThrow(new ServiceOrderNotFoundException(ORDER_ID));
 
             mockMvc.perform(patch(BASE_URL + "/{id}/deliver", ORDER_ID))
@@ -355,8 +398,9 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn409WhenTransitionIsInvalid() throws Exception {
-            when(serviceOrderService.deliverToCustomer(ORDER_ID))
-                    .thenThrow(new InvalidServiceOrderTransitionException(ServiceOrderStatus.IN_PROGRESS, ServiceOrderStatus.DELIVERED));
+            when(deliverToCustomerUseCase.execute(ORDER_ID))
+                    .thenThrow(new InvalidServiceOrderTransitionException(
+                            ServiceOrderStatus.IN_PROGRESS, ServiceOrderStatus.DELIVERED));
 
             mockMvc.perform(patch(BASE_URL + "/{id}/deliver", ORDER_ID))
                     .andExpect(status().isConflict())
@@ -371,7 +415,8 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn200WithCancelledServiceOrder() throws Exception {
-            when(serviceOrderService.close(ORDER_ID)).thenReturn(mockServiceOrderWithId(ORDER_ID, ServiceOrderStatus.CANCELLED));
+            when(cancelServiceOrderUseCase.execute(ORDER_ID))
+                    .thenReturn(mockServiceOrderWithId(ORDER_ID, ServiceOrderStatus.CANCELLED));
 
             mockMvc.perform(patch(BASE_URL + "/{id}/cancel", ORDER_ID))
                     .andExpect(status().isOk())
@@ -383,7 +428,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn404WhenOrderDoesNotExist() throws Exception {
-            when(serviceOrderService.close(ORDER_ID))
+            when(cancelServiceOrderUseCase.execute(ORDER_ID))
                     .thenThrow(new ServiceOrderNotFoundException(ORDER_ID));
 
             mockMvc.perform(patch(BASE_URL + "/{id}/cancel", ORDER_ID))
@@ -393,8 +438,9 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn409WhenTransitionIsInvalid() throws Exception {
-            when(serviceOrderService.close(ORDER_ID))
-                    .thenThrow(new InvalidServiceOrderTransitionException(ServiceOrderStatus.CANCELLED, ServiceOrderStatus.CANCELLED));
+            when(cancelServiceOrderUseCase.execute(ORDER_ID))
+                    .thenThrow(new InvalidServiceOrderTransitionException(
+                            ServiceOrderStatus.CANCELLED, ServiceOrderStatus.CANCELLED));
 
             mockMvc.perform(patch(BASE_URL + "/{id}/cancel", ORDER_ID))
                     .andExpect(status().isConflict())
@@ -416,7 +462,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn200WhenQuoteIsApproved() throws Exception {
-            when(serviceOrderService.approveQuote(QUOTE_ID)).thenReturn(mockApprovedResponse());
+            when(approveServiceOrderQuoteUseCase.execute(QUOTE_ID)).thenReturn(mockApprovedResponse());
 
             mockMvc.perform(patch(BASE_URL + "/quote/{id}/approve", QUOTE_ID))
                     .andExpect(status().isOk())
@@ -429,7 +475,8 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn404WhenQuoteDoesNotExist() throws Exception {
-            when(serviceOrderService.approveQuote(QUOTE_ID)).thenThrow(new QuoteNotFoundException(QUOTE_ID));
+            when(approveServiceOrderQuoteUseCase.execute(QUOTE_ID))
+                    .thenThrow(new QuoteNotFoundException(QUOTE_ID));
 
             mockMvc.perform(patch(BASE_URL + "/quote/{id}/approve", QUOTE_ID))
                     .andExpect(status().isNotFound())
@@ -438,7 +485,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn409WhenTransitionIsInvalid() throws Exception {
-            when(serviceOrderService.approveQuote(QUOTE_ID))
+            when(approveServiceOrderQuoteUseCase.execute(QUOTE_ID))
                     .thenThrow(new InvalidServiceOrderTransitionException(
                             ServiceOrderStatus.AWAITING_APPROVAL,
                             ServiceOrderStatus.AWAITING_EXECUTION));
@@ -468,7 +515,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn200WhenQuoteIsReproved() throws Exception {
-            when(serviceOrderService.reproveQuote(eq(QUOTE_ID), any())).thenReturn(mockReprovedResponse());
+            when(reproveServiceOrderQuoteUseCase.execute(any())).thenReturn(mockReprovedResponse());
 
             mockMvc.perform(patch(BASE_URL + "/quote/{id}/reprove", QUOTE_ID)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -487,7 +534,8 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn404WhenQuoteDoesNotExist() throws Exception {
-            when(serviceOrderService.reproveQuote(eq(QUOTE_ID), any())).thenThrow(new QuoteNotFoundException(QUOTE_ID));
+            when(reproveServiceOrderQuoteUseCase.execute(any()))
+                    .thenThrow(new QuoteNotFoundException(QUOTE_ID));
 
             mockMvc.perform(patch(BASE_URL + "/quote/{id}/reprove", QUOTE_ID)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -502,7 +550,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn409WhenTransitionIsInvalid() throws Exception {
-            when(serviceOrderService.reproveQuote(eq(QUOTE_ID), any()))
+            when(reproveServiceOrderQuoteUseCase.execute(any()))
                     .thenThrow(new InvalidServiceOrderTransitionException(
                             ServiceOrderStatus.AWAITING_APPROVAL, ServiceOrderStatus.CANCELLED));
 
