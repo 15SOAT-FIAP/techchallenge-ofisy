@@ -6,7 +6,6 @@ import br.com.ofisy.application.quote.QuoteService;
 import br.com.ofisy.application.quote.dto.CreateQuoteRequestDTO;
 import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
 import br.com.ofisy.application.quote.dto.ReproveQuoteRequestDTO;
-import br.com.ofisy.application.serviceorder.dto.ServiceOrderRequestDTO;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
 import br.com.ofisy.application.customer.identifybyid.IdentifyByIdCustomerUseCase;
@@ -84,26 +83,25 @@ class ServiceOrderServiceTest {
             when(userService.getIdByEmail(VALID_EMAIL)).thenReturn(VALID_USER_ID);
             when(serviceOrderRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-            var result = serviceOrderService.create(validRequest(), VALID_EMAIL);
+            var result = serviceOrderService.create(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, VALID_REPORT, VALID_EMAIL);
 
             assertThat(result).isNotNull();
-            assertThat(result.vehicleId()).isEqualTo(VALID_VEHICLE_ID);
-            assertThat(result.customerId()).isEqualTo(VALID_CUSTOMER_ID);
-            assertThat(result.report()).isEqualTo(VALID_REPORT);
-            assertThat(result.status()).isEqualTo("RECEIVED");
+            assertThat(result.getVehicleId()).isEqualTo(VALID_VEHICLE_ID);
+            assertThat(result.getCustomerId()).isEqualTo(VALID_CUSTOMER_ID);
+            assertThat(result.getReport()).isEqualTo(VALID_REPORT);
+            assertThat(result.getStatus()).isEqualTo(ServiceOrderStatus.RECEIVED);
             verify(serviceOrderRepository).save(any());
         }
 
         @Test
         void shouldCreateServiceOrderWithNullReport() {
-            var request = new ServiceOrderRequestDTO(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, null);
             when(identifyVehicleByIdUseCase.execute(VALID_VEHICLE_ID)).thenReturn(vehicleOwnedByCustomer());
             when(userService.getIdByEmail(VALID_EMAIL)).thenReturn(VALID_USER_ID);
             when(serviceOrderRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-            var result = serviceOrderService.create(request, VALID_EMAIL);
+            var result = serviceOrderService.create(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, null, VALID_EMAIL);
 
-            assertThat(result.report()).isNull();
+            assertThat(result.getReport()).isNull();
             verify(serviceOrderRepository).save(any());
         }
 
@@ -112,8 +110,7 @@ class ServiceOrderServiceTest {
             doThrow(new CustomerNotFoundException(VALID_CUSTOMER_ID))
                     .when(identifyByIdCustomerUseCase).execute(VALID_CUSTOMER_ID);
 
-            var request = validRequest();
-            assertThatThrownBy(() -> serviceOrderService.create(request, VALID_EMAIL))
+            assertThatThrownBy(() -> serviceOrderService.create(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, VALID_REPORT, VALID_EMAIL))
                     .isInstanceOf(CustomerNotFoundException.class);
 
             verify(serviceOrderRepository, never()).save(any());
@@ -124,8 +121,7 @@ class ServiceOrderServiceTest {
             doThrow(new VehicleNotFoundException(VALID_VEHICLE_ID))
                     .when(identifyVehicleByIdUseCase).execute(VALID_VEHICLE_ID);
 
-            var request = validRequest();
-            assertThatThrownBy(() -> serviceOrderService.create(request, VALID_EMAIL))
+            assertThatThrownBy(() -> serviceOrderService.create(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, VALID_REPORT, VALID_EMAIL))
                     .isInstanceOf(VehicleNotFoundException.class);
 
             verify(serviceOrderRepository, never()).save(any());
@@ -135,8 +131,7 @@ class ServiceOrderServiceTest {
         void shouldThrowVehicleNotOwnedByCustomerExceptionWhenOwnershipMismatch() {
             when(identifyVehicleByIdUseCase.execute(VALID_VEHICLE_ID)).thenReturn(vehicleOwnedByOther());
 
-            var request = validRequest();
-            assertThatThrownBy(() -> serviceOrderService.create(request, VALID_EMAIL))
+            assertThatThrownBy(() -> serviceOrderService.create(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, VALID_REPORT, VALID_EMAIL))
                     .isInstanceOf(VehicleNotOwnedByCustomerException.class)
                     .hasMessageContaining(VALID_VEHICLE_ID.toString())
                     .hasMessageContaining(VALID_CUSTOMER_ID.toString());
@@ -150,8 +145,7 @@ class ServiceOrderServiceTest {
             doThrow(new EmailNotFoundException(VALID_EMAIL))
                     .when(userService).getIdByEmail(VALID_EMAIL);
 
-            var request = validRequest();
-            assertThatThrownBy(() -> serviceOrderService.create(request, VALID_EMAIL))
+            assertThatThrownBy(() -> serviceOrderService.create(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, VALID_REPORT, VALID_EMAIL))
                     .isInstanceOf(EmailNotFoundException.class);
 
             verify(serviceOrderRepository, never()).save(any());
@@ -162,7 +156,7 @@ class ServiceOrderServiceTest {
     class ListReceivedServiceOrders {
 
         @Test
-        void shouldReturnMappedPageOfReceivedServiceOrders() {
+        void shouldReturnPageOfReceivedServiceOrders() {
             var pageable = PageRequest.of(0, 10);
             var serviceOrder = receivedServiceOrder();
             Page<ServiceOrder> page = new PageImpl<>(List.of(serviceOrder), pageable, 1);
@@ -172,9 +166,9 @@ class ServiceOrderServiceTest {
 
             assertThat(result.getTotalElements()).isEqualTo(1);
             assertThat(result.getContent()).hasSize(1);
-            assertThat(result.getContent().getFirst().status()).isEqualTo("RECEIVED");
-            assertThat(result.getContent().getFirst().vehicleId()).isEqualTo(VALID_VEHICLE_ID);
-            assertThat(result.getContent().getFirst().customerId()).isEqualTo(VALID_CUSTOMER_ID);
+            assertThat(result.getContent().getFirst().getStatus()).isEqualTo(ServiceOrderStatus.RECEIVED);
+            assertThat(result.getContent().getFirst().getVehicleId()).isEqualTo(VALID_VEHICLE_ID);
+            assertThat(result.getContent().getFirst().getCustomerId()).isEqualTo(VALID_CUSTOMER_ID);
         }
 
         @Test
@@ -208,7 +202,7 @@ class ServiceOrderServiceTest {
     class ListFinishedServiceOrders {
 
         @Test
-        void shouldReturnMappedPageOfFinishedServiceOrders() {
+        void shouldReturnPageOfFinishedServiceOrders() {
             var pageable = PageRequest.of(0, 10);
             var serviceOrder = finishedServiceOrder();
             Page<ServiceOrder> page = new PageImpl<>(List.of(serviceOrder), pageable, 1);
@@ -218,9 +212,9 @@ class ServiceOrderServiceTest {
 
             assertThat(result.getTotalElements()).isEqualTo(1);
             assertThat(result.getContent()).hasSize(1);
-            assertThat(result.getContent().getFirst().status()).isEqualTo("FINISHED");
-            assertThat(result.getContent().getFirst().vehicleId()).isEqualTo(VALID_VEHICLE_ID);
-            assertThat(result.getContent().getFirst().customerId()).isEqualTo(VALID_CUSTOMER_ID);
+            assertThat(result.getContent().getFirst().getStatus()).isEqualTo(ServiceOrderStatus.FINISHED);
+            assertThat(result.getContent().getFirst().getVehicleId()).isEqualTo(VALID_VEHICLE_ID);
+            assertThat(result.getContent().getFirst().getCustomerId()).isEqualTo(VALID_CUSTOMER_ID);
         }
 
         @Test
@@ -261,7 +255,7 @@ class ServiceOrderServiceTest {
 
             var result = serviceOrderService.startDiagnostic(VALID_SERVICE_ORDER_ID);
 
-            assertThat(result.status()).isEqualTo("IN_DIAGNOSTIC");
+            assertThat(result.getStatus()).isEqualTo(ServiceOrderStatus.IN_DIAGNOSTIC);
         }
 
         @Test
@@ -341,7 +335,7 @@ class ServiceOrderServiceTest {
 
             var result = serviceOrderService.deliverToCustomer(VALID_SERVICE_ORDER_ID);
 
-            assertThat(result.status()).isEqualTo("DELIVERED");
+            assertThat(result.getStatus()).isEqualTo(ServiceOrderStatus.DELIVERED);
         }
 
         @Test
@@ -373,7 +367,7 @@ class ServiceOrderServiceTest {
 
             var result = serviceOrderService.close(VALID_SERVICE_ORDER_ID);
 
-            assertThat(result.status()).isEqualTo("CANCELLED");
+            assertThat(result.getStatus()).isEqualTo(ServiceOrderStatus.CANCELLED);
         }
 
         @Test
@@ -460,17 +454,16 @@ class ServiceOrderServiceTest {
     class GetStatusServiceOrder {
 
         @Test
-        void shouldReturnStatusResponseSuccessfully() {
+        void shouldReturnServiceOrderSuccessfully() {
             var serviceOrder = receivedServiceOrder();
             when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
 
             var result = serviceOrderService.getStatus(VALID_SERVICE_ORDER_ID);
 
             assertThat(result).isNotNull();
-            assertThat(result.id()).isEqualTo(serviceOrder.getId());
-            assertThat(result.vehicleId()).isEqualTo(VALID_VEHICLE_ID);
-            assertThat(result.customerId()).isEqualTo(VALID_CUSTOMER_ID);
-            assertThat(result.status()).isEqualTo(ServiceOrderStatus.RECEIVED);
+            assertThat(result.getVehicleId()).isEqualTo(VALID_VEHICLE_ID);
+            assertThat(result.getCustomerId()).isEqualTo(VALID_CUSTOMER_ID);
+            assertThat(result.getStatus()).isEqualTo(ServiceOrderStatus.RECEIVED);
         }
 
         @Test
@@ -480,7 +473,7 @@ class ServiceOrderServiceTest {
 
             var result = serviceOrderService.getStatus(VALID_SERVICE_ORDER_ID);
 
-            assertThat(result.status()).isEqualTo(ServiceOrderStatus.FINISHED);
+            assertThat(result.getStatus()).isEqualTo(ServiceOrderStatus.FINISHED);
         }
 
         @Test
@@ -568,10 +561,6 @@ class ServiceOrderServiceTest {
 
             verify(serviceOrderRepository, never()).save(any());
         }
-    }
-
-    private ServiceOrderRequestDTO validRequest() {
-        return new ServiceOrderRequestDTO(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, VALID_REPORT);
     }
 
     private Vehicle vehicleOwnedByCustomer() {
