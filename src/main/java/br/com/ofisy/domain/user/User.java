@@ -1,7 +1,6 @@
 package br.com.ofisy.domain.user;
 
 import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
-import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,36 +10,17 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-@Entity
-@Table(name = "users")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(updatable = false, nullable = false)
+
     private UUID id;
-
-    @Column(nullable = false)
     private String name;
-
-    @Embedded
     private Email email;
-
-    @Column(nullable = false)
     private String password;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private Role role;
-
-    @Column(nullable = false)
     private boolean active;
-
-    @Column(nullable = false)
     private LocalDateTime createdAt;
-
-    @Column
     private LocalDateTime updatedAt;
 
     public static User create(String email, String encryptedPassword, String name, Role role) {
@@ -51,6 +31,21 @@ public class User {
         user.role = role;
         user.active = true;
         user.createdAt = LocalDateTime.now();
+        return user;
+    }
+
+    public static User reconstruct(UUID id, Email email, String password, String name,
+                                   Role role, boolean active,
+                                   LocalDateTime createdAt, LocalDateTime updatedAt) {
+        User user = new User();
+        user.id = id;
+        user.email = email;
+        user.password = password;
+        user.name = name;
+        user.role = role;
+        user.active = active;
+        user.createdAt = createdAt;
+        user.updatedAt = updatedAt;
         return user;
     }
 

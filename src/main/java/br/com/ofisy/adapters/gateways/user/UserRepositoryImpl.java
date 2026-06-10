@@ -1,8 +1,7 @@
-package br.com.ofisy.infrastructure.persistence.user;
+package br.com.ofisy.adapters.gateways.user;
 
 import br.com.ofisy.domain.user.User;
 import br.com.ofisy.domain.user.UserRepository;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,30 +14,31 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserRepositoryImpl implements UserRepository {
 
-    private final JpaUserRepository jpaUserRepository;
+    private final JpaUserRepository jpa;
 
     @Override
-    public Optional<User> findById(@NonNull UUID id) {
-        return jpaUserRepository.findById(id);
+    public User save(User user) {
+        UserEntity entity = UserEntityMapper.toEntity(user);
+        return UserEntityMapper.toDomain(jpa.save(entity));
     }
 
     @Override
     public Page<User> findAll(Pageable pageable) {
-        return jpaUserRepository.findAll(pageable);
+        return jpa.findAll(pageable).map(UserEntityMapper::toDomain);
     }
 
     @Override
-    public User save(User user) {
-        return jpaUserRepository.save(user);
+    public Optional<User> findById(UUID id) {
+        return jpa.findById(id).map(UserEntityMapper::toDomain);
     }
 
     @Override
     public Optional<User> findByEmailAddress(String email) {
-        return jpaUserRepository.findByEmailEmailAddress(email);
+        return jpa.findByEmail(email).map(UserEntityMapper::toDomain);
     }
 
     @Override
     public boolean existsByEmailAddress(String email) {
-        return jpaUserRepository.existsByEmailEmailAddress(email);
+        return jpa.existsByEmail(email);
     }
 }

@@ -2,13 +2,13 @@ package br.com.ofisy.integration;
 
 import br.com.ofisy.adapters.gateways.customer.JpaCustomerRepository;
 import br.com.ofisy.adapters.gateways.notification.JpaNotificationRepository;
+import br.com.ofisy.adapters.gateways.user.JpaUserRepository;
 import br.com.ofisy.infrastructure.persistence.quote.JpaQuoteRepository;
 import br.com.ofisy.infrastructure.persistence.servicecatalog.JpaServiceCatalogRepository;
 import br.com.ofisy.infrastructure.persistence.serviceorder.JpaServiceOrderRepository;
 import br.com.ofisy.infrastructure.persistence.serviceorderexecution.JpaServiceOrderExecutionRepository;
 import br.com.ofisy.infrastructure.persistence.stock.JpaStockRepository;
 import br.com.ofisy.infrastructure.persistence.stockmovement.JpaStockMovementRepository;
-import br.com.ofisy.infrastructure.persistence.user.JpaUserRepository;
 import br.com.ofisy.adapters.gateways.vehicle.JpaVehicleRepository;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
