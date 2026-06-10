@@ -1,4 +1,4 @@
-package br.com.ofisy.infrastructure.persistence.serviceorder;
+package br.com.ofisy.adapters.gateways.serviceorder;
 
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import br.com.ofisy.domain.serviceorder.ServiceOrderRepository;
@@ -19,16 +19,17 @@ public class ServiceOrderRepositoryImpl implements ServiceOrderRepository {
 
     @Override
     public ServiceOrder save(ServiceOrder serviceOrder) {
-        return jpa.save(serviceOrder);
+        ServiceOrderEntity entity = ServiceOrderMapper.toEntity(serviceOrder);
+        return ServiceOrderMapper.toDomain(jpa.save(entity));
     }
 
     @Override
     public Optional<ServiceOrder> findById(UUID id) {
-        return jpa.findById(id);
+        return jpa.findById(id).map(ServiceOrderMapper::toDomain);
     }
 
     @Override
     public Page<ServiceOrder> findByStatus(ServiceOrderStatus serviceOrderStatus, Pageable pageable) {
-        return jpa.findByStatus(serviceOrderStatus, pageable);
+        return jpa.findByStatus(serviceOrderStatus, pageable).map(ServiceOrderMapper::toDomain);
     }
 }
