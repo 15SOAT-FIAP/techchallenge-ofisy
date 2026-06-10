@@ -39,6 +39,5 @@ public class UserEntity {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @Column
     private LocalDateTime updatedAt;
 }
