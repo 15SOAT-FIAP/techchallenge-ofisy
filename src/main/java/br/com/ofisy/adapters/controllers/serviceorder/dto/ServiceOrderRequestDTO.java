@@ -1,4 +1,4 @@
-package br.com.ofisy.application.serviceorder.dto;
+package br.com.ofisy.adapters.controllers.serviceorder.dto;
 
 import jakarta.validation.constraints.NotNull;
 
