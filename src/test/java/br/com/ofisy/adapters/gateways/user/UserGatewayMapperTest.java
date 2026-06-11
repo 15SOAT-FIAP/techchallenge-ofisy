@@ -27,7 +27,7 @@ class UserGatewayMapperTest {
         void shouldMapAllFieldsFromDomainToEntity() {
             var user = User.create(VALID_EMAIL, VALID_PASSWORD, VALID_NAME, VALID_ROLE);
 
-            var entity = UserEntityMapper.toEntity(user);
+            var entity = UserMapper.toEntity(user);
 
             assertThat(entity).isNotNull();
             assertThat(entity.getEmail()).isEqualTo(VALID_EMAIL);
@@ -41,7 +41,7 @@ class UserGatewayMapperTest {
         void shouldPreserveNullIdForNewUser() {
             var user = User.create(VALID_EMAIL, VALID_PASSWORD, VALID_NAME, VALID_ROLE);
 
-            var entity = UserEntityMapper.toEntity(user);
+            var entity = UserMapper.toEntity(user);
 
             assertThat(entity.getId()).isNull();
         }
@@ -51,7 +51,7 @@ class UserGatewayMapperTest {
             var id = UUID.randomUUID();
             var user = userDomain(id, true, LocalDateTime.now(), null);
 
-            var entity = UserEntityMapper.toEntity(user);
+            var entity = UserMapper.toEntity(user);
 
             assertThat(entity.getId()).isEqualTo(id);
         }
@@ -62,7 +62,7 @@ class UserGatewayMapperTest {
             var updatedAt = LocalDateTime.of(2024, 1, 15, 12, 0);
             var user = userDomain(UUID.randomUUID(), true, createdAt, updatedAt);
 
-            var entity = UserEntityMapper.toEntity(user);
+            var entity = UserMapper.toEntity(user);
 
             assertThat(entity.getCreatedAt()).isEqualTo(createdAt);
             assertThat(entity.getUpdatedAt()).isEqualTo(updatedAt);
@@ -73,7 +73,7 @@ class UserGatewayMapperTest {
         void shouldMapAllRolesCorrectly(Role role) {
             var user = User.create(VALID_EMAIL, VALID_PASSWORD, VALID_NAME, role);
 
-            var entity = UserEntityMapper.toEntity(user);
+            var entity = UserMapper.toEntity(user);
 
             assertThat(entity.getRole()).isEqualTo(role);
         }
@@ -82,7 +82,7 @@ class UserGatewayMapperTest {
         void shouldMapInactiveUserCorrectly() {
             var user = userDomain(UUID.randomUUID(), false, LocalDateTime.now(), LocalDateTime.now());
 
-            var entity = UserEntityMapper.toEntity(user);
+            var entity = UserMapper.toEntity(user);
 
             assertThat(entity.isActive()).isFalse();
         }
@@ -95,7 +95,7 @@ class UserGatewayMapperTest {
         void shouldMapAllFieldsFromEntityToDomain() {
             var entity = validEntity();
 
-            var user = UserEntityMapper.toDomain(entity);
+            var user = UserMapper.toDomain(entity);
 
             assertThat(user).isNotNull();
             assertThat(user.getId()).isEqualTo(entity.getId());
@@ -110,7 +110,7 @@ class UserGatewayMapperTest {
         void shouldPreserveTimestampsFromEntity() {
             var entity = validEntity();
 
-            var user = UserEntityMapper.toDomain(entity);
+            var user = UserMapper.toDomain(entity);
 
             assertThat(user.getCreatedAt()).isEqualTo(entity.getCreatedAt());
             assertThat(user.getUpdatedAt()).isEqualTo(entity.getUpdatedAt());
@@ -120,7 +120,7 @@ class UserGatewayMapperTest {
         void shouldReconstructEmailValueObjectFromString() {
             var entity = validEntity();
 
-            var user = UserEntityMapper.toDomain(entity);
+            var user = UserMapper.toDomain(entity);
 
             assertThat(user.getEmail()).isNotNull();
             assertThat(user.getEmail().emailAddress()).isEqualTo(VALID_EMAIL);
@@ -130,7 +130,7 @@ class UserGatewayMapperTest {
         void shouldPreserveIdFromEntity() {
             var entity = validEntity();
 
-            var user = UserEntityMapper.toDomain(entity);
+            var user = UserMapper.toDomain(entity);
 
             assertThat(user.getId()).isEqualTo(entity.getId());
         }

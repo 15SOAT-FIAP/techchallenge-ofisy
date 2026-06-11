@@ -6,7 +6,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class UserEntityMapper {
+public class UserMapper {
 
     public static User toDomain(UserEntity entity) {
         return User.reconstruct(
