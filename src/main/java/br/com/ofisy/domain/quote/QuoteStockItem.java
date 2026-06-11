@@ -1,5 +1,7 @@
 package br.com.ofisy.domain.quote;
 
+import br.com.ofisy.adapters.gateways.stock.StockEntity;
+import br.com.ofisy.adapters.gateways.stock.StockMapper;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteItemException;
 import br.com.ofisy.domain.stock.Stock;
 import jakarta.persistence.*;
@@ -27,9 +29,15 @@ public class QuoteStockItem {
     @JoinColumn(name = "quote_id", nullable = false)
     private Quote quote;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "stock_id", nullable = false)
-    private Stock stock;
+    /**
+     * TODO: Dependência temporária de StockEntity durante a migração do contexto
+     * de Orçamento para Clean Architecture. Após a criação de QuoteEntity e
+     * QuoteStockItemEntity, substituir por Stock (domínio) e mover o relacionamento
+     * JPA para a camada de persistência.
+     */
+    @ManyToOne
+    @JoinColumn(name = "stock_id")
+    private StockEntity stock;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal unitPrice;
@@ -48,7 +56,10 @@ public class QuoteStockItem {
         }
 
         QuoteStockItem item = new QuoteStockItem();
-        item.stock = stock;
+        // TODO: Conversão temporária de Stock (domínio) para StockEntity.
+        // Remover quando o contexto de Orçamento possuir suas próprias entidades
+        // de persistência e mappers (QuoteEntity/QuoteStockItemEntity).
+        item.stock = StockMapper.toEntity(stock);
         item.unitPrice = stock.getUnitPrice();
         item.quantity = quantity;
         item.createdAt = LocalDateTime.now();
