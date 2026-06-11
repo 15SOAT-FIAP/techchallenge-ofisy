@@ -11,7 +11,7 @@ import br.com.ofisy.application.serviceorder.dto.ServiceOrderStatusResponseDTO;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
 import br.com.ofisy.application.customer.identifybyid.IdentifyByIdCustomerUseCase;
-import br.com.ofisy.application.user.UserService;
+import br.com.ofisy.application.user.getidbyemail.GetIdByEmailUseCase;
 import br.com.ofisy.application.vehicle.identifybyid.IdentifyVehicleByIdUseCase;
 import br.com.ofisy.domain.serviceorder.ServiceOrderRepository;
 import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
@@ -31,7 +31,7 @@ public class ServiceOrderService {
     private final ServiceOrderRepository serviceOrderRepository;
     private final IdentifyByIdCustomerUseCase identifyByIdCustomerUseCase;
     private final IdentifyVehicleByIdUseCase identifyVehicleByIdUseCase;
-    private final UserService userService;
+    private final GetIdByEmailUseCase getIdByEmailUseCase;
     private final CreateQuoteNotificationUseCase createQuoteNotificationUseCase;
     private final QuoteService quoteService;
     private final ServiceOrderFinalizationService finalizationService;
@@ -44,7 +44,7 @@ public class ServiceOrderService {
             throw new VehicleNotOwnedByCustomerException(request.vehicleId(), request.customerId());
         }
 
-        var createdBy = userService.getIdByEmail(createdByEmail);
+        var createdBy = getIdByEmailUseCase.execute(createdByEmail);
         var serviceOrder = ServiceOrderMapper.toDomain(request, createdBy);
         var receivedServiceOrder = serviceOrderRepository.save(serviceOrder);
         return ServiceOrderMapper.toResponseDTO(receivedServiceOrder);
