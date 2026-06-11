@@ -1,4 +1,4 @@
-package br.com.ofisy.infrastructure.persistence.stock;
+package br.com.ofisy.adapters.gateways.stock;
 
 import br.com.ofisy.domain.stock.Stock;
 import br.com.ofisy.domain.stock.StockRepository;
@@ -18,21 +18,22 @@ public class StockRepositoryImpl implements StockRepository {
 
     @Override
     public Stock save(Stock stock) {
-        return jpa.save(stock);
+        StockEntity entity = StockMapper.toEntity(stock);
+        return StockMapper.toDomain(jpa.save(entity));
     }
 
     @Override
     public Page<Stock> findAll(Pageable pageable) {
-        return jpa.findAll(pageable);
+        return jpa.findAll(pageable).map(StockMapper::toDomain);
     }
 
     @Override
     public Optional<Stock> findById(UUID id) {
-        return jpa.findById(id);
+        return jpa.findById(id).map(StockMapper::toDomain);
     }
 
     @Override
     public Optional<Stock> findByProductName(String productName) {
-        return jpa.findByProductName(productName);
+        return jpa.findByProductName(productName).map(StockMapper::toDomain);
     }
 }
