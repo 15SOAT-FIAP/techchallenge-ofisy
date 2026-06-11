@@ -18,23 +18,23 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public User save(User user) {
-        UserEntity entity = UserEntityMapper.toEntity(user);
-        return UserEntityMapper.toDomain(jpa.save(entity));
+        UserEntity entity = UserMapper.toEntity(user);
+        return UserMapper.toDomain(jpa.save(entity));
     }
 
     @Override
     public Page<User> findAll(Pageable pageable) {
-        return jpa.findAll(pageable).map(UserEntityMapper::toDomain);
+        return jpa.findAll(pageable).map(UserMapper::toDomain);
     }
 
     @Override
     public Optional<User> findById(UUID id) {
-        return jpa.findById(id).map(UserEntityMapper::toDomain);
+        return jpa.findById(id).map(UserMapper::toDomain);
     }
 
     @Override
     public Optional<User> findByEmailAddress(String email) {
-        return jpa.findByEmail(email).map(UserEntityMapper::toDomain);
+        return jpa.findByEmail(email).map(UserMapper::toDomain);
     }
 
     @Override
