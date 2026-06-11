@@ -1,5 +1,8 @@
 package br.com.ofisy.interfaces.api;
 
+import br.com.ofisy.adapters.controllers.user.LoginController;
+import br.com.ofisy.adapters.controllers.user.UserController;
+import br.com.ofisy.adapters.controllers.user.dto.CreateUserRequestDTO;
 import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsException;
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
@@ -8,10 +11,15 @@ import br.com.ofisy.application.customer.identifybyid.IdentifyByIdCustomerUseCas
 import br.com.ofisy.application.customer.list.ListRegisteredCustomerUseCase;
 import br.com.ofisy.application.customer.register.RegisterCustomerUseCase;
 import br.com.ofisy.application.serviceorder.ServiceOrderService;
-import br.com.ofisy.application.user.UserService;
-import br.com.ofisy.application.user.dto.CreateUserRequestDTO;
-import br.com.ofisy.application.user.dto.LoginRequestDTO;
+import br.com.ofisy.application.user.activateuser.ActivateUserUseCase;
+import br.com.ofisy.application.user.createuser.CreateUserUseCase;
+import br.com.ofisy.application.user.deactivateuser.DeactivateUserUseCase;
 import br.com.ofisy.application.user.exceptions.UserNotFoundException;
+import br.com.ofisy.application.user.findbyid.FindUserByIdUseCase;
+import br.com.ofisy.application.user.listall.ListAllUsersUseCase;
+import br.com.ofisy.application.user.login.LoginUseCase;
+import br.com.ofisy.application.user.modifyrole.ModifyUserRoleUseCase;
+import br.com.ofisy.application.user.updatepassword.UpdatePasswordUseCase;
 import br.com.ofisy.application.vehicle.exceptions.VehicleAlreadyExistsException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleLicensePlateNotFoundException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
@@ -29,8 +37,6 @@ import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
 import br.com.ofisy.adapters.controllers.customer.CustomerController;
 import br.com.ofisy.interfaces.api.serviceorder.ServiceOrderController;
 import br.com.ofisy.adapters.controllers.vehicle.VehicleController;
-import br.com.ofisy.interfaces.api.user.LoginController;
-import br.com.ofisy.interfaces.api.user.UserController;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -61,7 +67,6 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
 
     @Autowired
     private MockMvc mockMvc;
-
     @MockitoBean
     private RegisterCustomerUseCase registerCustomerUseCase;
     @MockitoBean
@@ -70,16 +75,10 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
     private IdentifyByIdCustomerUseCase identifyByIdCustomerUseCase;
     @MockitoBean
     private IdentifyByCpfCnpjCustomerUseCase identifyByCpfCnpjCustomerUseCase;
-
     @MockitoBean
     private ServiceOrderService serviceOrderService;
-
-    @MockitoBean
-    private UserService userService;
-
     @MockitoBean
     private AuthenticationManager authenticationManager;
-
     @MockitoBean
     private RegisterVehicleUseCase registerVehicleUseCase;
     @MockitoBean
@@ -90,6 +89,24 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
     private IdentifyVehicleByIdUseCase identifyVehicleByIdUseCase;
     @MockitoBean
     private IdentifyVehicleByLicensePlateUseCase identifyVehicleByLicensePlateUseCase;
+    @MockitoBean
+    private CreateUserUseCase createUserUseCase;
+    @MockitoBean
+    private FindUserByIdUseCase findUserByIdUseCase;
+    @MockitoBean
+    private ListAllUsersUseCase listAllUsersUseCase;
+    @MockitoBean
+    private ModifyUserRoleUseCase modifyUserRoleUseCase;
+    @MockitoBean
+    private UpdatePasswordUseCase updatePasswordUseCase;
+    @MockitoBean
+    private DeactivateUserUseCase deactivateUserUseCase;
+    @MockitoBean
+    private ActivateUserUseCase activateUserUseCase;
+    @MockitoBean
+    private LoginUseCase loginUseCase;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Nested
     class CustomerNotFound {
@@ -238,29 +255,35 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
 
     @Nested
     class BadCredentials {
+
         @Test
         @DisplayName("Deve retornar 401 com credenciais inválidas")
         void shouldReturn401WithInvalidCredentials() throws Exception {
-            LoginRequestDTO request = new LoginRequestDTO("admin@ofisy.com", "senhaErrada");
-
-            when(authenticationManager.authenticate(any()))
+            when(loginUseCase.execute(any()))
                     .thenThrow(new BadCredentialsException("Bad credentials"));
 
             mockMvc.perform(post("/api/v1/login")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
+                            .content("""
+                            {
+                                "email": "admin@ofisy.com",
+                                "password": "senhaErrada"
+                            }
+                        """))
                     .andExpect(status().isUnauthorized());
         }
     }
 
     @Nested
     class UserNotFound {
+
         @Test
         @WithMockUser(roles = "ADMIN")
         @DisplayName("Deve retornar 404 quando usuário não encontrado")
         void shouldReturn404WhenUserNotFound() throws Exception {
             UUID id = UUID.randomUUID();
-            when(userService.findById(id)).thenThrow(new UserNotFoundException(id));
+            when(findUserByIdUseCase.execute(id)).thenThrow(new UserNotFoundException(id));
+
             mockMvc.perform(get("/api/v1/users/{id}", id))
                     .andExpect(status().isNotFound());
         }
@@ -268,13 +291,15 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
 
     @Nested
     class EmailAlreadyExists {
+
         @Test
         @WithMockUser(roles = "ADMIN")
         @DisplayName("Deve retornar 409 quando email do usuário já existe")
         void shouldReturn409WhenEmailAlreadyExists() throws Exception {
-            CreateUserRequestDTO request = new CreateUserRequestDTO("Pedro Mecânico", "mecanico@ofisy.com", "senha12345", Role.MECHANIC);
+            var request = new CreateUserRequestDTO("Pedro Mecânico", "mecanico@ofisy.com", "senha12345", Role.MECHANIC);
 
-            when(userService.create(any())).thenThrow(new EmailAlreadyExistsException("mecanico@ofisy.com"));
+            when(createUserUseCase.execute(any())).thenThrow(new EmailAlreadyExistsException("mecanico@ofisy.com"));
+
             mockMvc.perform(post("/api/v1/users")
                             .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
@@ -330,7 +355,7 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
         @Test
         @DisplayName("Deve retornar 401 quando usuário não encontrado")
         void shouldReturn401WhenUsernameNotFound() throws Exception {
-            when(authenticationManager.authenticate(any()))
+            when(loginUseCase.execute(any()))
                     .thenThrow(new UsernameNotFoundException("Usuário não encontrado"));
 
             mockMvc.perform(post("/api/v1/login")
@@ -346,8 +371,6 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
                     .andExpect(jsonPath("$.title").value("Usuário não autorizado"));
         }
     }
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Nested
     class VehicleNotFound {
@@ -434,7 +457,7 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
         @Test
         @DisplayName("Deve retornar 401 quando usuário está inativo")
         void shouldReturn401WhenUserIsDisabled() throws Exception {
-            when(authenticationManager.authenticate(any()))
+            when(loginUseCase.execute(any()))
                     .thenThrow(new DisabledException("Usuário inativo: joao@ofisy.com"));
 
             mockMvc.perform(post("/api/v1/login")

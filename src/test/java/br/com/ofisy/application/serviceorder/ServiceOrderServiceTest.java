@@ -10,8 +10,8 @@ import br.com.ofisy.application.serviceorder.dto.ServiceOrderRequestDTO;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
 import br.com.ofisy.application.customer.identifybyid.IdentifyByIdCustomerUseCase;
-import br.com.ofisy.application.user.UserService;
 import br.com.ofisy.application.user.exceptions.EmailNotFoundException;
+import br.com.ofisy.application.user.getidbyemail.GetIdByEmailUseCase;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
 import br.com.ofisy.application.vehicle.identifybyid.IdentifyVehicleByIdUseCase;
 import br.com.ofisy.domain.vehicle.LicensePlate;
@@ -64,7 +64,7 @@ class ServiceOrderServiceTest {
     @Mock
     private IdentifyVehicleByIdUseCase identifyVehicleByIdUseCase;
     @Mock
-    private UserService userService;
+    private GetIdByEmailUseCase getIdByEmailUseCase;
     @Mock
     private CreateQuoteNotificationUseCase createQuoteNotificationUseCase;
     @Mock
@@ -81,7 +81,7 @@ class ServiceOrderServiceTest {
         @Test
         void shouldCreateServiceOrderSuccessfully() {
             when(identifyVehicleByIdUseCase.execute(VALID_VEHICLE_ID)).thenReturn(vehicleOwnedByCustomer());
-            when(userService.getIdByEmail(VALID_EMAIL)).thenReturn(VALID_USER_ID);
+            when(getIdByEmailUseCase.execute(VALID_EMAIL)).thenReturn(VALID_USER_ID);
             when(serviceOrderRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
             var result = serviceOrderService.create(validRequest(), VALID_EMAIL);
@@ -98,7 +98,7 @@ class ServiceOrderServiceTest {
         void shouldCreateServiceOrderWithNullReport() {
             var request = new ServiceOrderRequestDTO(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, null);
             when(identifyVehicleByIdUseCase.execute(VALID_VEHICLE_ID)).thenReturn(vehicleOwnedByCustomer());
-            when(userService.getIdByEmail(VALID_EMAIL)).thenReturn(VALID_USER_ID);
+            when(getIdByEmailUseCase.execute(VALID_EMAIL)).thenReturn(VALID_USER_ID);
             when(serviceOrderRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
             var result = serviceOrderService.create(request, VALID_EMAIL);
@@ -148,7 +148,7 @@ class ServiceOrderServiceTest {
         void shouldThrowEmailNotFoundExceptionWhenUserDoesNotExist() {
             when(identifyVehicleByIdUseCase.execute(VALID_VEHICLE_ID)).thenReturn(vehicleOwnedByCustomer());
             doThrow(new EmailNotFoundException(VALID_EMAIL))
-                    .when(userService).getIdByEmail(VALID_EMAIL);
+                    .when(getIdByEmailUseCase).execute(VALID_EMAIL);
 
             var request = validRequest();
             assertThatThrownBy(() -> serviceOrderService.create(request, VALID_EMAIL))
@@ -509,7 +509,6 @@ class ServiceOrderServiceTest {
             assertThat(result).isEqualTo(approvedQuoteResponse);
             assertThat(approvedQuoteResponse.status()).isEqualTo(QuoteStatus.APPROVED);
             assertThat(serviceOrder.getStatus()).isEqualTo(ServiceOrderStatus.AWAITING_EXECUTION);
-
             verify(quoteService).approve(quoteId);
             verify(serviceOrderRepository).save(serviceOrder);
         }
@@ -531,6 +530,7 @@ class ServiceOrderServiceTest {
 
     @Nested
     class ReproveQuote {
+
         @Test
         void shouldReproveQuoteSuccessfully() {
             var quoteId = UUID.randomUUID();
@@ -549,7 +549,6 @@ class ServiceOrderServiceTest {
             assertThat(reprovedQuoteResponse.status()).isEqualTo(QuoteStatus.REPROVED);
             assertThat(reprovedQuoteRequest.reason()).isEqualTo(reprovedQuoteResponse.quoteRefusalReason());
             assertThat(serviceOrder.getStatus()).isEqualTo(ServiceOrderStatus.CANCELLED);
-
             verify(quoteService).reprove(quoteId, reprovedQuoteRequest);
             verify(serviceOrderRepository).save(serviceOrder);
         }
