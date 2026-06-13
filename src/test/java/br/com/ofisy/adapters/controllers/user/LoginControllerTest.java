@@ -25,7 +25,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class LoginControllerTest extends ControllerTestBase {
 
     private static final String BASE_URL = "/api/v1/login";
-    private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+
+    private final ObjectMapper objectMapper = new ObjectMapper()
+            .registerModule(new JavaTimeModule());
 
     @Autowired
     private MockMvc mockMvc;
@@ -41,8 +43,7 @@ class LoginControllerTest extends ControllerTestBase {
         @DisplayName("Deve realizar login com sucesso e retornar token")
         void shouldLoginSuccessfullyAndReturnToken() throws Exception {
             var request = new LoginRequestDTO("admin@ofisy.com", "Admin@1234");
-            when(loginUseCase.execute(any()))
-                    .thenReturn(new LoginUseCase.LoginResult("mocked-jwt-token"));
+            when(loginUseCase.execute(any())).thenReturn("mocked-jwt-token");
 
             mockMvc.perform(post(BASE_URL)
                             .contentType(MediaType.APPLICATION_JSON)

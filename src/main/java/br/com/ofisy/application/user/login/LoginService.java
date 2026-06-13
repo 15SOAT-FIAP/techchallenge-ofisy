@@ -22,15 +22,16 @@ public class LoginService implements LoginUseCase {
     }
 
     @Override
-    public LoginResult execute(LoginCommand command) {
+    public String execute(LoginCommand command) {
         User user = repository.findByEmailAddress(command.email())
                 .orElseThrow(() -> new EmailNotFoundException(command.email()));
+
+        user.validateIsActive();
 
         user.validateCurrentPassword(
                 passwordEncoder.matches(command.password(), user.getPassword())
         );
 
-        String token = tokenGenerator.generateToken(user.getEmail().emailAddress());
-        return new LoginResult(token);
+        return tokenGenerator.generateToken(user.getEmail().emailAddress());
     }
 }

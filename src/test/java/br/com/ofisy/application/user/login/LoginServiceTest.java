@@ -4,6 +4,7 @@ import br.com.ofisy.application.user.exceptions.EmailNotFoundException;
 import br.com.ofisy.domain.user.Role;
 import br.com.ofisy.domain.user.User;
 import br.com.ofisy.domain.user.UserRepository;
+import br.com.ofisy.domain.user.exceptions.InactiveUserException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,7 +53,7 @@ class LoginServiceTest {
 
             var result = service.execute(cmd);
 
-            assertThat(result.token()).isEqualTo(GENERATED_TOKEN);
+            assertThat(result).isEqualTo(GENERATED_TOKEN);
             verify(tokenGenerator).generateToken(VALID_EMAIL);
         }
 
@@ -75,6 +76,18 @@ class LoginServiceTest {
             assertThatThrownBy(() -> service.execute(cmd))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("Senha atual incorreta");
+        }
+
+        @Test
+        void shouldThrowDisabledExceptionWhenUserIsInactive() {
+            var cmd = new LoginUseCase.LoginCommand(VALID_EMAIL, VALID_PASSWORD);
+            var user = User.create(VALID_EMAIL, HASHED_PASSWORD, "João Silva", Role.ATTENDANT);
+            user.deactivate();
+            when(repository.findByEmailAddress(VALID_EMAIL)).thenReturn(Optional.of(user));
+
+            assertThatThrownBy(() -> service.execute(cmd))
+                    .isInstanceOf(InactiveUserException.class)
+                    .hasMessageContaining("Usuário inativo");
         }
     }
 }

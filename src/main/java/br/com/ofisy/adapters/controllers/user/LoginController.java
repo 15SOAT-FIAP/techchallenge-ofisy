@@ -2,6 +2,7 @@ package br.com.ofisy.adapters.controllers.user;
 
 import br.com.ofisy.adapters.controllers.user.dto.LoginRequestDTO;
 import br.com.ofisy.adapters.controllers.user.dto.LoginResponseDTO;
+import br.com.ofisy.adapters.presenters.user.LoginPresenter;
 import br.com.ofisy.application.user.login.LoginUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,6 @@ public class LoginController implements LoginApi {
     @PostMapping
     public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
         LoginUseCase.LoginCommand cmd = new LoginUseCase.LoginCommand(request.email(), request.password());
-        return ResponseEntity.ok(new LoginResponseDTO(loginUseCase.execute(cmd).token()));
+        return ResponseEntity.ok(LoginPresenter.present(loginUseCase.execute(cmd)));
     }
 }

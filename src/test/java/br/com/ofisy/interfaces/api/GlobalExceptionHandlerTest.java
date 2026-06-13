@@ -14,6 +14,7 @@ import br.com.ofisy.application.serviceorder.ServiceOrderService;
 import br.com.ofisy.application.user.activateuser.ActivateUserUseCase;
 import br.com.ofisy.application.user.createuser.CreateUserUseCase;
 import br.com.ofisy.application.user.deactivateuser.DeactivateUserUseCase;
+import br.com.ofisy.application.user.exceptions.EmailNotFoundException;
 import br.com.ofisy.application.user.exceptions.UserNotFoundException;
 import br.com.ofisy.application.user.findbyid.FindUserByIdUseCase;
 import br.com.ofisy.application.user.listall.ListAllUsersUseCase;
@@ -35,6 +36,7 @@ import br.com.ofisy.domain.serviceorder.exceptions.InvalidServiceOrderTransition
 import br.com.ofisy.domain.user.Role;
 import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
 import br.com.ofisy.adapters.controllers.customer.CustomerController;
+import br.com.ofisy.domain.user.exceptions.InactiveUserException;
 import br.com.ofisy.interfaces.api.serviceorder.ServiceOrderController;
 import br.com.ofisy.adapters.controllers.vehicle.VehicleController;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -452,13 +454,36 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
     }
 
     @Nested
+    class EmailNotFound {
+
+        @Test
+        @DisplayName("Deve retornar 404 quando email não encontrado")
+        void shouldReturn404WhenEmailNotFound() throws Exception {
+            when(loginUseCase.execute(any()))
+                    .thenThrow(new EmailNotFoundException("naoexiste@ofisy.com"));
+
+            mockMvc.perform(post("/api/v1/login")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                            {
+                                "email": "naoexiste@ofisy.com",
+                                "password": "senha123"
+                            }
+                        """))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.title").value("Email informado não encontrado"));
+        }
+    }
+
+    @Nested
     class UserDisabled {
 
         @Test
         @DisplayName("Deve retornar 401 quando usuário está inativo")
         void shouldReturn401WhenUserIsDisabled() throws Exception {
             when(loginUseCase.execute(any()))
-                    .thenThrow(new DisabledException("Usuário inativo: joao@ofisy.com"));
+                    .thenThrow(new InactiveUserException("Usuário inativo: joao@ofisy.com"));
 
             mockMvc.perform(post("/api/v1/login")
                             .with(csrf())

@@ -12,6 +12,7 @@ import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundExce
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
 import br.com.ofisy.application.stock.exceptions.InsufficientStockException;
 import br.com.ofisy.application.stock.exceptions.StockNotFoundException;
+import br.com.ofisy.application.user.exceptions.EmailNotFoundException;
 import br.com.ofisy.application.user.exceptions.UserNotFoundException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleAlreadyExistsException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleLicensePlateNotFoundException;
@@ -23,6 +24,7 @@ import br.com.ofisy.domain.quote.exceptions.InvalidQuoteItemException;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
 import br.com.ofisy.domain.serviceorder.exceptions.InvalidServiceOrderTransitionException;
 import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
+import br.com.ofisy.domain.user.exceptions.InactiveUserException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -122,6 +124,20 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
+    @ExceptionHandler(EmailNotFoundException.class)
+    public ProblemDetail handleEmailAddressNotFound(EmailNotFoundException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problem.setTitle("Email informado não encontrado");
+        return problem;
+    }
+
+    @ExceptionHandler(InactiveUserException.class)
+    public ProblemDetail handleDisabled(InactiveUserException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
+        problem.setTitle("Usuário inativo");
+        return problem;
+    }
+
     @ExceptionHandler({BadCredentialsException.class})
     public ProblemDetail handleBadCredentials(BadCredentialsException ex) {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Email ou senha inválidos");
@@ -141,13 +157,6 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleUsernameNotFound(UsernameNotFoundException ex) {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
         problem.setTitle("Usuário não autorizado");
-        return problem;
-    }
-
-    @ExceptionHandler(DisabledException.class)
-    public ProblemDetail handleDisabled(DisabledException ex) {
-        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
-        problem.setTitle("Usuário inativo");
         return problem;
     }
 
