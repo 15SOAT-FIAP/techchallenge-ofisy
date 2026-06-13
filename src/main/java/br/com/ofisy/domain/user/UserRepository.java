@@ -1,6 +1,5 @@
 package br.com.ofisy.domain.user;
 
-import lombok.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -9,7 +8,7 @@ import java.util.UUID;
 
 public interface UserRepository {
 
-    Optional<User> findById(@NonNull UUID id);
+    Optional<User> findById(UUID id);
 
     Page<User> findAll(Pageable pageable);
 
