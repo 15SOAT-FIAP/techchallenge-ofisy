@@ -1,4 +1,4 @@
-package br.com.ofisy.interfaces.api;
+package br.com.ofisy.config;
 
 import br.com.ofisy.adapters.controllers.user.LoginController;
 import br.com.ofisy.adapters.controllers.user.UserController;
@@ -37,6 +37,7 @@ import br.com.ofisy.domain.user.Role;
 import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
 import br.com.ofisy.adapters.controllers.customer.CustomerController;
 import br.com.ofisy.domain.user.exceptions.InactiveUserException;
+import br.com.ofisy.interfaces.api.ControllerTestBase;
 import br.com.ofisy.interfaces.api.serviceorder.ServiceOrderController;
 import br.com.ofisy.adapters.controllers.vehicle.VehicleController;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,7 +49,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;

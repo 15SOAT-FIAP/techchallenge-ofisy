@@ -1,4 +1,4 @@
-package br.com.ofisy.shared.jwt;
+package br.com.ofisy.config.jwt;
 
 import lombok.Getter;
 import lombok.Setter;
