@@ -1,4 +1,4 @@
-package br.com.ofisy.infrastructure.config.security;
+package br.com.ofisy.config.security;
 
 import lombok.Getter;
 import lombok.Setter;

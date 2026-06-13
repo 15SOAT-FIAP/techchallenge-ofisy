@@ -1,4 +1,4 @@
-package br.com.ofisy.infrastructure.config.security;
+package br.com.ofisy.config.security;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

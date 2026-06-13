@@ -1,4 +1,4 @@
-package br.com.ofisy.application.user.login;
+package br.com.ofisy.shared.jwt;
 
 public interface TokenGenerator {
     String generateToken(String email);

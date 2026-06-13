@@ -1,7 +1,7 @@
 package br.com.ofisy;
 
-import br.com.ofisy.infrastructure.config.auth.JwtProperties;
-import br.com.ofisy.infrastructure.config.security.SecurityProperties;
+import br.com.ofisy.shared.jwt.JwtProperties;
+import br.com.ofisy.config.security.SecurityProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

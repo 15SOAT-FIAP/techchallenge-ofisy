@@ -3,6 +3,7 @@ package br.com.ofisy.infrastructure.config.security;
 import br.com.ofisy.domain.user.Role;
 import br.com.ofisy.domain.user.User;
 import br.com.ofisy.domain.user.UserRepository;
+import br.com.ofisy.shared.securityfilter.OfisyUserDetailsService;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

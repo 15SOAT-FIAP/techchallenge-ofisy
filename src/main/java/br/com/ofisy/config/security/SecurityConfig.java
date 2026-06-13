@@ -1,5 +1,7 @@
-package br.com.ofisy.infrastructure.config.security;
+package br.com.ofisy.config.security;
 
+import br.com.ofisy.shared.securityfilter.JwtAuthFilter;
+import br.com.ofisy.shared.securityfilter.OfisyUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,7 +31,7 @@ public class SecurityConfig {
     private final OfisyAuthenticationEntryPoint authenticationEntryPoint;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         String[] publicPaths = securityProperties.getPublicPaths().toArray(new String[0]);
 
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
@@ -57,7 +59,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 

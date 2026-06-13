@@ -1,7 +1,5 @@
-package br.com.ofisy.infrastructure.config.security;
+package br.com.ofisy.shared.jwt;
 
-import br.com.ofisy.application.user.login.TokenGenerator;
-import br.com.ofisy.infrastructure.config.auth.JwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
