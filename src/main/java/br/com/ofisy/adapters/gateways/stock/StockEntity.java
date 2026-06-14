@@ -1,6 +1,5 @@
 package br.com.ofisy.adapters.gateways.stock;
 
-import br.com.ofisy.domain.stock.Stock;
 import jakarta.persistence.*;
 import lombok.*;
 
