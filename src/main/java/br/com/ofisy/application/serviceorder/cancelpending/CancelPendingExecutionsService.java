@@ -1,7 +1,5 @@
-package br.com.ofisy.application.serviceorder;
+package br.com.ofisy.application.serviceorder.cancelpending;
 
-import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
-import br.com.ofisy.domain.serviceorder.ServiceOrderRepository;
 import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionRepository;
 import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionStatus;
 import lombok.RequiredArgsConstructor;
@@ -13,13 +11,13 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class ServiceOrderFinalizationService {
+public class CancelPendingExecutionsService implements CancelPendingExecutionsUseCase {
 
-    private final ServiceOrderRepository serviceOrderRepository;
     private final ServiceOrderExecutionRepository serviceOrderExecutionRepository;
 
+    @Override
     @Transactional
-    public void cancelPending(UUID serviceOrderId) {
+    public void execute(UUID serviceOrderId) {
         List<ServiceOrderExecutionStatus> activeStatuses = List.of(
                 ServiceOrderExecutionStatus.PENDING,
                 ServiceOrderExecutionStatus.IN_PROGRESS
@@ -29,13 +27,5 @@ public class ServiceOrderFinalizationService {
                     execution.cancel();
                     serviceOrderExecutionRepository.save(execution);
                 });
-    }
-
-    @Transactional
-    public void finish(UUID id) {
-        var serviceOrder = serviceOrderRepository.findById(id)
-                .orElseThrow(() -> new ServiceOrderNotFoundException(id));
-        serviceOrder.finish();
-        serviceOrderRepository.save(serviceOrder);
     }
 }
