@@ -1,4 +1,4 @@
-package br.com.ofisy.application.stock.dto;
+package br.com.ofisy.adapters.controllers.stock.dto;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;

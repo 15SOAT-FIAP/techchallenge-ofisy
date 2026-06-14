@@ -1,4 +1,4 @@
-package br.com.ofisy.application.stock.dto;
+package br.com.ofisy.adapters.controllers.stock.dto;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
@@ -18,5 +18,4 @@ public record UpdateStockRequestDTO(
 
         @Min(value = 0, message = "Limite mínimo não pode ser negativo")
         Integer minThreshold
-) {
-}
+) {}
