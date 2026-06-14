@@ -6,6 +6,7 @@ import br.com.ofisy.application.user.dto.UpdatePasswordRequestDTO;
 import br.com.ofisy.application.user.dto.UserResponseDTO;
 import br.com.ofisy.application.user.exceptions.EmailNotFoundException;
 import br.com.ofisy.application.user.exceptions.UserNotFoundException;
+import br.com.ofisy.application.user.UserMapper;
 import br.com.ofisy.domain.user.User;
 import br.com.ofisy.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;

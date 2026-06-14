@@ -2,7 +2,6 @@ package br.com.ofisy.application.quote;
 
 import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
 import br.com.ofisy.application.serviceorder.ServiceOrderService;
-import br.com.ofisy.application.serviceorder.dto.ServiceOrderRequestDTO;
 import br.com.ofisy.application.quote.dto.CreateQuoteRequestDTO;
 import br.com.ofisy.application.quote.dto.StockItemRequestDTO;
 import br.com.ofisy.domain.customer.CpfCnpj;
@@ -126,11 +125,9 @@ class QuoteServiceIT extends IntegrationTestBase {
     }
 
     private UUID createAndStartDiagnostic() {
-        var created = serviceOrderService.create(
-                new ServiceOrderRequestDTO(vehicleId, customerId, "Relatório Quote IT"), userEmail
-        );
-        serviceOrderService.startDiagnostic(created.id());
-        return created.id();
+        var created = serviceOrderService.create(vehicleId, customerId, "Relatório Quote IT", userEmail);
+        serviceOrderService.startDiagnostic(created.getId());
+        return created.getId();
     }
 
     private CreateQuoteRequestDTO quoteRequest(int quantity) {
