@@ -1,8 +1,16 @@
 package br.com.ofisy.interfaces.api.stock;
 
-import br.com.ofisy.application.stock.StockService;
-import br.com.ofisy.application.stock.dto.StockResponseDTO;
+import br.com.ofisy.adapters.controllers.stock.StockController;
+import br.com.ofisy.adapters.controllers.stock.dto.StockResponseDTO;
+import br.com.ofisy.application.stock.add.AddStockUseCase;
+import br.com.ofisy.application.stock.consume.ConsumeStockUseCase;
+import br.com.ofisy.application.stock.create.CreateStockUseCase;
 import br.com.ofisy.application.stock.exceptions.StockNotFoundException;
+import br.com.ofisy.application.stock.identifybyid.IdentifyByIdStockUseCase;
+import br.com.ofisy.application.stock.identifybyproduct.IdentifyByProductStockUseCase;
+import br.com.ofisy.application.stock.list.ListStockUseCase;
+import br.com.ofisy.application.stock.update.UpdateStockUseCase;
+import br.com.ofisy.domain.stock.Stock;
 import br.com.ofisy.interfaces.api.ControllerTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -15,15 +23,14 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -39,7 +46,25 @@ class StockControllerTest extends ControllerTestBase {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private StockService stockService;
+    private CreateStockUseCase createStockUseCase;
+
+    @MockitoBean
+    private UpdateStockUseCase updateStockUseCase;
+
+    @MockitoBean
+    private AddStockUseCase addStockUseCase;
+
+    @MockitoBean
+    private ConsumeStockUseCase consumeStockUseCase;
+
+    @MockitoBean
+    private ListStockUseCase listStockUseCase;
+
+    @MockitoBean
+    private IdentifyByIdStockUseCase identifyByIdStockUseCase;
+
+    @MockitoBean
+    private IdentifyByProductStockUseCase identifyByProductStockUseCase;
 
     @Nested
     class GetAllStocks {
@@ -47,11 +72,11 @@ class StockControllerTest extends ControllerTestBase {
         @Test
         @DisplayName("Deve retornar página com estoques e retornar 200")
         void shouldReturn200WithPageOfStocks() throws Exception {
-            var dto = responseDTO(UUID.randomUUID(), "Produto A");
+            var stock = mockStock(UUID.randomUUID(), "Produto A");
             var pageable = PageRequest.of(0, 10);
-            var page = new PageImpl<>(List.of(dto), pageable, 1);
+            var page = new PageImpl<>(List.of(stock), pageable, 1);
 
-            when(stockService.findAll(any())).thenReturn(page);
+            when(listStockUseCase.execute(any())).thenReturn(page);
 
             mockMvc.perform(get(BASE_URL))
                     .andExpect(status().isOk())
@@ -65,7 +90,7 @@ class StockControllerTest extends ControllerTestBase {
         void shouldReturnEmptyPage() throws Exception {
             var pageable = PageRequest.of(0, 10);
 
-            when(stockService.findAll(any()))
+            when(listStockUseCase.execute(any()))
                     .thenReturn(new PageImpl<>(Collections.emptyList(), pageable, 0));
 
             mockMvc.perform(get(BASE_URL))
@@ -82,9 +107,9 @@ class StockControllerTest extends ControllerTestBase {
         @DisplayName("Deve encontrar estoque e retornar 200")
         void shouldReturn200WhenFound() throws Exception {
             var id = UUID.randomUUID();
-            var dto = responseDTO(id, "Produto A");
+            var stock = mockStock(id, "Produto A");
 
-            when(stockService.findById(id)).thenReturn(dto);
+            when(identifyByIdStockUseCase.execute(id)).thenReturn(stock);
 
             mockMvc.perform(get(BASE_URL + "/{id}", id))
                     .andExpect(status().isOk())
@@ -96,7 +121,7 @@ class StockControllerTest extends ControllerTestBase {
         void shouldReturn404WhenNotFound() throws Exception {
             var id = UUID.randomUUID();
 
-            when(stockService.findById(id))
+            when(identifyByIdStockUseCase.execute(id))
                     .thenThrow(new StockNotFoundException(id));
 
             mockMvc.perform(get(BASE_URL + "/{id}", id))
@@ -117,9 +142,9 @@ class StockControllerTest extends ControllerTestBase {
         @Test
         @DisplayName("Deve encontrar estoque e retornar 200")
         void shouldReturn200WhenFound() throws Exception {
-            var dto = responseDTO(UUID.randomUUID(), "Produto A");
+            var stock = mockStock(UUID.randomUUID(), "Produto A");
 
-            when(stockService.findByProductName("Produto A")).thenReturn(dto);
+            when(identifyByProductStockUseCase.execute("Produto A")).thenReturn(stock);
 
             mockMvc.perform(get(BASE_URL + "/productName/{productName}", "Produto A"))
                     .andExpect(status().isOk())
@@ -129,7 +154,7 @@ class StockControllerTest extends ControllerTestBase {
         @Test
         @DisplayName("Deve retornar 404 quando estoque não é encontrado")
         void shouldReturn404WhenNotFound() throws Exception {
-            when(stockService.findByProductName("Inexistente"))
+            when(identifyByProductStockUseCase.execute("Inexistente"))
                     .thenThrow(new StockNotFoundException("Inexistente"));
 
             mockMvc.perform(get(BASE_URL + "/productName/{productName}", "Inexistente"))
@@ -141,11 +166,11 @@ class StockControllerTest extends ControllerTestBase {
     class CreateStock {
 
         @Test
-        @DisplayName("Deve criar estoque e retornar 200")
+        @DisplayName("Deve criar estoque e retornar 201")
         void shouldReturn201WhenCreated() throws Exception {
-            var dto = responseDTO(UUID.randomUUID(), "Produto A");
+            var stock = mockStock(UUID.randomUUID(), "Produto A");
 
-            when(stockService.create(any())).thenReturn(dto);
+            when(createStockUseCase.execute(any())).thenReturn(stock);
 
             mockMvc.perform(post(BASE_URL)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -180,9 +205,9 @@ class StockControllerTest extends ControllerTestBase {
         @DisplayName("Deve adicionar estoque e retornar 200")
         void shouldReturn200WhenStockAdded() throws Exception {
             var id = UUID.randomUUID();
-            var dto = responseDTO(id, "Produto A");
+            var stock = mockStock(id, "Produto A");
 
-            when(stockService.addStock(id, 5)).thenReturn(dto);
+            when(addStockUseCase.execute(any())).thenReturn(stock);
 
             mockMvc.perform(post(BASE_URL + "/{id}/add", id)
                             .param("quantity", "5"))
@@ -198,9 +223,9 @@ class StockControllerTest extends ControllerTestBase {
         @DisplayName("Deve consumir estoque e retornar 200")
         void shouldReturn200WhenStockConsumed() throws Exception {
             var id = UUID.randomUUID();
-            var dto = responseDTO(id, "Produto A");
+            var stock = mockStock(id, "Produto A");
 
-            when(stockService.consumeStock(id, 3)).thenReturn(dto);
+            when(consumeStockUseCase.execute(any())).thenReturn(stock);
 
             mockMvc.perform(post(BASE_URL + "/{id}/consume", id)
                             .param("quantity", "3"))
@@ -215,16 +240,16 @@ class StockControllerTest extends ControllerTestBase {
         @DisplayName("Deve atualizar estoque e retornar 200")
         void shouldReturn200WhenUpdated() throws Exception {
             var id = UUID.randomUUID();
-            var dto = responseDTO(id, "Produto Atualizado");
+            var stock = mockStock(id, "Produto Atualizado");
 
-            when(stockService.update(eq(id), any())).thenReturn(dto);
+            when(updateStockUseCase.execute(any())).thenReturn(stock);
 
             mockMvc.perform(put(BASE_URL + "/{id}", id)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("""
                                 {
                                   "productName": "Produto Atualizado",
-                                  "minimumQuantity": 8
+                                  "minThreshold": 8
                                 }
                             """))
                     .andExpect(status().isOk())
@@ -232,18 +257,9 @@ class StockControllerTest extends ControllerTestBase {
         }
     }
 
-    private StockResponseDTO responseDTO(UUID id, String productName) {
-        return new StockResponseDTO(
-                id,
-                productName,
-                "Descrição do produto",
-                10,
-                BigDecimal.valueOf(99.90),
-                "Categoria X",
-                LocalDateTime.now(),
-                LocalDateTime.now(),
-                5,
-                false
-        );
+    private Stock mockStock(UUID id, String productName) {
+        Stock stock = Stock.create(productName, "Descrição do produto", 10, BigDecimal.valueOf(99.90), "Categoria X", 5);
+        ReflectionTestUtils.setField(stock, "id", id);
+        return stock;
     }
 }

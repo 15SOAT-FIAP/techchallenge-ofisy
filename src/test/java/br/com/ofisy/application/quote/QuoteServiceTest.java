@@ -4,8 +4,7 @@ import br.com.ofisy.application.quote.dto.*;
 import br.com.ofisy.application.quote.exceptions.QuoteAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
-import br.com.ofisy.application.stock.StockService;
-import br.com.ofisy.application.stock.dto.StockResponseDTO;
+import br.com.ofisy.application.stock.consume.ConsumeStockUseCase;
 import br.com.ofisy.domain.quote.*;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
@@ -41,7 +40,7 @@ class QuoteServiceTest {
     private QuoteRepository quoteRepository;
 
     @Mock
-    private StockService stockService;
+    private ConsumeStockUseCase consumeStockUseCase;
 
     @Mock
     private StockRepository stockRepository;
@@ -99,7 +98,7 @@ class QuoteServiceTest {
             var result = quoteService.create(serviceOrderId, request);
 
             assertThat(result).isNotNull();
-            verify(stockService).consumeStock(stockId, 2);
+            verify(consumeStockUseCase).execute(new ConsumeStockUseCase.ConsumeStockCommand(stockId, 2));
             verify(quoteRepository).save(any());
         }
 
@@ -121,7 +120,7 @@ class QuoteServiceTest {
                     .hasMessageContaining(serviceOrderId.toString());
 
             verify(quoteRepository, never()).save(any());
-            verify(stockService, never()).consumeStock(any(), anyInt());
+            verify(consumeStockUseCase, never()).execute(any());
         }
 
         @Test
@@ -140,8 +139,7 @@ class QuoteServiceTest {
             );
             when(quoteRepository.existsByServiceOrderId(serviceOrderId)).thenReturn(false);
             when(stockRepository.findById(stockId)).thenReturn(Optional.of(stock));
-            when(stockService.consumeStock(eq(stockId), anyInt()))
-                    .thenReturn(mock(StockResponseDTO.class));
+            when(consumeStockUseCase.execute(any())).thenReturn(mock(Stock.class));
 
             assertThatThrownBy(() -> quoteService.create(serviceOrderId, request))
                     .isInstanceOf(QuoteItemAlreadyExistsException.class);
@@ -201,7 +199,7 @@ class QuoteServiceTest {
             var result = quoteService.create(serviceOrderId, request);
 
             assertThat(result).isNotNull();
-            verify(stockService).consumeStock(stockId, 2);
+            verify(consumeStockUseCase).execute(new ConsumeStockUseCase.ConsumeStockCommand(stockId, 2));
             verify(serviceOrderExecutionRepository).findById(serviceOrderExecutionId);
             verify(quoteRepository).save(any());
         }
