@@ -1,7 +1,7 @@
-package br.com.ofisy.interfaces.api.serviceorder;
+package br.com.ofisy.adapters.controllers.serviceorder;
 
-import br.com.ofisy.application.serviceorder.dto.ServiceOrderResponseDTO;
-import br.com.ofisy.application.serviceorder.dto.ServiceOrderStatusResponseDTO;
+import br.com.ofisy.adapters.controllers.serviceorder.dto.ServiceOrderResponseDTO;
+import br.com.ofisy.adapters.controllers.serviceorder.dto.ServiceOrderStatusResponseDTO;
 import br.com.ofisy.domain.customer.CpfCnpj;
 import br.com.ofisy.domain.customer.Customer;
 import br.com.ofisy.domain.customer.CustomerRepository;
@@ -34,19 +34,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ServiceOrderControllerIT extends IntegrationTestBase {
 
-    @Autowired 
+    @Autowired
     private CustomerRepository customerDomainRepository;
-    @Autowired 
+    @Autowired
     private VehicleRepository vehicleDomainRepository;
-    @Autowired 
+    @Autowired
     private UserRepository userDomainRepository;
-    @Autowired 
+    @Autowired
     private StockRepository stockDomainRepository;
-    @Autowired 
+    @Autowired
     private ServiceCatalogRepository serviceCatalogDomainRepository;
-    @Autowired 
+    @Autowired
     private ServiceOrderExecutionRepository serviceOrderExecutionDomainRepository;
-    @Autowired 
+    @Autowired
     private NotificationRepository notificationDomainRepository;
 
     private UUID customerId;

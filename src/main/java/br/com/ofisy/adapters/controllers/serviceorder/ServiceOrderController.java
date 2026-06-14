@@ -1,12 +1,14 @@
-package br.com.ofisy.interfaces.api.serviceorder;
+package br.com.ofisy.adapters.controllers.serviceorder;
 
+import br.com.ofisy.adapters.controllers.serviceorder.dto.ServiceOrderRequestDTO;
+import br.com.ofisy.adapters.controllers.serviceorder.dto.ServiceOrderResponseDTO;
+import br.com.ofisy.adapters.controllers.serviceorder.dto.ServiceOrderStatusResponseDTO;
+import br.com.ofisy.adapters.presenters.serviceorder.ServiceOrderPresenter;
+import br.com.ofisy.adapters.presenters.serviceorder.ServiceOrderStatusPresenter;
 import br.com.ofisy.application.quote.dto.CreateQuoteRequestDTO;
 import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
 import br.com.ofisy.application.quote.dto.ReproveQuoteRequestDTO;
 import br.com.ofisy.application.serviceorder.ServiceOrderService;
-import br.com.ofisy.application.serviceorder.dto.ServiceOrderRequestDTO;
-import br.com.ofisy.application.serviceorder.dto.ServiceOrderResponseDTO;
-import br.com.ofisy.application.serviceorder.dto.ServiceOrderStatusResponseDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -42,7 +44,9 @@ public class ServiceOrderController implements ServiceOrderApi {
             @Valid @RequestBody ServiceOrderRequestDTO request,
             @AuthenticationPrincipal UserDetails user) {
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(serviceOrderService.create(request, user.getUsername()));
+        var serviceOrder = serviceOrderService.create(
+                request.vehicleId(), request.customerId(), request.report(), user.getUsername());
+        return ResponseEntity.status(HttpStatus.CREATED).body(ServiceOrderPresenter.present(serviceOrder));
     }
 
     @PostMapping("/{id}/quote")
@@ -59,7 +63,7 @@ public class ServiceOrderController implements ServiceOrderApi {
     public ResponseEntity<Page<ServiceOrderResponseDTO>> listReceived(
             @ParameterObject @PageableDefault(size = 10, sort = "updatedAt", direction = Sort.Direction.ASC) Pageable pageable) {
 
-        return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.listReceived(pageable));
+        return ResponseEntity.ok(serviceOrderService.listReceived(pageable).map(ServiceOrderPresenter::present));
     }
 
     @GetMapping("/finished")
@@ -67,41 +71,41 @@ public class ServiceOrderController implements ServiceOrderApi {
     public ResponseEntity<Page<ServiceOrderResponseDTO>> listFinished(
             @ParameterObject @PageableDefault(size = 10, sort = "finishedAt", direction = Sort.Direction.ASC) Pageable pageable) {
 
-        return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.listFinished(pageable));
+        return ResponseEntity.ok(serviceOrderService.listFinished(pageable).map(ServiceOrderPresenter::present));
     }
 
     @GetMapping("/{id}/status")
     public ResponseEntity<ServiceOrderStatusResponseDTO> getStatusById(@PathVariable UUID id) {
-        return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.getStatus(id));
+        return ResponseEntity.ok(ServiceOrderStatusPresenter.present(serviceOrderService.getStatus(id)));
     }
 
     @PatchMapping("/{id}/start-diagnostic")
     @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
     public ResponseEntity<ServiceOrderResponseDTO> startDiagnosticServiceOrder(@PathVariable UUID id) {
-        return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.startDiagnostic(id));
+        return ResponseEntity.ok(ServiceOrderPresenter.present(serviceOrderService.startDiagnostic(id)));
     }
 
     @PatchMapping("/{id}/deliver")
     @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
     public ResponseEntity<ServiceOrderResponseDTO> deliverToCustomerServiceOrder(@PathVariable UUID id) {
-        return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.deliverToCustomer(id));
+        return ResponseEntity.ok(ServiceOrderPresenter.present(serviceOrderService.deliverToCustomer(id)));
     }
 
     @PatchMapping("/{id}/cancel")
     @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
     public ResponseEntity<ServiceOrderResponseDTO> cancelServiceOrder(@PathVariable UUID id) {
-        return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.close(id));
+        return ResponseEntity.ok(ServiceOrderPresenter.present(serviceOrderService.close(id)));
     }
 
     @PatchMapping("/quote/{id}/approve")
     public ResponseEntity<QuoteResponseDTO> approveQuote(@PathVariable UUID id) {
-        return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.approveQuote(id));
+        return ResponseEntity.ok(serviceOrderService.approveQuote(id));
     }
 
     @PatchMapping("/quote/{id}/reprove")
     public ResponseEntity<QuoteResponseDTO> reproveQuote(
             @PathVariable UUID id,
             @RequestBody ReproveQuoteRequestDTO reproveQuoteRequestDTO) {
-        return ResponseEntity.status(HttpStatus.OK).body(serviceOrderService.reproveQuote(id, reproveQuoteRequestDTO));
+        return ResponseEntity.ok(serviceOrderService.reproveQuote(id, reproveQuoteRequestDTO));
     }
 }

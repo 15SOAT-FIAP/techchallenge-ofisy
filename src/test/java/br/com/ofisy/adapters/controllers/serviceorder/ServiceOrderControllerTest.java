@@ -1,15 +1,16 @@
-package br.com.ofisy.interfaces.api.serviceorder;
+package br.com.ofisy.adapters.controllers.serviceorder;
 
+import br.com.ofisy.adapters.controllers.serviceorder.dto.ServiceOrderResponseDTO;
+import br.com.ofisy.adapters.controllers.serviceorder.dto.ServiceOrderStatusResponseDTO;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
 import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
 import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
 import br.com.ofisy.application.serviceorder.ServiceOrderService;
-import br.com.ofisy.application.serviceorder.dto.ServiceOrderResponseDTO;
-import br.com.ofisy.application.serviceorder.dto.ServiceOrderStatusResponseDTO;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
 import br.com.ofisy.domain.quote.QuoteStatus;
+import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
 import br.com.ofisy.domain.serviceorder.exceptions.InvalidServiceOrderTransitionException;
 import br.com.ofisy.interfaces.api.GlobalExceptionHandler;
@@ -87,7 +88,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn201WithCreatedServiceOrder() throws Exception {
-            when(serviceOrderService.create(any(), any())).thenReturn(mockResponse());
+            when(serviceOrderService.create(any(), any(), any(), any())).thenReturn(mockServiceOrder(ServiceOrderStatus.RECEIVED));
 
             mockMvc.perform(post(BASE_URL)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -138,7 +139,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn404WhenCustomerNotFound() throws Exception {
-            when(serviceOrderService.create(any(), any()))
+            when(serviceOrderService.create(any(), any(), any(), any()))
                     .thenThrow(new CustomerNotFoundException(VALID_CUSTOMER_ID));
 
             mockMvc.perform(post(BASE_URL)
@@ -150,7 +151,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn404WhenVehicleNotFound() throws Exception {
-            when(serviceOrderService.create(any(), any()))
+            when(serviceOrderService.create(any(), any(), any(), any()))
                     .thenThrow(new VehicleNotFoundException(VALID_VEHICLE_ID));
 
             mockMvc.perform(post(BASE_URL)
@@ -162,7 +163,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn422WhenVehicleNotOwnedByCustomer() throws Exception {
-            when(serviceOrderService.create(any(), any()))
+            when(serviceOrderService.create(any(), any(), any(), any()))
                     .thenThrow(new VehicleNotOwnedByCustomerException(VALID_VEHICLE_ID, VALID_CUSTOMER_ID));
 
             mockMvc.perform(post(BASE_URL)
@@ -178,8 +179,8 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn200WithPageOfReceivedServiceOrders() throws Exception {
-            var response = mockResponse();
-            Page<ServiceOrderResponseDTO> page = new PageImpl<>(List.of(response), PageRequest.of(0, 10), 1);
+            var serviceOrder = mockServiceOrder(ServiceOrderStatus.RECEIVED);
+            Page<ServiceOrder> page = new PageImpl<>(List.of(serviceOrder), PageRequest.of(0, 10), 1);
             when(serviceOrderService.listReceived(any(Pageable.class))).thenReturn(page);
 
             mockMvc.perform(get(BASE_URL + "/received"))
@@ -192,7 +193,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn200WithEmptyPageWhenNoReceivedOrders() throws Exception {
-            Page<ServiceOrderResponseDTO> page = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
+            Page<ServiceOrder> page = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
             when(serviceOrderService.listReceived(any(Pageable.class))).thenReturn(page);
 
             mockMvc.perform(get(BASE_URL + "/received"))
@@ -203,7 +204,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldForwardPageableParametersToService() throws Exception {
-            Page<ServiceOrderResponseDTO> page = new PageImpl<>(List.of(), PageRequest.of(2, 5), 0);
+            Page<ServiceOrder> page = new PageImpl<>(List.of(), PageRequest.of(2, 5), 0);
             when(serviceOrderService.listReceived(any(Pageable.class))).thenReturn(page);
 
             mockMvc.perform(get(BASE_URL + "/received")
@@ -224,8 +225,8 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn200WithPageOfFinishedServiceOrders() throws Exception {
-            var response = mockFinishedResponse();
-            Page<ServiceOrderResponseDTO> page = new PageImpl<>(List.of(response), PageRequest.of(0, 10), 1);
+            var serviceOrder = mockServiceOrder(ServiceOrderStatus.FINISHED);
+            Page<ServiceOrder> page = new PageImpl<>(List.of(serviceOrder), PageRequest.of(0, 10), 1);
             when(serviceOrderService.listFinished(any(Pageable.class))).thenReturn(page);
 
             mockMvc.perform(get(BASE_URL + "/finished"))
@@ -238,7 +239,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn200WithEmptyPageWhenNoFinishedOrders() throws Exception {
-            Page<ServiceOrderResponseDTO> page = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
+            Page<ServiceOrder> page = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
             when(serviceOrderService.listFinished(any(Pageable.class))).thenReturn(page);
 
             mockMvc.perform(get(BASE_URL + "/finished"))
@@ -249,7 +250,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldForwardPageableParametersToService() throws Exception {
-            Page<ServiceOrderResponseDTO> page = new PageImpl<>(List.of(), PageRequest.of(2, 5), 0);
+            Page<ServiceOrder> page = new PageImpl<>(List.of(), PageRequest.of(2, 5), 0);
             when(serviceOrderService.listFinished(any(Pageable.class))).thenReturn(page);
 
             mockMvc.perform(get(BASE_URL + "/finished")
@@ -263,12 +264,6 @@ class ServiceOrderControllerTest {
             org.assertj.core.api.Assertions.assertThat(captured.getPageNumber()).isEqualTo(2);
             org.assertj.core.api.Assertions.assertThat(captured.getPageSize()).isEqualTo(5);
         }
-
-        private ServiceOrderResponseDTO mockFinishedResponse() {
-            return new ServiceOrderResponseDTO(
-                    UUID.randomUUID(), VALID_VEHICLE_ID, VALID_CUSTOMER_ID,
-                    "Barulho na suspensão", "FINISHED", UUID.randomUUID(), NOW, null, NOW);
-        }
     }
 
     @Nested
@@ -278,7 +273,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn200WithServiceOrderStatus() throws Exception {
-            when(serviceOrderService.getStatus(ORDER_ID)).thenReturn(mockStatusResponse());
+            when(serviceOrderService.getStatus(ORDER_ID)).thenReturn(mockServiceOrderWithId(ORDER_ID, ServiceOrderStatus.RECEIVED));
 
             mockMvc.perform(get(BASE_URL + "/{id}/status", ORDER_ID))
                     .andExpect(status().isOk())
@@ -297,10 +292,6 @@ class ServiceOrderControllerTest {
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.title").value("Ordem de serviço não encontrada"));
         }
-
-        private ServiceOrderStatusResponseDTO mockStatusResponse() {
-            return new ServiceOrderStatusResponseDTO(ORDER_ID, VALID_VEHICLE_ID, VALID_CUSTOMER_ID, ServiceOrderStatus.RECEIVED, NOW);
-        }
     }
 
     @Nested
@@ -310,7 +301,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn200WithUpdatedServiceOrder() throws Exception {
-            when(serviceOrderService.startDiagnostic(ORDER_ID)).thenReturn(mockInDiagnosticResponse());
+            when(serviceOrderService.startDiagnostic(ORDER_ID)).thenReturn(mockServiceOrder(ServiceOrderStatus.IN_DIAGNOSTIC));
 
             mockMvc.perform(patch(BASE_URL + "/{id}/start-diagnostic", ORDER_ID))
                     .andExpect(status().isOk())
@@ -336,12 +327,6 @@ class ServiceOrderControllerTest {
                     .andExpect(status().isConflict())
                     .andExpect(jsonPath("$.title").value("Transição de status inválida"));
         }
-
-        private ServiceOrderResponseDTO mockInDiagnosticResponse() {
-            return new ServiceOrderResponseDTO(
-                    ORDER_ID, VALID_VEHICLE_ID, VALID_CUSTOMER_ID,
-                    "Barulho na suspensão", "IN_DIAGNOSTIC", UUID.randomUUID(), NOW, null, NOW);
-        }
     }
 
     @Nested
@@ -351,7 +336,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn200WithDeliveredServiceOrder() throws Exception {
-            when(serviceOrderService.deliverToCustomer(ORDER_ID)).thenReturn(mockDeliveredResponse());
+            when(serviceOrderService.deliverToCustomer(ORDER_ID)).thenReturn(mockServiceOrder(ServiceOrderStatus.DELIVERED));
 
             mockMvc.perform(patch(BASE_URL + "/{id}/deliver", ORDER_ID))
                     .andExpect(status().isOk())
@@ -377,12 +362,6 @@ class ServiceOrderControllerTest {
                     .andExpect(status().isConflict())
                     .andExpect(jsonPath("$.title").value("Transição de status inválida"));
         }
-
-        private ServiceOrderResponseDTO mockDeliveredResponse() {
-            return new ServiceOrderResponseDTO(
-                    ORDER_ID, VALID_VEHICLE_ID, VALID_CUSTOMER_ID,
-                    "Barulho na suspensão", "DELIVERED", UUID.randomUUID(), NOW, NOW, NOW);
-        }
     }
 
     @Nested
@@ -392,7 +371,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn200WithCancelledServiceOrder() throws Exception {
-            when(serviceOrderService.close(ORDER_ID)).thenReturn(mockCancelledResponse());
+            when(serviceOrderService.close(ORDER_ID)).thenReturn(mockServiceOrderWithId(ORDER_ID, ServiceOrderStatus.CANCELLED));
 
             mockMvc.perform(patch(BASE_URL + "/{id}/cancel", ORDER_ID))
                     .andExpect(status().isOk())
@@ -427,12 +406,6 @@ class ServiceOrderControllerTest {
             mockMvc.perform(patch(BASE_URL + "/{id}/cancel", "not-a-uuid"))
                     .andExpect(status().isBadRequest());
         }
-
-        private ServiceOrderResponseDTO mockCancelledResponse() {
-            return new ServiceOrderResponseDTO(
-                    ORDER_ID, VALID_VEHICLE_ID, VALID_CUSTOMER_ID,
-                    "Barulho na suspensão", "CANCELLED", UUID.randomUUID(), NOW, null, NOW);
-        }
     }
 
     @Nested
@@ -443,8 +416,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn200WhenQuoteIsApproved() throws Exception {
-            when(serviceOrderService.approveQuote(QUOTE_ID))
-                    .thenReturn(mockApprovedResponse());
+            when(serviceOrderService.approveQuote(QUOTE_ID)).thenReturn(mockApprovedResponse());
 
             mockMvc.perform(patch(BASE_URL + "/quote/{id}/approve", QUOTE_ID))
                     .andExpect(status().isOk())
@@ -457,8 +429,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn404WhenQuoteDoesNotExist() throws Exception {
-            when(serviceOrderService.approveQuote(QUOTE_ID))
-                    .thenThrow(new QuoteNotFoundException(QUOTE_ID));
+            when(serviceOrderService.approveQuote(QUOTE_ID)).thenThrow(new QuoteNotFoundException(QUOTE_ID));
 
             mockMvc.perform(patch(BASE_URL + "/quote/{id}/approve", QUOTE_ID))
                     .andExpect(status().isNotFound())
@@ -470,8 +441,7 @@ class ServiceOrderControllerTest {
             when(serviceOrderService.approveQuote(QUOTE_ID))
                     .thenThrow(new InvalidServiceOrderTransitionException(
                             ServiceOrderStatus.AWAITING_APPROVAL,
-                            ServiceOrderStatus.AWAITING_EXECUTION
-                    ));
+                            ServiceOrderStatus.AWAITING_EXECUTION));
 
             mockMvc.perform(patch(BASE_URL + "/quote/{id}/approve", QUOTE_ID))
                     .andExpect(status().isConflict())
@@ -485,17 +455,8 @@ class ServiceOrderControllerTest {
         }
 
         private QuoteResponseDTO mockApprovedResponse() {
-            return new QuoteResponseDTO(
-                    QUOTE_ID,
-                    ORDER_ID,
-                    QuoteStatus.APPROVED,
-                    new BigDecimal("1500.00"),
-                    null,
-                    List.of(),
-                    List.of(),
-                    NOW,
-                    NOW
-            );
+            return new QuoteResponseDTO(QUOTE_ID, ORDER_ID, QuoteStatus.APPROVED,
+                    new BigDecimal("1500.00"), null, List.of(), List.of(), NOW, NOW);
         }
     }
 
@@ -507,8 +468,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn200WhenQuoteIsReproved() throws Exception {
-            when(serviceOrderService.reproveQuote(eq(QUOTE_ID), any()))
-                    .thenReturn(mockReprovedResponse());
+            when(serviceOrderService.reproveQuote(eq(QUOTE_ID), any())).thenReturn(mockReprovedResponse());
 
             mockMvc.perform(patch(BASE_URL + "/quote/{id}/reprove", QUOTE_ID)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -527,8 +487,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn404WhenQuoteDoesNotExist() throws Exception {
-            when(serviceOrderService.reproveQuote(eq(QUOTE_ID), any()))
-                    .thenThrow(new QuoteNotFoundException(QUOTE_ID));
+            when(serviceOrderService.reproveQuote(eq(QUOTE_ID), any())).thenThrow(new QuoteNotFoundException(QUOTE_ID));
 
             mockMvc.perform(patch(BASE_URL + "/quote/{id}/reprove", QUOTE_ID)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -545,9 +504,7 @@ class ServiceOrderControllerTest {
         void shouldReturn409WhenTransitionIsInvalid() throws Exception {
             when(serviceOrderService.reproveQuote(eq(QUOTE_ID), any()))
                     .thenThrow(new InvalidServiceOrderTransitionException(
-                            ServiceOrderStatus.AWAITING_APPROVAL,
-                            ServiceOrderStatus.CANCELLED
-                    ));
+                            ServiceOrderStatus.AWAITING_APPROVAL, ServiceOrderStatus.CANCELLED));
 
             mockMvc.perform(patch(BASE_URL + "/quote/{id}/reprove", QUOTE_ID)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -573,17 +530,8 @@ class ServiceOrderControllerTest {
         }
 
         private QuoteResponseDTO mockReprovedResponse() {
-            return new QuoteResponseDTO(
-                    QUOTE_ID,
-                    ORDER_ID,
-                    QuoteStatus.REPROVED,
-                    new BigDecimal("1500.00"),
-                    "Preço muito alto",
-                    List.of(),
-                    List.of(),
-                    NOW,
-                    NOW
-            );
+            return new QuoteResponseDTO(QUOTE_ID, ORDER_ID, QuoteStatus.REPROVED,
+                    new BigDecimal("1500.00"), "Preço muito alto", List.of(), List.of(), NOW, NOW);
         }
     }
 
@@ -613,9 +561,13 @@ class ServiceOrderControllerTest {
                 """.formatted(VALID_VEHICLE_ID);
     }
 
-    private ServiceOrderResponseDTO mockResponse() {
-        return new ServiceOrderResponseDTO(
-                UUID.randomUUID(), VALID_VEHICLE_ID, VALID_CUSTOMER_ID,
-                "Barulho na suspensão", "RECEIVED", UUID.randomUUID(), NOW, null, NOW);
+    private ServiceOrder mockServiceOrder(ServiceOrderStatus status) {
+        return ServiceOrder.reconstruct(UUID.randomUUID(), VALID_VEHICLE_ID, VALID_CUSTOMER_ID,
+                "Barulho na suspensão", status, UUID.randomUUID(), NOW, null, NOW);
+    }
+
+    private ServiceOrder mockServiceOrderWithId(UUID id, ServiceOrderStatus status) {
+        return ServiceOrder.reconstruct(id, VALID_VEHICLE_ID, VALID_CUSTOMER_ID,
+                "Barulho na suspensão", status, UUID.randomUUID(), NOW, null, NOW);
     }
 }

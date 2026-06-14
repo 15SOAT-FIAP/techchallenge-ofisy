@@ -8,7 +8,6 @@ import br.com.ofisy.application.quote.dto.ServiceItemRequestDTO;
 import br.com.ofisy.application.quote.dto.StockItemRequestDTO;
 import br.com.ofisy.application.quote.exceptions.QuoteAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
-import br.com.ofisy.application.serviceorder.dto.ServiceOrderRequestDTO;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
@@ -115,13 +114,13 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @Test
         @DisplayName("Deve criar ordem de serviço com sucesso")
         void shouldCreateServiceOrderSuccessfully() {
-            var response = serviceOrderService.create(defaultRequest(), userEmail);
+            var response = serviceOrderService.create(vehicleId, customerId, "Relatório de teste da OS", userEmail);
 
             assertThat(response).isNotNull();
-            assertThat(response.vehicleId()).isEqualTo(vehicleId);
-            assertThat(response.customerId()).isEqualTo(customerId);
-            assertThat(response.status()).isEqualTo(ServiceOrderStatus.RECEIVED.name());
-            assertThat(response.createdAt()).isNotNull();
+            assertThat(response.getVehicleId()).isEqualTo(vehicleId);
+            assertThat(response.getCustomerId()).isEqualTo(customerId);
+            assertThat(response.getStatus()).isEqualTo(ServiceOrderStatus.RECEIVED);
+            assertThat(response.getCreatedAt()).isNotNull();
         }
 
         @Test
@@ -130,27 +129,22 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
             Customer other = customerDomainRepository.save(
                     Customer.create(new CpfCnpj("11144477735"), "Maria Svc IT", "maria.svc.it@ofisy.com", "11977777777")
             );
-            var request = new ServiceOrderRequestDTO(vehicleId, other.getId(), "Relatório");
 
-            assertThatThrownBy(() -> serviceOrderService.create(request, userEmail))
+            assertThatThrownBy(() -> serviceOrderService.create(vehicleId, other.getId(), "Relatório", userEmail))
                     .isInstanceOf(VehicleNotOwnedByCustomerException.class);
         }
 
         @Test
         @DisplayName("Deve lançar exceção quando cliente não encontrado")
         void shouldThrowExceptionWhenCustomerNotFound() {
-            var request = new ServiceOrderRequestDTO(vehicleId, UUID.randomUUID(), "Relatório");
-
-            assertThatThrownBy(() -> serviceOrderService.create(request, userEmail))
+            assertThatThrownBy(() -> serviceOrderService.create(vehicleId, UUID.randomUUID(), "Relatório", userEmail))
                     .isInstanceOf(CustomerNotFoundException.class);
         }
 
         @Test
         @DisplayName("Deve lançar exceção quando veículo não encontrado")
         void shouldThrowExceptionWhenVehicleNotFound() {
-            var request = new ServiceOrderRequestDTO(UUID.randomUUID(), customerId, "Relatório");
-
-            assertThatThrownBy(() -> serviceOrderService.create(request, userEmail))
+            assertThatThrownBy(() -> serviceOrderService.create(UUID.randomUUID(), customerId, "Relatório", userEmail))
                     .isInstanceOf(VehicleNotFoundException.class);
         }
     }
@@ -162,11 +156,11 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @Test
         @DisplayName("Deve iniciar diagnóstico com sucesso")
         void shouldStartDiagnosticSuccessfully() {
-            var created = serviceOrderService.create(defaultRequest(), userEmail);
-            var response = serviceOrderService.startDiagnostic(created.id());
+            var created = serviceOrderService.create(vehicleId, customerId, "Relatório de teste da OS", userEmail);
+            var response = serviceOrderService.startDiagnostic(created.getId());
 
-            assertThat(response.status()).isEqualTo(ServiceOrderStatus.IN_DIAGNOSTIC.name());
-            assertThat(response.updatedAt()).isNotNull();
+            assertThat(response.getStatus()).isEqualTo(ServiceOrderStatus.IN_DIAGNOSTIC);
+            assertThat(response.getUpdatedAt()).isNotNull();
         }
 
         @Test
@@ -180,9 +174,9 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @Test
         @DisplayName("Deve lançar exceção ao iniciar diagnóstico com transição inválida")
         void shouldThrowExceptionWhenStatusTransitionIsInvalid() {
-            var created = serviceOrderService.create(defaultRequest(), userEmail);
-            serviceOrderService.startDiagnostic(created.id());
-            UUID id = created.id();
+            var created = serviceOrderService.create(vehicleId, customerId, "Relatório de teste da OS", userEmail);
+            serviceOrderService.startDiagnostic(created.getId());
+            UUID id = created.getId();
 
             assertThatThrownBy(() -> serviceOrderService.startDiagnostic(id))
                     .isInstanceOf(InvalidServiceOrderTransitionException.class);
@@ -196,10 +190,10 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @Test
         @DisplayName("Deve cancelar ordem de serviço com sucesso")
         void shouldCancelServiceOrderSuccessfully() {
-            var created = serviceOrderService.create(defaultRequest(), userEmail);
-            var response = serviceOrderService.close(created.id());
+            var created = serviceOrderService.create(vehicleId, customerId, "Relatório de teste da OS", userEmail);
+            var response = serviceOrderService.close(created.getId());
 
-            assertThat(response.status()).isEqualTo(ServiceOrderStatus.CANCELLED.name());
+            assertThat(response.getStatus()).isEqualTo(ServiceOrderStatus.CANCELLED);
         }
 
         @Test
@@ -218,12 +212,12 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @Test
         @DisplayName("Deve retornar status da ordem de serviço")
         void shouldReturnServiceOrderStatus() {
-            var created = serviceOrderService.create(defaultRequest(), userEmail);
-            var response = serviceOrderService.getStatus(created.id());
+            var created = serviceOrderService.create(vehicleId, customerId, "Relatório de teste da OS", userEmail);
+            var response = serviceOrderService.getStatus(created.getId());
 
             assertThat(response).isNotNull();
-            assertThat(response.id()).isEqualTo(created.id());
-            assertThat(response.status()).isEqualTo(ServiceOrderStatus.RECEIVED);
+            assertThat(response.getId()).isEqualTo(created.getId());
+            assertThat(response.getStatus()).isEqualTo(ServiceOrderStatus.RECEIVED);
         }
 
         @Test
@@ -242,12 +236,12 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @Test
         @DisplayName("Deve retornar ordens de serviço recebidas")
         void shouldReturnReceivedServiceOrders() {
-            serviceOrderService.create(defaultRequest(), userEmail);
+            serviceOrderService.create(vehicleId, customerId, "Relatório de teste da OS", userEmail);
 
             var response = serviceOrderService.listReceived(PageRequest.of(0, 10));
 
             assertThat(response.getContent()).isNotEmpty();
-            assertThat(response.getContent()).allMatch(so -> so.status().equals(ServiceOrderStatus.RECEIVED.name()));
+            assertThat(response.getContent()).allMatch(so -> so.getStatus() == ServiceOrderStatus.RECEIVED);
         }
     }
 
@@ -258,8 +252,8 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @Test
         @DisplayName("Deve lançar exceção ao entregar OS com status inválido")
         void shouldThrowExceptionWhenDeliveringWithInvalidStatus() {
-            var created = serviceOrderService.create(defaultRequest(), userEmail);
-            UUID id = created.id();
+            var created = serviceOrderService.create(vehicleId, customerId, "Relatório de teste da OS", userEmail);
+            UUID id = created.getId();
 
             assertThatThrownBy(() -> serviceOrderService.deliverToCustomer(id))
                     .isInstanceOf(InvalidServiceOrderTransitionException.class);
@@ -280,7 +274,7 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
 
             assertThat(quote.serviceOrderId()).isEqualTo(serviceOrderId);
             assertThat(quote.status()).isEqualTo(QuoteStatus.PENDING);
-            assertThat(serviceOrderService.getStatus(serviceOrderId).status()).isEqualTo(ServiceOrderStatus.AWAITING_APPROVAL);
+            assertThat(serviceOrderService.getStatus(serviceOrderId).getStatus()).isEqualTo(ServiceOrderStatus.AWAITING_APPROVAL);
         }
 
         @Test
@@ -431,14 +425,10 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
 
     // --- helpers ---
 
-    private ServiceOrderRequestDTO defaultRequest() {
-        return new ServiceOrderRequestDTO(vehicleId, customerId, "Relatório de teste da OS");
-    }
-
     private UUID createAndStartDiagnostic() {
-        var created = serviceOrderService.create(defaultRequest(), userEmail);
-        serviceOrderService.startDiagnostic(created.id());
-        return created.id();
+        var created = serviceOrderService.create(vehicleId, customerId, "Relatório de teste da OS", userEmail);
+        serviceOrderService.startDiagnostic(created.getId());
+        return created.getId();
     }
 
     private UUID createServiceOrderExecution(UUID serviceOrderId) {

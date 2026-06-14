@@ -27,7 +27,7 @@ import br.com.ofisy.domain.serviceorder.exceptions.InvalidServiceOrderTransition
 import br.com.ofisy.domain.user.Role;
 import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
 import br.com.ofisy.adapters.controllers.customer.CustomerController;
-import br.com.ofisy.interfaces.api.serviceorder.ServiceOrderController;
+import br.com.ofisy.adapters.controllers.serviceorder.ServiceOrderController;
 import br.com.ofisy.adapters.controllers.vehicle.VehicleController;
 import br.com.ofisy.interfaces.api.user.LoginController;
 import br.com.ofisy.interfaces.api.user.UserController;
