@@ -10,38 +10,26 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Entity
-@Table(name = "stocks")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Stock {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, unique = true)
     private String productName;
 
-    @Column(nullable = false)
     private String description;
 
-    @Column(nullable = false)
     private Integer quantity = 0;
 
-    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal unitPrice;
 
-    @Column(nullable = false)
     private String category;
 
-    @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    @Column(nullable = false)
     private Integer minThreshold = 0;
 
     private Stock(String productName, String description, Integer quantity, BigDecimal unitPrice, String category, Integer minThreshold) {
@@ -51,12 +39,27 @@ public class Stock {
         this.unitPrice = unitPrice;
         this.category = category;
         this.minThreshold = minThreshold;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+    }
+
+    public static Stock reconstruct(UUID id, String productName, String description,
+                                    Integer quantity, BigDecimal unitPrice, String category,
+                                    Integer minThreshold, LocalDateTime createdAt, LocalDateTime updatedAt) {
+
+        Stock stock = new Stock(productName, description, quantity, unitPrice, category, minThreshold);
+
+        stock.id = id;
+        stock.createdAt = createdAt;
+        stock.updatedAt = updatedAt;
+
+        return stock;
     }
 
     public static Stock create(String productName, String description, Integer quantity, BigDecimal unitPrice, String category, Integer minThreshold) {
-        return new Stock(productName, description, quantity, unitPrice, category, minThreshold);
+        Stock stock = new Stock(productName, description, quantity, unitPrice, category, minThreshold);
+        stock.createdAt = LocalDateTime.now();
+        stock.updatedAt = LocalDateTime.now();
+
+        return stock;
     }
 
     public void update(String productName, String description, BigDecimal unitPrice, String category, Integer minThreshold) {
