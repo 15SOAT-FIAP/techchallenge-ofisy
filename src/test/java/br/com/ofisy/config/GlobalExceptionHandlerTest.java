@@ -1,4 +1,4 @@
-package br.com.ofisy.interfaces.api;
+package br.com.ofisy.config;
 
 import br.com.ofisy.adapters.controllers.user.LoginController;
 import br.com.ofisy.adapters.controllers.user.UserController;
@@ -47,6 +47,7 @@ import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
 import br.com.ofisy.adapters.controllers.customer.CustomerController;
 import br.com.ofisy.adapters.controllers.serviceorder.ServiceOrderController;
 import br.com.ofisy.domain.user.exceptions.InactiveUserException;
+import br.com.ofisy.interfaces.api.ControllerTestBase;
 import br.com.ofisy.adapters.controllers.vehicle.VehicleController;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;

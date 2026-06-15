@@ -1,4 +1,4 @@
-package br.com.ofisy.infrastructure.config.swagger;
+package br.com.ofisy.config.swagger;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
@@ -23,7 +23,7 @@ public class SwaggerConfig {
                         .description("Sistema de gestão de oficina automotiva Ofisy")
                         .version("1.0.0")
                         .contact(new Contact()
-                                .name("15SOAT - Grupo 38")))
+                                .name("15SOAT - Fase 2 - Grupo 138")))
                 .addSecurityItem(new SecurityRequirement().addList("BearerToken"))
                 .components(new Components()
                         .addSecuritySchemes("BearerToken", new SecurityScheme()

@@ -22,7 +22,7 @@ import br.com.ofisy.domain.quote.QuoteStatus;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
 import br.com.ofisy.domain.serviceorder.exceptions.InvalidServiceOrderTransitionException;
-import br.com.ofisy.interfaces.api.GlobalExceptionHandler;
+import br.com.ofisy.config.GlobalExceptionHandler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;

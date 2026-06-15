@@ -1,5 +1,6 @@
-package br.com.ofisy.infrastructure.config.security;
+package br.com.ofisy.shared.securityfilter;
 
+import br.com.ofisy.shared.jwt.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,6 +21,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     public static final String AUTHORIZATION = "Authorization";
     public static final String BEARER = "Bearer ";
+
     private final JwtService jwtService;
     private final OfisyUserDetailsService userDetailsService;
 

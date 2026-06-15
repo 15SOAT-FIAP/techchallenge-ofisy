@@ -1,6 +1,6 @@
-package br.com.ofisy.infrastructure.config.security;
+package br.com.ofisy.shared.jwt;
 
-import br.com.ofisy.infrastructure.config.auth.JwtProperties;
+import br.com.ofisy.config.jwt.JwtProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
