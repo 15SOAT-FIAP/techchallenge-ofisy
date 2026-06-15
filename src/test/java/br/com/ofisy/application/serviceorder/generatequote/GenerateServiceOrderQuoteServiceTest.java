@@ -2,8 +2,7 @@ package br.com.ofisy.application.serviceorder.generatequote;
 
 import br.com.ofisy.application.notification.createquote.CreateQuoteNotificationUseCase;
 import br.com.ofisy.application.quote.QuoteService;
-import br.com.ofisy.application.quote.dto.CreateQuoteRequestDTO;
-import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
+import br.com.ofisy.application.quote.dto.*;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.domain.quote.QuoteStatus;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;

@@ -2,11 +2,7 @@ package br.com.ofisy.application.serviceorder;
 
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
 import br.com.ofisy.application.quote.QuoteService;
-import br.com.ofisy.application.quote.dto.CreateQuoteRequestDTO;
-import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
-import br.com.ofisy.application.quote.dto.ReproveQuoteRequestDTO;
-import br.com.ofisy.application.quote.dto.ServiceItemRequestDTO;
-import br.com.ofisy.application.quote.dto.StockItemRequestDTO;
+import br.com.ofisy.application.quote.dto.*;
 import br.com.ofisy.application.quote.exceptions.QuoteAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
 import br.com.ofisy.application.serviceorder.approvequote.ApproveServiceOrderQuoteUseCase;
