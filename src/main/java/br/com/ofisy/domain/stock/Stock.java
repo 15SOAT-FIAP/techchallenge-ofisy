@@ -39,8 +39,6 @@ public class Stock {
         this.unitPrice = unitPrice;
         this.category = category;
         this.minThreshold = minThreshold;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
     }
 
     public static Stock reconstruct(UUID id, String productName, String description,
@@ -57,7 +55,11 @@ public class Stock {
     }
 
     public static Stock create(String productName, String description, Integer quantity, BigDecimal unitPrice, String category, Integer minThreshold) {
-        return new Stock(productName, description, quantity, unitPrice, category, minThreshold);
+        Stock stock = new Stock(productName, description, quantity, unitPrice, category, minThreshold);
+        stock.createdAt = LocalDateTime.now();
+        stock.updatedAt = LocalDateTime.now();
+
+        return stock;
     }
 
     public void update(String productName, String description, BigDecimal unitPrice, String category, Integer minThreshold) {
