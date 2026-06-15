@@ -1,7 +1,5 @@
-package br.com.ofisy.interfaces.api.stock;
+package br.com.ofisy.adapters.controllers.stock;
 
-import br.com.ofisy.adapters.controllers.stock.StockController;
-import br.com.ofisy.adapters.controllers.stock.dto.StockResponseDTO;
 import br.com.ofisy.application.stock.add.AddStockUseCase;
 import br.com.ofisy.application.stock.consume.ConsumeStockUseCase;
 import br.com.ofisy.application.stock.create.CreateStockUseCase;
