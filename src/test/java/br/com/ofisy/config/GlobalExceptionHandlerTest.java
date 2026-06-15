@@ -10,11 +10,20 @@ import br.com.ofisy.application.customer.identifybycpfcnpj.IdentifyByCpfCnpjCust
 import br.com.ofisy.application.customer.identifybyid.IdentifyByIdCustomerUseCase;
 import br.com.ofisy.application.customer.list.ListRegisteredCustomerUseCase;
 import br.com.ofisy.application.customer.register.RegisterCustomerUseCase;
-import br.com.ofisy.application.serviceorder.ServiceOrderService;
 import br.com.ofisy.application.user.activateuser.ActivateUserUseCase;
 import br.com.ofisy.application.user.createuser.CreateUserUseCase;
 import br.com.ofisy.application.user.deactivateuser.DeactivateUserUseCase;
 import br.com.ofisy.application.user.exceptions.EmailNotFoundException;
+import br.com.ofisy.application.serviceorder.approvequote.ApproveServiceOrderQuoteUseCase;
+import br.com.ofisy.application.serviceorder.cancel.CancelServiceOrderUseCase;
+import br.com.ofisy.application.serviceorder.create.CreateServiceOrderUseCase;
+import br.com.ofisy.application.serviceorder.delivertocustomer.DeliverToCustomerUseCase;
+import br.com.ofisy.application.serviceorder.generatequote.GenerateServiceOrderQuoteUseCase;
+import br.com.ofisy.application.serviceorder.getstatus.GetServiceOrderStatusUseCase;
+import br.com.ofisy.application.serviceorder.listfinished.ListFinishedServiceOrdersUseCase;
+import br.com.ofisy.application.serviceorder.listreceived.ListReceivedServiceOrdersUseCase;
+import br.com.ofisy.application.serviceorder.reprovequote.ReproveServiceOrderQuoteUseCase;
+import br.com.ofisy.application.serviceorder.startdiagnostic.StartDiagnosticUseCase;
 import br.com.ofisy.application.user.exceptions.UserNotFoundException;
 import br.com.ofisy.application.user.findbyid.FindUserByIdUseCase;
 import br.com.ofisy.application.user.listall.ListAllUsersUseCase;
@@ -36,9 +45,9 @@ import br.com.ofisy.domain.serviceorder.exceptions.InvalidServiceOrderTransition
 import br.com.ofisy.domain.user.Role;
 import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
 import br.com.ofisy.adapters.controllers.customer.CustomerController;
+import br.com.ofisy.adapters.controllers.serviceorder.ServiceOrderController;
 import br.com.ofisy.domain.user.exceptions.InactiveUserException;
 import br.com.ofisy.interfaces.api.ControllerTestBase;
-import br.com.ofisy.interfaces.api.serviceorder.ServiceOrderController;
 import br.com.ofisy.adapters.controllers.vehicle.VehicleController;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -77,8 +86,28 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
     private IdentifyByIdCustomerUseCase identifyByIdCustomerUseCase;
     @MockitoBean
     private IdentifyByCpfCnpjCustomerUseCase identifyByCpfCnpjCustomerUseCase;
+
     @MockitoBean
-    private ServiceOrderService serviceOrderService;
+    private CreateServiceOrderUseCase createServiceOrderUseCase;
+    @MockitoBean
+    private CancelServiceOrderUseCase cancelServiceOrderUseCase;
+    @MockitoBean
+    private ListReceivedServiceOrdersUseCase listReceivedServiceOrdersUseCase;
+    @MockitoBean
+    private ListFinishedServiceOrdersUseCase listFinishedServiceOrdersUseCase;
+    @MockitoBean
+    private StartDiagnosticUseCase startDiagnosticUseCase;
+    @MockitoBean
+    private DeliverToCustomerUseCase deliverToCustomerUseCase;
+    @MockitoBean
+    private GetServiceOrderStatusUseCase getServiceOrderStatusUseCase;
+    @MockitoBean
+    private GenerateServiceOrderQuoteUseCase generateServiceOrderQuoteUseCase;
+    @MockitoBean
+    private ApproveServiceOrderQuoteUseCase approveServiceOrderQuoteUseCase;
+    @MockitoBean
+    private ReproveServiceOrderQuoteUseCase reproveServiceOrderQuoteUseCase;
+
     @MockitoBean
     private AuthenticationManager authenticationManager;
     @MockitoBean
