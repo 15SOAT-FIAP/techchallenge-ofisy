@@ -1,7 +1,7 @@
 package br.com.ofisy.application.serviceorderexecution;
 
-import br.com.ofisy.application.serviceorder.ServiceOrderFinalizationService;
-import br.com.ofisy.application.serviceorder.ServiceOrderService;
+import br.com.ofisy.application.serviceorder.finish.FinishServiceOrderUseCase;
+import br.com.ofisy.application.serviceorder.startexecution.StartServiceOrderExecutionUseCase;
 import br.com.ofisy.application.serviceorderexecution.dto.ServiceOrderExecutionRequestDTO;
 import br.com.ofisy.application.serviceorderexecution.exceptions.ServiceOrderExecutionNotFoundException;
 import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecution;
@@ -34,10 +34,10 @@ class ServiceOrderExecutionServiceTest {
     private ServiceOrderExecutionRepository repository;
 
     @Mock
-    private ServiceOrderFinalizationService finalizationService;
+    private FinishServiceOrderUseCase finishServiceOrderUseCase;
 
     @Mock
-    private ServiceOrderService serviceOrderService;
+    private StartServiceOrderExecutionUseCase startServiceOrderExecutionUseCase;
 
     @InjectMocks
     private ServiceOrderExecutionService application;
@@ -198,7 +198,7 @@ class ServiceOrderExecutionServiceTest {
             assertThat(result.finishedAt()).isNotNull();
             verify(repository).findById(id);
             verify(repository).save(any(ServiceOrderExecution.class));
-            verify(finalizationService, never()).finish(any());
+            verify(finishServiceOrderUseCase, never()).execute(any());
         }
 
         @Test
@@ -216,7 +216,7 @@ class ServiceOrderExecutionServiceTest {
 
             application.complete(id);
 
-            verify(finalizationService).finish(serviceOrderId);
+            verify(finishServiceOrderUseCase).execute(serviceOrderId);
         }
 
         @Test
@@ -234,7 +234,7 @@ class ServiceOrderExecutionServiceTest {
 
             application.complete(id);
 
-            verify(finalizationService, never()).finish(any());
+            verify(finishServiceOrderUseCase, never()).execute(any());
         }
 
         @Test
@@ -247,7 +247,7 @@ class ServiceOrderExecutionServiceTest {
                     .isInstanceOf(ServiceOrderExecutionNotFoundException.class);
 
             verify(repository, never()).save(any(ServiceOrderExecution.class));
-            verify(finalizationService, never()).finish(any());
+            verify(finishServiceOrderUseCase, never()).execute(any());
         }
     }
 
@@ -302,7 +302,7 @@ class ServiceOrderExecutionServiceTest {
             assertThat(result.startedAt()).isNotNull();
             verify(repository).findById(id);
             verify(repository).save(any(ServiceOrderExecution.class));
-            verify(serviceOrderService).startExecution(serviceOrderExecution.getServiceOrderId());
+            verify(startServiceOrderExecutionUseCase).execute(serviceOrderExecution.getServiceOrderId());
         }
 
         @Test
@@ -315,7 +315,7 @@ class ServiceOrderExecutionServiceTest {
                     .isInstanceOf(ServiceOrderExecutionNotFoundException.class);
 
             verify(repository, never()).save(any(ServiceOrderExecution.class));
-            verify(serviceOrderService, never()).startExecution(any());
+            verify(startServiceOrderExecutionUseCase, never()).execute(any());
         }
     }
 

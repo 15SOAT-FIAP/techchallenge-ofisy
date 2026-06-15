@@ -1,5 +1,8 @@
 package br.com.ofisy.interfaces.api;
 
+import br.com.ofisy.adapters.controllers.user.LoginController;
+import br.com.ofisy.adapters.controllers.user.UserController;
+import br.com.ofisy.adapters.controllers.user.dto.CreateUserRequestDTO;
 import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsException;
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
@@ -7,11 +10,26 @@ import br.com.ofisy.application.customer.identifybycpfcnpj.IdentifyByCpfCnpjCust
 import br.com.ofisy.application.customer.identifybyid.IdentifyByIdCustomerUseCase;
 import br.com.ofisy.application.customer.list.ListRegisteredCustomerUseCase;
 import br.com.ofisy.application.customer.register.RegisterCustomerUseCase;
-import br.com.ofisy.application.serviceorder.ServiceOrderService;
-import br.com.ofisy.application.user.UserService;
-import br.com.ofisy.application.user.dto.CreateUserRequestDTO;
-import br.com.ofisy.application.user.dto.LoginRequestDTO;
+import br.com.ofisy.application.user.activateuser.ActivateUserUseCase;
+import br.com.ofisy.application.user.createuser.CreateUserUseCase;
+import br.com.ofisy.application.user.deactivateuser.DeactivateUserUseCase;
+import br.com.ofisy.application.user.exceptions.EmailNotFoundException;
+import br.com.ofisy.application.serviceorder.approvequote.ApproveServiceOrderQuoteUseCase;
+import br.com.ofisy.application.serviceorder.cancel.CancelServiceOrderUseCase;
+import br.com.ofisy.application.serviceorder.create.CreateServiceOrderUseCase;
+import br.com.ofisy.application.serviceorder.delivertocustomer.DeliverToCustomerUseCase;
+import br.com.ofisy.application.serviceorder.generatequote.GenerateServiceOrderQuoteUseCase;
+import br.com.ofisy.application.serviceorder.getstatus.GetServiceOrderStatusUseCase;
+import br.com.ofisy.application.serviceorder.listfinished.ListFinishedServiceOrdersUseCase;
+import br.com.ofisy.application.serviceorder.listreceived.ListReceivedServiceOrdersUseCase;
+import br.com.ofisy.application.serviceorder.reprovequote.ReproveServiceOrderQuoteUseCase;
+import br.com.ofisy.application.serviceorder.startdiagnostic.StartDiagnosticUseCase;
 import br.com.ofisy.application.user.exceptions.UserNotFoundException;
+import br.com.ofisy.application.user.findbyid.FindUserByIdUseCase;
+import br.com.ofisy.application.user.listall.ListAllUsersUseCase;
+import br.com.ofisy.application.user.login.LoginUseCase;
+import br.com.ofisy.application.user.modifyrole.ModifyUserRoleUseCase;
+import br.com.ofisy.application.user.updatepassword.UpdatePasswordUseCase;
 import br.com.ofisy.application.vehicle.exceptions.VehicleAlreadyExistsException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleLicensePlateNotFoundException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
@@ -28,9 +46,8 @@ import br.com.ofisy.domain.user.Role;
 import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
 import br.com.ofisy.adapters.controllers.customer.CustomerController;
 import br.com.ofisy.adapters.controllers.serviceorder.ServiceOrderController;
+import br.com.ofisy.domain.user.exceptions.InactiveUserException;
 import br.com.ofisy.adapters.controllers.vehicle.VehicleController;
-import br.com.ofisy.interfaces.api.user.LoginController;
-import br.com.ofisy.interfaces.api.user.UserController;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -40,7 +57,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -61,7 +77,6 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
 
     @Autowired
     private MockMvc mockMvc;
-
     @MockitoBean
     private RegisterCustomerUseCase registerCustomerUseCase;
     @MockitoBean
@@ -72,14 +87,28 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
     private IdentifyByCpfCnpjCustomerUseCase identifyByCpfCnpjCustomerUseCase;
 
     @MockitoBean
-    private ServiceOrderService serviceOrderService;
-
+    private CreateServiceOrderUseCase createServiceOrderUseCase;
     @MockitoBean
-    private UserService userService;
+    private CancelServiceOrderUseCase cancelServiceOrderUseCase;
+    @MockitoBean
+    private ListReceivedServiceOrdersUseCase listReceivedServiceOrdersUseCase;
+    @MockitoBean
+    private ListFinishedServiceOrdersUseCase listFinishedServiceOrdersUseCase;
+    @MockitoBean
+    private StartDiagnosticUseCase startDiagnosticUseCase;
+    @MockitoBean
+    private DeliverToCustomerUseCase deliverToCustomerUseCase;
+    @MockitoBean
+    private GetServiceOrderStatusUseCase getServiceOrderStatusUseCase;
+    @MockitoBean
+    private GenerateServiceOrderQuoteUseCase generateServiceOrderQuoteUseCase;
+    @MockitoBean
+    private ApproveServiceOrderQuoteUseCase approveServiceOrderQuoteUseCase;
+    @MockitoBean
+    private ReproveServiceOrderQuoteUseCase reproveServiceOrderQuoteUseCase;
 
     @MockitoBean
     private AuthenticationManager authenticationManager;
-
     @MockitoBean
     private RegisterVehicleUseCase registerVehicleUseCase;
     @MockitoBean
@@ -90,6 +119,24 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
     private IdentifyVehicleByIdUseCase identifyVehicleByIdUseCase;
     @MockitoBean
     private IdentifyVehicleByLicensePlateUseCase identifyVehicleByLicensePlateUseCase;
+    @MockitoBean
+    private CreateUserUseCase createUserUseCase;
+    @MockitoBean
+    private FindUserByIdUseCase findUserByIdUseCase;
+    @MockitoBean
+    private ListAllUsersUseCase listAllUsersUseCase;
+    @MockitoBean
+    private ModifyUserRoleUseCase modifyUserRoleUseCase;
+    @MockitoBean
+    private UpdatePasswordUseCase updatePasswordUseCase;
+    @MockitoBean
+    private DeactivateUserUseCase deactivateUserUseCase;
+    @MockitoBean
+    private ActivateUserUseCase activateUserUseCase;
+    @MockitoBean
+    private LoginUseCase loginUseCase;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Nested
     class CustomerNotFound {
@@ -238,29 +285,35 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
 
     @Nested
     class BadCredentials {
+
         @Test
         @DisplayName("Deve retornar 401 com credenciais inválidas")
         void shouldReturn401WithInvalidCredentials() throws Exception {
-            LoginRequestDTO request = new LoginRequestDTO("admin@ofisy.com", "senhaErrada");
-
-            when(authenticationManager.authenticate(any()))
+            when(loginUseCase.execute(any()))
                     .thenThrow(new BadCredentialsException("Bad credentials"));
 
             mockMvc.perform(post("/api/v1/login")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
+                            .content("""
+                            {
+                                "email": "admin@ofisy.com",
+                                "password": "senhaErrada"
+                            }
+                        """))
                     .andExpect(status().isUnauthorized());
         }
     }
 
     @Nested
     class UserNotFound {
+
         @Test
         @WithMockUser(roles = "ADMIN")
         @DisplayName("Deve retornar 404 quando usuário não encontrado")
         void shouldReturn404WhenUserNotFound() throws Exception {
             UUID id = UUID.randomUUID();
-            when(userService.findById(id)).thenThrow(new UserNotFoundException(id));
+            when(findUserByIdUseCase.execute(id)).thenThrow(new UserNotFoundException(id));
+
             mockMvc.perform(get("/api/v1/users/{id}", id))
                     .andExpect(status().isNotFound());
         }
@@ -268,13 +321,15 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
 
     @Nested
     class EmailAlreadyExists {
+
         @Test
         @WithMockUser(roles = "ADMIN")
         @DisplayName("Deve retornar 409 quando email do usuário já existe")
         void shouldReturn409WhenEmailAlreadyExists() throws Exception {
-            CreateUserRequestDTO request = new CreateUserRequestDTO("Pedro Mecânico", "mecanico@ofisy.com", "senha12345", Role.MECHANIC);
+            var request = new CreateUserRequestDTO("Pedro Mecânico", "mecanico@ofisy.com", "senha12345", Role.MECHANIC);
 
-            when(userService.create(any())).thenThrow(new EmailAlreadyExistsException("mecanico@ofisy.com"));
+            when(createUserUseCase.execute(any())).thenThrow(new EmailAlreadyExistsException("mecanico@ofisy.com"));
+
             mockMvc.perform(post("/api/v1/users")
                             .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
@@ -330,7 +385,7 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
         @Test
         @DisplayName("Deve retornar 401 quando usuário não encontrado")
         void shouldReturn401WhenUsernameNotFound() throws Exception {
-            when(authenticationManager.authenticate(any()))
+            when(loginUseCase.execute(any()))
                     .thenThrow(new UsernameNotFoundException("Usuário não encontrado"));
 
             mockMvc.perform(post("/api/v1/login")
@@ -346,8 +401,6 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
                     .andExpect(jsonPath("$.title").value("Usuário não autorizado"));
         }
     }
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Nested
     class VehicleNotFound {
@@ -429,13 +482,36 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
     }
 
     @Nested
+    class EmailNotFound {
+
+        @Test
+        @DisplayName("Deve retornar 404 quando email não encontrado")
+        void shouldReturn404WhenEmailNotFound() throws Exception {
+            when(loginUseCase.execute(any()))
+                    .thenThrow(new EmailNotFoundException("naoexiste@ofisy.com"));
+
+            mockMvc.perform(post("/api/v1/login")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                            {
+                                "email": "naoexiste@ofisy.com",
+                                "password": "senha123"
+                            }
+                        """))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.title").value("Email informado não encontrado"));
+        }
+    }
+
+    @Nested
     class UserDisabled {
 
         @Test
         @DisplayName("Deve retornar 401 quando usuário está inativo")
         void shouldReturn401WhenUserIsDisabled() throws Exception {
-            when(authenticationManager.authenticate(any()))
-                    .thenThrow(new DisabledException("Usuário inativo: joao@ofisy.com"));
+            when(loginUseCase.execute(any()))
+                    .thenThrow(new InactiveUserException("Usuário inativo: joao@ofisy.com"));
 
             mockMvc.perform(post("/api/v1/login")
                             .with(csrf())
