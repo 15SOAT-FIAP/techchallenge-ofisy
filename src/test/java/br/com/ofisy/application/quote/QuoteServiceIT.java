@@ -1,8 +1,11 @@
 package br.com.ofisy.application.quote;
 
+import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
 import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
-import br.com.ofisy.application.serviceorder.ServiceOrderService;
-import br.com.ofisy.application.serviceorder.dto.ServiceOrderRequestDTO;
+import br.com.ofisy.application.serviceorder.create.CreateServiceOrderUseCase;
+import br.com.ofisy.application.serviceorder.generatequote.GenerateServiceOrderQuoteUseCase;
+import br.com.ofisy.application.serviceorder.startdiagnostic.StartDiagnosticUseCase;
+import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import br.com.ofisy.application.quote.dto.CreateQuoteRequestDTO;
 import br.com.ofisy.application.quote.dto.StockItemRequestDTO;
 import br.com.ofisy.domain.customer.CpfCnpj;
@@ -33,7 +36,11 @@ class QuoteServiceIT extends IntegrationTestBase {
     @Autowired
     private QuoteService quoteService;
     @Autowired
-    private ServiceOrderService serviceOrderService;
+    private CreateServiceOrderUseCase createServiceOrderUseCase;
+    @Autowired
+    private StartDiagnosticUseCase startDiagnosticUseCase;
+    @Autowired
+    private GenerateServiceOrderQuoteUseCase generateServiceOrderQuoteUseCase;
 
     @Autowired 
     private CustomerRepository customerDomainRepository;
@@ -81,8 +88,9 @@ class QuoteServiceIT extends IntegrationTestBase {
         @Test
         @DisplayName("Deve retornar orçamento por ID")
         void shouldReturnQuoteById() {
-            var serviceOrderId = createAndStartDiagnostic();
-            var quote = serviceOrderService.generateQuote(serviceOrderId, quoteRequest(1));
+            UUID serviceOrderId = createAndStartDiagnostic();
+            QuoteResponseDTO quote = generateServiceOrderQuoteUseCase.execute(
+                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(serviceOrderId, quoteRequest(1)));
 
             var response = quoteService.findById(quote.id());
 
@@ -107,8 +115,9 @@ class QuoteServiceIT extends IntegrationTestBase {
         @Test
         @DisplayName("Deve retornar orçamentos por OS")
         void shouldReturnQuotesByServiceOrderId() {
-            var serviceOrderId = createAndStartDiagnostic();
-            serviceOrderService.generateQuote(serviceOrderId, quoteRequest(1));
+            UUID serviceOrderId = createAndStartDiagnostic();
+            generateServiceOrderQuoteUseCase.execute(
+                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(serviceOrderId, quoteRequest(1)));
 
             var response = quoteService.findByServiceOrderId(serviceOrderId);
 
@@ -126,11 +135,10 @@ class QuoteServiceIT extends IntegrationTestBase {
     }
 
     private UUID createAndStartDiagnostic() {
-        var created = serviceOrderService.create(
-                new ServiceOrderRequestDTO(vehicleId, customerId, "Relatório Quote IT"), userEmail
-        );
-        serviceOrderService.startDiagnostic(created.id());
-        return created.id();
+        ServiceOrder created = createServiceOrderUseCase.execute(
+                new CreateServiceOrderUseCase.CreateServiceOrderCommand(vehicleId, customerId, "Relatório Quote IT", userEmail));
+        startDiagnosticUseCase.execute(created.getId());
+        return created.getId();
     }
 
     private CreateQuoteRequestDTO quoteRequest(int quantity) {
