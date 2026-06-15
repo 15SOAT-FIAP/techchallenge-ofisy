@@ -73,7 +73,6 @@ class QuoteServiceItemTest {
         }
     }
 
-
     private ServiceOrderExecution mockServiceOrderExecution(UUID serviceOrderId) {
         return ServiceOrderExecution.create(UUID.randomUUID(), serviceOrderId);
     }

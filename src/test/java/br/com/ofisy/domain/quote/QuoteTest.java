@@ -17,11 +17,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class QuoteTest {
 
-    private static final UUID SERVICE_ORDER_ID = UUID.randomUUID();
+    public static final UUID SERVICE_ORDER_ID = UUID.randomUUID();
     public static final String REPROVE = "reprovar";
     public static final String REPROVED = "REPROVED";
     public static final String APPROVAL = "aprovar";
     public static final String REPROVAL_REASON = "Muito caro";
+    public static final String PRICE_150 = "150.00";
+    public static final String PRICE_100 = "100.00";
+    public static final String PRICE_350 = "350.00";
 
     @Nested
     class Create {
@@ -56,7 +59,7 @@ class QuoteTest {
 
             var quote = Quote.create(SERVICE_ORDER_ID, List.of(stockItem), List.of(serviceItem));
 
-            assertThat(quote.getTotalPrice()).isEqualByComparingTo(new BigDecimal("350.00"));
+            assertThat(quote.getTotalPrice()).isEqualByComparingTo(new BigDecimal(PRICE_350));
         }
 
         @Test
@@ -83,12 +86,12 @@ class QuoteTest {
             var updatedAt = LocalDateTime.of(2024, 1, 15, 12, 0);
 
             var quote = Quote.reconstruct(id, SERVICE_ORDER_ID, QuoteStatus.PENDING,
-                    new BigDecimal("100.00"), null, List.of(), List.of(), createdAt, updatedAt);
+                    new BigDecimal(PRICE_100), null, List.of(), List.of(), createdAt, updatedAt);
 
             assertThat(quote.getId()).isEqualTo(id);
             assertThat(quote.getServiceOrderId()).isEqualTo(SERVICE_ORDER_ID);
             assertThat(quote.getStatus()).isEqualTo(QuoteStatus.PENDING);
-            assertThat(quote.getTotalPrice()).isEqualByComparingTo(new BigDecimal("100.00"));
+            assertThat(quote.getTotalPrice()).isEqualByComparingTo(new BigDecimal(PRICE_100));
             assertThat(quote.getCreatedAt()).isEqualTo(createdAt);
             assertThat(quote.getUpdatedAt()).isEqualTo(updatedAt);
         }
@@ -167,14 +170,15 @@ class QuoteTest {
         }
     }
 
-    private QuoteStockItem validStockItem() {
-        Stock stock = mockStock(BigDecimal.valueOf(100.0));
-        return QuoteStockItem.create(stock, 2);
-    }
 
     private QuoteServiceItem validServiceItem() {
         ServiceOrderExecution execution = mockServiceOrderExecution();
-        return QuoteServiceItem.create(execution, new BigDecimal("150.00"));
+        return QuoteServiceItem.create(execution, new BigDecimal(PRICE_150));
+    }
+
+    private QuoteStockItem validStockItem() {
+        var stock = mockStock(new BigDecimal(PRICE_100));
+        return QuoteStockItem.create(stock, 2);
     }
 
     private Stock mockStock(BigDecimal unitPrice) {

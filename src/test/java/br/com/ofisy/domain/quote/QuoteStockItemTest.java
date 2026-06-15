@@ -74,6 +74,7 @@ class QuoteStockItemTest {
 
             item.setQuote(quote);
             item2.setQuote(quote);
+
             assertThat(item.getQuote()).isEqualTo(quote);
         }
     }
