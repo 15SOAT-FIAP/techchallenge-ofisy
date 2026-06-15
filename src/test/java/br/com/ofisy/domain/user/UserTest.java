@@ -1,6 +1,7 @@
 package br.com.ofisy.domain.user;
 
 import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
+import br.com.ofisy.domain.user.exceptions.InactiveUserException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -38,8 +39,8 @@ class UserTest {
         User user = createUser();
         user.deactivate();
         assertThatThrownBy(user::deactivate)
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("já está desativado");
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("já está desativado");
     }
 
     @Test
@@ -74,6 +75,7 @@ class UserTest {
                 .isInstanceOf(EmailAlreadyExistsException.class)
                 .hasMessageContaining(TEST_USER_PRINCIPAL_EMAIL);
     }
+
     @Test
     @DisplayName("Não deve lançar exceção quando email não existe")
     void shouldNotThrowExceptionWhenEmailDoesNotExist() {
@@ -98,7 +100,24 @@ class UserTest {
         assertThatNoException().isThrownBy(() -> user.validateCurrentPassword(true));
     }
 
+    @Test
+    @DisplayName("Deve lançar exceção quando usuário está inativo")
+    void shouldThrowExceptionWhenUserIsInactive() {
+        User user = createUser();
+        user.deactivate();
+        assertThatThrownBy(user::validateIsActive)
+                .isInstanceOf(InactiveUserException.class)
+                .hasMessageContaining("Usuário inativo");
+    }
+
+    @Test
+    @DisplayName("Não deve lançar exceção quando usuário está ativo")
+    void shouldNotThrowExceptionWhenUserIsActive() {
+        User user = createUser();
+        assertThatNoException().isThrownBy(user::validateIsActive);
+    }
+
     private User createUser() {
-        return User.create(new Email(TEST_USER_PRINCIPAL_EMAIL).emailAddress(),TEST_USER_PRINCIPAL_PASSWORD, TEST_USER_PRINCIPAL_NAME, TEST_USER_PRINCIPAL_ROLE);
+        return User.create(new Email(TEST_USER_PRINCIPAL_EMAIL).emailAddress(), TEST_USER_PRINCIPAL_PASSWORD, TEST_USER_PRINCIPAL_NAME, TEST_USER_PRINCIPAL_ROLE);
     }
 }

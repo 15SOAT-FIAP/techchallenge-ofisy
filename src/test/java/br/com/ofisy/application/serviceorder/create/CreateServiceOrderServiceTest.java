@@ -3,8 +3,8 @@ package br.com.ofisy.application.serviceorder.create;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
 import br.com.ofisy.application.customer.identifybyid.IdentifyByIdCustomerUseCase;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
-import br.com.ofisy.application.user.UserService;
 import br.com.ofisy.application.user.exceptions.EmailNotFoundException;
+import br.com.ofisy.application.user.getidbyemail.GetIdByEmailUseCase;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
 import br.com.ofisy.application.vehicle.identifybyid.IdentifyVehicleByIdUseCase;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
@@ -46,7 +46,7 @@ class CreateServiceOrderServiceTest {
     @Mock
     private IdentifyVehicleByIdUseCase identifyVehicleByIdUseCase;
     @Mock
-    private UserService userService;
+    private GetIdByEmailUseCase getIdByEmailUseCase;
 
     @InjectMocks
     private CreateServiceOrderService createServiceOrderService;
@@ -62,7 +62,7 @@ class CreateServiceOrderServiceTest {
         @Test
         void shouldCreateServiceOrderSuccessfully() {
             when(identifyVehicleByIdUseCase.execute(VALID_VEHICLE_ID)).thenReturn(vehicleOwnedByCustomer());
-            when(userService.getIdByEmail(VALID_EMAIL)).thenReturn(VALID_USER_ID);
+            when(getIdByEmailUseCase.execute(VALID_EMAIL)).thenReturn(VALID_USER_ID);
             when(serviceOrderRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
             ServiceOrder result = createServiceOrderService.execute(validCommand());
@@ -82,7 +82,7 @@ class CreateServiceOrderServiceTest {
                             VALID_VEHICLE_ID, VALID_CUSTOMER_ID, null, VALID_EMAIL);
 
             when(identifyVehicleByIdUseCase.execute(VALID_VEHICLE_ID)).thenReturn(vehicleOwnedByCustomer());
-            when(userService.getIdByEmail(VALID_EMAIL)).thenReturn(VALID_USER_ID);
+            when(getIdByEmailUseCase.execute(VALID_EMAIL)).thenReturn(VALID_USER_ID);
             when(serviceOrderRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
             ServiceOrder result = createServiceOrderService.execute(cmd);
@@ -129,7 +129,7 @@ class CreateServiceOrderServiceTest {
         void shouldThrowEmailNotFoundExceptionWhenUserDoesNotExist() {
             when(identifyVehicleByIdUseCase.execute(VALID_VEHICLE_ID)).thenReturn(vehicleOwnedByCustomer());
             doThrow(new EmailNotFoundException(VALID_EMAIL))
-                    .when(userService).getIdByEmail(VALID_EMAIL);
+                    .when(getIdByEmailUseCase).execute(VALID_EMAIL);
 
             assertThatThrownBy(() -> createServiceOrderService.execute(validCommand()))
                     .isInstanceOf(EmailNotFoundException.class);

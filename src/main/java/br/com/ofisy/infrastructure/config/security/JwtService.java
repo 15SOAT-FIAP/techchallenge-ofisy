@@ -1,10 +1,12 @@
 package br.com.ofisy.infrastructure.config.security;
 
+import br.com.ofisy.application.user.login.TokenGenerator;
 import br.com.ofisy.infrastructure.config.auth.JwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,10 +17,11 @@ import java.util.Date;
 
 @Service
 @RequiredArgsConstructor
-public class JwtService {
+public class JwtService implements TokenGenerator {
 
     private final JwtProperties jwtProperties;
 
+    @Override
     public String generateToken(String email) {
         var now = Instant.now();
         return Jwts.builder()

@@ -2,8 +2,8 @@ package br.com.ofisy.integration;
 
 import br.com.ofisy.adapters.gateways.customer.JpaCustomerRepository;
 import br.com.ofisy.adapters.gateways.notification.JpaNotificationRepository;
-import br.com.ofisy.adapters.gateways.serviceorder.JpaServiceOrderRepository;
 import br.com.ofisy.adapters.gateways.user.JpaUserRepository;
+import br.com.ofisy.adapters.gateways.serviceorder.JpaServiceOrderRepository;
 import br.com.ofisy.infrastructure.persistence.quote.JpaQuoteRepository;
 import br.com.ofisy.infrastructure.persistence.servicecatalog.JpaServiceCatalogRepository;
 import br.com.ofisy.infrastructure.persistence.serviceorderexecution.JpaServiceOrderExecutionRepository;

@@ -1,6 +1,7 @@
 package br.com.ofisy.domain.user;
 
 import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
+import br.com.ofisy.domain.user.exceptions.InactiveUserException;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -84,6 +85,12 @@ public class User {
     public void validateCurrentPassword(boolean currentPassword) {
         if (!currentPassword) {
             throw new IllegalArgumentException("Senha atual incorreta.");
+        }
+    }
+
+    public void validateIsActive() {
+        if (!this.active) {
+            throw new InactiveUserException(this.email.emailAddress());
         }
     }
 
