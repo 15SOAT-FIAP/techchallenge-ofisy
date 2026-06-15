@@ -3,7 +3,6 @@ package br.com.ofisy.application.user.login;
 import br.com.ofisy.application.user.exceptions.EmailNotFoundException;
 import br.com.ofisy.domain.user.User;
 import br.com.ofisy.domain.user.UserRepository;
-import br.com.ofisy.shared.jwt.TokenGenerator;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

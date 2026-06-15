@@ -5,7 +5,6 @@ import br.com.ofisy.domain.user.Role;
 import br.com.ofisy.domain.user.User;
 import br.com.ofisy.domain.user.UserRepository;
 import br.com.ofisy.domain.user.exceptions.InactiveUserException;
-import br.com.ofisy.shared.jwt.TokenGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

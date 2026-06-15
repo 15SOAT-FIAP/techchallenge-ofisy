@@ -1,5 +1,6 @@
 package br.com.ofisy.shared.jwt;
 
+import br.com.ofisy.application.user.login.TokenGenerator;
 import br.com.ofisy.config.jwt.JwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
