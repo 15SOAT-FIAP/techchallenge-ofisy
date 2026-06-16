@@ -4,7 +4,7 @@ import br.com.ofisy.application.quote.dto.*;
 import br.com.ofisy.application.quote.exceptions.QuoteAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
-import br.com.ofisy.application.stock.StockService;
+import br.com.ofisy.application.stock.consume.ConsumeStockUseCase;
 import br.com.ofisy.domain.quote.*;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
@@ -25,7 +25,7 @@ import java.util.UUID;
 public class QuoteService {
 
     private final QuoteRepository quoteRepository;
-    private final StockService stockService;
+    private final ConsumeStockUseCase consumeStockUseCase;
     private final StockRepository stockRepository;
     private final ServiceOrderExecutionRepository serviceOrderExecutionRepository;
     private final ServiceCatalogRepository serviceCatalogRepository;
@@ -91,7 +91,7 @@ public class QuoteService {
                 throw new QuoteItemAlreadyExistsException(stock.getProductName());
             }
 
-            stockService.consumeStock(request.stockId(), request.quantity());
+            consumeStockUseCase.execute(new ConsumeStockUseCase.ConsumeStockCommand(request.stockId(), request.quantity()));
 
             items.add(QuoteStockItem.create(stock, request.quantity()));
         }

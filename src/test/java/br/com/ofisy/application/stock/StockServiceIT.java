@@ -1,6 +1,8 @@
 package br.com.ofisy.application.stock;
 
-import br.com.ofisy.application.stock.dto.CreateStockRequestDTO;
+import br.com.ofisy.application.stock.consume.ConsumeStockUseCase;
+import br.com.ofisy.application.stock.create.CreateStockUseCase;
+import br.com.ofisy.application.stock.identifybyid.IdentifyByIdStockUseCase;
 import br.com.ofisy.domain.notification.NotificationRepository;
 import br.com.ofisy.domain.notification.NotificationType;
 import br.com.ofisy.domain.user.Role;
@@ -17,7 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class StockServiceIT extends IntegrationTestBase {
 
-    @Autowired private StockService stockService;
+    @Autowired private CreateStockUseCase createStockUseCase;
+    @Autowired private ConsumeStockUseCase consumeStockUseCase;
+    @Autowired private IdentifyByIdStockUseCase identifyByIdStockUseCase;
 
     @Autowired
     private UserRepository userDomainRepository;
@@ -32,10 +36,10 @@ class StockServiceIT extends IntegrationTestBase {
                 User.create("stockman.svc.it@ofisy.com", passwordEncoder.encode("Test@123"), "Stockman Svc IT", Role.STOCKMAN)
         );
 
-        var created = stockService.create(new CreateStockRequestDTO(
+        var created = createStockUseCase.execute(new CreateStockUseCase.CreateStockCommand(
                 "Peça Stock Svc IT", "Peça para testes de stock service", 10, new BigDecimal("100.00"), "Testes", 2
         ));
-        stockId = created.id();
+        stockId = created.getId();
     }
 
     @Nested
@@ -45,16 +49,16 @@ class StockServiceIT extends IntegrationTestBase {
         @Test
         @DisplayName("Deve consumir quantidade e persistir no banco")
         void shouldConsumeStockAndPersist() {
-            stockService.consumeStock(stockId, 3);
+            consumeStockUseCase.execute(new ConsumeStockUseCase.ConsumeStockCommand(stockId, 3));
 
-            var stock = stockService.findById(stockId);
-            assertThat(stock.quantity()).isEqualTo(7);
+            var stock = identifyByIdStockUseCase.execute(stockId);
+            assertThat(stock.getQuantity()).isEqualTo(7);
         }
 
         @Test
         @DisplayName("Deve criar notificação de estoque baixo após consumo abaixo do mínimo")
         void shouldCreateLowStockNotificationWhenStockIsBelowMinimum() {
-            stockService.consumeStock(stockId, 9);
+            consumeStockUseCase.execute(new ConsumeStockUseCase.ConsumeStockCommand(stockId, 9));
 
             var notifications = notificationDomainRepository.findAll().stream()
                     .filter(n -> n.getType() == NotificationType.LOW_STOCK)
@@ -69,7 +73,7 @@ class StockServiceIT extends IntegrationTestBase {
         @Test
         @DisplayName("Não deve criar notificação quando estoque ainda está acima do mínimo")
         void shouldNotCreateNotificationWhenStockIsAboveMinimum() {
-            stockService.consumeStock(stockId, 1);
+            consumeStockUseCase.execute(new ConsumeStockUseCase.ConsumeStockCommand(stockId, 1));
 
             var notifications = notificationDomainRepository.findAll().stream()
                     .filter(n -> n.getType() == NotificationType.LOW_STOCK)
