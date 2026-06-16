@@ -1,4 +1,4 @@
-package br.com.ofisy.infrastructure.persistence.stockmovement;
+package br.com.ofisy.adapters.gateways.stockmovement;
 
 import br.com.ofisy.domain.stockmovement.StockMovement;
 import br.com.ofisy.domain.stockmovement.StockMovementRepository;
@@ -17,16 +17,17 @@ public class StockMovementRepositoryImpl implements StockMovementRepository {
 
     @Override
     public StockMovement save(StockMovement stockMovement) {
-        return jpa.save(stockMovement);
+        StockMovementEntity entity = StockMovementMapper.toEntity(stockMovement);
+        return StockMovementMapper.toDomain(jpa.save(entity));
     }
 
     @Override
     public Page<StockMovement> findByStockId(UUID stockId, Pageable pageable) {
-        return jpa.findByStockId(stockId, pageable);
+        return jpa.findByStockId(stockId, pageable).map(StockMovementMapper::toDomain);
     }
 
     @Override
     public Page<StockMovement> findAll(Pageable pageable) {
-        return jpa.findAll(pageable);
+        return jpa.findAll(pageable).map(StockMovementMapper::toDomain);
     }
 }

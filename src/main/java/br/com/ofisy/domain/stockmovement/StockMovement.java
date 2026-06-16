@@ -1,6 +1,5 @@
 package br.com.ofisy.domain.stockmovement;
 
-import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -8,36 +7,24 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Entity
-@Table(name = "stock_movements")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class StockMovement {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
     private UUID stockId;
 
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
     private MovementType movementType;
 
-    @Column(nullable = false)
     private Integer quantity;
 
-    @Column(nullable = false)
     private Integer previousQuantity;
 
-    @Column(nullable = false)
     private Integer newQuantity;
 
-    @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
     private StockMovement(UUID stockId, MovementType movementType, Integer quantity, Integer previousQuantity, Integer newQuantity) {
@@ -52,5 +39,15 @@ public class StockMovement {
 
     public static StockMovement create(UUID stockId, MovementType movementType, Integer quantity, Integer previousQuantity, Integer newQuantity) {
         return new StockMovement(stockId, movementType, quantity, previousQuantity, newQuantity);
+    }
+
+    public static StockMovement reconstruct(UUID id, UUID stockId, MovementType movementType,
+                                            Integer quantity, Integer previousQuantity, Integer newQuantity,
+                                            LocalDateTime createdAt, LocalDateTime updatedAt) {
+        StockMovement stockMovement = new StockMovement(stockId, movementType, quantity, previousQuantity, newQuantity);
+        stockMovement.id = id;
+        stockMovement.createdAt = createdAt;
+        stockMovement.updatedAt = updatedAt;
+        return stockMovement;
     }
 }
