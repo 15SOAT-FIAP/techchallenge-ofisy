@@ -3,8 +3,7 @@ package br.com.ofisy.application.stock.consume;
 import br.com.ofisy.application.notification.createlowstock.CreateLowStockNotificationUseCase;
 import br.com.ofisy.application.stock.exceptions.InsufficientStockException;
 import br.com.ofisy.application.stock.exceptions.StockNotFoundException;
-import br.com.ofisy.application.stockmovement.StockMovementService;
-import br.com.ofisy.application.stockmovement.dto.StockMovementRequestDTO;
+import br.com.ofisy.application.stockmovement.register.RegisterStockMovementUseCase;
 import br.com.ofisy.domain.stock.Stock;
 import br.com.ofisy.domain.stock.StockRepository;
 import br.com.ofisy.domain.stockmovement.MovementType;
@@ -16,14 +15,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class ConsumeStockService implements ConsumeStockUseCase {
 
     private final StockRepository stockRepository;
-    private final StockMovementService stockMovementService;
+    private final RegisterStockMovementUseCase registerStockMovementUseCase;
     private final CreateLowStockNotificationUseCase createLowStockNotificationUseCase;
 
     public ConsumeStockService(StockRepository stockRepository,
-                               StockMovementService stockMovementService,
+                               RegisterStockMovementUseCase registerStockMovementUseCase,
                                CreateLowStockNotificationUseCase createLowStockNotificationUseCase) {
         this.stockRepository = stockRepository;
-        this.stockMovementService = stockMovementService;
+        this.registerStockMovementUseCase = registerStockMovementUseCase;
         this.createLowStockNotificationUseCase = createLowStockNotificationUseCase;
     }
 
@@ -40,7 +39,7 @@ public class ConsumeStockService implements ConsumeStockUseCase {
         stock.consumeQuantity(cmd.quantity());
         Integer newQuantity = stock.getQuantity();
 
-        stockMovementService.registerMovement(new StockMovementRequestDTO(
+        registerStockMovementUseCase.execute(new RegisterStockMovementUseCase.RegisterStockMovementCommand(
                 cmd.stockId(),
                 MovementType.OUT,
                 cmd.quantity(),

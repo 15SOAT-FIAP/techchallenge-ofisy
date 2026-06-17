@@ -1,8 +1,9 @@
-package br.com.ofisy.interfaces.api.stockmovement;
+package br.com.ofisy.adapters.controllers.stockmovement;
 
-import br.com.ofisy.application.stockmovement.StockMovementService;
-import br.com.ofisy.application.stockmovement.dto.StockMovementResponseDTO;
+import br.com.ofisy.application.stockmovement.list.ListStockMovementUseCase;
+import br.com.ofisy.application.stockmovement.listbystock.ListByStockStockMovementUseCase;
 import br.com.ofisy.domain.stockmovement.MovementType;
+import br.com.ofisy.domain.stockmovement.StockMovement;
 import br.com.ofisy.interfaces.api.ControllerTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -13,9 +14,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -23,7 +24,7 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -37,7 +38,10 @@ class StockMovementControllerTest extends ControllerTestBase {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private StockMovementService stockMovementService;
+    private ListStockMovementUseCase listStockMovementUseCase;
+
+    @MockitoBean
+    private ListByStockStockMovementUseCase listByStockStockMovementUseCase;
 
     @Nested
     class GetAllStockMovements {
@@ -45,11 +49,11 @@ class StockMovementControllerTest extends ControllerTestBase {
         @Test
         @DisplayName("Deve retornar página com estoques e retornar 200")
         void shouldReturn200WithPageOfStockMovements() throws Exception {
-            var dto = responseDTO(UUID.randomUUID());
+            var movement = mockMovement(UUID.randomUUID());
             var pageable = PageRequest.of(0, 10);
-            var page = new PageImpl<>(List.of(dto), pageable, 1);
+            var page = new PageImpl<>(List.of(movement), pageable, 1);
 
-            when(stockMovementService.findAll(any())).thenReturn(page);
+            when(listStockMovementUseCase.execute(any())).thenReturn(page);
 
             mockMvc.perform(get(BASE_URL))
                     .andExpect(status().isOk())
@@ -63,7 +67,7 @@ class StockMovementControllerTest extends ControllerTestBase {
         void shouldReturnEmptyPage() throws Exception {
             var pageable = PageRequest.of(0, 10);
 
-            when(stockMovementService.findAll(any()))
+            when(listStockMovementUseCase.execute(any()))
                     .thenReturn(new PageImpl<>(Collections.emptyList(), pageable, 0));
 
             mockMvc.perform(get(BASE_URL))
@@ -80,11 +84,11 @@ class StockMovementControllerTest extends ControllerTestBase {
         @DisplayName("Deve retornar movimentações por stockId e retornar 200")
         void shouldReturn200WhenFilteringByStockId() throws Exception {
             var stockId = UUID.randomUUID();
-            var dto = responseDTO(stockId);
+            var movement = mockMovement(stockId);
             var pageable = PageRequest.of(0, 10);
-            var page = new PageImpl<>(List.of(dto), pageable, 1);
+            var page = new PageImpl<>(List.of(movement), pageable, 1);
 
-            when(stockMovementService.findByStockId(eq(stockId), any())).thenReturn(page);
+            when(listByStockStockMovementUseCase.execute(eq(stockId), any())).thenReturn(page);
 
             mockMvc.perform(get(BASE_URL)
                             .param("stockId", stockId.toString()))
@@ -98,7 +102,7 @@ class StockMovementControllerTest extends ControllerTestBase {
             var stockId = UUID.randomUUID();
             var pageable = PageRequest.of(0, 10);
 
-            when(stockMovementService.findByStockId(eq(stockId), any()))
+            when(listByStockStockMovementUseCase.execute(eq(stockId), any()))
                     .thenReturn(new PageImpl<>(Collections.emptyList(), pageable, 0));
 
             mockMvc.perform(get(BASE_URL)
@@ -116,16 +120,9 @@ class StockMovementControllerTest extends ControllerTestBase {
         }
     }
 
-    private StockMovementResponseDTO responseDTO(UUID stockId) {
-        return new StockMovementResponseDTO(
-                UUID.randomUUID(),
-                stockId,
-                MovementType.IN,
-                5,
-                10,
-                15,
-                LocalDateTime.now(),
-                LocalDateTime.now()
-        );
+    private StockMovement mockMovement(UUID stockId) {
+        StockMovement movement = StockMovement.create(stockId, MovementType.IN, 5, 10, 15);
+        ReflectionTestUtils.setField(movement, "id", UUID.randomUUID());
+        return movement;
     }
 }
