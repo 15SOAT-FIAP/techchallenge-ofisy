@@ -1,8 +1,7 @@
 package br.com.ofisy.application.stock.add;
 
 import br.com.ofisy.application.stock.exceptions.StockNotFoundException;
-import br.com.ofisy.application.stockmovement.StockMovementService;
-import br.com.ofisy.application.stockmovement.dto.StockMovementRequestDTO;
+import br.com.ofisy.application.stockmovement.register.RegisterStockMovementUseCase;
 import br.com.ofisy.domain.stock.Stock;
 import br.com.ofisy.domain.stock.StockRepository;
 import br.com.ofisy.domain.stockmovement.MovementType;
@@ -14,11 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class AddStockService implements AddStockUseCase {
 
     private final StockRepository stockRepository;
-    private final StockMovementService stockMovementService;
+    private final RegisterStockMovementUseCase registerStockMovementUseCase;
 
-    public AddStockService(StockRepository stockRepository, StockMovementService stockMovementService) {
+    public AddStockService(StockRepository stockRepository, RegisterStockMovementUseCase registerStockMovementUseCase) {
         this.stockRepository = stockRepository;
-        this.stockMovementService = stockMovementService;
+        this.registerStockMovementUseCase = registerStockMovementUseCase;
     }
 
     @Override
@@ -30,7 +29,7 @@ public class AddStockService implements AddStockUseCase {
         stock.addQuantity(cmd.quantity());
         Integer newQuantity = stock.getQuantity();
 
-        stockMovementService.registerMovement(new StockMovementRequestDTO(
+        registerStockMovementUseCase.execute(new RegisterStockMovementUseCase.RegisterStockMovementCommand(
                 cmd.stockId(),
                 MovementType.IN,
                 cmd.quantity(),

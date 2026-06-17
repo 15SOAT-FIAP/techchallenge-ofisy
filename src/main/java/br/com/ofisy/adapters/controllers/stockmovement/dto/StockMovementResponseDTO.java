@@ -1,4 +1,4 @@
-package br.com.ofisy.application.stockmovement.dto;
+package br.com.ofisy.adapters.controllers.stockmovement.dto;
 
 import br.com.ofisy.domain.stockmovement.MovementType;
 
