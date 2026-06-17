@@ -1,16 +1,18 @@
 package br.com.ofisy.application.serviceorder.generatequote;
 
-import br.com.ofisy.application.quote.dto.CreateQuoteRequestDTO;
-import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
+import br.com.ofisy.application.quote.create.CreateQuoteUseCase;
+import br.com.ofisy.domain.quote.Quote;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface GenerateServiceOrderQuoteUseCase {
 
-    QuoteResponseDTO execute(GenerateQuoteCommand cmd);
+    Quote execute(GenerateQuoteCommand cmd);
 
     record GenerateQuoteCommand(
             UUID serviceOrderId,
-            CreateQuoteRequestDTO request
+            List<CreateQuoteUseCase.StockItemCommand> stockItems,
+            List<CreateQuoteUseCase.ServiceItemCommand> serviceItems
     ) {}
 }

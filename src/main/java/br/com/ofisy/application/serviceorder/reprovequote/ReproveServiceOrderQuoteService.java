@@ -1,8 +1,8 @@
 package br.com.ofisy.application.serviceorder.reprovequote;
 
-import br.com.ofisy.application.quote.QuoteService;
-import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
+import br.com.ofisy.application.quote.reprove.ReproveQuoteUseCase;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
+import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import br.com.ofisy.domain.serviceorder.ServiceOrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,16 +14,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReproveServiceOrderQuoteService implements ReproveServiceOrderQuoteUseCase {
 
     private final ServiceOrderRepository serviceOrderRepository;
-    private final QuoteService quoteService;
+    private final ReproveQuoteUseCase reproveQuoteUseCase;
 
     @Override
     @Transactional
-    public QuoteResponseDTO execute(ReproveQuoteCommand cmd) {
-        QuoteResponseDTO quoteResponseDTO = quoteService.reprove(cmd.quoteId(), cmd.requestDTO());
-        ServiceOrder serviceOrder = serviceOrderRepository.findById(quoteResponseDTO.serviceOrderId())
-                .orElseThrow(() -> new ServiceOrderNotFoundException(quoteResponseDTO.serviceOrderId()));
+    public Quote execute(ReproveServiceOrderQuoteCommand cmd) {
+        Quote quote = reproveQuoteUseCase.execute(new ReproveQuoteUseCase.ReproveQuoteCommand(cmd.quoteId(), cmd.reason()));
+        ServiceOrder serviceOrder = serviceOrderRepository.findById(quote.getServiceOrderId())
+                .orElseThrow(() -> new ServiceOrderNotFoundException(quote.getServiceOrderId()));
         serviceOrder.cancel();
         serviceOrderRepository.save(serviceOrder);
-        return quoteResponseDTO;
+        return quote;
     }
 }
