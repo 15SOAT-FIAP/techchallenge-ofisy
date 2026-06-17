@@ -8,7 +8,7 @@ import br.com.ofisy.adapters.gateways.user.JpaUserRepository;
 import br.com.ofisy.infrastructure.persistence.quote.JpaQuoteRepository;
 import br.com.ofisy.infrastructure.persistence.servicecatalog.JpaServiceCatalogRepository;
 import br.com.ofisy.infrastructure.persistence.serviceorderexecution.JpaServiceOrderExecutionRepository;
-import br.com.ofisy.infrastructure.persistence.stockmovement.JpaStockMovementRepository;
+import br.com.ofisy.adapters.gateways.stockmovement.JpaStockMovementRepository;
 import br.com.ofisy.adapters.gateways.vehicle.JpaVehicleRepository;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
