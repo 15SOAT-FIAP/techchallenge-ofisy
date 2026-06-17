@@ -1,4 +1,4 @@
-package br.com.ofisy.interfaces.api.stock;
+package br.com.ofisy.adapters.controllers.stock;
 
 import br.com.ofisy.domain.notification.NotificationRepository;
 import br.com.ofisy.domain.notification.NotificationType;
