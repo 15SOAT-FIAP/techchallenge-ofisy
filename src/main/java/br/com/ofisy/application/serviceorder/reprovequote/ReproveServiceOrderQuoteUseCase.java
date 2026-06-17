@@ -1,16 +1,15 @@
 package br.com.ofisy.application.serviceorder.reprovequote;
 
-import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
-import br.com.ofisy.application.quote.dto.ReproveQuoteRequestDTO;
+import br.com.ofisy.domain.quote.Quote;
 
 import java.util.UUID;
 
 public interface ReproveServiceOrderQuoteUseCase {
 
-    QuoteResponseDTO execute(ReproveQuoteCommand cmd);
+    Quote execute(ReproveServiceOrderQuoteCommand cmd);
 
-    record ReproveQuoteCommand(
+    record ReproveServiceOrderQuoteCommand(
             UUID quoteId,
-            ReproveQuoteRequestDTO requestDTO
+            String reason
     ) {}
 }

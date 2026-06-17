@@ -1,8 +1,7 @@
 package br.com.ofisy.application.serviceorder;
 
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
-import br.com.ofisy.application.quote.QuoteService;
-import br.com.ofisy.application.quote.dto.*;
+import br.com.ofisy.application.quote.create.CreateQuoteUseCase;
 import br.com.ofisy.application.quote.exceptions.QuoteAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
 import br.com.ofisy.application.serviceorder.approvequote.ApproveServiceOrderQuoteUseCase;
@@ -22,6 +21,7 @@ import br.com.ofisy.domain.customer.Customer;
 import br.com.ofisy.domain.customer.CustomerRepository;
 import br.com.ofisy.domain.notification.NotificationRepository;
 import br.com.ofisy.domain.notification.NotificationType;
+import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.quote.QuoteStatus;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteDataException;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
@@ -75,9 +75,6 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
     private ApproveServiceOrderQuoteUseCase approveServiceOrderQuoteUseCase;
     @Autowired
     private ReproveServiceOrderQuoteUseCase reproveServiceOrderQuoteUseCase;
-    @Autowired
-    private QuoteService quoteService;
-
     @Autowired
     private CustomerRepository customerDomainRepository;
     @Autowired
@@ -140,7 +137,7 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @Test
         @DisplayName("Deve criar ordem de serviço com sucesso")
         void shouldCreateServiceOrderSuccessfully() {
-            ServiceOrder response = createServiceOrderUseCase.execute(validCommand("Relatório de teste da OS"));
+            ServiceOrder response = createServiceOrderUseCase.execute(validCommand());
 
             assertThat(response).isNotNull();
             assertThat(response.getVehicleId()).isEqualTo(vehicleId);
@@ -185,7 +182,7 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @Test
         @DisplayName("Deve iniciar diagnóstico com sucesso")
         void shouldStartDiagnosticSuccessfully() {
-            ServiceOrder created = createServiceOrderUseCase.execute(validCommand("Relatório de teste da OS"));
+            ServiceOrder created = createServiceOrderUseCase.execute(validCommand());
             ServiceOrder response = startDiagnosticUseCase.execute(created.getId());
 
             assertThat(response.getStatus()).isEqualTo(ServiceOrderStatus.IN_DIAGNOSTIC);
@@ -203,7 +200,7 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @Test
         @DisplayName("Deve lançar exceção ao iniciar diagnóstico com transição inválida")
         void shouldThrowExceptionWhenStatusTransitionIsInvalid() {
-            ServiceOrder created = createServiceOrderUseCase.execute(validCommand("Relatório de teste da OS"));
+            ServiceOrder created = createServiceOrderUseCase.execute(validCommand());
             startDiagnosticUseCase.execute(created.getId());
             UUID id = created.getId();
 
@@ -219,7 +216,7 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @Test
         @DisplayName("Deve cancelar ordem de serviço com sucesso")
         void shouldCancelServiceOrderSuccessfully() {
-            ServiceOrder created = createServiceOrderUseCase.execute(validCommand("Relatório de teste da OS"));
+            ServiceOrder created = createServiceOrderUseCase.execute(validCommand());
             ServiceOrder response = cancelServiceOrderUseCase.execute(created.getId());
 
             assertThat(response.getStatus()).isEqualTo(ServiceOrderStatus.CANCELLED);
@@ -241,7 +238,7 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @Test
         @DisplayName("Deve retornar status da ordem de serviço")
         void shouldReturnServiceOrderStatus() {
-            ServiceOrder created = createServiceOrderUseCase.execute(validCommand("Relatório de teste da OS"));
+            ServiceOrder created = createServiceOrderUseCase.execute(validCommand());
             ServiceOrder response = getServiceOrderStatusUseCase.execute(created.getId());
 
             assertThat(response).isNotNull();
@@ -265,7 +262,7 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @Test
         @DisplayName("Deve retornar ordens de serviço recebidas")
         void shouldReturnReceivedServiceOrders() {
-            createServiceOrderUseCase.execute(validCommand("Relatório de teste da OS"));
+            createServiceOrderUseCase.execute(validCommand());
 
             assertThat(listReceivedServiceOrdersUseCase.execute(PageRequest.of(0, 10)).getContent())
                     .isNotEmpty()
@@ -280,7 +277,7 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @Test
         @DisplayName("Deve lançar exceção ao entregar OS com status inválido")
         void shouldThrowExceptionWhenDeliveringWithInvalidStatus() {
-            ServiceOrder created = createServiceOrderUseCase.execute(validCommand("Relatório de teste da OS"));
+            ServiceOrder created = createServiceOrderUseCase.execute(validCommand());
             UUID id = created.getId();
 
             assertThatThrownBy(() -> deliverToCustomerUseCase.execute(id))
@@ -298,11 +295,12 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
             UUID serviceOrderId = createAndStartDiagnostic();
             UUID execId = createServiceOrderExecution(serviceOrderId);
 
-            QuoteResponseDTO quote = generateServiceOrderQuoteUseCase.execute(
-                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(serviceOrderId, fullQuoteRequest(execId, 2)));
+            Quote quote = generateServiceOrderQuoteUseCase.execute(
+                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(
+                            serviceOrderId, stockItemCommands(2), serviceItemCommands(execId)));
 
-            assertThat(quote.serviceOrderId()).isEqualTo(serviceOrderId);
-            assertThat(quote.status()).isEqualTo(QuoteStatus.PENDING);
+            assertThat(quote.getServiceOrderId()).isEqualTo(serviceOrderId);
+            assertThat(quote.getStatus()).isEqualTo(QuoteStatus.PENDING);
             assertThat(getServiceOrderStatusUseCase.execute(serviceOrderId).getStatus())
                     .isEqualTo(ServiceOrderStatus.AWAITING_APPROVAL);
         }
@@ -313,24 +311,27 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
             UUID serviceOrderId = createAndStartDiagnostic();
             UUID execId = createServiceOrderExecution(serviceOrderId);
 
-            QuoteResponseDTO quote = generateServiceOrderQuoteUseCase.execute(
-                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(serviceOrderId, fullQuoteRequest(execId, 2)));
+            Quote quote = generateServiceOrderQuoteUseCase.execute(
+                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(
+                            serviceOrderId, List.of(new CreateQuoteUseCase.StockItemCommand(stockId, 2)),
+                            serviceItemCommands(execId)));
 
-            assertThat(quote.stockItems()).hasSize(1);
-            assertThat(quote.serviceItems()).hasSize(1);
-            assertThat(quote.totalPrice()).isEqualByComparingTo(new BigDecimal("400.00"));
+            assertThat(quote.getStockItems()).hasSize(1);
+            assertThat(quote.getServiceItems()).hasSize(1);
+            assertThat(quote.getTotalPrice()).isEqualByComparingTo(new BigDecimal("400.00"));
         }
 
         @Test
         @DisplayName("Deve criar notificação ao gerar orçamento")
         void shouldCreateNotificationWhenGeneratingQuote() {
             UUID serviceOrderId = createAndStartDiagnostic();
-            QuoteResponseDTO quote = generateServiceOrderQuoteUseCase.execute(
-                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(serviceOrderId, stockOnlyQuoteRequest(1)));
+            Quote quote = generateServiceOrderQuoteUseCase.execute(
+                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(
+                            serviceOrderId, stockOnlyCommands(1), List.of()));
 
             assertThat(notificationDomainRepository.findAll().stream()
                     .filter(n -> n.getType() == NotificationType.QUOTE_GENERATED)
-                    .filter(n -> quote.id().equals(n.getQuoteId()))
+                    .filter(n -> quote.getId().equals(n.getQuoteId()))
                     .toList()).hasSize(1);
         }
 
@@ -338,10 +339,9 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @DisplayName("Deve lançar exceção quando ambas as listas estão vazias")
         void shouldThrowExceptionWhenBothListsAreEmpty() {
             UUID serviceOrderId = createAndStartDiagnostic();
-            CreateQuoteRequestDTO quoteRequest = new CreateQuoteRequestDTO(List.of(), List.of());
 
             assertThatThrownBy(() -> generateServiceOrderQuoteUseCase.execute(
-                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(serviceOrderId, quoteRequest)))
+                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(serviceOrderId, List.of(), List.of())))
                     .isInstanceOf(InvalidQuoteDataException.class);
         }
 
@@ -349,12 +349,12 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @DisplayName("Deve lançar exceção ao gerar orçamento duplicado")
         void shouldThrowExceptionWhenQuoteAlreadyExists() {
             UUID serviceOrderId = createAndStartDiagnostic();
-            CreateQuoteRequestDTO req = stockOnlyQuoteRequest(1);
+            var stockItems = stockOnlyCommands(1);
             generateServiceOrderQuoteUseCase.execute(
-                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(serviceOrderId, req));
+                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(serviceOrderId, stockItems, List.of()));
 
             assertThatThrownBy(() -> generateServiceOrderQuoteUseCase.execute(
-                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(serviceOrderId, req)))
+                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(serviceOrderId, stockItems, List.of())))
                     .isInstanceOf(QuoteAlreadyExistsException.class);
         }
 
@@ -362,12 +362,12 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @DisplayName("Deve lançar exceção ao gerar orçamento com item de estoque duplicado")
         void shouldThrowExceptionWhenDuplicateStockItem() {
             UUID serviceOrderId = createAndStartDiagnostic();
-            CreateQuoteRequestDTO req = new CreateQuoteRequestDTO(
-                    List.of(new StockItemRequestDTO(stockId, 1), new StockItemRequestDTO(stockId, 2)),
-                    List.of());
+            var stockItems = List.of(
+                    new CreateQuoteUseCase.StockItemCommand(stockId, 1),
+                    new CreateQuoteUseCase.StockItemCommand(stockId, 2));
 
             assertThatThrownBy(() -> generateServiceOrderQuoteUseCase.execute(
-                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(serviceOrderId, req)))
+                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(serviceOrderId, stockItems, List.of())))
                     .isInstanceOf(QuoteItemAlreadyExistsException.class);
         }
 
@@ -379,7 +379,7 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
             int before2 = stockRepository.findById(stockId2).orElseThrow().getQuantity();
 
             generateServiceOrderQuoteUseCase.execute(
-                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(serviceOrderId, stockOnlyQuoteRequest(2)));
+                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(serviceOrderId, stockOnlyCommands(2), List.of()));
 
             assertThat(stockRepository.findById(stockId).orElseThrow().getQuantity()).isEqualTo(before1 - 2);
             assertThat(stockRepository.findById(stockId2).orElseThrow().getQuantity()).isEqualTo(before2 - 2);
@@ -389,10 +389,10 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @DisplayName("Deve lançar exceção ao gerar orçamento de OS não encontrada")
         void shouldThrowExceptionWhenServiceOrderNotFound() {
             UUID randomId = UUID.randomUUID();
-            CreateQuoteRequestDTO stockOnlyRequest = stockOnlyQuoteRequest(1);
+            var stockItems = stockOnlyCommands(1);
 
             assertThatThrownBy(() -> generateServiceOrderQuoteUseCase.execute(
-                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(randomId, stockOnlyRequest)))
+                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(randomId, stockItems, List.of())))
                     .isInstanceOf(ServiceOrderNotFoundException.class);
         }
     }
@@ -405,23 +405,23 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         @DisplayName("Deve aprovar orçamento pendente")
         void shouldApproveQuote() {
             UUID serviceOrderId = createAndStartDiagnostic();
-            QuoteResponseDTO quote = generateServiceOrderQuoteUseCase.execute(
-                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(serviceOrderId, stockOnlyQuoteRequest(1)));
+            Quote quote = generateServiceOrderQuoteUseCase.execute(
+                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(serviceOrderId, stockOnlyCommands(1), List.of()));
 
-            QuoteResponseDTO response = approveServiceOrderQuoteUseCase.execute(quote.id());
+            Quote response = approveServiceOrderQuoteUseCase.execute(quote.getId());
 
-            assertThat(response.status()).isEqualTo(QuoteStatus.APPROVED);
-            assertThat(response.updatedAt()).isNotNull();
+            assertThat(response.getStatus()).isEqualTo(QuoteStatus.APPROVED);
+            assertThat(response.getUpdatedAt()).isNotNull();
         }
 
         @Test
         @DisplayName("Deve lançar exceção ao aprovar orçamento não pendente")
         void shouldThrowExceptionWhenApprovingNonPendingQuote() {
             UUID serviceOrderId = createAndStartDiagnostic();
-            QuoteResponseDTO quote = generateServiceOrderQuoteUseCase.execute(
-                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(serviceOrderId, stockOnlyQuoteRequest(1)));
-            approveServiceOrderQuoteUseCase.execute(quote.id());
-            UUID quoteId = quote.id();
+            Quote quote = generateServiceOrderQuoteUseCase.execute(
+                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(serviceOrderId, stockOnlyCommands(1), List.of()));
+            approveServiceOrderQuoteUseCase.execute(quote.getId());
+            UUID quoteId = quote.getId();
 
             assertThatThrownBy(() -> approveServiceOrderQuoteUseCase.execute(quoteId))
                     .isInstanceOf(InvalidQuoteStatusException.class);
@@ -437,42 +437,40 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         void shouldReproveQuoteWithReason() {
             UUID serviceOrderId = createAndStartDiagnostic();
             UUID execId = createServiceOrderExecution(serviceOrderId);
-            QuoteResponseDTO quote = generateServiceOrderQuoteUseCase.execute(
-                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(serviceOrderId, fullQuoteRequest(execId, 1)));
+            Quote quote = generateServiceOrderQuoteUseCase.execute(
+                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(
+                            serviceOrderId, stockItemCommands(1), serviceItemCommands(execId)));
 
-            QuoteResponseDTO response = reproveServiceOrderQuoteUseCase.execute(
-                    new ReproveServiceOrderQuoteUseCase.ReproveQuoteCommand(
-                            quote.id(), new ReproveQuoteRequestDTO("Outra oficina passou um orçamento mais em conta")));
+            Quote response = reproveServiceOrderQuoteUseCase.execute(
+                    new ReproveServiceOrderQuoteUseCase.ReproveServiceOrderQuoteCommand(
+                            quote.getId(), "Outra oficina passou um orçamento mais em conta"));
 
-            assertThat(response.status()).isEqualTo(QuoteStatus.REPROVED);
-            assertThat(response.quoteRefusalReason()).isEqualTo("Outra oficina passou um orçamento mais em conta");
-            assertThat(response.updatedAt()).isNotNull();
+            assertThat(response.getStatus()).isEqualTo(QuoteStatus.REPROVED);
+            assertThat(response.getQuoteRefusalReason()).isEqualTo("Outra oficina passou um orçamento mais em conta");
+            assertThat(response.getUpdatedAt()).isNotNull();
         }
 
         @Test
         @DisplayName("Deve lançar exceção ao reprovar orçamento não pendente")
         void shouldThrowExceptionWhenReprovingNonPendingQuote() {
             UUID serviceOrderId = createAndStartDiagnostic();
-            QuoteResponseDTO quote = generateServiceOrderQuoteUseCase.execute(
-                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(serviceOrderId, stockOnlyQuoteRequest(1)));
-            approveServiceOrderQuoteUseCase.execute(quote.id());
-            UUID quoteId = quote.id();
-            ReproveQuoteRequestDTO reproveRequest = new ReproveQuoteRequestDTO("Motivo");
+            Quote quote = generateServiceOrderQuoteUseCase.execute(
+                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(serviceOrderId, stockOnlyCommands(1), List.of()));
+            approveServiceOrderQuoteUseCase.execute(quote.getId());
+            UUID quoteId = quote.getId();
 
             assertThatThrownBy(() -> reproveServiceOrderQuoteUseCase.execute(
-                    new ReproveServiceOrderQuoteUseCase.ReproveQuoteCommand(quoteId, reproveRequest)))
+                    new ReproveServiceOrderQuoteUseCase.ReproveServiceOrderQuoteCommand(quoteId, "Motivo")))
                     .isInstanceOf(InvalidQuoteStatusException.class);
         }
     }
 
-    // --- helpers ---
-
-    private CreateServiceOrderUseCase.CreateServiceOrderCommand validCommand(String report) {
-        return new CreateServiceOrderUseCase.CreateServiceOrderCommand(vehicleId, customerId, report, userEmail);
+    private CreateServiceOrderUseCase.CreateServiceOrderCommand validCommand() {
+        return new CreateServiceOrderUseCase.CreateServiceOrderCommand(vehicleId, customerId, "Relatório de teste da OS", userEmail);
     }
 
     private UUID createAndStartDiagnostic() {
-        ServiceOrder created = createServiceOrderUseCase.execute(validCommand("Relatório de teste da OS"));
+        ServiceOrder created = createServiceOrderUseCase.execute(validCommand());
         startDiagnosticUseCase.execute(created.getId());
         return created.getId();
     }
@@ -483,15 +481,17 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         ).getId();
     }
 
-    private CreateQuoteRequestDTO stockOnlyQuoteRequest(int quantity) {
-        return new CreateQuoteRequestDTO(
-                List.of(new StockItemRequestDTO(stockId, quantity), new StockItemRequestDTO(stockId2, quantity)),
-                List.of());
+    private List<CreateQuoteUseCase.StockItemCommand> stockOnlyCommands(int quantity) {
+        return List.of(
+                new CreateQuoteUseCase.StockItemCommand(stockId, quantity),
+                new CreateQuoteUseCase.StockItemCommand(stockId2, quantity));
     }
 
-    private CreateQuoteRequestDTO fullQuoteRequest(UUID execId, int quantity) {
-        return new CreateQuoteRequestDTO(
-                List.of(new StockItemRequestDTO(stockId, quantity)),
-                List.of(new ServiceItemRequestDTO(execId)));
+    private List<CreateQuoteUseCase.StockItemCommand> stockItemCommands(int quantity) {
+        return List.of(new CreateQuoteUseCase.StockItemCommand(stockId, quantity));
+    }
+
+    private List<CreateQuoteUseCase.ServiceItemCommand> serviceItemCommands(UUID execId) {
+        return List.of(new CreateQuoteUseCase.ServiceItemCommand(execId));
     }
 }

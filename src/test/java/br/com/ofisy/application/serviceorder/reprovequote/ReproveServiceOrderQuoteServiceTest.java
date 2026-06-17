@@ -1,9 +1,8 @@
 package br.com.ofisy.application.serviceorder.reprovequote;
 
-import br.com.ofisy.application.quote.QuoteService;
-import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
-import br.com.ofisy.application.quote.dto.ReproveQuoteRequestDTO;
+import br.com.ofisy.application.quote.reprove.ReproveQuoteUseCase;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
+import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.quote.QuoteStatus;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import br.com.ofisy.domain.serviceorder.ServiceOrderRepository;
@@ -11,6 +10,7 @@ import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -31,77 +31,84 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class ReproveServiceOrderQuoteServiceTest {
 
-    private static final UUID VALID_CUSTOMER_ID = UUID.randomUUID();
-    private static final UUID VALID_VEHICLE_ID = UUID.randomUUID();
-    private static final UUID VALID_USER_ID = UUID.randomUUID();
-    private static final UUID VALID_SERVICE_ORDER_ID = UUID.randomUUID();
-
-    @Mock
-    private ServiceOrderRepository serviceOrderRepository;
-    @Mock
-    private QuoteService quoteService;
+    @Mock private ServiceOrderRepository serviceOrderRepository;
+    @Mock private ReproveQuoteUseCase reproveQuoteUseCase;
 
     @InjectMocks
-    private ReproveServiceOrderQuoteService reproveServiceOrderQuoteService;
+    private ReproveServiceOrderQuoteService service;
 
     @Nested
     class Execute {
 
         @Test
-        void shouldReproveQuoteSuccessfully() {
+        void shouldReproveQuoteAndCancelServiceOrderSuccessfully() {
             UUID quoteId = UUID.randomUUID();
-            ServiceOrder serviceOrder = serviceOrderAwaitingApproval();
+            UUID serviceOrderId = UUID.randomUUID();
             String reason = "Preço muito alto";
-            ReproveQuoteRequestDTO request = new ReproveQuoteRequestDTO(reason);
-            QuoteResponseDTO reprovedQuoteResponse = reprovedQuoteResponse(quoteId, reason);
+            ReproveServiceOrderQuoteUseCase.ReproveServiceOrderQuoteCommand cmd = new ReproveServiceOrderQuoteUseCase.ReproveServiceOrderQuoteCommand(quoteId, reason);
+            Quote quote = reprovedQuote(quoteId, serviceOrderId, reason);
+            ServiceOrder serviceOrder = awaitingApprovalServiceOrder(serviceOrderId);
 
-            when(quoteService.reprove(quoteId, request)).thenReturn(reprovedQuoteResponse);
-            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
+            when(reproveQuoteUseCase.execute(any(ReproveQuoteUseCase.ReproveQuoteCommand.class))).thenReturn(quote);
+            when(serviceOrderRepository.findById(serviceOrderId)).thenReturn(Optional.of(serviceOrder));
             when(serviceOrderRepository.save(serviceOrder)).thenReturn(serviceOrder);
 
-            QuoteResponseDTO result = reproveServiceOrderQuoteService.execute(
-                    new ReproveServiceOrderQuoteUseCase.ReproveQuoteCommand(quoteId, request));
+            var result = service.execute(cmd);
 
-            assertThat(result).isEqualTo(reprovedQuoteResponse);
-            assertThat(reprovedQuoteResponse.status()).isEqualTo(QuoteStatus.REPROVED);
+            assertThat(result).isEqualTo(quote);
             assertThat(serviceOrder.getStatus()).isEqualTo(ServiceOrderStatus.CANCELLED);
-            verify(quoteService).reprove(quoteId, request);
             verify(serviceOrderRepository).save(serviceOrder);
         }
 
         @Test
-        void shouldThrowServiceOrderNotFoundExceptionWhenOrderDoesNotExist() {
+        void shouldPassQuoteIdAndReasonToInnerUseCase() {
             UUID quoteId = UUID.randomUUID();
-            ReproveQuoteRequestDTO request = new ReproveQuoteRequestDTO("Motivo");
-            QuoteResponseDTO response = quoteResponse(quoteId);
+            UUID serviceOrderId = UUID.randomUUID();
+            String reason = "Cliente desistiu";
+            ReproveServiceOrderQuoteUseCase.ReproveServiceOrderQuoteCommand cmd = new ReproveServiceOrderQuoteUseCase.ReproveServiceOrderQuoteCommand(quoteId, reason);
+            Quote quote = reprovedQuote(quoteId, serviceOrderId, reason);
+            ServiceOrder serviceOrder = awaitingApprovalServiceOrder(serviceOrderId);
+            var captor = ArgumentCaptor.forClass(ReproveQuoteUseCase.ReproveQuoteCommand.class);
 
-            when(quoteService.reprove(quoteId, request)).thenReturn(response);
-            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.empty());
+            when(reproveQuoteUseCase.execute(captor.capture())).thenReturn(quote);
+            when(serviceOrderRepository.findById(serviceOrderId)).thenReturn(Optional.of(serviceOrder));
+            when(serviceOrderRepository.save(serviceOrder)).thenReturn(serviceOrder);
 
-            assertThatThrownBy(() -> reproveServiceOrderQuoteService.execute(
-                    new ReproveServiceOrderQuoteUseCase.ReproveQuoteCommand(quoteId, request)))
+            service.execute(cmd);
+
+            assertThat(captor.getValue().id()).isEqualTo(quoteId);
+            assertThat(captor.getValue().reason()).isEqualTo(reason);
+        }
+
+        @Test
+        void shouldThrowWhenServiceOrderNotFound() {
+            UUID quoteId = UUID.randomUUID();
+            UUID serviceOrderId = UUID.randomUUID();
+            ReproveServiceOrderQuoteUseCase.ReproveServiceOrderQuoteCommand cmd = new ReproveServiceOrderQuoteUseCase.ReproveServiceOrderQuoteCommand(quoteId, "Motivo");
+            Quote quote = reprovedQuote(quoteId, serviceOrderId, "Motivo");
+
+            when(reproveQuoteUseCase.execute(any())).thenReturn(quote);
+            when(serviceOrderRepository.findById(serviceOrderId)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> service.execute(cmd))
                     .isInstanceOf(ServiceOrderNotFoundException.class);
 
             verify(serviceOrderRepository, never()).save(any());
         }
     }
 
-    private ServiceOrder serviceOrderAwaitingApproval() {
-        ServiceOrder order = ServiceOrder.receive(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, "Relatório", VALID_USER_ID);
+    private Quote reprovedQuote(UUID quoteId, UUID serviceOrderId, String reason) {
+        Quote quote = Quote.reconstruct(quoteId, serviceOrderId, QuoteStatus.PENDING,
+                new BigDecimal("100.00"), null, List.of(), List.of(),
+                LocalDateTime.now(), LocalDateTime.now());
+        quote.reprove(reason);
+        return quote;
+    }
+
+    private ServiceOrder awaitingApprovalServiceOrder(UUID serviceOrderId) {
+        ServiceOrder order = ServiceOrder.receive(UUID.randomUUID(), UUID.randomUUID(), "Barulho", UUID.randomUUID());
         order.startDiagnostic();
         order.sendToApproval();
         return order;
-    }
-
-    private QuoteResponseDTO quoteResponse(UUID quoteId) {
-        return new QuoteResponseDTO(quoteId, VALID_SERVICE_ORDER_ID, QuoteStatus.PENDING,
-                new BigDecimal("1500.00"), null, List.of(), List.of(),
-                LocalDateTime.now(), LocalDateTime.now());
-    }
-
-    private QuoteResponseDTO reprovedQuoteResponse(UUID quoteId, String reason) {
-        return new QuoteResponseDTO(quoteId, VALID_SERVICE_ORDER_ID, QuoteStatus.REPROVED,
-                new BigDecimal("1500.00"), reason, List.of(), List.of(),
-                LocalDateTime.now(), LocalDateTime.now());
     }
 }
