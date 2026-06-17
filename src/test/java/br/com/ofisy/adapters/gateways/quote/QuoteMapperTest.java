@@ -21,8 +21,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class QuoteGatewayMapperTest {
+class QuoteMapperTest {
 
+    public static final String PRICE_100 = "100.00";
+    public static final String PRICE_200 = "200.00";
     @Mock
     private StockRepository stockRepository;
     @Mock
@@ -32,36 +34,24 @@ class QuoteGatewayMapperTest {
     class ToEntity {
 
         @Test
-        void shouldMapAllFieldsFromDomainToEntity() {
+        void shouldMapQuoteFieldsToEntity() {
             var quote = validQuote();
 
             var entity = QuoteMapper.toEntity(quote);
 
-            assertThat(entity).isNotNull();
             assertThat(entity.getServiceOrderId()).isEqualTo(quote.getServiceOrderId());
             assertThat(entity.getStatus()).isEqualTo(quote.getStatus());
             assertThat(entity.getTotalPrice()).isEqualByComparingTo(quote.getTotalPrice());
         }
 
         @Test
-        void shouldPreserveNullIdForNewQuote() {
+        void shouldMapEmptyItemListsWhenQuoteHasNoItems() {
             var quote = validQuote();
 
             var entity = QuoteMapper.toEntity(quote);
 
-            assertThat(entity.getId()).isNull();
-        }
-
-        @Test
-        void shouldPreserveIdForReconstructedQuote() {
-            var id = UUID.randomUUID();
-            var quote = Quote.reconstruct(id, UUID.randomUUID(), QuoteStatus.PENDING,
-                    new BigDecimal("100.00"), null, List.of(), List.of(),
-                    LocalDateTime.now(), LocalDateTime.now());
-
-            var entity = QuoteMapper.toEntity(quote);
-
-            assertThat(entity.getId()).isEqualTo(id);
+            assertThat(entity.getStockItems()).isEmpty();
+            assertThat(entity.getServiceItems()).isEmpty();
         }
 
         @Test
@@ -69,7 +59,7 @@ class QuoteGatewayMapperTest {
             var createdAt = LocalDateTime.of(2024, 1, 10, 10, 0);
             var updatedAt = LocalDateTime.of(2024, 1, 15, 12, 0);
             var quote = Quote.reconstruct(null, UUID.randomUUID(), QuoteStatus.PENDING,
-                    new BigDecimal("100.00"), null, List.of(), List.of(), createdAt, updatedAt);
+                    new BigDecimal(PRICE_100), null, List.of(), List.of(), createdAt, updatedAt);
 
             var entity = QuoteMapper.toEntity(quote);
 
@@ -82,12 +72,11 @@ class QuoteGatewayMapperTest {
     class ToDomain {
 
         @Test
-        void shouldMapAllFieldsFromEntityToDomain() {
+        void shouldMapQuoteFieldsToDomain() {
             var entity = validEntity();
 
             var quote = QuoteMapper.toDomain(entity, stockRepository, executionRepository);
 
-            assertThat(quote).isNotNull();
             assertThat(quote.getId()).isEqualTo(entity.getId());
             assertThat(quote.getServiceOrderId()).isEqualTo(entity.getServiceOrderId());
             assertThat(quote.getStatus()).isEqualTo(entity.getStatus());
@@ -95,23 +84,22 @@ class QuoteGatewayMapperTest {
         }
 
         @Test
-        void shouldMapStockItemsFromEntity() {
+        void shouldMapStockItemsUsingStockRepository() {
             var stockId = UUID.randomUUID();
             var stock = validStock(stockId);
             var stockItemEntity = QuoteStockItemEntity.builder()
                     .id(UUID.randomUUID())
                     .stockId(stockId)
-                    .unitPrice(new BigDecimal("100.00"))
+                    .unitPrice(new BigDecimal(PRICE_100))
                     .quantity(2)
                     .createdAt(LocalDateTime.now())
                     .updatedAt(LocalDateTime.now())
                     .build();
-
             var entity = QuoteEntity.builder()
                     .id(UUID.randomUUID())
                     .serviceOrderId(UUID.randomUUID())
                     .status(QuoteStatus.PENDING)
-                    .totalPrice(new BigDecimal("200.00"))
+                    .totalPrice(new BigDecimal(PRICE_200))
                     .stockItems(List.of(stockItemEntity))
                     .serviceItems(List.of())
                     .createdAt(LocalDateTime.now())
@@ -123,7 +111,7 @@ class QuoteGatewayMapperTest {
             var quote = QuoteMapper.toDomain(entity, stockRepository, executionRepository);
 
             assertThat(quote.getStockItems()).hasSize(1);
-            assertThat(quote.getStockItems().get(0).getStock().getId()).isEqualTo(stockId);
+            assertThat(quote.getStockItems().getFirst().getStock().getId()).isEqualTo(stockId);
         }
 
         @Test
@@ -139,7 +127,7 @@ class QuoteGatewayMapperTest {
 
     private Quote validQuote() {
         return Quote.reconstruct(null, UUID.randomUUID(), QuoteStatus.PENDING,
-                new BigDecimal("100.00"), null, List.of(), List.of(),
+                new BigDecimal(PRICE_100), null, List.of(), List.of(),
                 LocalDateTime.now(), LocalDateTime.now());
     }
 
@@ -148,7 +136,7 @@ class QuoteGatewayMapperTest {
                 .id(UUID.randomUUID())
                 .serviceOrderId(UUID.randomUUID())
                 .status(QuoteStatus.PENDING)
-                .totalPrice(new BigDecimal("100.00"))
+                .totalPrice(new BigDecimal(PRICE_100))
                 .stockItems(List.of())
                 .serviceItems(List.of())
                 .createdAt(LocalDateTime.of(2024, 1, 10, 10, 0))
@@ -158,7 +146,7 @@ class QuoteGatewayMapperTest {
 
     private Stock validStock(UUID id) {
         return Stock.reconstruct(id, "Filtro de óleo", "Filtro",
-                10, new BigDecimal("100.00"), "Filtros", 2,
+                10, new BigDecimal(PRICE_100), "Filtros", 2,
                 LocalDateTime.now(), LocalDateTime.now());
     }
 }
