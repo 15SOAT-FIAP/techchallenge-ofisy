@@ -1,17 +1,17 @@
 package br.com.ofisy.application.quote;
 
-import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
+import br.com.ofisy.application.quote.create.CreateQuoteUseCase;
 import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
+import br.com.ofisy.application.quote.findbyid.FindQuoteByIdUseCase;
+import br.com.ofisy.application.quote.findbyserviceorderid.FindQuoteByServiceOrderIdUseCase;
 import br.com.ofisy.application.serviceorder.create.CreateServiceOrderUseCase;
 import br.com.ofisy.application.serviceorder.generatequote.GenerateServiceOrderQuoteUseCase;
 import br.com.ofisy.application.serviceorder.startdiagnostic.StartDiagnosticUseCase;
-import br.com.ofisy.domain.serviceorder.ServiceOrder;
-import br.com.ofisy.application.quote.dto.CreateQuoteRequestDTO;
-import br.com.ofisy.application.quote.dto.StockItemRequestDTO;
 import br.com.ofisy.domain.customer.CpfCnpj;
 import br.com.ofisy.domain.customer.Customer;
 import br.com.ofisy.domain.customer.CustomerRepository;
-import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
+import br.com.ofisy.domain.quote.Quote;
+import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import br.com.ofisy.domain.stock.Stock;
 import br.com.ofisy.domain.stock.StockRepository;
 import br.com.ofisy.domain.user.Role;
@@ -21,7 +21,10 @@ import br.com.ofisy.domain.vehicle.LicensePlate;
 import br.com.ofisy.domain.vehicle.Vehicle;
 import br.com.ofisy.domain.vehicle.VehicleRepository;
 import br.com.ofisy.integration.IntegrationTestBase;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
@@ -34,7 +37,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class QuoteServiceIT extends IntegrationTestBase {
 
     @Autowired
-    private QuoteService quoteService;
+    private FindQuoteByIdUseCase findQuoteByIdUseCase;
+    @Autowired
+    private FindQuoteByServiceOrderIdUseCase findQuoteByServiceOrderIdUseCase;
     @Autowired
     private CreateServiceOrderUseCase createServiceOrderUseCase;
     @Autowired
@@ -42,16 +47,14 @@ class QuoteServiceIT extends IntegrationTestBase {
     @Autowired
     private GenerateServiceOrderQuoteUseCase generateServiceOrderQuoteUseCase;
 
-    @Autowired 
+    @Autowired
     private CustomerRepository customerDomainRepository;
-    @Autowired 
+    @Autowired
     private VehicleRepository vehicleDomainRepository;
-    @Autowired 
+    @Autowired
     private UserRepository userDomainRepository;
-    @Autowired 
+    @Autowired
     private StockRepository stockDomainRepository;
-    @Autowired 
-    private ServiceCatalogRepository serviceCatalogDomainRepository;
 
     private UUID customerId;
     private UUID vehicleId;
@@ -89,21 +92,21 @@ class QuoteServiceIT extends IntegrationTestBase {
         @DisplayName("Deve retornar orçamento por ID")
         void shouldReturnQuoteById() {
             UUID serviceOrderId = createAndStartDiagnostic();
-            QuoteResponseDTO quote = generateServiceOrderQuoteUseCase.execute(
-                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(serviceOrderId, quoteRequest(1)));
+            Quote quote = generateServiceOrderQuoteUseCase.execute(
+                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(serviceOrderId, quoteCommands(), List.of()));
 
-            var response = quoteService.findById(quote.id());
+            Quote response = findQuoteByIdUseCase.execute(quote.getId());
 
             assertThat(response).isNotNull();
-            assertThat(response.id()).isEqualTo(quote.id());
-            assertThat(response.serviceOrderId()).isEqualTo(serviceOrderId);
+            assertThat(response.getId()).isEqualTo(quote.getId());
+            assertThat(response.getServiceOrderId()).isEqualTo(serviceOrderId);
         }
 
         @Test
         @DisplayName("Deve lançar exceção quando orçamento não encontrado")
         void shouldThrowExceptionWhenQuoteNotFound() {
             var randomId = UUID.randomUUID();
-            assertThatThrownBy(() -> quoteService.findById(randomId))
+            assertThatThrownBy(() -> findQuoteByIdUseCase.execute(randomId))
                     .isInstanceOf(QuoteNotFoundException.class);
         }
     }
@@ -117,18 +120,18 @@ class QuoteServiceIT extends IntegrationTestBase {
         void shouldReturnQuotesByServiceOrderId() {
             UUID serviceOrderId = createAndStartDiagnostic();
             generateServiceOrderQuoteUseCase.execute(
-                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(serviceOrderId, quoteRequest(1)));
+                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(serviceOrderId, quoteCommands(), List.of()));
 
-            var response = quoteService.findByServiceOrderId(serviceOrderId);
+            List<Quote> response = findQuoteByServiceOrderIdUseCase.execute(serviceOrderId);
 
             assertThat(response).hasSize(1);
-            assertThat(response.getFirst().serviceOrderId()).isEqualTo(serviceOrderId);
+            assertThat(response.getFirst().getServiceOrderId()).isEqualTo(serviceOrderId);
         }
 
         @Test
         @DisplayName("Deve retornar lista vazia quando não há orçamentos para a OS")
         void shouldReturnEmptyListWhenNoQuotes() {
-            var response = quoteService.findByServiceOrderId(UUID.randomUUID());
+            List<Quote> response = findQuoteByServiceOrderIdUseCase.execute(UUID.randomUUID());
 
             assertThat(response).isEmpty();
         }
@@ -141,9 +144,7 @@ class QuoteServiceIT extends IntegrationTestBase {
         return created.getId();
     }
 
-    private CreateQuoteRequestDTO quoteRequest(int quantity) {
-        return new CreateQuoteRequestDTO(
-                List.of(new StockItemRequestDTO(stockId, quantity)),
-                List.of());
+    private List<CreateQuoteUseCase.StockItemCommand> quoteCommands() {
+        return List.of(new CreateQuoteUseCase.StockItemCommand(stockId, 1));
     }
 }
