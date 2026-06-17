@@ -1,7 +1,9 @@
-package br.com.ofisy.interfaces.api.stockmovement;
+package br.com.ofisy.adapters.controllers.stockmovement;
 
-import br.com.ofisy.application.stockmovement.StockMovementService;
-import br.com.ofisy.application.stockmovement.dto.StockMovementResponseDTO;
+import br.com.ofisy.adapters.controllers.stockmovement.dto.StockMovementResponseDTO;
+import br.com.ofisy.adapters.presenters.stockmovement.StockMovementPresenter;
+import br.com.ofisy.application.stockmovement.list.ListStockMovementUseCase;
+import br.com.ofisy.application.stockmovement.listbystock.ListByStockStockMovementUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
@@ -18,14 +20,15 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class StockMovementController implements StockMovementApi {
 
-    private final StockMovementService stockMovementService;
+    private final ListStockMovementUseCase listStockMovementUseCase;
+    private final ListByStockStockMovementUseCase listByStockStockMovementUseCase;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'STOCKMAN')")
     public ResponseEntity<Page<StockMovementResponseDTO>> getAllStockMovements(
             @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
 
-        return ResponseEntity.ok(stockMovementService.findAll(pageable));
+        return ResponseEntity.ok(listStockMovementUseCase.execute(pageable).map(StockMovementPresenter::present));
     }
 
     @GetMapping(params = "stockId")
@@ -34,6 +37,6 @@ public class StockMovementController implements StockMovementApi {
             @RequestParam(required = false) UUID stockId,
             @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
 
-        return ResponseEntity.ok(stockMovementService.findByStockId(stockId, pageable));
+        return ResponseEntity.ok(listByStockStockMovementUseCase.execute(stockId, pageable).map(StockMovementPresenter::present));
     }
 }
