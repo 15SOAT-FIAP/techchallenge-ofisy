@@ -33,12 +33,14 @@ public class StockMovement {
         this.quantity = quantity;
         this.previousQuantity = previousQuantity;
         this.newQuantity = newQuantity;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
     }
 
     public static StockMovement create(UUID stockId, MovementType movementType, Integer quantity, Integer previousQuantity, Integer newQuantity) {
-        return new StockMovement(stockId, movementType, quantity, previousQuantity, newQuantity);
+        StockMovement stockMovement = new StockMovement(stockId, movementType, quantity, previousQuantity, newQuantity);
+        stockMovement.createdAt = LocalDateTime.now();
+        stockMovement.updatedAt = LocalDateTime.now();
+
+        return stockMovement;
     }
 
     public static StockMovement reconstruct(UUID id, UUID stockId, MovementType movementType,
