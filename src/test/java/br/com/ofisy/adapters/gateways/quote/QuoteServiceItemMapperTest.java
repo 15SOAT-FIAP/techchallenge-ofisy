@@ -3,6 +3,7 @@ package br.com.ofisy.adapters.gateways.quote;
 import br.com.ofisy.domain.quote.QuoteServiceItem;
 import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecution;
 import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionRepository;
+import br.com.ofisy.domain.serviceorderexecution.exceptions.ServiceOrderExecutionNotFoundException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -66,7 +67,7 @@ class QuoteServiceItemMapperTest {
             when(executionRepository.findById(executionId)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> QuoteServiceItemMapper.toDomain(entity, executionRepository))
-                    .isInstanceOf(IllegalArgumentException.class)
+                    .isInstanceOf(ServiceOrderExecutionNotFoundException.class)
                     .hasMessageContaining(executionId.toString());
         }
     }

@@ -3,6 +3,7 @@ package br.com.ofisy.adapters.gateways.quote;
 import br.com.ofisy.domain.quote.QuoteServiceItem;
 import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecution;
 import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionRepository;
+import br.com.ofisy.domain.serviceorderexecution.exceptions.ServiceOrderExecutionNotFoundException;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -12,8 +13,7 @@ public class QuoteServiceItemMapper {
     public static QuoteServiceItem toDomain(QuoteServiceItemEntity entity,
                                             ServiceOrderExecutionRepository executionRepository) {
         ServiceOrderExecution execution = executionRepository.findById(entity.getServiceOrderExecutionId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Execução com id " + entity.getServiceOrderExecutionId() + " não encontrada"));
+                .orElseThrow(() -> new ServiceOrderExecutionNotFoundException(entity.getServiceOrderExecutionId()));
 
         return QuoteServiceItem.reconstruct(
                 entity.getId(),

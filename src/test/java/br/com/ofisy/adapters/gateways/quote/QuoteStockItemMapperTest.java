@@ -1,5 +1,6 @@
 package br.com.ofisy.adapters.gateways.quote;
 
+import br.com.ofisy.application.stock.exceptions.StockNotFoundException;
 import br.com.ofisy.domain.quote.QuoteStockItem;
 import br.com.ofisy.domain.stock.Stock;
 import br.com.ofisy.domain.stock.StockRepository;
@@ -66,7 +67,7 @@ class QuoteStockItemMapperTest {
             when(stockRepository.findById(stockId)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> QuoteStockItemMapper.toDomain(entity, stockRepository))
-                    .isInstanceOf(IllegalArgumentException.class)
+                    .isInstanceOf(StockNotFoundException.class)
                     .hasMessageContaining(stockId.toString());
         }
     }

@@ -1,5 +1,6 @@
 package br.com.ofisy.adapters.gateways.quote;
 
+import br.com.ofisy.application.stock.exceptions.StockNotFoundException;
 import br.com.ofisy.domain.quote.QuoteStockItem;
 import br.com.ofisy.domain.stock.Stock;
 import br.com.ofisy.domain.stock.StockRepository;
@@ -11,8 +12,7 @@ public class QuoteStockItemMapper {
 
     public static QuoteStockItem toDomain(QuoteStockItemEntity entity, StockRepository stockRepository) {
         Stock stock = stockRepository.findById(entity.getStockId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Estoque com id " + entity.getStockId() + " não encontrado"));
+                .orElseThrow(() -> new StockNotFoundException(entity.getStockId()));
 
         return QuoteStockItem.reconstruct(
                 entity.getId(),
