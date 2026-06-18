@@ -1,6 +1,5 @@
 package br.com.ofisy.infrastructure.persistence.servicecatalog;
 
-import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

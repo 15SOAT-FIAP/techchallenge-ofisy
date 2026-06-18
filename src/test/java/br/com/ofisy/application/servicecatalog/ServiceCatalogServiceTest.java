@@ -1,9 +1,8 @@
 package br.com.ofisy.application.servicecatalog;
 
-import br.com.ofisy.application.servicecatalog.dto.ServiceCatalogRequestDTO;
-import br.com.ofisy.application.servicecatalog.dto.ServiceCatalogResponseDTO;
+import br.com.ofisy.adapters.controllers.servicecatalog.dto.ServiceCatalogRequestDTO;
+import br.com.ofisy.adapters.controllers.servicecatalog.dto.ServiceCatalogResponseDTO;
 import br.com.ofisy.application.servicecatalog.exceptions.ServiceCatalogNotFoundException;
-import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

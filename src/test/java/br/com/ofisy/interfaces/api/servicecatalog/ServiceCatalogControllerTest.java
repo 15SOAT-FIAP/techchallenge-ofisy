@@ -1,10 +1,8 @@
 package br.com.ofisy.interfaces.api.servicecatalog;
 
-import br.com.ofisy.application.servicecatalog.ServiceCatalogService;
-import br.com.ofisy.application.servicecatalog.dto.ServiceCatalogRequestDTO;
-import br.com.ofisy.application.servicecatalog.dto.ServiceCatalogResponseDTO;
+import br.com.ofisy.adapters.controllers.servicecatalog.dto.ServiceCatalogRequestDTO;
+import br.com.ofisy.adapters.controllers.servicecatalog.dto.ServiceCatalogResponseDTO;
 import br.com.ofisy.application.serviceorderexecution.ServiceOrderExecutionService;
-import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

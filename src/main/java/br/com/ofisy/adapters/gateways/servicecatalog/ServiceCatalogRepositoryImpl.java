@@ -1,4 +1,4 @@
-package br.com.ofisy.infrastructure.persistence.servicecatalog;
+package br.com.ofisy.adapters.gateways.servicecatalog;
 
 import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
@@ -18,21 +18,25 @@ public class ServiceCatalogRepositoryImpl implements ServiceCatalogRepository {
 
     @Override
     public ServiceCatalog save(ServiceCatalog serviceCatalog) {
-        return jpa.save(serviceCatalog);
+        ServiceCatalogEntity entity = ServiceCatalogMapper.toEntity(serviceCatalog);
+        return ServiceCatalogMapper.toDomain(jpa.save(entity));
     }
 
     @Override
     public Page<ServiceCatalog> findAll(Pageable pageable) {
-        return jpa.findAll(pageable);
-    }
-
-    @Override
-    public Optional<ServiceCatalog> findById(UUID id) {
-        return jpa.findById(id);
+        Page<ServiceCatalogEntity> entities = jpa.findAll(pageable);
+        return entities.map(ServiceCatalogMapper::toDomain);
     }
 
     @Override
     public Optional<ServiceCatalog> findByName(String name) {
-        return jpa.findByName(name);
+        Optional<ServiceCatalogEntity> entityOpt = jpa.findByName(name);
+        return entityOpt.map(ServiceCatalogMapper::toDomain);
+    }
+
+    @Override
+    public Optional<ServiceCatalog> findById(UUID id) {
+        Optional<ServiceCatalogEntity> entityOpt = jpa.findById(id);
+        return entityOpt.map(ServiceCatalogMapper::toDomain);
     }
 }

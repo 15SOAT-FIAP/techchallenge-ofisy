@@ -1,8 +1,7 @@
 package br.com.ofisy.application.servicecatalog;
 
-import br.com.ofisy.application.servicecatalog.dto.ServiceCatalogRequestDTO;
-import br.com.ofisy.application.servicecatalog.dto.ServiceCatalogResponseDTO;
-import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
+import br.com.ofisy.adapters.controllers.servicecatalog.dto.ServiceCatalogRequestDTO;
+import br.com.ofisy.adapters.controllers.servicecatalog.dto.ServiceCatalogResponseDTO;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
