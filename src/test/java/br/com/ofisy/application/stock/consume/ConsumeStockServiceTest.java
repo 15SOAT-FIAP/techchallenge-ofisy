@@ -2,7 +2,7 @@ package br.com.ofisy.application.stock.consume;
 
 import br.com.ofisy.application.notification.createlowstock.CreateLowStockNotificationUseCase;
 import br.com.ofisy.application.stock.exceptions.InsufficientStockException;
-import br.com.ofisy.application.stockmovement.StockMovementService;
+import br.com.ofisy.application.stockmovement.register.RegisterStockMovementUseCase;
 import br.com.ofisy.domain.stock.Stock;
 import br.com.ofisy.domain.stock.StockRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -29,7 +29,7 @@ class ConsumeStockServiceTest {
     private StockRepository stockRepository;
 
     @Mock
-    private StockMovementService stockMovementService;
+    private RegisterStockMovementUseCase registerStockMovementUseCase;
 
     @Mock
     private CreateLowStockNotificationUseCase createLowStockNotificationUseCase;
