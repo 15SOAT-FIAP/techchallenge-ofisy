@@ -1,9 +1,9 @@
 package br.com.ofisy.adapters.gateways.quote;
 
+import br.com.ofisy.application.serviceorderexecution.exceptions.ServiceOrderExecutionNotFoundException;
 import br.com.ofisy.domain.quote.QuoteServiceItem;
 import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecution;
 import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionRepository;
-import br.com.ofisy.domain.serviceorderexecution.exceptions.ServiceOrderExecutionNotFoundException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
