@@ -3,6 +3,7 @@ package br.com.ofisy.application.quote.create;
 import br.com.ofisy.application.quote.exceptions.QuoteAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
 import br.com.ofisy.application.stock.consume.ConsumeStockUseCase;
+import br.com.ofisy.application.stock.exceptions.StockNotFoundException;
 import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.quote.QuoteRepository;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteDataException;
@@ -90,7 +91,7 @@ class CreateQuoteServiceTest {
             when(stockRepository.findById(STOCK_ID)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> service.execute(cmd))
-                    .isInstanceOf(IllegalArgumentException.class)
+                    .isInstanceOf(StockNotFoundException.class)
                     .hasMessageContaining(STOCK_ID.toString());
         }
 

@@ -1,6 +1,6 @@
 package br.com.ofisy.adapters.presenters.quote;
 
-import br.com.ofisy.adapters.controllers.quote.QuoteStockItemResponseDTO;
+import br.com.ofisy.adapters.controllers.quote.dto.QuoteStockItemResponseDTO;
 import br.com.ofisy.domain.quote.QuoteStockItem;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

@@ -2,7 +2,10 @@ package br.com.ofisy.application.quote.create;
 
 import br.com.ofisy.application.quote.exceptions.QuoteAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
+import br.com.ofisy.application.servicecatalog.exceptions.ServiceCatalogNotFoundException;
+import br.com.ofisy.application.serviceorderexecution.exceptions.ServiceOrderExecutionNotFoundException;
 import br.com.ofisy.application.stock.consume.ConsumeStockUseCase;
+import br.com.ofisy.application.stock.exceptions.StockNotFoundException;
 import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.quote.QuoteRepository;
 import br.com.ofisy.domain.quote.QuoteServiceItem;
@@ -49,7 +52,7 @@ public class CreateQuoteService implements CreateQuoteUseCase {
 
         for (StockItemCommand command : commands) {
             Stock stock = stockRepository.findById(command.stockId())
-                    .orElseThrow(() -> new IllegalArgumentException("Estoque com id " + command.stockId() + " não encontrado"));
+                    .orElseThrow(() -> new StockNotFoundException(command.stockId()));
 
             boolean duplicate = items.stream()
                     .anyMatch(i -> i.getStock().getId().equals(command.stockId()));
@@ -69,7 +72,7 @@ public class CreateQuoteService implements CreateQuoteUseCase {
 
         for (ServiceItemCommand command : commands) {
             ServiceOrderExecution execution = serviceOrderExecutionRepository.findById(command.serviceOrderExecutionId())
-                    .orElseThrow(() -> new IllegalArgumentException("Execução de serviço com id " + command.serviceOrderExecutionId() + " não encontrada"));
+                    .orElseThrow(() -> new ServiceOrderExecutionNotFoundException(command.serviceOrderExecutionId()));
 
             boolean duplicate = items.stream()
                     .anyMatch(i -> i.getServiceOrderExecution().getId().equals(command.serviceOrderExecutionId()));
@@ -78,7 +81,7 @@ public class CreateQuoteService implements CreateQuoteUseCase {
             }
 
             ServiceCatalog service = serviceCatalogRepository.findById(execution.getServiceCatalogId())
-                    .orElseThrow(() -> new IllegalArgumentException("Serviço com id " + execution.getServiceCatalogId() + " não encontrado"));
+                    .orElseThrow(() -> new ServiceCatalogNotFoundException(String.valueOf(execution.getServiceCatalogId())));
 
             items.add(QuoteServiceItem.create(execution, service.getPrice()));
         }

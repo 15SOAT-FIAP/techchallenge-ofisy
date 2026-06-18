@@ -1,4 +1,4 @@
-package br.com.ofisy.adapters.controllers.quote;
+package br.com.ofisy.adapters.controllers.quote.dto;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;

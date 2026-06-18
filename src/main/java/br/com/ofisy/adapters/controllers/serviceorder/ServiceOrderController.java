@@ -6,9 +6,9 @@ import br.com.ofisy.adapters.controllers.serviceorder.dto.ServiceOrderStatusResp
 import br.com.ofisy.adapters.presenters.quote.QuotePresenter;
 import br.com.ofisy.adapters.presenters.serviceorder.ServiceOrderPresenter;
 import br.com.ofisy.adapters.presenters.serviceorder.ServiceOrderStatusPresenter;
-import br.com.ofisy.adapters.controllers.quote.CreateQuoteRequestDTO;
-import br.com.ofisy.adapters.controllers.quote.QuoteResponseDTO;
-import br.com.ofisy.adapters.controllers.quote.ReproveQuoteRequestDTO;
+import br.com.ofisy.adapters.controllers.quote.dto.CreateQuoteRequestDTO;
+import br.com.ofisy.adapters.controllers.quote.dto.QuoteResponseDTO;
+import br.com.ofisy.adapters.controllers.quote.dto.ReproveQuoteRequestDTO;
 import br.com.ofisy.application.quote.create.CreateQuoteUseCase;
 import br.com.ofisy.application.serviceorder.approvequote.ApproveServiceOrderQuoteUseCase;
 import br.com.ofisy.application.serviceorder.cancel.CancelServiceOrderUseCase;

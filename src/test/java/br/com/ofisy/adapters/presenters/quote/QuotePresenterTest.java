@@ -1,6 +1,6 @@
 package br.com.ofisy.adapters.presenters.quote;
 
-import br.com.ofisy.adapters.controllers.quote.QuoteResponseDTO;
+import br.com.ofisy.adapters.controllers.quote.dto.QuoteResponseDTO;
 import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.quote.QuoteStatus;
 import org.junit.jupiter.api.Nested;

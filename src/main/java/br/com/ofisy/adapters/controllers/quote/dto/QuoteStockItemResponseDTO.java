@@ -1,4 +1,4 @@
-package br.com.ofisy.adapters.controllers.quote;
+package br.com.ofisy.adapters.controllers.quote.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
