@@ -53,25 +53,25 @@ public abstract class IntegrationTestBase {
     @Autowired
     protected PasswordEncoder passwordEncoder;
 
-    @Autowired private 
+    @Autowired private
     JpaNotificationRepository notificationRepository;
-    @Autowired 
+    @Autowired
     private JpaQuoteRepository quoteRepository;
-    @Autowired 
+    @Autowired
     private JpaServiceOrderExecutionRepository serviceOrderExecutionRepository;
-    @Autowired 
+    @Autowired
     private JpaServiceOrderRepository serviceOrderRepository;
-    @Autowired 
+    @Autowired
     private JpaStockMovementRepository stockMovementRepository;
     @Autowired
     protected JpaStockRepository stockRepository;
-    @Autowired 
+    @Autowired
     private JpaServiceCatalogRepository serviceCatalogRepository;
-    @Autowired 
+    @Autowired
     private JpaVehicleRepository vehicleRepository;
-    @Autowired 
+    @Autowired
     private JpaCustomerRepository customerRepository;
-    @Autowired 
+    @Autowired
     private JpaUserRepository userRepository;
 
     @BeforeEach
