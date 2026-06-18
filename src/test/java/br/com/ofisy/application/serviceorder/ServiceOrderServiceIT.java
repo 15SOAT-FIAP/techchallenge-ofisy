@@ -29,6 +29,7 @@ import br.com.ofisy.domain.notification.NotificationType;
 import br.com.ofisy.domain.quote.QuoteStatus;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteDataException;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
+import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
