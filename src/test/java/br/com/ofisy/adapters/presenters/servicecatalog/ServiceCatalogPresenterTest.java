@@ -3,6 +3,7 @@ package br.com.ofisy.adapters.presenters.servicecatalog;
 import br.com.ofisy.adapters.controllers.servicecatalog.dto.ServiceCatalogResponseDTO;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -10,6 +11,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@ExtendWith(org.mockito.junit.jupiter.MockitoExtension.class)
 class ServiceCatalogPresenterTest {
 
     private static final UUID VALID_ID = UUID.randomUUID();
