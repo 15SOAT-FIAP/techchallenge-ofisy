@@ -1,9 +1,9 @@
 package br.com.ofisy.application.serviceorder.generatequote;
 
 import br.com.ofisy.application.notification.createquote.CreateQuoteNotificationUseCase;
-import br.com.ofisy.application.quote.QuoteService;
-import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
+import br.com.ofisy.application.quote.create.CreateQuoteUseCase;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
+import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import br.com.ofisy.domain.serviceorder.ServiceOrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,24 +15,30 @@ import org.springframework.transaction.annotation.Transactional;
 public class GenerateServiceOrderQuoteService implements GenerateServiceOrderQuoteUseCase {
 
     private final ServiceOrderRepository serviceOrderRepository;
-    private final QuoteService quoteService;
+    private final CreateQuoteUseCase createQuoteUseCase;
     private final CreateQuoteNotificationUseCase createQuoteNotificationUseCase;
 
     @Override
     @Transactional
-    public QuoteResponseDTO execute(GenerateQuoteCommand cmd) {
+    public Quote execute(GenerateQuoteCommand cmd) {
         ServiceOrder serviceOrder = serviceOrderRepository.findById(cmd.serviceOrderId())
                 .orElseThrow(() -> new ServiceOrderNotFoundException(cmd.serviceOrderId()));
-        QuoteResponseDTO quote = quoteService.create(cmd.serviceOrderId(), cmd.request());
+
+        Quote quote = createQuoteUseCase.execute(
+                new CreateQuoteUseCase.CreateQuoteCommand(
+                        cmd.serviceOrderId(), cmd.stockItems(), cmd.serviceItems()));
+
         serviceOrder.sendToApproval();
         serviceOrderRepository.save(serviceOrder);
+
         createQuoteNotificationUseCase.execute(
                 new CreateQuoteNotificationUseCase.CreateQuoteCommand(
-                        quote.id(),
+                        quote.getId(),
                         cmd.serviceOrderId(),
-                        quote.totalPrice()
+                        quote.getTotalPrice()
                 )
         );
+
         return quote;
     }
 }
