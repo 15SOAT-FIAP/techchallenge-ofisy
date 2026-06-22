@@ -20,9 +20,6 @@ public class IdentifyByIdServiceCatalogService implements IdentifyByIdServiceCat
 
     @Override
     public ServiceCatalog execute(UUID id) {
-        if (id == null) {
-            throw new IllegalArgumentException("ID não pode ser nulo");
-        }
         return serviceCatalogRepository.findById(id)
                 .orElseThrow(() -> ServiceCatalogNotFoundException.ofId(id.toString()));
     }
