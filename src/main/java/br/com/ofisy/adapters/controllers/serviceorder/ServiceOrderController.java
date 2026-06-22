@@ -3,11 +3,13 @@ package br.com.ofisy.adapters.controllers.serviceorder;
 import br.com.ofisy.adapters.controllers.serviceorder.dto.ServiceOrderRequestDTO;
 import br.com.ofisy.adapters.controllers.serviceorder.dto.ServiceOrderResponseDTO;
 import br.com.ofisy.adapters.controllers.serviceorder.dto.ServiceOrderStatusResponseDTO;
+import br.com.ofisy.adapters.presenters.quote.QuotePresenter;
 import br.com.ofisy.adapters.presenters.serviceorder.ServiceOrderPresenter;
 import br.com.ofisy.adapters.presenters.serviceorder.ServiceOrderStatusPresenter;
-import br.com.ofisy.application.quote.dto.CreateQuoteRequestDTO;
-import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
-import br.com.ofisy.application.quote.dto.ReproveQuoteRequestDTO;
+import br.com.ofisy.adapters.controllers.quote.dto.CreateQuoteRequestDTO;
+import br.com.ofisy.adapters.controllers.quote.dto.QuoteResponseDTO;
+import br.com.ofisy.adapters.controllers.quote.dto.ReproveQuoteRequestDTO;
+import br.com.ofisy.application.quote.create.CreateQuoteUseCase;
 import br.com.ofisy.application.serviceorder.approvequote.ApproveServiceOrderQuoteUseCase;
 import br.com.ofisy.application.serviceorder.cancel.CancelServiceOrderUseCase;
 import br.com.ofisy.application.serviceorder.create.CreateServiceOrderUseCase;
@@ -18,6 +20,7 @@ import br.com.ofisy.application.serviceorder.listfinished.ListFinishedServiceOrd
 import br.com.ofisy.application.serviceorder.listreceived.ListReceivedServiceOrdersUseCase;
 import br.com.ofisy.application.serviceorder.reprovequote.ReproveServiceOrderQuoteUseCase;
 import br.com.ofisy.application.serviceorder.startdiagnostic.StartDiagnosticUseCase;
+import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +42,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -75,9 +79,11 @@ public class ServiceOrderController implements ServiceOrderApi {
             @PathVariable UUID id,
             @Valid @RequestBody CreateQuoteRequestDTO request) {
 
-        QuoteResponseDTO quote = generateServiceOrderQuoteUseCase.execute(
-                new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(id, request));
-        return ResponseEntity.status(HttpStatus.CREATED).body(quote);
+        Quote quote = generateServiceOrderQuoteUseCase.execute(
+                new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(
+                        id, toStockItemCommands(request), toServiceItemCommands(request)));
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(QuotePresenter.present(quote));
     }
 
     @GetMapping("/received")
@@ -121,7 +127,8 @@ public class ServiceOrderController implements ServiceOrderApi {
 
     @PatchMapping("/quote/{id}/approve")
     public ResponseEntity<QuoteResponseDTO> approveQuote(@PathVariable UUID id) {
-        return ResponseEntity.ok(approveServiceOrderQuoteUseCase.execute(id));
+        Quote quote = approveServiceOrderQuoteUseCase.execute(id);
+        return ResponseEntity.ok(QuotePresenter.present(quote));
     }
 
     @PatchMapping("/quote/{id}/reprove")
@@ -129,8 +136,26 @@ public class ServiceOrderController implements ServiceOrderApi {
             @PathVariable UUID id,
             @RequestBody ReproveQuoteRequestDTO reproveQuoteRequestDTO) {
 
-        QuoteResponseDTO result = reproveServiceOrderQuoteUseCase.execute(
-                new ReproveServiceOrderQuoteUseCase.ReproveQuoteCommand(id, reproveQuoteRequestDTO));
-        return ResponseEntity.ok(result);
+        Quote quote = reproveServiceOrderQuoteUseCase.execute(
+                new ReproveServiceOrderQuoteUseCase.ReproveServiceOrderQuoteCommand(id, reproveQuoteRequestDTO.reason()));
+        return ResponseEntity.ok(QuotePresenter.present(quote));
+    }
+
+    private List<CreateQuoteUseCase.StockItemCommand> toStockItemCommands(CreateQuoteRequestDTO request) {
+        if (request.stockItems() == null) {
+            return List.of();
+        }
+        return request.stockItems().stream()
+                .map(stockItem -> new CreateQuoteUseCase.StockItemCommand(stockItem.stockId(), stockItem.quantity()))
+                .toList();
+    }
+
+    private List<CreateQuoteUseCase.ServiceItemCommand> toServiceItemCommands(CreateQuoteRequestDTO request) {
+        if (request.serviceItems() == null) {
+            return List.of();
+        }
+        return request.serviceItems().stream()
+                .map(serviceItem -> new CreateQuoteUseCase.ServiceItemCommand(serviceItem.serviceOrderExecutionId()))
+                .toList();
     }
 }

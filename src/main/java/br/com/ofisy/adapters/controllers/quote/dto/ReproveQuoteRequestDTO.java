@@ -1,4 +1,4 @@
-package br.com.ofisy.application.quote.dto;
+package br.com.ofisy.adapters.controllers.quote.dto;
 
 public record ReproveQuoteRequestDTO(
         String reason
