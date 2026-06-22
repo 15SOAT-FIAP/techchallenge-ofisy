@@ -1,10 +1,9 @@
 package br.com.ofisy.application.serviceorder.generatequote;
 
 import br.com.ofisy.application.notification.createquote.CreateQuoteNotificationUseCase;
-import br.com.ofisy.application.quote.QuoteService;
-import br.com.ofisy.application.quote.dto.CreateQuoteRequestDTO;
-import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
+import br.com.ofisy.application.quote.create.CreateQuoteUseCase;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
+import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.quote.QuoteStatus;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import br.com.ofisy.domain.serviceorder.ServiceOrderRepository;
@@ -37,11 +36,13 @@ class GenerateServiceOrderQuoteServiceTest {
     private static final UUID VALID_VEHICLE_ID = UUID.randomUUID();
     private static final UUID VALID_USER_ID = UUID.randomUUID();
     private static final UUID VALID_SERVICE_ORDER_ID = UUID.randomUUID();
+    public static final String PRICE_1500 = "1500.00";
+    public static final String RELATORIO = "Relatório";
 
     @Mock
     private ServiceOrderRepository serviceOrderRepository;
     @Mock
-    private QuoteService quoteService;
+    private CreateQuoteUseCase createQuoteUseCase;
     @Mock
     private CreateQuoteNotificationUseCase createQuoteNotificationUseCase;
 
@@ -54,46 +55,68 @@ class GenerateServiceOrderQuoteServiceTest {
         @Test
         void shouldGenerateQuoteSuccessfully() {
             ServiceOrder serviceOrder = inDiagnosticServiceOrder();
-            CreateQuoteRequestDTO request = quoteRequest();
+            GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand cmd = new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(
+                    VALID_SERVICE_ORDER_ID, List.of(), List.of());
             UUID quoteId = UUID.randomUUID();
-            QuoteResponseDTO quote = quoteResponse(quoteId);
+            Quote quote = validQuote(quoteId);
 
             when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
-            when(quoteService.create(VALID_SERVICE_ORDER_ID, request)).thenReturn(quote);
+            when(createQuoteUseCase.execute(any())).thenReturn(quote);
             when(serviceOrderRepository.save(serviceOrder)).thenReturn(serviceOrder);
 
-            QuoteResponseDTO result = generateServiceOrderQuoteService.execute(
-                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(VALID_SERVICE_ORDER_ID, request));
+            Quote result = generateServiceOrderQuoteService.execute(cmd);
 
             assertThat(result).isEqualTo(quote);
             assertThat(serviceOrder.getStatus()).isEqualTo(ServiceOrderStatus.AWAITING_APPROVAL);
             verify(serviceOrderRepository).save(serviceOrder);
             verify(createQuoteNotificationUseCase).execute(
-                    new CreateQuoteNotificationUseCase.CreateQuoteCommand(quoteId, VALID_SERVICE_ORDER_ID, new BigDecimal("1500.00")));
+                    new CreateQuoteNotificationUseCase.CreateQuoteCommand(
+                            quoteId, VALID_SERVICE_ORDER_ID, new BigDecimal(PRICE_1500)));
+        }
+
+        @Test
+        void shouldPassCommandFieldsToCreateQuoteUseCase() {
+            ServiceOrder serviceOrder = inDiagnosticServiceOrder();
+            List<CreateQuoteUseCase.StockItemCommand> stockItems = List.of(new CreateQuoteUseCase.StockItemCommand(UUID.randomUUID(), 2));
+            GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand cmd = new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(
+                    VALID_SERVICE_ORDER_ID, stockItems, List.of());
+            Quote quote = validQuote(UUID.randomUUID());
+
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
+            when(createQuoteUseCase.execute(any())).thenReturn(quote);
+            when(serviceOrderRepository.save(serviceOrder)).thenReturn(serviceOrder);
+
+            generateServiceOrderQuoteService.execute(cmd);
+
+            verify(createQuoteUseCase).execute(new CreateQuoteUseCase.CreateQuoteCommand(
+                    VALID_SERVICE_ORDER_ID, stockItems, List.of()));
         }
 
         @Test
         void shouldThrowServiceOrderNotFoundExceptionWhenOrderDoesNotExist() {
             when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.empty());
 
-            CreateQuoteRequestDTO request = quoteRequest();
-            assertThatThrownBy(() -> generateServiceOrderQuoteService.execute(
-                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(VALID_SERVICE_ORDER_ID, request)))
+            GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand cmd = new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(
+                    VALID_SERVICE_ORDER_ID, List.of(), List.of());
+
+            assertThatThrownBy(() -> generateServiceOrderQuoteService.execute(cmd))
                     .isInstanceOf(ServiceOrderNotFoundException.class);
 
-            verify(quoteService, never()).create(any(), any());
+            verify(createQuoteUseCase, never()).execute(any());
             verify(createQuoteNotificationUseCase, never()).execute(any());
         }
 
         @Test
         void shouldThrowInvalidTransitionWhenOrderIsNotInDiagnostic() {
             ServiceOrder serviceOrder = receivedServiceOrder();
-            CreateQuoteRequestDTO request = quoteRequest();
-            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
-            when(quoteService.create(VALID_SERVICE_ORDER_ID, request)).thenReturn(quoteResponse(UUID.randomUUID()));
+            GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand cmd = new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(
+                    VALID_SERVICE_ORDER_ID, List.of(), List.of());
+            Quote quote = validQuote(UUID.randomUUID());
 
-            assertThatThrownBy(() -> generateServiceOrderQuoteService.execute(
-                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(VALID_SERVICE_ORDER_ID, request)))
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
+            when(createQuoteUseCase.execute(any())).thenReturn(quote);
+
+            assertThatThrownBy(() -> generateServiceOrderQuoteService.execute(cmd))
                     .isInstanceOf(InvalidServiceOrderTransitionException.class);
 
             verify(createQuoteNotificationUseCase, never()).execute(any());
@@ -101,22 +124,18 @@ class GenerateServiceOrderQuoteServiceTest {
     }
 
     private ServiceOrder receivedServiceOrder() {
-        return ServiceOrder.receive(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, "Relatório", VALID_USER_ID);
+        return ServiceOrder.receive(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, RELATORIO, VALID_USER_ID);
     }
 
     private ServiceOrder inDiagnosticServiceOrder() {
-        ServiceOrder order = ServiceOrder.receive(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, "Relatório", VALID_USER_ID);
+        ServiceOrder order = ServiceOrder.receive(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, RELATORIO, VALID_USER_ID);
         order.startDiagnostic();
         return order;
     }
 
-    private CreateQuoteRequestDTO quoteRequest() {
-        return new CreateQuoteRequestDTO(List.of(), List.of());
-    }
-
-    private QuoteResponseDTO quoteResponse(UUID quoteId) {
-        return new QuoteResponseDTO(quoteId, VALID_SERVICE_ORDER_ID, QuoteStatus.PENDING,
-                new BigDecimal("1500.00"), null, List.of(), List.of(),
+    private Quote validQuote(UUID quoteId) {
+        return Quote.reconstruct(quoteId, VALID_SERVICE_ORDER_ID, QuoteStatus.PENDING,
+                new BigDecimal(PRICE_1500), null, List.of(), List.of(),
                 LocalDateTime.now(), LocalDateTime.now());
     }
 }

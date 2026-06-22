@@ -31,10 +31,7 @@ class QuoteStockItemTest {
 
             assertThat(item.getUnitPrice()).isEqualByComparingTo(new BigDecimal(PRICE_150));
             assertThat(item.getQuantity()).isEqualTo(3);
-            // TODO: Validação do estoque temporariamente removida durante a migração
-            // do contexto de Orçamento para Clean Architecture. Atualmente o item
-            // armazena StockEntity como solução provisória até a criação de
-            // QuoteEntity/QuoteStockItemEntity.
+            assertThat(item.getStock()).isEqualTo(stock);
             assertThat(item.getCreatedAt()).isNotNull();
         }
 
@@ -77,6 +74,7 @@ class QuoteStockItemTest {
 
             item.setQuote(quote);
             item2.setQuote(quote);
+
             assertThat(item.getQuote()).isEqualTo(quote);
         }
     }

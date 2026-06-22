@@ -2,7 +2,6 @@ package br.com.ofisy.domain.quote;
 
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteDataException;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
-import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,40 +12,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@Entity
-@Table(name = "quotes")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Quote {
 
     public static final String ACTION_APPROVE = "aprovar";
     public static final String ACTION_REPROVE = "reprovar";
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-
-    @Column(nullable = false, unique = true)
     private UUID serviceOrderId;
-
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
     private QuoteStatus status;
-
-    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal totalPrice;
-
-    @OneToMany(mappedBy = "quote", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QuoteStockItem> stockItems = new ArrayList<>();
-
-    @OneToMany(mappedBy = "quote", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QuoteServiceItem> serviceItems = new ArrayList<>();
-
     private String quoteRefusalReason;
-
-    @Column(nullable = false)
     private LocalDateTime createdAt;
-
     private LocalDateTime updatedAt;
 
     public static Quote create(UUID serviceOrderId,
@@ -67,6 +47,28 @@ public class Quote {
         quote.updatedAt = LocalDateTime.now();
         quote.stockItems.forEach(item -> item.setQuote(quote));
         quote.serviceItems.forEach(item -> item.setQuote(quote));
+        return quote;
+    }
+
+    public static Quote reconstruct(UUID id,
+                                    UUID serviceOrderId,
+                                    QuoteStatus status,
+                                    BigDecimal totalPrice,
+                                    String quoteRefusalReason,
+                                    List<QuoteStockItem> stockItems,
+                                    List<QuoteServiceItem> serviceItems,
+                                    LocalDateTime createdAt,
+                                    LocalDateTime updatedAt) {
+        Quote quote = new Quote();
+        quote.id = id;
+        quote.serviceOrderId = serviceOrderId;
+        quote.status = status;
+        quote.totalPrice = totalPrice;
+        quote.quoteRefusalReason = quoteRefusalReason;
+        quote.stockItems = stockItems != null ? stockItems : new ArrayList<>();
+        quote.serviceItems = serviceItems != null ? serviceItems : new ArrayList<>();
+        quote.createdAt = createdAt;
+        quote.updatedAt = updatedAt;
         return quote;
     }
 
@@ -99,5 +101,4 @@ public class Quote {
 
         return stockTotal.add(serviceTotal);
     }
-
 }

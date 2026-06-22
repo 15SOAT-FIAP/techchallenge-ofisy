@@ -1,9 +1,6 @@
 package br.com.ofisy.adapters.controllers.serviceorder;
 
-import br.com.ofisy.adapters.controllers.serviceorder.dto.ServiceOrderResponseDTO;
-import br.com.ofisy.adapters.controllers.serviceorder.dto.ServiceOrderStatusResponseDTO;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
-import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
 import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
 import br.com.ofisy.application.serviceorder.approvequote.ApproveServiceOrderQuoteUseCase;
 import br.com.ofisy.application.serviceorder.cancel.CancelServiceOrderUseCase;
@@ -18,11 +15,12 @@ import br.com.ofisy.application.serviceorder.listreceived.ListReceivedServiceOrd
 import br.com.ofisy.application.serviceorder.reprovequote.ReproveServiceOrderQuoteUseCase;
 import br.com.ofisy.application.serviceorder.startdiagnostic.StartDiagnosticUseCase;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
+import br.com.ofisy.config.GlobalExceptionHandler;
+import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.quote.QuoteStatus;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
 import br.com.ofisy.domain.serviceorder.exceptions.InvalidServiceOrderTransitionException;
-import br.com.ofisy.config.GlobalExceptionHandler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -52,7 +50,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -462,7 +459,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn200WhenQuoteIsApproved() throws Exception {
-            when(approveServiceOrderQuoteUseCase.execute(QUOTE_ID)).thenReturn(mockApprovedResponse());
+            when(approveServiceOrderQuoteUseCase.execute(QUOTE_ID)).thenReturn(mockApprovedQuote());
 
             mockMvc.perform(patch(BASE_URL + "/quote/{id}/approve", QUOTE_ID))
                     .andExpect(status().isOk())
@@ -501,8 +498,8 @@ class ServiceOrderControllerTest {
                     .andExpect(status().isBadRequest());
         }
 
-        private QuoteResponseDTO mockApprovedResponse() {
-            return new QuoteResponseDTO(QUOTE_ID, ORDER_ID, QuoteStatus.APPROVED,
+        private Quote mockApprovedQuote() {
+            return Quote.reconstruct(QUOTE_ID, ORDER_ID, QuoteStatus.APPROVED,
                     new BigDecimal("1500.00"), null, List.of(), List.of(), NOW, NOW);
         }
     }
@@ -515,7 +512,7 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn200WhenQuoteIsReproved() throws Exception {
-            when(reproveServiceOrderQuoteUseCase.execute(any())).thenReturn(mockReprovedResponse());
+            when(reproveServiceOrderQuoteUseCase.execute(any())).thenReturn(mockReprovedQuote());
 
             mockMvc.perform(patch(BASE_URL + "/quote/{id}/reprove", QUOTE_ID)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -577,8 +574,8 @@ class ServiceOrderControllerTest {
                     .andExpect(status().isBadRequest());
         }
 
-        private QuoteResponseDTO mockReprovedResponse() {
-            return new QuoteResponseDTO(QUOTE_ID, ORDER_ID, QuoteStatus.REPROVED,
+        private Quote mockReprovedQuote() {
+            return Quote.reconstruct(QUOTE_ID, ORDER_ID, QuoteStatus.REPROVED,
                     new BigDecimal("1500.00"), "Preço muito alto", List.of(), List.of(), NOW, NOW);
         }
     }

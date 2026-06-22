@@ -1,8 +1,8 @@
 package br.com.ofisy.application.serviceorder.approvequote;
 
-import br.com.ofisy.application.quote.QuoteService;
-import br.com.ofisy.application.quote.dto.QuoteResponseDTO;
+import br.com.ofisy.application.quote.approve.ApproveQuoteUseCase;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
+import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.quote.QuoteStatus;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import br.com.ofisy.domain.serviceorder.ServiceOrderRepository;
@@ -30,72 +30,63 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class ApproveServiceOrderQuoteServiceTest {
 
-    private static final UUID VALID_CUSTOMER_ID = UUID.randomUUID();
-    private static final UUID VALID_VEHICLE_ID = UUID.randomUUID();
-    private static final UUID VALID_USER_ID = UUID.randomUUID();
-    private static final UUID VALID_SERVICE_ORDER_ID = UUID.randomUUID();
-
-    @Mock
-    private ServiceOrderRepository serviceOrderRepository;
-    @Mock
-    private QuoteService quoteService;
+    public static final String PRICE_100 = "100.00";
+    public static final String BARULHO = "Barulho";
+    @Mock private ServiceOrderRepository serviceOrderRepository;
+    @Mock private ApproveQuoteUseCase approveQuoteUseCase;
 
     @InjectMocks
-    private ApproveServiceOrderQuoteService approveServiceOrderQuoteService;
+    private ApproveServiceOrderQuoteService service;
 
     @Nested
     class Execute {
 
         @Test
-        void shouldApproveQuoteSuccessfully() {
+        void shouldApproveQuoteAndUpdateServiceOrderSuccessfully() {
             UUID quoteId = UUID.randomUUID();
-            ServiceOrder serviceOrder = serviceOrderAwaitingApproval();
-            QuoteResponseDTO approvedQuoteResponse = approvedQuoteResponse(quoteId);
+            UUID serviceOrderId = UUID.randomUUID();
+            Quote quote = approvedQuote(quoteId, serviceOrderId);
+            ServiceOrder serviceOrder = awaitingApprovalServiceOrder(serviceOrderId);
 
-            when(quoteService.approve(quoteId)).thenReturn(approvedQuoteResponse);
-            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
+            when(approveQuoteUseCase.execute(quoteId)).thenReturn(quote);
+            when(serviceOrderRepository.findById(serviceOrderId)).thenReturn(Optional.of(serviceOrder));
             when(serviceOrderRepository.save(serviceOrder)).thenReturn(serviceOrder);
 
-            QuoteResponseDTO result = approveServiceOrderQuoteService.execute(quoteId);
+            Quote result = service.execute(quoteId);
 
-            assertThat(result).isEqualTo(approvedQuoteResponse);
-            assertThat(approvedQuoteResponse.status()).isEqualTo(QuoteStatus.APPROVED);
+            assertThat(result).isEqualTo(quote);
             assertThat(serviceOrder.getStatus()).isEqualTo(ServiceOrderStatus.AWAITING_EXECUTION);
-            verify(quoteService).approve(quoteId);
             verify(serviceOrderRepository).save(serviceOrder);
         }
 
         @Test
-        void shouldThrowServiceOrderNotFoundExceptionWhenOrderDoesNotExist() {
+        void shouldThrowWhenServiceOrderNotFound() {
             UUID quoteId = UUID.randomUUID();
-            QuoteResponseDTO response = quoteResponse(quoteId);
+            UUID serviceOrderId = UUID.randomUUID();
+            Quote quote = approvedQuote(quoteId, serviceOrderId);
 
-            when(quoteService.approve(quoteId)).thenReturn(response);
-            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.empty());
+            when(approveQuoteUseCase.execute(quoteId)).thenReturn(quote);
+            when(serviceOrderRepository.findById(serviceOrderId)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> approveServiceOrderQuoteService.execute(quoteId))
+            assertThatThrownBy(() -> service.execute(quoteId))
                     .isInstanceOf(ServiceOrderNotFoundException.class);
 
             verify(serviceOrderRepository, never()).save(any());
         }
     }
 
-    private ServiceOrder serviceOrderAwaitingApproval() {
-        ServiceOrder order = ServiceOrder.receive(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, "Relatório", VALID_USER_ID);
+    private Quote approvedQuote(UUID quoteId, UUID serviceOrderId) {
+        Quote quote = Quote.reconstruct(quoteId, serviceOrderId, QuoteStatus.PENDING,
+                new BigDecimal(PRICE_100), null, List.of(), List.of(),
+                LocalDateTime.now(), LocalDateTime.now());
+        quote.approve();
+        return quote;
+    }
+
+    private ServiceOrder awaitingApprovalServiceOrder(UUID serviceOrderId) {
+        ServiceOrder order = ServiceOrder.receive(UUID.randomUUID(), UUID.randomUUID(), BARULHO, UUID.randomUUID());
         order.startDiagnostic();
         order.sendToApproval();
         return order;
-    }
-
-    private QuoteResponseDTO quoteResponse(UUID quoteId) {
-        return new QuoteResponseDTO(quoteId, VALID_SERVICE_ORDER_ID, QuoteStatus.PENDING,
-                new BigDecimal("1500.00"), null, List.of(), List.of(),
-                LocalDateTime.now(), LocalDateTime.now());
-    }
-
-    private QuoteResponseDTO approvedQuoteResponse(UUID quoteId) {
-        return new QuoteResponseDTO(quoteId, VALID_SERVICE_ORDER_ID, QuoteStatus.APPROVED,
-                new BigDecimal("1500.00"), null, List.of(), List.of(),
-                LocalDateTime.now(), LocalDateTime.now());
     }
 }
