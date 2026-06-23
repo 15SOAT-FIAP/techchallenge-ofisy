@@ -11,12 +11,12 @@ import java.util.UUID;
 
 @Service
 @Transactional
-public class StartExecution implements StartExecutionUseCase {
+public class StartExecutionService implements StartExecutionUseCase {
 
     private final ServiceOrderExecutionRepository repository;
     private final StartServiceOrderExecutionUseCase startServiceOrderExecutionUseCase;
 
-    public StartExecution(ServiceOrderExecutionRepository repository,
+    public StartExecutionService(ServiceOrderExecutionRepository repository,
                           StartServiceOrderExecutionUseCase startServiceOrderExecutionUseCase) {
         this.repository = repository;
         this.startServiceOrderExecutionUseCase = startServiceOrderExecutionUseCase;
