@@ -20,6 +20,7 @@ import br.com.ofisy.application.serviceorder.create.CreateServiceOrderUseCase;
 import br.com.ofisy.application.serviceorder.delivertocustomer.DeliverToCustomerUseCase;
 import br.com.ofisy.application.serviceorder.generatequote.GenerateServiceOrderQuoteUseCase;
 import br.com.ofisy.application.serviceorder.getstatus.GetServiceOrderStatusUseCase;
+import br.com.ofisy.application.serviceorder.listactive.ListActiveServiceOrdersUseCase;
 import br.com.ofisy.application.serviceorder.listfinished.ListFinishedServiceOrdersUseCase;
 import br.com.ofisy.application.serviceorder.listreceived.ListReceivedServiceOrdersUseCase;
 import br.com.ofisy.application.serviceorder.reprovequote.ReproveServiceOrderQuoteUseCase;
@@ -95,6 +96,8 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
     private ListReceivedServiceOrdersUseCase listReceivedServiceOrdersUseCase;
     @MockitoBean
     private ListFinishedServiceOrdersUseCase listFinishedServiceOrdersUseCase;
+    @MockitoBean
+    private ListActiveServiceOrdersUseCase listActiveServiceOrdersUseCase;
     @MockitoBean
     private StartDiagnosticUseCase startDiagnosticUseCase;
     @MockitoBean
