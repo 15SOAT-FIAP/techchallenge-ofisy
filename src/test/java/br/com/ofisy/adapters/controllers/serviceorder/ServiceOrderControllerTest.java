@@ -10,6 +10,7 @@ import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundExce
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
 import br.com.ofisy.application.serviceorder.generatequote.GenerateServiceOrderQuoteUseCase;
 import br.com.ofisy.application.serviceorder.getstatus.GetServiceOrderStatusUseCase;
+import br.com.ofisy.application.serviceorder.listactive.ListActiveServiceOrdersUseCase;
 import br.com.ofisy.application.serviceorder.listfinished.ListFinishedServiceOrdersUseCase;
 import br.com.ofisy.application.serviceorder.listreceived.ListReceivedServiceOrdersUseCase;
 import br.com.ofisy.application.serviceorder.reprovequote.ReproveServiceOrderQuoteUseCase;
@@ -76,6 +77,8 @@ class ServiceOrderControllerTest {
     @Mock
     private ListFinishedServiceOrdersUseCase listFinishedServiceOrdersUseCase;
     @Mock
+    private ListActiveServiceOrdersUseCase listActiveServiceOrdersUseCase;
+    @Mock
     private StartDiagnosticUseCase startDiagnosticUseCase;
     @Mock
     private DeliverToCustomerUseCase deliverToCustomerUseCase;
@@ -98,6 +101,7 @@ class ServiceOrderControllerTest {
                         cancelServiceOrderUseCase,
                         listReceivedServiceOrdersUseCase,
                         listFinishedServiceOrdersUseCase,
+                        listActiveServiceOrdersUseCase,
                         startDiagnosticUseCase,
                         deliverToCustomerUseCase,
                         getServiceOrderStatusUseCase,
@@ -297,6 +301,51 @@ class ServiceOrderControllerTest {
 
             ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
             verify(listFinishedServiceOrdersUseCase).execute(captor.capture());
+            assertThat(captor.getValue().getPageNumber()).isEqualTo(2);
+            assertThat(captor.getValue().getPageSize()).isEqualTo(5);
+        }
+    }
+
+    @Nested
+    class ListActive {
+
+        @Test
+        void shouldReturn200WithPageOfActiveServiceOrders() throws Exception {
+            ServiceOrder inProgress = mockServiceOrder(ServiceOrderStatus.IN_PROGRESS);
+            ServiceOrder inDiagnostic = mockServiceOrder(ServiceOrderStatus.IN_DIAGNOSTIC);
+            Page<ServiceOrder> page = new PageImpl<>(List.of(inProgress, inDiagnostic), PageRequest.of(0, 10), 2);
+            when(listActiveServiceOrdersUseCase.execute(any(Pageable.class))).thenReturn(page);
+
+            mockMvc.perform(get(BASE_URL + "/active"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content[0].status").value("IN_PROGRESS"))
+                    .andExpect(jsonPath("$.content[1].status").value("IN_DIAGNOSTIC"))
+                    .andExpect(jsonPath("$.totalElements").value(2));
+        }
+
+        @Test
+        void shouldReturn200WithEmptyPageWhenNoActiveOrders() throws Exception {
+            Page<ServiceOrder> page = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
+            when(listActiveServiceOrdersUseCase.execute(any(Pageable.class))).thenReturn(page);
+
+            mockMvc.perform(get(BASE_URL + "/active"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content").isEmpty())
+                    .andExpect(jsonPath("$.totalElements").value(0));
+        }
+
+        @Test
+        void shouldForwardPageableParametersToUseCase() throws Exception {
+            Page<ServiceOrder> page = new PageImpl<>(List.of(), PageRequest.of(2, 5), 0);
+            when(listActiveServiceOrdersUseCase.execute(any(Pageable.class))).thenReturn(page);
+
+            mockMvc.perform(get(BASE_URL + "/active")
+                            .param("page", "2")
+                            .param("size", "5"))
+                    .andExpect(status().isOk());
+
+            ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+            verify(listActiveServiceOrdersUseCase).execute(captor.capture());
             assertThat(captor.getValue().getPageNumber()).isEqualTo(2);
             assertThat(captor.getValue().getPageSize()).isEqualTo(5);
         }
