@@ -34,8 +34,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(MockitoExtension.class)
 class ServiceOrderExecutionControllerTest {
 
-    private static final String BASE_URL = "/api/v1/stocks";
-
     @Autowired
     private MockMvc mockMvc;
 
