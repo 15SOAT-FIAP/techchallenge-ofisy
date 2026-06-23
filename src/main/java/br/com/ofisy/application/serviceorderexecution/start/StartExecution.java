@@ -10,28 +10,24 @@ import java.util.UUID;
 
 @Service
 @Transactional
-public class StartServiceOrderExecutionService implements StartServiceOrderExecutionUseCase {
+public class StartExecution implements StartExecutionUseCase {
 
     private final ServiceOrderExecutionRepository repository;
-    private final br.com.ofisy.application.serviceorder.startexecution.StartServiceOrderExecutionUseCase finishServiceOrderExecutionUseCase;
+    private final StartExecutionUseCase startServiceOrderExecutionUseCase;
 
-    public StartServiceOrderExecutionService(ServiceOrderExecutionRepository repository,
-                                            br.com.ofisy.application.serviceorder.startexecution.StartServiceOrderExecutionUseCase finishServiceOrderExecutionUseCase) {
+    public StartExecution(ServiceOrderExecutionRepository repository,
+                          StartExecutionUseCase startServiceOrderExecutionUseCase) {
         this.repository = repository;
-        this.finishServiceOrderExecutionUseCase = finishServiceOrderExecutionUseCase;
+        this.startServiceOrderExecutionUseCase = startServiceOrderExecutionUseCase;
     }
 
     @Override
     public ServiceOrderExecution execute(UUID id) {
-        if (id == null) {
-            throw new IllegalArgumentException("ID não pode ser nulo");
-        }
-        
         ServiceOrderExecution execution = repository.findById(id)
                 .orElseThrow(() -> new ServiceOrderExecutionNotFoundException(id));
         
         execution.start();
-        finishServiceOrderExecutionUseCase.execute(execution.getServiceOrderId());
+        startServiceOrderExecutionUseCase.execute(execution.getServiceOrderId());
         
         return repository.save(execution);
     }

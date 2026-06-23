@@ -21,9 +21,6 @@ public class ListByServiceOrderIdServiceOrderExecutionService implements ListByS
 
     @Override
     public Page<ServiceOrderExecution> execute(UUID serviceOrderId, Pageable pageable) {
-        if (serviceOrderId == null) {
-            throw new IllegalArgumentException("Service Order ID não pode ser nulo");
-        }
         return repository.findByServiceOrderId(serviceOrderId, pageable);
     }
 }

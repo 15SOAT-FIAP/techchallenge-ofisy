@@ -1,8 +1,7 @@
-package br.com.ofisy.adapters.controllers.serviceCatalog;
+package br.com.ofisy.adapters.controllers.servicecatalog;
 
 import br.com.ofisy.adapters.controllers.servicecatalog.dto.ServiceCatalogRequestDTO;
 import br.com.ofisy.adapters.controllers.servicecatalog.dto.ServiceCatalogResponseDTO;
-import br.com.ofisy.adapters.controllers.servicecatalog.ServiceCatalogController;
 import br.com.ofisy.application.servicecatalog.create.CreateServiceCatalogUseCase;
 import br.com.ofisy.application.servicecatalog.identifybyid.IdentifyByIdServiceCatalogUseCase;
 import br.com.ofisy.application.servicecatalog.identifybyname.IdentifyByNameServiceCatalogUseCase;

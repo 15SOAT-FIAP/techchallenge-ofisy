@@ -20,10 +20,6 @@ public class CancelServiceOrderExecutionService implements CancelServiceOrderExe
 
     @Override
     public ServiceOrderExecution execute(UUID id) {
-        if (id == null) {
-            throw new IllegalArgumentException("ID não pode ser nulo");
-        }
-
         ServiceOrderExecution execution = repository.findById(id)
                 .orElseThrow(() -> new ServiceOrderExecutionNotFoundException(id));
 

@@ -20,9 +20,6 @@ public class IdentifyByIdServiceOrderExecutionService implements IdentifyByIdSer
 
     @Override
     public ServiceOrderExecution execute(UUID id) {
-        if (id == null) {
-            throw new IllegalArgumentException("ID não pode ser nulo");
-        }
         return repository.findById(id)
                 .orElseThrow(() -> new ServiceOrderExecutionNotFoundException(id));
     }

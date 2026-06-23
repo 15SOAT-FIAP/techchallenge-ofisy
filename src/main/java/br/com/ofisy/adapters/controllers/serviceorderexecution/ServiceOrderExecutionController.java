@@ -11,7 +11,7 @@ import br.com.ofisy.application.serviceorderexecution.list.ListServiceOrderExecu
 import br.com.ofisy.application.serviceorderexecution.listbyservicecatalogid.ListByServiceCatalogIdServiceOrderExecutionUseCase;
 import br.com.ofisy.application.serviceorderexecution.listbyserviceorderid.ListByServiceOrderIdServiceOrderExecutionUseCase;
 import br.com.ofisy.application.serviceorderexecution.listbystatus.ListByStatusServiceOrderExecutionUseCase;
-import br.com.ofisy.application.serviceorderexecution.start.StartServiceOrderExecutionUseCase;
+import br.com.ofisy.application.serviceorderexecution.start.StartExecutionUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -35,7 +35,7 @@ public class ServiceOrderExecutionController implements ServiceOrderExecutionApi
     private final CreateServiceOrderExecutionUseCase createServiceOrderExecutionUseCase;
     private final CompleteServiceOrderExecutionUseCase completeServiceOrderExecutionUseCase;
     private final CancelServiceOrderExecutionUseCase cancelServiceOrderExecutionUseCase;
-    private final StartServiceOrderExecutionUseCase startServiceOrderExecutionUseCase;
+    private final StartExecutionUseCase startExecutionUseCase;
     private final ListByServiceCatalogIdServiceOrderExecutionUseCase listByServiceCatalogIdUseCase;
     private final ListByStatusServiceOrderExecutionUseCase listByStatusUseCase;
     private final ListByServiceOrderIdServiceOrderExecutionUseCase listByServiceOrderIdUseCase;
@@ -107,6 +107,6 @@ public class ServiceOrderExecutionController implements ServiceOrderExecutionApi
     @PatchMapping("/{id}/start")
     @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
     public ResponseEntity<ServiceOrderExecutionResponseDTO> start(@PathVariable UUID id) {
-        return ResponseEntity.ok(ServiceOrderExecutionPresenter.present(startServiceOrderExecutionUseCase.execute(id)));
+        return ResponseEntity.ok(ServiceOrderExecutionPresenter.present(startExecutionUseCase.execute(id)));
     }
 }

@@ -1,5 +1,7 @@
 package br.com.ofisy.domain.serviceorderexecution;
 
+import br.com.ofisy.application.serviceorderexecution.exceptions.InvalidServiceOrderExecutionStatusException;
+
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Set;
@@ -22,5 +24,13 @@ public enum ServiceOrderExecutionStatus {
 
     public boolean canTransitionTo(ServiceOrderExecutionStatus next) {
         return ALLOWED.getOrDefault(this, Set.of()).contains(next);
+    }
+
+    public static ServiceOrderExecutionStatus from(String status) {
+        try {
+            return valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new InvalidServiceOrderExecutionStatusException(status);
+        }
     }
 }

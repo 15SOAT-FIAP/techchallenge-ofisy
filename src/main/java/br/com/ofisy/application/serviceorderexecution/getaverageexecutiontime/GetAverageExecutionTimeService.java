@@ -21,10 +21,6 @@ public class GetAverageExecutionTimeService implements GetAverageExecutionTimeSe
 
     @Override
     public double execute(UUID serviceCatalogId) {
-        if (serviceCatalogId == null) {
-            throw new IllegalArgumentException("Service Catalog ID não pode ser nulo");
-        }
-        
         List<ServiceOrderExecution> serviceOrderExecutions = repository.findByServiceCatalogId(serviceCatalogId,
                 Pageable.unpaged()).getContent();
 

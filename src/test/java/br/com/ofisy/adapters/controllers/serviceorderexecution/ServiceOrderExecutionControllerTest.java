@@ -9,11 +9,10 @@ import br.com.ofisy.application.serviceorderexecution.list.ListServiceOrderExecu
 import br.com.ofisy.application.serviceorderexecution.listbyservicecatalogid.ListByServiceCatalogIdServiceOrderExecutionUseCase;
 import br.com.ofisy.application.serviceorderexecution.listbyserviceorderid.ListByServiceOrderIdServiceOrderExecutionUseCase;
 import br.com.ofisy.application.serviceorderexecution.listbystatus.ListByStatusServiceOrderExecutionUseCase;
-import br.com.ofisy.application.serviceorderexecution.start.StartServiceOrderExecutionUseCase;
+import br.com.ofisy.application.serviceorderexecution.start.StartExecutionUseCase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageImpl;
@@ -37,7 +36,6 @@ class ServiceOrderExecutionControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-
     @Mock
     private ListServiceOrderExecutionUseCase listUseCase;
 
@@ -54,7 +52,7 @@ class ServiceOrderExecutionControllerTest {
     private CancelServiceOrderExecutionUseCase cancelUseCase;
 
     @Mock
-    private StartServiceOrderExecutionUseCase startUseCase;
+    private StartExecutionUseCase startUseCase;
 
     @Mock
     private ListByServiceCatalogIdServiceOrderExecutionUseCase listByServiceCatalogIdUseCase;

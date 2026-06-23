@@ -1,8 +1,10 @@
 package br.com.ofisy.domain.serviceorderexecution;
 
+import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import br.com.ofisy.domain.serviceorderexecution.exceptions.InvalidServiceOrderExecutionTransitionException;
 import lombok.Getter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -22,12 +24,13 @@ public class ServiceOrderExecution {
         this.serviceCatalogId = serviceCatalogId;
         this.serviceOrderId = serviceOrderId;
         this.status = ServiceOrderExecutionStatus.PENDING;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
     }
 
     public static ServiceOrderExecution create(UUID serviceCatalogId, UUID serviceOrderId) {
-        return new ServiceOrderExecution(serviceCatalogId, serviceOrderId);
+        ServiceOrderExecution service = new ServiceOrderExecution(serviceCatalogId, serviceOrderId);
+        service.createdAt = LocalDateTime.now();
+        service.updatedAt = LocalDateTime.now();
+        return service;
     }
 
     public static ServiceOrderExecution reconstruct(UUID id, UUID serviceCatalogId, UUID serviceOrderId,

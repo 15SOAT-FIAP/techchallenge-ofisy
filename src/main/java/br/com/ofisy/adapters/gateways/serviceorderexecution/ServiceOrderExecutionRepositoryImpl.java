@@ -1,10 +1,8 @@
 package br.com.ofisy.adapters.gateways.serviceorderexecution;
 
-import br.com.ofisy.adapters.gateways.stockmovement.StockMovementMapper;
 import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecution;
 import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionRepository;
 import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionStatus;
-import br.com.ofisy.domain.stockmovement.StockMovement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

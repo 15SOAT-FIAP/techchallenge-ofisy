@@ -10,10 +10,9 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@ExtendWith(MockitoExtension.class)
 public class ServiceOrderExecutionMapperTest {
         @Test
-        void shouldConvertRequestDTOToDomain() {
+        void shouldConvertRequestEntityToDomain() {
             UUID serviceCatalogId = UUID.randomUUID();
             UUID serviceOrderId = UUID.randomUUID();
 

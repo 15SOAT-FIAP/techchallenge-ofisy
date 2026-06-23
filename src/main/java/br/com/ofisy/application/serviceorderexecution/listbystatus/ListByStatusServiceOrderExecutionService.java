@@ -20,10 +20,9 @@ public class ListByStatusServiceOrderExecutionService implements ListByStatusSer
 
     @Override
     public Page<ServiceOrderExecution> execute(String status, Pageable pageable) {
-        if (status == null || status.isBlank()) {
-            throw new IllegalArgumentException("Status não pode ser nulo ou vazio");
-        }
-        ServiceOrderExecutionStatus executionStatus = ServiceOrderExecutionStatus.valueOf(status.toUpperCase());
+        ServiceOrderExecutionStatus executionStatus =
+                ServiceOrderExecutionStatus.from(status);
+
         return repository.findByStatus(executionStatus, pageable);
     }
 }
