@@ -10,4 +10,5 @@ public interface ServiceOrderRepository {
     ServiceOrder save(ServiceOrder serviceOrder);
     Optional<ServiceOrder> findById(UUID id);
     Page<ServiceOrder> findByStatus(ServiceOrderStatus serviceOrderStatus, Pageable pageable);
+    Page<ServiceOrder> findActive(Pageable pageable);
 }
