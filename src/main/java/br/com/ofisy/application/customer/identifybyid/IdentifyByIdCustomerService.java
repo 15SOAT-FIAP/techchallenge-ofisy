@@ -20,9 +20,6 @@ public class IdentifyByIdCustomerService implements IdentifyByIdCustomerUseCase{
 
     @Override
     public Customer execute(UUID id) {
-        if (id == null) {
-            throw new IllegalArgumentException("ID não pode ser nulo");
-        }
         return customerRepository.findById(id)
                 .orElseThrow(() -> new CustomerNotFoundException(id));
     }

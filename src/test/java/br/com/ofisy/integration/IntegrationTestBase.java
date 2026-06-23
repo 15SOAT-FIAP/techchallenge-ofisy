@@ -4,10 +4,10 @@ import br.com.ofisy.adapters.gateways.customer.JpaCustomerRepository;
 import br.com.ofisy.adapters.gateways.notification.JpaNotificationRepository;
 import br.com.ofisy.adapters.gateways.quote.JpaQuoteRepository;
 import br.com.ofisy.adapters.gateways.servicecatalog.JpaServiceCatalogRepository;
-import br.com.ofisy.adapters.gateways.serviceorderexecution.JpaServiceOrderExecutionRepository;
 import br.com.ofisy.adapters.gateways.stock.JpaStockRepository;
 import br.com.ofisy.adapters.gateways.serviceorder.JpaServiceOrderRepository;
 import br.com.ofisy.adapters.gateways.user.JpaUserRepository;
+import br.com.ofisy.infrastructure.persistence.serviceorderexecution.JpaServiceOrderExecutionRepository;
 import br.com.ofisy.adapters.gateways.stockmovement.JpaStockMovementRepository;
 import br.com.ofisy.adapters.gateways.vehicle.JpaVehicleRepository;
 import io.restassured.RestAssured;
@@ -53,25 +53,25 @@ public abstract class IntegrationTestBase {
     @Autowired
     protected PasswordEncoder passwordEncoder;
 
-    @Autowired private
+    @Autowired private 
     JpaNotificationRepository notificationRepository;
-    @Autowired
+    @Autowired 
     private JpaQuoteRepository quoteRepository;
-    @Autowired
+    @Autowired 
     private JpaServiceOrderExecutionRepository serviceOrderExecutionRepository;
-    @Autowired
+    @Autowired 
     private JpaServiceOrderRepository serviceOrderRepository;
-    @Autowired
+    @Autowired 
     private JpaStockMovementRepository stockMovementRepository;
     @Autowired
     protected JpaStockRepository stockRepository;
-    @Autowired
+    @Autowired 
     private JpaServiceCatalogRepository serviceCatalogRepository;
-    @Autowired
+    @Autowired 
     private JpaVehicleRepository vehicleRepository;
-    @Autowired
+    @Autowired 
     private JpaCustomerRepository customerRepository;
-    @Autowired
+    @Autowired 
     private JpaUserRepository userRepository;
 
     @BeforeEach

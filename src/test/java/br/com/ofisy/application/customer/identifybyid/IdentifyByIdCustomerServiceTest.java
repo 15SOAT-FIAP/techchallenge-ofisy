@@ -59,12 +59,6 @@ class IdentifyByIdCustomerServiceTest {
                     .isInstanceOf(CustomerNotFoundException.class)
                     .hasMessageContaining(id.toString());
         }
-
-        @Test
-        void shouldThrowIllegalArgumentExceptionWhenIdIsNull() {
-            assertThatThrownBy(() -> identifyByIdCustomerService.execute(null))
-                    .isInstanceOf(IllegalArgumentException.class);
-        }
     }
 
     private Customer validCustomer() {
