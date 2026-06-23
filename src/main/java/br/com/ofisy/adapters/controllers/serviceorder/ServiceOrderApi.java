@@ -32,6 +32,10 @@ public interface ServiceOrderApi {
     @ApiResponse(responseCode = "200", description = "Lista de ordens de serviço finalizadas retornada com sucesso")
     ResponseEntity<Page<ServiceOrderResponseDTO>> listFinished(Pageable pageable);
 
+    @Operation(summary = "Listar ordens de serviço ativas ordenadas por prioridade de status - Roles autorizadas: (ADMIN, ATTENDANT, MECHANIC)")
+    @ApiResponse(responseCode = "200", description = "Lista de ordens de serviço ativas retornada com sucesso")
+    ResponseEntity<Page<ServiceOrderResponseDTO>> listActive(Pageable pageable);
+
     @Operation(summary = "Acompanhar o status da ordem de serviço - API sem autenticação")
     @ApiResponse(responseCode = "200", description = "Status da ordem de serviço retornado com sucesso")
     @ApiResponse(responseCode = "404", description = "Ordem de serviço não encontrada")
