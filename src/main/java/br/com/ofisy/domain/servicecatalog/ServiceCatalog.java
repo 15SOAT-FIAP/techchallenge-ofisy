@@ -1,49 +1,40 @@
 package br.com.ofisy.domain.servicecatalog;
 
-import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Entity
-@Table(name = "services_catalog")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ServiceCatalog {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-
-    @Column(nullable = false, unique = true)
-    private String name;
-
-    @Column(nullable = false)
-    private String description;
-
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal price;
-
-    @Column(nullable = false)
+    private final String name;
+    private final String description;
+    private final BigDecimal price;
     private LocalDateTime createdAt;
-
-    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
     private ServiceCatalog(String name, String description, BigDecimal price) {
         this.name = name;
         this.description = description;
         this.price = price;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
     }
 
     public static ServiceCatalog create(String name, String description, BigDecimal price) {
-        return new ServiceCatalog(name, description, price);
+        ServiceCatalog service = new ServiceCatalog(name, description, price);
+        service.createdAt = LocalDateTime.now();
+        service.updatedAt = LocalDateTime.now();
+        return service;
+    }
+
+    public static ServiceCatalog reconstruct(UUID id, String name, String description, BigDecimal price,
+                                             LocalDateTime createdAt, LocalDateTime updatedAt) {
+        ServiceCatalog service = new ServiceCatalog(name, description, price);
+        service.id = id;
+        service.createdAt = createdAt;
+        service.updatedAt = updatedAt;
+        return service;
     }
 }
-

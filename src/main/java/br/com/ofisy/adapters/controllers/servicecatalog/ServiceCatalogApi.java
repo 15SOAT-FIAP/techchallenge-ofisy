@@ -1,7 +1,7 @@
-package br.com.ofisy.interfaces.api.servicecatalog;
+package br.com.ofisy.adapters.controllers.servicecatalog;
 
-import br.com.ofisy.application.servicecatalog.dto.ServiceCatalogRequestDTO;
-import br.com.ofisy.application.servicecatalog.dto.ServiceCatalogResponseDTO;
+import br.com.ofisy.adapters.controllers.servicecatalog.dto.ServiceCatalogRequestDTO;
+import br.com.ofisy.adapters.controllers.servicecatalog.dto.ServiceCatalogResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;

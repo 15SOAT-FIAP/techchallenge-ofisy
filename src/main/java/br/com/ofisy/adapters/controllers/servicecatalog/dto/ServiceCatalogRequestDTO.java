@@ -1,4 +1,4 @@
-package br.com.ofisy.application.servicecatalog.dto;
+package br.com.ofisy.adapters.controllers.servicecatalog.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
