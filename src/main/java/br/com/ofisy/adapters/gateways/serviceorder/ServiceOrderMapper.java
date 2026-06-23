@@ -28,6 +28,7 @@ public class ServiceOrderMapper {
                 .customerId(serviceOrder.getCustomerId())
                 .report(serviceOrder.getReport())
                 .status(serviceOrder.getStatus())
+                .priority(serviceOrder.getStatus().priority)
                 .createdBy(serviceOrder.getCreatedBy())
                 .createdAt(serviceOrder.getCreatedAt())
                 .finishedAt(serviceOrder.getFinishedAt())

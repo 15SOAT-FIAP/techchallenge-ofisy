@@ -44,6 +44,9 @@ public class ServiceOrderEntity {
     private ServiceOrderStatus status;
 
     @Column(nullable = false)
+    private Integer priority;
+
+    @Column(nullable = false)
     private UUID createdBy;
 
     @Column(nullable = false)
