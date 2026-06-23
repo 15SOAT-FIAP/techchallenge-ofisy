@@ -1,5 +1,6 @@
 package br.com.ofisy.adapters.controllers.serviceorderexecution;
 
+import br.com.ofisy.adapters.controllers.stock.StockController;
 import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecution;
 import br.com.ofisy.application.serviceorderexecution.cancel.CancelServiceOrderExecutionUseCase;
 import br.com.ofisy.application.serviceorderexecution.complete.CompleteServiceOrderExecutionUseCase;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
@@ -28,10 +30,11 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-
+@WebMvcTest(ServiceOrderExecutionController.class)
 @ExtendWith(MockitoExtension.class)
 class ServiceOrderExecutionControllerTest {
 
+    private static final String BASE_URL = "/api/v1/stocks";
 
     @Autowired
     private MockMvc mockMvc;
