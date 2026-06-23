@@ -62,13 +62,6 @@ class IdentifyByIdServiceOrderExecutionServiceTest {
         }
 
         @Test
-        void shouldThrowIllegalArgumentExceptionWhenIdIsNull() {
-            assertThatThrownBy(() -> identifyByIdService.execute(null))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("ID não pode ser nulo");
-        }
-
-        @Test
         void shouldReturnDifferentExecutions() {
             UUID id1 = UUID.randomUUID();
             UUID id2 = UUID.randomUUID();

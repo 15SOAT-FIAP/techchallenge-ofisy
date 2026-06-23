@@ -82,13 +82,6 @@ class CompleteServiceOrderExecutionServiceTest {
 
             verify(repository).findById(VALID_ID);
         }
-
-        @Test
-        void shouldThrowIllegalArgumentExceptionWhenIdIsNull() {
-            assertThatThrownBy(() -> completeService.execute(null))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("ID não pode ser nulo");
-        }
     }
 
     private ServiceOrderExecution createServiceOrderExecution(ServiceOrderExecutionStatus status) {

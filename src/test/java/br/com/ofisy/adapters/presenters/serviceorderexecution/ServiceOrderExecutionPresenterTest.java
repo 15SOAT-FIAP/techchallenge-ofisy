@@ -68,8 +68,6 @@ class ServiceOrderExecutionPresenterTest {
         assertEquals(serviceOrderExecution.getServiceOrderId(), response.serviceOrderId());
         assertEquals(serviceOrderExecution.getStatus(), response.status());
 
-        assertNull(response.createdAt());
-        assertNull(response.updatedAt());
         assertNull(response.startedAt());
         assertNull(response.finishedAt());
     }

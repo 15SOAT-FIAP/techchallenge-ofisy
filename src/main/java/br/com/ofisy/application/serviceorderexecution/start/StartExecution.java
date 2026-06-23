@@ -1,5 +1,6 @@
 package br.com.ofisy.application.serviceorderexecution.start;
 
+import br.com.ofisy.application.serviceorder.startexecution.StartServiceOrderExecutionUseCase;
 import br.com.ofisy.application.serviceorderexecution.exceptions.ServiceOrderExecutionNotFoundException;
 import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecution;
 import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionRepository;
@@ -13,10 +14,10 @@ import java.util.UUID;
 public class StartExecution implements StartExecutionUseCase {
 
     private final ServiceOrderExecutionRepository repository;
-    private final StartExecutionUseCase startServiceOrderExecutionUseCase;
+    private final StartServiceOrderExecutionUseCase startServiceOrderExecutionUseCase;
 
     public StartExecution(ServiceOrderExecutionRepository repository,
-                          StartExecutionUseCase startServiceOrderExecutionUseCase) {
+                          StartServiceOrderExecutionUseCase startServiceOrderExecutionUseCase) {
         this.repository = repository;
         this.startServiceOrderExecutionUseCase = startServiceOrderExecutionUseCase;
     }

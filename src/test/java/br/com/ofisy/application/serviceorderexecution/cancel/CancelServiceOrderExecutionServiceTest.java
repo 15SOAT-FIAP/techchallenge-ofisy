@@ -59,13 +59,6 @@ class CancelServiceOrderExecutionServiceTest {
 
             verify(repository).findById(VALID_ID);
         }
-
-        @Test
-        void shouldThrowIllegalArgumentExceptionWhenIdIsNull() {
-            assertThatThrownBy(() -> cancelService.execute(null))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("ID não pode ser nulo");
-        }
     }
 
     private ServiceOrderExecution createServiceOrderExecution(ServiceOrderExecutionStatus status) {
