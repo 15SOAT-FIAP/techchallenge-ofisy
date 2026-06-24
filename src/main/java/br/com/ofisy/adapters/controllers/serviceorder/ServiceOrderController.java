@@ -16,6 +16,7 @@ import br.com.ofisy.application.serviceorder.create.CreateServiceOrderUseCase;
 import br.com.ofisy.application.serviceorder.delivertocustomer.DeliverToCustomerUseCase;
 import br.com.ofisy.application.serviceorder.generatequote.GenerateServiceOrderQuoteUseCase;
 import br.com.ofisy.application.serviceorder.getstatus.GetServiceOrderStatusUseCase;
+import br.com.ofisy.application.serviceorder.listactive.ListActiveServiceOrdersUseCase;
 import br.com.ofisy.application.serviceorder.listfinished.ListFinishedServiceOrdersUseCase;
 import br.com.ofisy.application.serviceorder.listreceived.ListReceivedServiceOrdersUseCase;
 import br.com.ofisy.application.serviceorder.reprovequote.ReproveServiceOrderQuoteUseCase;
@@ -54,6 +55,7 @@ public class ServiceOrderController implements ServiceOrderApi {
     private final CancelServiceOrderUseCase cancelServiceOrderUseCase;
     private final ListReceivedServiceOrdersUseCase listReceivedServiceOrdersUseCase;
     private final ListFinishedServiceOrdersUseCase listFinishedServiceOrdersUseCase;
+    private final ListActiveServiceOrdersUseCase listActiveServiceOrdersUseCase;
     private final StartDiagnosticUseCase startDiagnosticUseCase;
     private final DeliverToCustomerUseCase deliverToCustomerUseCase;
     private final GetServiceOrderStatusUseCase getServiceOrderStatusUseCase;
@@ -100,6 +102,14 @@ public class ServiceOrderController implements ServiceOrderApi {
             @ParameterObject @PageableDefault(size = 10, sort = "finishedAt", direction = Sort.Direction.ASC) Pageable pageable) {
 
         return ResponseEntity.ok(listFinishedServiceOrdersUseCase.execute(pageable).map(ServiceOrderPresenter::present));
+    }
+
+    @GetMapping("/active")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
+    public ResponseEntity<Page<ServiceOrderResponseDTO>> listActive(
+            @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
+
+        return ResponseEntity.ok(listActiveServiceOrdersUseCase.execute(pageable).map(ServiceOrderPresenter::present));
     }
 
     @GetMapping("/{id}/status")

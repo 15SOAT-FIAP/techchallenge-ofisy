@@ -1,0 +1,10 @@
+ALTER TABLE service_orders ADD COLUMN priority INTEGER NOT NULL DEFAULT 0;
+
+UPDATE service_orders SET priority = CASE status
+    WHEN 'IN_PROGRESS'        THEN 1
+    WHEN 'AWAITING_EXECUTION' THEN 2
+    WHEN 'AWAITING_APPROVAL'  THEN 3
+    WHEN 'IN_DIAGNOSTIC'      THEN 4
+    WHEN 'RECEIVED'           THEN 5
+    ELSE 0
+END;

@@ -5,6 +5,7 @@ import br.com.ofisy.domain.serviceorder.ServiceOrderRepository;
 import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
@@ -31,5 +32,11 @@ public class ServiceOrderRepositoryImpl implements ServiceOrderRepository {
     @Override
     public Page<ServiceOrder> findByStatus(ServiceOrderStatus serviceOrderStatus, Pageable pageable) {
         return jpa.findByStatus(serviceOrderStatus, pageable).map(ServiceOrderMapper::toDomain);
+    }
+
+    @Override
+    public Page<ServiceOrder> findActive(Pageable pageable) {
+        PageRequest pageOnly = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+        return jpa.findActiveOrderedByPriority(pageOnly).map(ServiceOrderMapper::toDomain);
     }
 }

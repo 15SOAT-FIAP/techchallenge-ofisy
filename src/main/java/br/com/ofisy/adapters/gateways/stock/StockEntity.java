@@ -26,6 +26,7 @@ public class StockEntity {
     private String description;
 
     @Column(nullable = false)
+    @Builder.Default
     private Integer quantity = 0;
 
     @Column(nullable = false, precision = 10, scale = 2)
@@ -41,5 +42,6 @@ public class StockEntity {
     private LocalDateTime updatedAt;
 
     @Column(nullable = false)
+    @Builder.Default
     private Integer minThreshold = 0;
 }
