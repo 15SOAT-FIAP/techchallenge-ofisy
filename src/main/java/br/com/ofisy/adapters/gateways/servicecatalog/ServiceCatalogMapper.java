@@ -21,10 +21,6 @@ public class ServiceCatalogMapper {
     }
 
     public static ServiceCatalogEntity toEntity(ServiceCatalog serviceCatalog) {
-        if (serviceCatalog == null) {
-            throw new IllegalArgumentException("ServiceCatalog não pode ser nulo");
-        }
-
         return ServiceCatalogEntity.builder()
                 .id(serviceCatalog.getId())
                 .name(serviceCatalog.getName())

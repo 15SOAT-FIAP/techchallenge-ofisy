@@ -161,17 +161,4 @@ class ServiceCatalogRepositoryImplTest {
             assertEquals(serviceCatalog.getCreatedAt(), entity.getCreatedAt());
             assertEquals(serviceCatalog.getUpdatedAt(), entity.getUpdatedAt());
         }
-
-        @Test
-        void shouldThrowExceptionWhenDomainIsNullOnToEntity() {
-            IllegalArgumentException exception = assertThrows(
-                    IllegalArgumentException.class,
-                    () -> ServiceCatalogMapper.toEntity(null)
-            );
-
-            assertEquals(
-                    "ServiceCatalog não pode ser nulo",
-                    exception.getMessage()
-            );
-        }
 }

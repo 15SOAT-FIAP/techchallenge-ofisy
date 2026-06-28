@@ -7,7 +7,7 @@ import br.com.ofisy.application.servicecatalog.create.CreateServiceCatalogUseCas
 import br.com.ofisy.application.servicecatalog.identifybyid.IdentifyByIdServiceCatalogUseCase;
 import br.com.ofisy.application.servicecatalog.identifybyname.IdentifyByNameServiceCatalogUseCase;
 import br.com.ofisy.application.servicecatalog.list.ListServiceCatalogUseCase;
-import br.com.ofisy.application.serviceorderexecution.ServiceOrderExecutionService;
+import br.com.ofisy.application.serviceorderexecution.getaverageexecutiontime.GetAverageExecutionTimeServiceOrderExecutionUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -24,7 +24,7 @@ import java.util.UUID;
 @RequestMapping("/api/v1/services-catalog")
 @RequiredArgsConstructor
 public class ServiceCatalogController implements ServiceCatalogApi {
-    private final ServiceOrderExecutionService serviceOrderExecutionService;
+    private final GetAverageExecutionTimeServiceOrderExecutionUseCase getAverageExecutionTimeUseCase;
     private final CreateServiceCatalogUseCase createServiceCatalogUseCase;
     private final ListServiceCatalogUseCase listServiceCatalogUseCase;
     private final IdentifyByIdServiceCatalogUseCase identifyByIdServiceCatalogUseCase;
@@ -57,7 +57,7 @@ public class ServiceCatalogController implements ServiceCatalogApi {
     @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
     public ResponseEntity<Double> getExecutionTimeAverage(@PathVariable UUID id) {
 
-        return ResponseEntity.ok(serviceOrderExecutionService.getAverageExecutionTimeByService(id));
+        return ResponseEntity.ok(getAverageExecutionTimeUseCase.execute(id));
     }
 
     @PostMapping

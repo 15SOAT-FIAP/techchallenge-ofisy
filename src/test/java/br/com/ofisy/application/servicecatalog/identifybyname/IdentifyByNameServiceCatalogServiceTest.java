@@ -63,13 +63,6 @@ class IdentifyByNameServiceCatalogServiceTest {
         }
 
         @Test
-        void shouldThrowIllegalArgumentExceptionWhenNameIsNull() {
-            assertThatThrownBy(() -> identifyByNameServiceCatalogService.execute(null))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Nome não pode ser nulo");
-        }
-
-        @Test
         void shouldReturnCorrectServiceCatalogWithDifferentNames() {
             String name1 = "Troca de óleo";
             String name2 = "Revisão completa";

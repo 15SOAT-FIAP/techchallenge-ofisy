@@ -18,9 +18,6 @@ public class IdentifyByNameServiceCatalogService implements IdentifyByNameServic
 
     @Override
     public ServiceCatalog execute(String name) {
-        if (name == null) {
-            throw new IllegalArgumentException("Nome não pode ser nulo");
-        }
         return serviceCatalogRepository.findByName(name)
                 .orElseThrow(() -> ServiceCatalogNotFoundException.ofName(name));
     }

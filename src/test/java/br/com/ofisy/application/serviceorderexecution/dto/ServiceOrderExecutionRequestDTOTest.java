@@ -1,5 +1,6 @@
 package br.com.ofisy.application.serviceorderexecution.dto;
 
+import br.com.ofisy.adapters.controllers.serviceorderexecution.dto.ServiceOrderExecutionRequestDTO;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;

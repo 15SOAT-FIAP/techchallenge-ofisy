@@ -1,6 +1,7 @@
-package br.com.ofisy.application.servicecatalog.identifybyid;
+package br.com.ofisy.application.servicecatalog.identifyById;
 
 import br.com.ofisy.application.servicecatalog.exceptions.ServiceCatalogNotFoundException;
+import br.com.ofisy.application.servicecatalog.identifybyid.IdentifyByIdServiceCatalogService;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
 import org.junit.jupiter.api.Nested;
