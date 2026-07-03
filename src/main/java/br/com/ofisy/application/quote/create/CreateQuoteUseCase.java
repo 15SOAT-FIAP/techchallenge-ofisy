@@ -21,6 +21,6 @@ public interface CreateQuoteUseCase {
     ) {}
 
     record ServiceItemCommand(
-            UUID serviceOrderExecutionId
+            UUID serviceCatalogId
     ) {}
 }

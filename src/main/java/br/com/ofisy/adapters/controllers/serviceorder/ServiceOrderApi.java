@@ -1,8 +1,7 @@
 package br.com.ofisy.adapters.controllers.serviceorder;
 
-import br.com.ofisy.adapters.controllers.serviceorder.dto.ServiceOrderRequestDTO;
-import br.com.ofisy.adapters.controllers.serviceorder.dto.ServiceOrderResponseDTO;
-import br.com.ofisy.adapters.controllers.serviceorder.dto.ServiceOrderStatusResponseDTO;
+import br.com.ofisy.adapters.controllers.quote.dto.UpdateQuoteRequestDTO;
+import br.com.ofisy.adapters.controllers.serviceorder.dto.*;
 import br.com.ofisy.adapters.controllers.quote.dto.CreateQuoteRequestDTO;
 import br.com.ofisy.adapters.controllers.quote.dto.QuoteResponseDTO;
 import br.com.ofisy.adapters.controllers.quote.dto.ReproveQuoteRequestDTO;
@@ -10,10 +9,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.UUID;
 
@@ -23,6 +25,10 @@ public interface ServiceOrderApi {
     @Operation(summary = "Criar uma nova ordem de serviço - Roles autorizadas: (ADMIN, ATTENDANT)")
     @ApiResponse(responseCode = "201", description = "Ordem de serviço criada com sucesso")
     ResponseEntity<ServiceOrderResponseDTO> receiveServiceOrder(ServiceOrderRequestDTO request, @Parameter(hidden = true) UserDetails userDetails);
+
+    @Operation(summary = "Criar uma nova ordem de serviço commpleta com itens e serviços - Roles autorizadas: (ADMIN, ATTENDANT)")
+    @ApiResponse(responseCode = "201", description = "Ordem de serviço criada com sucesso")
+    ResponseEntity<CreateServiceOrderResponseDTO> receiveCompleteServiceOrder(CreateServiceOrderRequestDTO request, UserDetails user);
 
     @Operation(summary = "Listar todas as ordens de serviço com status RECEIVED - Roles autorizadas: (ADMIN, ATTENDANT, MECHANIC)")
     @ApiResponse(responseCode = "200", description = "Lista de ordens de serviço recebidas retornada com sucesso")
@@ -63,6 +69,11 @@ public interface ServiceOrderApi {
     @ApiResponse(responseCode = "201", description = "Orçamento gerado com sucesso")
     @ApiResponse(responseCode = "404", description = "Ordem de serviço não encontrada")
     ResponseEntity<QuoteResponseDTO> generateQuote(UUID id, CreateQuoteRequestDTO request);
+
+    @Operation(summary = "Editar orçamento para uma ordem de serviço - Roles autorizadas: (ADMIN, ATTENDANT, MECHANIC)")
+    @ApiResponse(responseCode = "201", description = "Orçamento gerado com sucesso")
+    @ApiResponse(responseCode = "404", description = "Ordem de serviço não encontrada")
+    ResponseEntity<QuoteResponseDTO> updateQuote(UUID id, UpdateQuoteRequestDTO request);
 
     @Operation(summary = "Aprovar orçamento para uma ordem de serviço")
     @ApiResponse(responseCode = "200", description = "Orçamento aprovado com sucesso")

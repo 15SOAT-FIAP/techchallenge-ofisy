@@ -1,57 +1,75 @@
-package br.com.ofisy.application.quote.create;
+package br.com.ofisy.application.serviceorder.updatequote;
 
-import br.com.ofisy.application.quote.exceptions.QuoteAlreadyExistsException;
+import br.com.ofisy.application.quote.create.CreateQuoteUseCase;
+import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
 import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
 import br.com.ofisy.application.servicecatalog.exceptions.ServiceCatalogNotFoundException;
-import br.com.ofisy.application.serviceorderexecution.exceptions.ServiceOrderExecutionNotFoundException;
 import br.com.ofisy.application.stock.consume.ConsumeStockUseCase;
 import br.com.ofisy.application.stock.exceptions.StockNotFoundException;
 import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.quote.QuoteRepository;
 import br.com.ofisy.domain.quote.QuoteServiceItem;
 import br.com.ofisy.domain.quote.QuoteStockItem;
+import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
+import br.com.ofisy.domain.quote.QuoteStatus;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
 import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecution;
 import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionRepository;
 import br.com.ofisy.domain.stock.Stock;
 import br.com.ofisy.domain.stock.StockRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
-public class CreateQuoteService implements CreateQuoteUseCase {
+@Transactional
+public class UpdateQuoteService implements UpdateQuoteUseCase {
 
     private final QuoteRepository quoteRepository;
     private final StockRepository stockRepository;
-    private final ServiceOrderExecutionRepository serviceOrderExecutionRepository;
     private final ServiceCatalogRepository serviceCatalogRepository;
+    private final ServiceOrderExecutionRepository serviceOrderExecutionRepository;
     private final ConsumeStockUseCase consumeStockUseCase;
 
+    public UpdateQuoteService(QuoteRepository quoteRepository,
+                              StockRepository stockRepository,
+                              ServiceCatalogRepository serviceCatalogRepository,
+                              ServiceOrderExecutionRepository serviceOrderExecutionRepository,
+                              ConsumeStockUseCase consumeStockUseCase) {
+        this.quoteRepository = quoteRepository;
+        this.stockRepository = stockRepository;
+        this.serviceCatalogRepository = serviceCatalogRepository;
+        this.serviceOrderExecutionRepository = serviceOrderExecutionRepository;
+        this.consumeStockUseCase = consumeStockUseCase;
+    }
+
     @Override
-    @Transactional
-    public Quote execute(CreateQuoteCommand cmd) {
-        if (quoteRepository.existsByServiceOrderId(cmd.serviceOrderId())) {
-            throw new QuoteAlreadyExistsException(cmd.serviceOrderId());
+    public Quote execute(UpdateQuoteCommand cmd) {
+        Quote quote = quoteRepository.findById(cmd.quoteId())
+                .orElseThrow(() -> new QuoteNotFoundException(cmd.quoteId()));
+
+        if (!QuoteStatus.PENDING.equals(quote.getStatus())) {
+            throw new InvalidQuoteStatusException("editar", quote.getStatus());
         }
 
-        List<QuoteStockItem> stockItems = buildStockItems(cmd.stockItems() != null ? cmd.stockItems() : List.of());
-        List<QuoteServiceItem> serviceItems = buildServiceItems(cmd.serviceOrderId(), cmd.serviceItems() != null ? cmd.serviceItems() : List.of());
+        List<QuoteStockItem> stockItems = buildStockItems(
+                cmd.stockItems() != null ? cmd.stockItems() : List.of());
 
-        Quote quote = Quote.create(cmd.serviceOrderId(), stockItems, serviceItems);
+        List<QuoteServiceItem> serviceItems = buildServiceItems(
+                quote.getServiceOrderId(),
+                cmd.serviceItems() != null ? cmd.serviceItems() : List.of());
+
+        quote.update(stockItems, serviceItems);
         return quoteRepository.save(quote);
     }
 
-    private List<QuoteStockItem> buildStockItems(List<StockItemCommand> commands) {
+    private List<QuoteStockItem> buildStockItems(List<CreateQuoteUseCase.StockItemCommand> commands) {
         List<QuoteStockItem> items = new ArrayList<>();
 
-        for (StockItemCommand command : commands) {
+        for (CreateQuoteUseCase.StockItemCommand command : commands) {
             Stock stock = stockRepository.findById(command.stockId())
                     .orElseThrow(() -> new StockNotFoundException(command.stockId()));
 
@@ -61,17 +79,19 @@ public class CreateQuoteService implements CreateQuoteUseCase {
                 throw new QuoteItemAlreadyExistsException(stock.getProductName());
             }
 
-            consumeStockUseCase.execute(new ConsumeStockUseCase.ConsumeStockCommand(command.stockId(), command.quantity()));
+            consumeStockUseCase.execute(
+                    new ConsumeStockUseCase.ConsumeStockCommand(command.stockId(), command.quantity()));
             items.add(QuoteStockItem.create(stock, command.quantity()));
         }
 
         return items;
     }
 
-    private List<QuoteServiceItem> buildServiceItems(UUID serviceOrderId, List<ServiceItemCommand> commands) {
+    private List<QuoteServiceItem> buildServiceItems(java.util.UUID serviceOrderId,
+                                                      List<CreateQuoteUseCase.ServiceItemCommand> commands) {
         List<QuoteServiceItem> items = new ArrayList<>();
 
-        for (ServiceItemCommand command : commands) {
+        for (CreateQuoteUseCase.ServiceItemCommand command : commands) {
             ServiceCatalog catalog = serviceCatalogRepository.findById(command.serviceCatalogId())
                     .orElseThrow(() -> new ServiceCatalogNotFoundException(
                             String.valueOf(command.serviceCatalogId())));
