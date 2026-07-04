@@ -2,6 +2,15 @@
 
 Provisiona toda a infraestrutura AWS da aplicação Ofisy via Terraform, incluindo rede, banco de dados relacional e cluster Kubernetes.
 
+Este documento aborda:
+
+- Quais recursos AWS são criados e suas responsabilidades
+- Arquitetura de rede e isolamento entre camadas pública e privada
+- Pré-requisitos para execução
+- Variáveis de configuração necessárias
+- Passo a passo para inicializar, validar e aplicar a infraestrutura
+- Comandos AWS CLI para verificar os recursos criados
+
 ---
 
 ## Recursos criados
@@ -20,6 +29,7 @@ Provisiona toda a infraestrutura AWS da aplicação Ofisy via Terraform, incluin
 | Security Group EKS | `aws_security_group` | Controla tráfego de entrada/saída do cluster |
 | Security Group RDS | `aws_security_group` | Permite acesso ao PostgreSQL apenas pelo EKS |
 | RDS PostgreSQL | `aws_db_instance` | Banco de dados relacional gerenciado (`db.t3.micro`) |
+| ECR | `aws_ecr_repository` | Repositório de imagens Docker da aplicação |
 | EKS Cluster | `aws_eks_cluster` | Cluster Kubernetes gerenciado na AWS |
 | EKS Node Group | `aws_eks_node_group` | Instâncias EC2 `t3.medium` que executam os workloads |
 | EKS Access Entry | `aws_eks_access_entry` | Controle de acesso ao cluster via IAM |
@@ -123,6 +133,9 @@ aws ec2 describe-subnets --filters "Name=vpc-id,Values=<VPC_ID>" \
 # Internet Gateway
 aws ec2 describe-internet-gateways --filters "Name=tag:Name,Values=ofisy-igw" \
   --query "InternetGateways[*].{ID:InternetGatewayId,State:Attachments[0].State}"
+
+# ECR
+aws ecr describe-repositories --query "repositories[*].{Nome:repositoryName,URI:repositoryUri}"
 ```
 
 > Os comandos para verificar o cluster EKS e o RDS serão adicionados após a implementação dos serviços da aplicação.
