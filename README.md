@@ -192,3 +192,4 @@ docker compose -f compose.db.yaml up -d
 ## Documentação Adicional
 - **[Guia de Testes](docs/TESTING.md)** - Instruções para executar análises de cobertura de testes e segurança
 - **[Guia de Flyway](docs/FLYWAY.md)** - Instruções para criar e executar migrations
+- **[Guia de Kubernetes](docs/K8S.md)** - Instruções para executar a aplicação localmente com Minikube
