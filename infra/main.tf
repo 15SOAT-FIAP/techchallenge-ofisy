@@ -162,3 +162,20 @@ resource "aws_db_subnet_group" "main" {
     Name = "${local.project_name}-db-subnet-group"
   }
 }
+
+########################################
+# ECR
+########################################
+
+resource "aws_ecr_repository" "main" {
+  name                 = local.project_name
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = {
+    Name = "${local.project_name}-ecr"
+  }
+}
