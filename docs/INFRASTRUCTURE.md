@@ -79,33 +79,57 @@ As subnets públicas hospedam os nós do EKS e possuem acesso direto à internet
 Copie o arquivo de exemplo e preencha os valores:
 
 ```bash
-cp terraform.tfvars.example terraform.tfvars
+cp infra/terraform/terraform.tfvars.example infra/terraform/terraform.tfvars
 ```
 
 ---
 
 ## Como executar
 
-### Inicializar
+### 1. Bootstrap — criar o bucket S3 para o estado remoto
+
+> Execute apenas uma vez. O bucket não deve ser destruído junto com os demais recursos.
 
 ```bash
-cd infra
+cd infra/terraform/bootstrap
+cp terraform.tfvars.example terraform.tfvars
+# preencher account_id no terraform.tfvars
 terraform init
+terraform apply
 ```
 
-### Validar a configuração
+O output `bucket_name` retorna o nome do bucket criado. Use-o no próximo passo.
+
+### 2. Configurar o backend
+
+```bash
+cd infra/terraform
+cp backend.hcl.example backend.hcl
+# preencher o bucket com o valor retornado pelo bootstrap
+```
+
+### 3. Inicializar
+
+```bash
+terraform init -backend-config=backend.hcl
+```
+
+> Quem já executou `terraform apply` anteriormente com estado local, rode:
+> `terraform init -backend-config=backend.hcl -migrate-state`
+
+### 4. Validar a configuração
 
 ```bash
 terraform validate
 ```
 
-### Visualizar o plano
+### 5. Visualizar o plano
 
 ```bash
 terraform plan
 ```
 
-### Aplicar a infraestrutura
+### 6. Aplicar a infraestrutura
 
 ```bash
 terraform apply
@@ -117,17 +141,24 @@ terraform apply
 terraform destroy
 ```
 
+> O bucket S3 do bootstrap **não é destruído** por este comando. Para removê-lo, execute `terraform destroy` dentro de `infra/terraform/bootstrap/`.
+
 ---
 
 ## Verificar recursos criados (AWS CLI)
 
 ```bash
+# S3 (bootstrap)
+aws s3 ls | grep ofisy-tfstate
+aws s3api get-bucket-versioning --bucket ofisy-tfstate-<ACCOUNT_ID>
+
 # VPC
 aws ec2 describe-vpcs --filters "Name=tag:Name,Values=ofisy-vpc" \
   --query "Vpcs[*].{ID:VpcId,CIDR:CidrBlock,State:State}"
 
 # Subnets
-aws ec2 describe-subnets --filters "Name=vpc-id,Values=<VPC_ID>" \
+# Substitua SEU_VPC_ID pelo ID retornado no comando da VPC acima
+aws ec2 describe-subnets --filters "Name=vpc-id,Values=SEU_VPC_ID" \
   --query "Subnets[*].{ID:SubnetId,Name:Tags[?Key=='Name']|[0].Value,CIDR:CidrBlock,AZ:AvailabilityZone,Public:MapPublicIpOnLaunch}"
 
 # Internet Gateway
