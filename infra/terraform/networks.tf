@@ -1,44 +1,3 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 6.17"
-    }
-  }
-}
-
-########################################
-# VARIABLES
-########################################
-
-variable "account_id" {
-  description = "ID da conta AWS"
-  type        = string
-}
-
-variable "role_name" {
-  description = "Nome da IAM Role com acesso ao cluster EKS (no AWS Academy utilize LabRole)"
-  type        = string
-  default     = "LabRole"
-}
-
-########################################
-# LOCALS
-########################################
-
-locals {
-  project_name = "ofisy"
-  aws_region   = "us-east-1"
-}
-
-########################################
-# PROVIDER
-########################################
-
-provider "aws" {
-  region = local.aws_region
-}
-
 ########################################
 # NETWORK — VPC & INTERNET ACCESS
 ########################################
@@ -160,22 +119,5 @@ resource "aws_db_subnet_group" "main" {
 
   tags = {
     Name = "${local.project_name}-db-subnet-group"
-  }
-}
-
-########################################
-# ECR
-########################################
-
-resource "aws_ecr_repository" "main" {
-  name                 = local.project_name
-  image_tag_mutability = "MUTABLE"
-
-  image_scanning_configuration {
-    scan_on_push = true
-  }
-
-  tags = {
-    Name = "${local.project_name}-ecr"
   }
 }
