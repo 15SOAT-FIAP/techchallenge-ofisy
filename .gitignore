@@ -6,7 +6,8 @@
 .terraform.lock.hcl
 terraform.tfstate
 terraform.tfstate.backup
-terraform.tfvars
+**/terraform.tfvars
+**/backend.hcl
 
 # Maven
 target/
