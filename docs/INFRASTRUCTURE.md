@@ -1,0 +1,172 @@
+# Infraestrutura AWS com Terraform — Ofisy
+
+Provisiona toda a infraestrutura AWS da aplicação Ofisy via Terraform, incluindo rede, banco de dados relacional e cluster Kubernetes.
+
+Este documento aborda:
+
+- Quais recursos AWS são criados e suas responsabilidades
+- Arquitetura de rede e isolamento entre camadas pública e privada
+- Pré-requisitos para execução
+- Variáveis de configuração necessárias
+- Passo a passo para inicializar, validar e aplicar a infraestrutura
+- Comandos AWS CLI para verificar os recursos criados
+
+---
+
+## Recursos criados
+
+| Recurso | Tipo Terraform | Descrição |
+|---|---|---|
+| VPC | `aws_vpc` | Rede isolada `10.0.0.0/16` com suporte a DNS |
+| Internet Gateway | `aws_internet_gateway` | Acesso à internet para recursos públicos da VPC |
+| Subnet pública A | `aws_subnet` | `10.0.1.0/24` — AZ `us-east-1a` — nós do EKS |
+| Subnet pública B | `aws_subnet` | `10.0.4.0/24` — AZ `us-east-1b` — nós do EKS |
+| Subnet privada A | `aws_subnet` | `10.0.2.0/24` — AZ `us-east-1a` — banco de dados |
+| Subnet privada B | `aws_subnet` | `10.0.3.0/24` — AZ `us-east-1b` — banco de dados |
+| Route Table pública | `aws_route_table` | Roteia `0.0.0.0/0` para o Internet Gateway |
+| Associações de Route Table | `aws_route_table_association` | Vincula as subnets públicas à route table |
+| DB Subnet Group | `aws_db_subnet_group` | Agrupa subnets privadas para uso pelo RDS |
+| Security Group EKS | `aws_security_group` | Controla tráfego de entrada/saída do cluster |
+| Security Group RDS | `aws_security_group` | Permite acesso ao PostgreSQL apenas pelo EKS |
+| RDS PostgreSQL | `aws_db_instance` | Banco de dados relacional gerenciado (`db.t3.micro`) |
+| ECR | `aws_ecr_repository` | Repositório de imagens Docker da aplicação |
+| EKS Cluster | `aws_eks_cluster` | Cluster Kubernetes gerenciado na AWS |
+| EKS Node Group | `aws_eks_node_group` | Instâncias EC2 `t3.medium` que executam os workloads |
+| EKS Access Entry | `aws_eks_access_entry` | Controle de acesso ao cluster via IAM |
+| EKS Access Policy | `aws_eks_access_policy_association` | Associa política de administrador ao EKS |
+
+---
+
+## Arquitetura de rede
+
+```
+Internet
+    │
+    ▼
+Internet Gateway
+    │
+    ▼
+┌─────────────────────────────────────┐
+│  VPC  10.0.0.0/16                   │
+│                                     │
+│  Subnet pública A   10.0.1.0/24     │ ← EKS Node Group
+│  Subnet pública B   10.0.4.0/24     │ ← EKS Node Group
+│                                     │
+│  Subnet privada A   10.0.2.0/24     │ ← RDS PostgreSQL
+│  Subnet privada B   10.0.3.0/24     │ ← RDS PostgreSQL
+└─────────────────────────────────────┘
+```
+
+As subnets públicas hospedam os nós do EKS e possuem acesso direto à internet via Internet Gateway. As subnets privadas hospedam o banco de dados e só recebem tráfego originado dentro da própria VPC, pelo Security Group do EKS.
+
+---
+
+## Pré-requisitos
+
+- [Terraform](https://developer.hashicorp.com/terraform/install) >= 1.5
+- [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) configurado com credenciais válidas
+- Conta AWS com permissões para criar recursos de VPC, EKS e RDS (no AWS Academy, usar sessão ativa do laboratório)
+
+---
+
+## Variáveis
+
+| Variável | Descrição | Padrão |
+|---|---|---|
+| `account_id` | ID da conta AWS | — |
+| `role_name` | IAM Role com acesso ao EKS | `LabRole` |
+
+Copie o arquivo de exemplo e preencha os valores:
+
+```bash
+cp infra/terraform/terraform.tfvars.example infra/terraform/terraform.tfvars
+```
+
+---
+
+## Como executar
+
+### 1. Bootstrap — criar o bucket S3 para o estado remoto
+
+> Execute apenas uma vez. O bucket não deve ser destruído junto com os demais recursos.
+
+```bash
+cd infra/terraform/bootstrap
+cp terraform.tfvars.example terraform.tfvars
+# preencher account_id no terraform.tfvars
+terraform init
+terraform apply
+```
+
+O output `bucket_name` retorna o nome do bucket criado. Use-o no próximo passo.
+
+### 2. Configurar o backend
+
+```bash
+cd infra/terraform
+cp backend.hcl.example backend.hcl
+# preencher o bucket com o valor retornado pelo bootstrap
+```
+
+### 3. Inicializar
+
+```bash
+terraform init -backend-config=backend.hcl
+```
+
+> Quem já executou `terraform apply` anteriormente com estado local, rode:
+> `terraform init -backend-config=backend.hcl -migrate-state`
+
+### 4. Validar a configuração
+
+```bash
+terraform validate
+```
+
+### 5. Visualizar o plano
+
+```bash
+terraform plan
+```
+
+### 6. Aplicar a infraestrutura
+
+```bash
+terraform apply
+```
+
+### Destruir os recursos
+
+```bash
+terraform destroy
+```
+
+> O bucket S3 do bootstrap **não é destruído** por este comando. Para removê-lo, execute `terraform destroy` dentro de `infra/terraform/bootstrap/`.
+
+---
+
+## Verificar recursos criados (AWS CLI)
+
+```bash
+# S3 (bootstrap)
+aws s3 ls | grep ofisy-tfstate
+aws s3api get-bucket-versioning --bucket ofisy-tfstate-<ACCOUNT_ID>
+
+# VPC
+aws ec2 describe-vpcs --filters "Name=tag:Name,Values=ofisy-vpc" \
+  --query "Vpcs[*].{ID:VpcId,CIDR:CidrBlock,State:State}"
+
+# Subnets
+# Substitua SEU_VPC_ID pelo ID retornado no comando da VPC acima
+aws ec2 describe-subnets --filters "Name=vpc-id,Values=SEU_VPC_ID" \
+  --query "Subnets[*].{ID:SubnetId,Name:Tags[?Key=='Name']|[0].Value,CIDR:CidrBlock,AZ:AvailabilityZone,Public:MapPublicIpOnLaunch}"
+
+# Internet Gateway
+aws ec2 describe-internet-gateways --filters "Name=tag:Name,Values=ofisy-igw" \
+  --query "InternetGateways[*].{ID:InternetGatewayId,State:Attachments[0].State}"
+
+# ECR
+aws ecr describe-repositories --query "repositories[*].{Nome:repositoryName,URI:repositoryUri}"
+```
+
+> Os comandos para verificar o cluster EKS e o RDS serão adicionados após a implementação dos serviços da aplicação.
