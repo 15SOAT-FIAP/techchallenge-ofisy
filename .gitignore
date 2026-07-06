@@ -1,6 +1,14 @@
 # Env Variables and Secrets
 .env
 
+# Terraform
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+**/terraform.tfvars
+**/backend.hcl
+
 # Maven
 target/
 !.mvn/wrapper/maven-wrapper.jar

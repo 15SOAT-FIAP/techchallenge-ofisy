@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ofisy-config
+data:
+  POSTGRES_HOST: "db-service"
+  SPRING_PROFILES_ACTIVE: "k8s"
