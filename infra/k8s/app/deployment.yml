@@ -12,7 +12,7 @@ spec:
       containers:
         - name: ofisy-app
           image: ofisy-app:latest
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
           envFrom:
