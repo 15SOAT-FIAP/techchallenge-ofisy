@@ -27,8 +27,11 @@ public class QuoteRepositoryImpl implements QuoteRepository {
 
     @Override
     public Quote save(Quote quote) {
-        QuoteEntity entity = QuoteMapper.toEntity(quote);
-        return QuoteMapper.toDomain(jpa.save(entity), stockRepository, executionRepository);
+        if (quote.getId() == null) {
+            QuoteEntity entity = QuoteMapper.toEntity(quote);
+            return QuoteMapper.toDomain(jpa.save(entity), stockRepository, executionRepository);
+        }
+        return update(quote);
     }
 
     @Override
@@ -47,5 +50,30 @@ public class QuoteRepositoryImpl implements QuoteRepository {
     @Override
     public boolean existsByServiceOrderId(UUID serviceOrderId) {
         return jpa.existsByServiceOrderId(serviceOrderId);
+    }
+
+    private Quote update(Quote quote) {
+        QuoteEntity entity = jpa.findById(quote.getId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Quote não encontrado para atualização: " + quote.getId()));
+
+        entity.update(quote.getStatus(), quote.getTotalPrice(),
+                quote.getQuoteRefusalReason(), quote.getUpdatedAt());
+
+        entity.getStockItems().clear();
+        entity.getServiceItems().clear();
+        jpa.flush();
+
+        entity.getStockItems().addAll(
+                quote.getStockItems().stream()
+                        .map(item -> QuoteStockItemEntityMapper.toEntity(item, entity))
+                        .toList());
+
+        entity.getServiceItems().addAll(
+                quote.getServiceItems().stream()
+                        .map(item -> QuoteServiceItemEntityMapper.toEntity(item, entity))
+                        .toList());
+
+        return QuoteMapper.toDomain(jpa.save(entity), stockRepository, executionRepository);
     }
 }

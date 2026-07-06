@@ -95,7 +95,7 @@ public class ServiceOrderController implements ServiceOrderApi {
                 .toList();
 
         ServiceOrder serviceOrder = createCompleteServiceOrderUseCase.execute(
-                new CreateCompleteServiceOrderUseCase.CreateServiceOrderCommand(
+                new CreateCompleteServiceOrderUseCase.CreateCompleteServiceOrderCommand(
                         request.vehicleId(), request.customerId(), request.report(),
                         user.getUsername(), stockItems, serviceItems));
 

@@ -8,9 +8,9 @@ import java.util.UUID;
 
 public interface CreateCompleteServiceOrderUseCase {
 
-    ServiceOrder execute(CreateServiceOrderCommand cmd);
+    ServiceOrder execute(CreateCompleteServiceOrderCommand cmd);
 
-    record CreateServiceOrderCommand(
+    record CreateCompleteServiceOrderCommand(
             UUID vehicleId,
             UUID customerId,
             String report,
