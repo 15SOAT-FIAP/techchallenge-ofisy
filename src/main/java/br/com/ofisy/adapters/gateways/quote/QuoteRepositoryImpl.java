@@ -1,5 +1,6 @@
 package br.com.ofisy.adapters.gateways.quote;
 
+import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
 import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.quote.QuoteRepository;
 import br.com.ofisy.domain.quote.QuoteServiceItem;
@@ -59,9 +60,7 @@ public class QuoteRepositoryImpl implements QuoteRepository {
     }
 
     private Quote update(Quote quote) {
-        QuoteEntity entity = jpa.findById(quote.getId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Quote não encontrado para atualização: " + quote.getId()));
+        QuoteEntity entity = jpa.findById(quote.getId()).orElseThrow(() -> new QuoteNotFoundException(quote.getId()));
 
         entity.update(quote.getStatus(), quote.getTotalPrice(),
                 quote.getQuoteRefusalReason(), quote.getUpdatedAt());
@@ -74,7 +73,7 @@ public class QuoteRepositoryImpl implements QuoteRepository {
 
     private void reconcileStockItems(QuoteEntity entity, Quote quote) {
         Map<UUID, QuoteStockItemEntity> existingById = entity.getStockItems().stream()
-                .filter(i -> i.getId() != null)
+                .filter(quoteStockItem -> quoteStockItem.getId() != null)
                 .collect(Collectors.toMap(QuoteStockItemEntity::getId, Function.identity()));
 
         List<QuoteStockItemEntity> reconciled = new ArrayList<>();
@@ -85,8 +84,7 @@ public class QuoteRepositoryImpl implements QuoteRepository {
                     : null;
 
             if (existing != null) {
-                existing.update(domainItem.getStock().getId(), domainItem.getUnitPrice(),
-                        domainItem.getQuantity(), domainItem.getUpdatedAt());
+                existing.update(domainItem.getStock().getId(), domainItem.getUnitPrice(), domainItem.getQuantity(), domainItem.getUpdatedAt());
                 reconciled.add(existing);
             } else {
                 reconciled.add(QuoteStockItemMapper.toEntity(domainItem, entity));
@@ -99,7 +97,7 @@ public class QuoteRepositoryImpl implements QuoteRepository {
 
     private void reconcileServiceItems(QuoteEntity entity, Quote quote) {
         Map<UUID, QuoteServiceItemEntity> existingById = entity.getServiceItems().stream()
-                .filter(i -> i.getId() != null)
+                .filter(quoteServiceItem -> quoteServiceItem.getId() != null)
                 .collect(Collectors.toMap(QuoteServiceItemEntity::getId, Function.identity()));
 
         List<QuoteServiceItemEntity> reconciled = new ArrayList<>();
@@ -110,8 +108,7 @@ public class QuoteRepositoryImpl implements QuoteRepository {
                     : null;
 
             if (existing != null) {
-                existing.update(domainItem.getServiceOrderExecution().getId(),
-                        domainItem.getPrice(), domainItem.getUpdatedAt());
+                existing.update(domainItem.getServiceOrderExecution().getId(), domainItem.getPrice(), domainItem.getUpdatedAt());
                 reconciled.add(existing);
             } else {
                 reconciled.add(QuoteServiceItemMapper.toEntity(domainItem, entity));

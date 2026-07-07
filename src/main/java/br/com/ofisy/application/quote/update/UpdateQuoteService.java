@@ -62,8 +62,7 @@ public class UpdateQuoteService implements UpdateQuoteUseCase {
 
     @Override
     public Quote execute(UpdateQuoteCommand cmd) {
-        Quote quote = quoteRepository.findById(cmd.quoteId())
-                .orElseThrow(() -> new QuoteNotFoundException(cmd.quoteId()));
+        Quote quote = quoteRepository.findById(cmd.quoteId()).orElseThrow(() -> new QuoteNotFoundException(cmd.quoteId()));
 
         if (!QuoteStatus.PENDING.equals(quote.getStatus())) {
             throw new InvalidQuoteStatusException(ACTION_EDIT, quote.getStatus());
@@ -85,14 +84,13 @@ public class UpdateQuoteService implements UpdateQuoteUseCase {
 
     private List<QuoteStockItem> buildStockItems(Quote quote, List<CreateQuoteUseCase.StockItemCommand> commands) {
         Map<UUID, QuoteStockItem> existingByStockId = quote.getStockItems().stream()
-                .collect(Collectors.toMap(i -> i.getStock().getId(), Function.identity()));
+                .collect(Collectors.toMap(quoteStockItem -> quoteStockItem.getStock().getId(), Function.identity()));
 
         List<QuoteStockItem> items = new ArrayList<>();
         Set<UUID> requestedStockIds = new HashSet<>();
 
         for (CreateQuoteUseCase.StockItemCommand command : commands) {
-            Stock stock = stockRepository.findById(command.stockId())
-                    .orElseThrow(() -> new StockNotFoundException(command.stockId()));
+            Stock stock = stockRepository.findById(command.stockId()).orElseThrow(() -> new StockNotFoundException(command.stockId()));
 
             boolean duplicate = !requestedStockIds.add(command.stockId());
             if (duplicate) {
@@ -138,15 +136,14 @@ public class UpdateQuoteService implements UpdateQuoteUseCase {
     private List<QuoteServiceItem> buildServiceItems(Quote quote,
                                                      List<CreateQuoteUseCase.ServiceItemCommand> commands) {
         Map<UUID, QuoteServiceItem> existingByServiceCatalogId = quote.getServiceItems().stream()
-                .collect(Collectors.toMap(i -> i.getServiceOrderExecution().getServiceCatalogId(), Function.identity()));
+                .collect(Collectors.toMap(quoteServiceItem -> quoteServiceItem.getServiceOrderExecution().getServiceCatalogId(), Function.identity()));
 
         List<QuoteServiceItem> items = new ArrayList<>();
         Set<UUID> requestedCatalogIds = new HashSet<>();
 
         for (CreateQuoteUseCase.ServiceItemCommand command : commands) {
             ServiceCatalog catalog = serviceCatalogRepository.findById(command.serviceCatalogId())
-                    .orElseThrow(() -> new ServiceCatalogNotFoundException(
-                            String.valueOf(command.serviceCatalogId())));
+                    .orElseThrow(() -> new ServiceCatalogNotFoundException(String.valueOf(command.serviceCatalogId())));
 
             boolean duplicate = !requestedCatalogIds.add(command.serviceCatalogId());
             if (duplicate) {
@@ -159,8 +156,7 @@ public class UpdateQuoteService implements UpdateQuoteUseCase {
                         existing.getId(), existing.getServiceOrderExecution(), catalog.getPrice(),
                         existing.getCreatedAt(), LocalDateTime.now()));
             } else {
-                ServiceOrderExecution execution = serviceOrderExecutionRepository.save(
-                        ServiceOrderExecution.create(command.serviceCatalogId(), quote.getServiceOrderId()));
+                ServiceOrderExecution execution = serviceOrderExecutionRepository.save(ServiceOrderExecution.create(command.serviceCatalogId(), quote.getServiceOrderId()));
                 items.add(QuoteServiceItem.create(execution, catalog.getPrice()));
             }
         }

@@ -14,6 +14,7 @@ import br.com.ofisy.application.quote.findbyserviceorderid.FindQuoteByServiceOrd
 import br.com.ofisy.application.serviceorder.createcomplete.CreateCompleteServiceOrderUseCase;
 import br.com.ofisy.application.serviceorder.submitquoteforapproval.SubmitQuoteForApprovalUseCase;
 import br.com.ofisy.application.quote.update.UpdateQuoteUseCase;
+import br.com.ofisy.application.stock.release.ReleaseStockUseCase;
 import br.com.ofisy.application.user.activateuser.ActivateUserUseCase;
 import br.com.ofisy.application.user.createuser.CreateUserUseCase;
 import br.com.ofisy.application.user.deactivateuser.DeactivateUserUseCase;

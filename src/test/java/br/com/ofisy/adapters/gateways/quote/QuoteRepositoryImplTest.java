@@ -1,5 +1,6 @@
 package br.com.ofisy.adapters.gateways.quote;
 
+import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
 import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.quote.QuoteServiceItem;
 import br.com.ofisy.domain.quote.QuoteStatus;
@@ -111,7 +112,7 @@ class QuoteRepositoryImplTest {
             when(jpaQuoteRepository.findById(quoteId)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> repository.save(quote))
-                    .isInstanceOf(IllegalArgumentException.class)
+                    .isInstanceOf(QuoteNotFoundException.class)
                     .hasMessageContaining(quoteId.toString());
         }
 
