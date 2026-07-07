@@ -10,8 +10,10 @@ import br.com.ofisy.application.customer.identifybycpfcnpj.IdentifyByCpfCnpjCust
 import br.com.ofisy.application.customer.identifybyid.IdentifyByIdCustomerUseCase;
 import br.com.ofisy.application.customer.list.ListRegisteredCustomerUseCase;
 import br.com.ofisy.application.customer.register.RegisterCustomerUseCase;
+import br.com.ofisy.application.quote.findbyserviceorderid.FindQuoteByServiceOrderIdUseCase;
 import br.com.ofisy.application.serviceorder.createcomplete.CreateCompleteServiceOrderUseCase;
-import br.com.ofisy.application.serviceorder.updatequote.UpdateQuoteUseCase;
+import br.com.ofisy.application.serviceorder.submitquoteforapproval.SubmitQuoteForApprovalUseCase;
+import br.com.ofisy.application.quote.update.UpdateQuoteUseCase;
 import br.com.ofisy.application.user.activateuser.ActivateUserUseCase;
 import br.com.ofisy.application.user.createuser.CreateUserUseCase;
 import br.com.ofisy.application.user.deactivateuser.DeactivateUserUseCase;
@@ -116,6 +118,10 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
     private ReproveServiceOrderQuoteUseCase reproveServiceOrderQuoteUseCase;
     @MockitoBean
     private UpdateQuoteUseCase updateQuoteUseCase;
+    @MockitoBean
+    private SubmitQuoteForApprovalUseCase submitQuoteForApprovalUseCase;
+    @MockitoBean
+    private FindQuoteByServiceOrderIdUseCase findQuoteByServiceOrderIdUseCase;
 
     @MockitoBean
     private AuthenticationManager authenticationManager;

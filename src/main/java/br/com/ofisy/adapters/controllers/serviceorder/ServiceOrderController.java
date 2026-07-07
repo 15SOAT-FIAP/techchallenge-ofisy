@@ -9,6 +9,7 @@ import br.com.ofisy.adapters.controllers.quote.dto.CreateQuoteRequestDTO;
 import br.com.ofisy.adapters.controllers.quote.dto.QuoteResponseDTO;
 import br.com.ofisy.adapters.controllers.quote.dto.ReproveQuoteRequestDTO;
 import br.com.ofisy.application.quote.create.CreateQuoteUseCase;
+import br.com.ofisy.application.quote.findbyserviceorderid.FindQuoteByServiceOrderIdUseCase;
 import br.com.ofisy.application.serviceorder.approvequote.ApproveServiceOrderQuoteUseCase;
 import br.com.ofisy.application.serviceorder.cancel.CancelServiceOrderUseCase;
 import br.com.ofisy.application.serviceorder.create.CreateServiceOrderUseCase;
@@ -21,7 +22,8 @@ import br.com.ofisy.application.serviceorder.listfinished.ListFinishedServiceOrd
 import br.com.ofisy.application.serviceorder.listreceived.ListReceivedServiceOrdersUseCase;
 import br.com.ofisy.application.serviceorder.reprovequote.ReproveServiceOrderQuoteUseCase;
 import br.com.ofisy.application.serviceorder.startdiagnostic.StartDiagnosticUseCase;
-import br.com.ofisy.application.serviceorder.updatequote.UpdateQuoteUseCase;
+import br.com.ofisy.application.serviceorder.submitquoteforapproval.SubmitQuoteForApprovalUseCase;
+import br.com.ofisy.application.quote.update.UpdateQuoteUseCase;
 import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import jakarta.validation.Valid;
@@ -65,6 +67,8 @@ public class ServiceOrderController implements ServiceOrderApi {
     private final ApproveServiceOrderQuoteUseCase approveServiceOrderQuoteUseCase;
     private final ReproveServiceOrderQuoteUseCase reproveServiceOrderQuoteUseCase;
     private final UpdateQuoteUseCase updateQuoteUseCase;
+    private final SubmitQuoteForApprovalUseCase submitForApprovalUseCase;
+    private final FindQuoteByServiceOrderIdUseCase findQuoteByServiceOrderIdUseCase;
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT')")
@@ -80,8 +84,8 @@ public class ServiceOrderController implements ServiceOrderApi {
 
     @PostMapping("/create-complete")
     @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT')")
-    public ResponseEntity<CreateServiceOrderResponseDTO> receiveCompleteServiceOrder(
-            @Valid @RequestBody CreateServiceOrderRequestDTO request,
+    public ResponseEntity<ServiceOrderResponseDTO> receiveCompleteServiceOrder(
+            @Valid @RequestBody CreateCompleteServiceOrderRequestDTO request,
             @AuthenticationPrincipal UserDetails user) {
 
         var stockItems = request.stockItems() == null ? List.<CreateQuoteUseCase.StockItemCommand>of()
@@ -99,8 +103,7 @@ public class ServiceOrderController implements ServiceOrderApi {
                         request.vehicleId(), request.customerId(), request.report(),
                         user.getUsername(), stockItems, serviceItems));
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new CreateServiceOrderResponseDTO(serviceOrder.getId()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ServiceOrderPresenter.present(serviceOrder));
     }
 
     @PostMapping("/{id}/quote")
@@ -114,28 +117,6 @@ public class ServiceOrderController implements ServiceOrderApi {
                         id, toStockItemCommands(request), toServiceItemCommands(request)));
 
         return ResponseEntity.status(HttpStatus.CREATED).body(QuotePresenter.present(quote));
-    }
-
-    @PatchMapping("/{id}/quote")
-    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
-    public ResponseEntity<QuoteResponseDTO> updateQuote(
-            @PathVariable UUID id,
-            @Valid @RequestBody UpdateQuoteRequestDTO request) {
-
-        var stockItems = request.stockItems() == null ? List.<CreateQuoteUseCase.StockItemCommand>of()
-                : request.stockItems().stream()
-                .map(i -> new CreateQuoteUseCase.StockItemCommand(i.stockId(), i.quantity()))
-                .toList();
-
-        var serviceItems = request.serviceItems() == null ? List.<CreateQuoteUseCase.ServiceItemCommand>of()
-                : request.serviceItems().stream()
-                .map(i -> new CreateQuoteUseCase.ServiceItemCommand(i.serviceCatalogId()))
-                .toList();
-
-        Quote quote = updateQuoteUseCase.execute(
-                new UpdateQuoteUseCase.UpdateQuoteCommand(id, stockItems, serviceItems));
-
-        return ResponseEntity.ok(QuotePresenter.present(quote));
     }
 
     @GetMapping("/received")
@@ -160,6 +141,13 @@ public class ServiceOrderController implements ServiceOrderApi {
             @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
 
         return ResponseEntity.ok(listActiveServiceOrdersUseCase.execute(pageable).map(ServiceOrderPresenter::present));
+    }
+
+    @PatchMapping("/{id}/submit-for-approval")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
+    public ResponseEntity<ServiceOrderResponseDTO> submitQuoteForApproval(@PathVariable UUID id) {
+        ServiceOrder serviceOrder = submitForApprovalUseCase.execute(id);
+        return ResponseEntity.ok(ServiceOrderPresenter.present(serviceOrder));
     }
 
     @GetMapping("/{id}/status")
@@ -199,6 +187,35 @@ public class ServiceOrderController implements ServiceOrderApi {
         Quote quote = reproveServiceOrderQuoteUseCase.execute(
                 new ReproveServiceOrderQuoteUseCase.ReproveServiceOrderQuoteCommand(id, reproveQuoteRequestDTO.reason()));
         return ResponseEntity.ok(QuotePresenter.present(quote));
+    }
+
+    @PatchMapping("/quote/{id}/update")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
+    public ResponseEntity<QuoteResponseDTO> updateQuote(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateQuoteRequestDTO request) {
+
+        var stockItems = request.stockItems() == null ? List.<CreateQuoteUseCase.StockItemCommand>of()
+                : request.stockItems().stream()
+                .map(i -> new CreateQuoteUseCase.StockItemCommand(i.stockId(), i.quantity()))
+                .toList();
+
+        var serviceItems = request.serviceItems() == null ? List.<CreateQuoteUseCase.ServiceItemCommand>of()
+                : request.serviceItems().stream()
+                .map(i -> new CreateQuoteUseCase.ServiceItemCommand(i.serviceCatalogId()))
+                .toList();
+
+        Quote quote = updateQuoteUseCase.execute(
+                new UpdateQuoteUseCase.UpdateQuoteCommand(id, stockItems, serviceItems));
+
+        return ResponseEntity.ok(QuotePresenter.present(quote));
+    }
+
+    @GetMapping("/{id}/quotes")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
+    public ResponseEntity<List<QuoteResponseDTO>> listQuotesByServiceOrder(@PathVariable UUID id) {
+        List<Quote> quotes = findQuoteByServiceOrderIdUseCase.execute(id);
+        return ResponseEntity.ok(quotes.stream().map(QuotePresenter::present).toList());
     }
 
     private List<CreateQuoteUseCase.StockItemCommand> toStockItemCommands(CreateQuoteRequestDTO request) {

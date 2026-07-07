@@ -2,6 +2,7 @@ package br.com.ofisy.adapters.controllers.serviceorder;
 
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
 import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
+import br.com.ofisy.application.quote.findbyserviceorderid.FindQuoteByServiceOrderIdUseCase;
 import br.com.ofisy.application.serviceorder.approvequote.ApproveServiceOrderQuoteUseCase;
 import br.com.ofisy.application.serviceorder.cancel.CancelServiceOrderUseCase;
 import br.com.ofisy.application.serviceorder.create.CreateServiceOrderUseCase;
@@ -16,7 +17,8 @@ import br.com.ofisy.application.serviceorder.listfinished.ListFinishedServiceOrd
 import br.com.ofisy.application.serviceorder.listreceived.ListReceivedServiceOrdersUseCase;
 import br.com.ofisy.application.serviceorder.reprovequote.ReproveServiceOrderQuoteUseCase;
 import br.com.ofisy.application.serviceorder.startdiagnostic.StartDiagnosticUseCase;
-import br.com.ofisy.application.serviceorder.updatequote.UpdateQuoteUseCase;
+import br.com.ofisy.application.serviceorder.submitquoteforapproval.SubmitQuoteForApprovalUseCase;
+import br.com.ofisy.application.quote.update.UpdateQuoteUseCase;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
 import br.com.ofisy.config.GlobalExceptionHandler;
 import br.com.ofisy.domain.quote.Quote;
@@ -72,19 +74,37 @@ class ServiceOrderControllerTest {
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 1, 1, 12, 0);
     public static final String PRICE_1500 = "1500.00";
 
-    @Mock private CreateServiceOrderUseCase createServiceOrderUseCase;
-    @Mock private CreateCompleteServiceOrderUseCase createCompleteServiceOrderUseCase;
-    @Mock private CancelServiceOrderUseCase cancelServiceOrderUseCase;
-    @Mock private ListReceivedServiceOrdersUseCase listReceivedServiceOrdersUseCase;
-    @Mock private ListFinishedServiceOrdersUseCase listFinishedServiceOrdersUseCase;
-    @Mock private ListActiveServiceOrdersUseCase listActiveServiceOrdersUseCase;
-    @Mock private StartDiagnosticUseCase startDiagnosticUseCase;
-    @Mock private DeliverToCustomerUseCase deliverToCustomerUseCase;
-    @Mock private GetServiceOrderStatusUseCase getServiceOrderStatusUseCase;
-    @Mock private GenerateServiceOrderQuoteUseCase generateServiceOrderQuoteUseCase;
-    @Mock private ApproveServiceOrderQuoteUseCase approveServiceOrderQuoteUseCase;
-    @Mock private ReproveServiceOrderQuoteUseCase reproveServiceOrderQuoteUseCase;
-    @Mock private UpdateQuoteUseCase updateQuoteUseCase;
+    @Mock
+    private CreateServiceOrderUseCase createServiceOrderUseCase;
+    @Mock
+    private CreateCompleteServiceOrderUseCase createCompleteServiceOrderUseCase;
+    @Mock
+    private CancelServiceOrderUseCase cancelServiceOrderUseCase;
+    @Mock
+    private ListReceivedServiceOrdersUseCase listReceivedServiceOrdersUseCase;
+    @Mock
+    private ListFinishedServiceOrdersUseCase listFinishedServiceOrdersUseCase;
+    @Mock
+    private ListActiveServiceOrdersUseCase listActiveServiceOrdersUseCase;
+    @Mock
+    private StartDiagnosticUseCase startDiagnosticUseCase;
+    @Mock
+    private DeliverToCustomerUseCase deliverToCustomerUseCase;
+    @Mock
+    private GetServiceOrderStatusUseCase getServiceOrderStatusUseCase;
+    @Mock
+    private GenerateServiceOrderQuoteUseCase generateServiceOrderQuoteUseCase;
+    @Mock
+    private ApproveServiceOrderQuoteUseCase approveServiceOrderQuoteUseCase;
+    @Mock
+    private ReproveServiceOrderQuoteUseCase reproveServiceOrderQuoteUseCase;
+    @Mock
+    private UpdateQuoteUseCase updateQuoteUseCase;
+    @Mock
+    private SubmitQuoteForApprovalUseCase submitForApprovalUseCase;
+    @Mock
+    private FindQuoteByServiceOrderIdUseCase findQuoteByServiceOrderIdUseCase;
+
 
     private MockMvc mockMvc;
 
@@ -104,7 +124,9 @@ class ServiceOrderControllerTest {
                         generateServiceOrderQuoteUseCase,
                         approveServiceOrderQuoteUseCase,
                         reproveServiceOrderQuoteUseCase,
-                        updateQuoteUseCase))
+                        updateQuoteUseCase,
+                        submitForApprovalUseCase,
+                        findQuoteByServiceOrderIdUseCase))
                 .setCustomArgumentResolvers(
                         new AuthenticationPrincipalArgumentResolver(),
                         new PageableHandlerMethodArgumentResolver())
@@ -162,6 +184,7 @@ class ServiceOrderControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(bodyMissingVehicleId()))
                     .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.title").value("Erro de validação"))
                     .andExpect(jsonPath("$.errors.vehicleId").exists());
         }
 
@@ -171,6 +194,7 @@ class ServiceOrderControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(bodyMissingCustomerId()))
                     .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.title").value("Erro de validação"))
                     .andExpect(jsonPath("$.errors.customerId").exists());
         }
 
@@ -216,14 +240,16 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn201WithServiceOrderId() throws Exception {
-            var serviceOrder = mockServiceOrder(ServiceOrderStatus.AWAITING_APPROVAL);
+            var serviceOrder = mockServiceOrder(ServiceOrderStatus.RECEIVED);
             when(createCompleteServiceOrderUseCase.execute(any())).thenReturn(serviceOrder);
 
             mockMvc.perform(post(BASE_URL + "/create-complete")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(validBodyWithItems()))
                     .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.serviceOrderId").value(serviceOrder.getId().toString()));
+                    .andExpect(jsonPath("$.status").value("RECEIVED"))
+                    .andExpect(jsonPath("$.vehicleId").value(VALID_VEHICLE_ID.toString()))
+                    .andExpect(jsonPath("$.customerId").value(VALID_CUSTOMER_ID.toString()));
         }
 
         @Test
@@ -291,79 +317,41 @@ class ServiceOrderControllerTest {
     }
 
     @Nested
-    class UpdateQuote {
-
-        private static final UUID QUOTE_ID = UUID.randomUUID();
-        private static final UUID ORDER_ID = UUID.randomUUID();
-
-        @Test
-        void shouldReturn200WithUpdatedQuote() throws Exception {
-            var quote = mockQuote(QUOTE_ID, ORDER_ID, QuoteStatus.PENDING);
-            when(updateQuoteUseCase.execute(any())).thenReturn(quote);
-
-            mockMvc.perform(patch(BASE_URL + "/{id}/quote", QUOTE_ID)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(quoteBody()))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value(QUOTE_ID.toString()))
-                    .andExpect(jsonPath("$.status").value("PENDING"));
-        }
-
-        @Test
-        void shouldReturn404WhenQuoteNotFound() throws Exception {
-            when(updateQuoteUseCase.execute(any()))
-                    .thenThrow(new QuoteNotFoundException(QUOTE_ID));
-
-            mockMvc.perform(patch(BASE_URL + "/{id}/quote", QUOTE_ID)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(quoteBody()))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.title").value("Orçamento não encontrado"));
-        }
-
-        @Test
-        void shouldReturn409WhenQuoteIsNotPending() throws Exception {
-            when(updateQuoteUseCase.execute(any()))
-                    .thenThrow(new InvalidQuoteStatusException("editar", QuoteStatus.APPROVED));
-
-            mockMvc.perform(patch(BASE_URL + "/{id}/quote", QUOTE_ID)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(quoteBody()))
-                    .andExpect(status().isConflict());
-        }
-    }
-
-    @Nested
     class ListReceived {
 
         @Test
         void shouldReturn200WithPageOfReceivedServiceOrders() throws Exception {
-            Page<ServiceOrder> page = new PageImpl<>(
-                    List.of(mockServiceOrder(ServiceOrderStatus.RECEIVED)), PageRequest.of(0, 10), 1);
+            ServiceOrder serviceOrder = mockServiceOrder(ServiceOrderStatus.RECEIVED);
+            Page<ServiceOrder> page = new PageImpl<>(List.of(serviceOrder), PageRequest.of(0, 10), 1);
             when(listReceivedServiceOrdersUseCase.execute(any(Pageable.class))).thenReturn(page);
 
             mockMvc.perform(get(BASE_URL + "/received"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content[0].status").value("RECEIVED"))
+                    .andExpect(jsonPath("$.content[0].vehicleId").value(VALID_VEHICLE_ID.toString()))
+                    .andExpect(jsonPath("$.content[0].customerId").value(VALID_CUSTOMER_ID.toString()))
                     .andExpect(jsonPath("$.totalElements").value(1));
         }
 
         @Test
-        void shouldReturn200WithEmptyPage() throws Exception {
-            when(listReceivedServiceOrdersUseCase.execute(any(Pageable.class)))
-                    .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 10), 0));
+        void shouldReturn200WithEmptyPageWhenNoReceivedOrders() throws Exception {
+            Page<ServiceOrder> page = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
+            when(listReceivedServiceOrdersUseCase.execute(any(Pageable.class))).thenReturn(page);
 
             mockMvc.perform(get(BASE_URL + "/received"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.content").isEmpty());
+                    .andExpect(jsonPath("$.content").isEmpty())
+                    .andExpect(jsonPath("$.totalElements").value(0));
         }
 
         @Test
-        void shouldForwardPageableToUseCase() throws Exception {
-            when(listReceivedServiceOrdersUseCase.execute(any(Pageable.class)))
-                    .thenReturn(new PageImpl<>(List.of(), PageRequest.of(2, 5), 0));
+        void shouldForwardPageableParametersToUseCase() throws Exception {
+            Page<ServiceOrder> page = new PageImpl<>(List.of(), PageRequest.of(2, 5), 0);
+            when(listReceivedServiceOrdersUseCase.execute(any(Pageable.class))).thenReturn(page);
 
-            mockMvc.perform(get(BASE_URL + "/received").param("page", "2").param("size", "5"))
+            mockMvc.perform(get(BASE_URL + "/received")
+                            .param("page", "2")
+                            .param("size", "5"))
                     .andExpect(status().isOk());
 
             ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
@@ -378,32 +366,37 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn200WithPageOfFinishedServiceOrders() throws Exception {
-            Page<ServiceOrder> page = new PageImpl<>(
-                    List.of(mockServiceOrder(ServiceOrderStatus.FINISHED)), PageRequest.of(0, 10), 1);
+            ServiceOrder serviceOrder = mockServiceOrder(ServiceOrderStatus.FINISHED);
+            Page<ServiceOrder> page = new PageImpl<>(List.of(serviceOrder), PageRequest.of(0, 10), 1);
             when(listFinishedServiceOrdersUseCase.execute(any(Pageable.class))).thenReturn(page);
 
             mockMvc.perform(get(BASE_URL + "/finished"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content[0].status").value("FINISHED"))
+                    .andExpect(jsonPath("$.content[0].vehicleId").value(VALID_VEHICLE_ID.toString()))
+                    .andExpect(jsonPath("$.content[0].customerId").value(VALID_CUSTOMER_ID.toString()))
                     .andExpect(jsonPath("$.totalElements").value(1));
         }
 
         @Test
-        void shouldReturn200WithEmptyPage() throws Exception {
-            when(listFinishedServiceOrdersUseCase.execute(any(Pageable.class)))
-                    .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 10), 0));
+        void shouldReturn200WithEmptyPageWhenNoFinishedOrders() throws Exception {
+            Page<ServiceOrder> page = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
+            when(listFinishedServiceOrdersUseCase.execute(any(Pageable.class))).thenReturn(page);
 
             mockMvc.perform(get(BASE_URL + "/finished"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.content").isEmpty());
+                    .andExpect(jsonPath("$.content").isEmpty())
+                    .andExpect(jsonPath("$.totalElements").value(0));
         }
 
         @Test
-        void shouldForwardPageableToUseCase() throws Exception {
-            when(listFinishedServiceOrdersUseCase.execute(any(Pageable.class)))
-                    .thenReturn(new PageImpl<>(List.of(), PageRequest.of(2, 5), 0));
+        void shouldForwardPageableParametersToUseCase() throws Exception {
+            Page<ServiceOrder> page = new PageImpl<>(List.of(), PageRequest.of(2, 5), 0);
+            when(listFinishedServiceOrdersUseCase.execute(any(Pageable.class))).thenReturn(page);
 
-            mockMvc.perform(get(BASE_URL + "/finished").param("page", "2").param("size", "5"))
+            mockMvc.perform(get(BASE_URL + "/finished")
+                            .param("page", "2")
+                            .param("size", "5"))
                     .andExpect(status().isOk());
 
             ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
@@ -418,10 +411,9 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn200WithPageOfActiveServiceOrders() throws Exception {
-            Page<ServiceOrder> page = new PageImpl<>(
-                    List.of(mockServiceOrder(ServiceOrderStatus.IN_PROGRESS),
-                            mockServiceOrder(ServiceOrderStatus.IN_DIAGNOSTIC)),
-                    PageRequest.of(0, 10), 2);
+            ServiceOrder inProgress = mockServiceOrder(ServiceOrderStatus.IN_PROGRESS);
+            ServiceOrder inDiagnostic = mockServiceOrder(ServiceOrderStatus.IN_DIAGNOSTIC);
+            Page<ServiceOrder> page = new PageImpl<>(List.of(inProgress, inDiagnostic), PageRequest.of(0, 10), 2);
             when(listActiveServiceOrdersUseCase.execute(any(Pageable.class))).thenReturn(page);
 
             mockMvc.perform(get(BASE_URL + "/active"))
@@ -432,21 +424,24 @@ class ServiceOrderControllerTest {
         }
 
         @Test
-        void shouldReturn200WithEmptyPage() throws Exception {
-            when(listActiveServiceOrdersUseCase.execute(any(Pageable.class)))
-                    .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 10), 0));
+        void shouldReturn200WithEmptyPageWhenNoActiveOrders() throws Exception {
+            Page<ServiceOrder> page = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
+            when(listActiveServiceOrdersUseCase.execute(any(Pageable.class))).thenReturn(page);
 
             mockMvc.perform(get(BASE_URL + "/active"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.content").isEmpty());
+                    .andExpect(jsonPath("$.content").isEmpty())
+                    .andExpect(jsonPath("$.totalElements").value(0));
         }
 
         @Test
-        void shouldForwardPageableToUseCase() throws Exception {
-            when(listActiveServiceOrdersUseCase.execute(any(Pageable.class)))
-                    .thenReturn(new PageImpl<>(List.of(), PageRequest.of(2, 5), 0));
+        void shouldForwardPageableParametersToUseCase() throws Exception {
+            Page<ServiceOrder> page = new PageImpl<>(List.of(), PageRequest.of(2, 5), 0);
+            when(listActiveServiceOrdersUseCase.execute(any(Pageable.class))).thenReturn(page);
 
-            mockMvc.perform(get(BASE_URL + "/active").param("page", "2").param("size", "5"))
+            mockMvc.perform(get(BASE_URL + "/active")
+                            .param("page", "2")
+                            .param("size", "5"))
                     .andExpect(status().isOk());
 
             ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
@@ -469,6 +464,8 @@ class ServiceOrderControllerTest {
             mockMvc.perform(get(BASE_URL + "/{id}/status", ORDER_ID))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id").value(ORDER_ID.toString()))
+                    .andExpect(jsonPath("$.vehicleId").value(VALID_VEHICLE_ID.toString()))
+                    .andExpect(jsonPath("$.customerId").value(VALID_CUSTOMER_ID.toString()))
                     .andExpect(jsonPath("$.status").value("RECEIVED"));
         }
 
@@ -504,7 +501,8 @@ class ServiceOrderControllerTest {
                     .thenThrow(new ServiceOrderNotFoundException(ORDER_ID));
 
             mockMvc.perform(patch(BASE_URL + "/{id}/start-diagnostic", ORDER_ID))
-                    .andExpect(status().isNotFound());
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.title").value("Ordem de serviço não encontrada"));
         }
 
         @Test
@@ -514,7 +512,8 @@ class ServiceOrderControllerTest {
                             ServiceOrderStatus.IN_DIAGNOSTIC, ServiceOrderStatus.IN_DIAGNOSTIC));
 
             mockMvc.perform(patch(BASE_URL + "/{id}/start-diagnostic", ORDER_ID))
-                    .andExpect(status().isConflict());
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.title").value("Transição de status inválida"));
         }
     }
 
@@ -539,7 +538,8 @@ class ServiceOrderControllerTest {
                     .thenThrow(new ServiceOrderNotFoundException(ORDER_ID));
 
             mockMvc.perform(patch(BASE_URL + "/{id}/deliver", ORDER_ID))
-                    .andExpect(status().isNotFound());
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.title").value("Ordem de serviço não encontrada"));
         }
 
         @Test
@@ -549,7 +549,8 @@ class ServiceOrderControllerTest {
                             ServiceOrderStatus.IN_PROGRESS, ServiceOrderStatus.DELIVERED));
 
             mockMvc.perform(patch(BASE_URL + "/{id}/deliver", ORDER_ID))
-                    .andExpect(status().isConflict());
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.title").value("Transição de status inválida"));
         }
     }
 
@@ -566,7 +567,9 @@ class ServiceOrderControllerTest {
             mockMvc.perform(patch(BASE_URL + "/{id}/cancel", ORDER_ID))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status").value("CANCELLED"))
-                    .andExpect(jsonPath("$.id").value(ORDER_ID.toString()));
+                    .andExpect(jsonPath("$.id").value(ORDER_ID.toString()))
+                    .andExpect(jsonPath("$.vehicleId").value(VALID_VEHICLE_ID.toString()))
+                    .andExpect(jsonPath("$.customerId").value(VALID_CUSTOMER_ID.toString()));
         }
 
         @Test
@@ -575,7 +578,8 @@ class ServiceOrderControllerTest {
                     .thenThrow(new ServiceOrderNotFoundException(ORDER_ID));
 
             mockMvc.perform(patch(BASE_URL + "/{id}/cancel", ORDER_ID))
-                    .andExpect(status().isNotFound());
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.title").value("Ordem de serviço não encontrada"));
         }
 
         @Test
@@ -585,7 +589,8 @@ class ServiceOrderControllerTest {
                             ServiceOrderStatus.CANCELLED, ServiceOrderStatus.CANCELLED));
 
             mockMvc.perform(patch(BASE_URL + "/{id}/cancel", ORDER_ID))
-                    .andExpect(status().isConflict());
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.title").value("Transição de status inválida"));
         }
 
         @Test
@@ -603,14 +608,15 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn200WhenQuoteIsApproved() throws Exception {
-            var quote = mockQuote(QUOTE_ID, ORDER_ID, QuoteStatus.APPROVED);
-            when(approveServiceOrderQuoteUseCase.execute(QUOTE_ID)).thenReturn(quote);
+            when(approveServiceOrderQuoteUseCase.execute(QUOTE_ID)).thenReturn(mockApprovedQuote());
 
             mockMvc.perform(patch(BASE_URL + "/quote/{id}/approve", QUOTE_ID))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id").value(QUOTE_ID.toString()))
+                    .andExpect(jsonPath("$.serviceOrderId").value(ORDER_ID.toString()))
                     .andExpect(jsonPath("$.status").value("APPROVED"))
-                    .andExpect(jsonPath("$.totalPrice").value(1500.00));
+                    .andExpect(jsonPath("$.totalPrice").value(1500.00))
+                    .andExpect(jsonPath("$.quoteRefusalReason").doesNotExist());
         }
 
         @Test
@@ -627,16 +633,23 @@ class ServiceOrderControllerTest {
         void shouldReturn409WhenTransitionIsInvalid() throws Exception {
             when(approveServiceOrderQuoteUseCase.execute(QUOTE_ID))
                     .thenThrow(new InvalidServiceOrderTransitionException(
-                            ServiceOrderStatus.AWAITING_APPROVAL, ServiceOrderStatus.AWAITING_EXECUTION));
+                            ServiceOrderStatus.AWAITING_APPROVAL,
+                            ServiceOrderStatus.AWAITING_EXECUTION));
 
             mockMvc.perform(patch(BASE_URL + "/quote/{id}/approve", QUOTE_ID))
-                    .andExpect(status().isConflict());
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.title").value("Transição de status inválida"));
         }
 
         @Test
         void shouldReturn400WhenIdIsInvalidUuid() throws Exception {
             mockMvc.perform(patch(BASE_URL + "/quote/{id}/approve", "invalid-uuid"))
                     .andExpect(status().isBadRequest());
+        }
+
+        private Quote mockApprovedQuote() {
+            return Quote.reconstruct(QUOTE_ID, ORDER_ID, QuoteStatus.APPROVED,
+                    new BigDecimal("1500.00"), null, List.of(), List.of(), NOW, NOW);
         }
     }
 
@@ -648,16 +661,21 @@ class ServiceOrderControllerTest {
 
         @Test
         void shouldReturn200WhenQuoteIsReproved() throws Exception {
-            var quote = mockQuote(QUOTE_ID, ORDER_ID, QuoteStatus.REPROVED);
-            when(reproveServiceOrderQuoteUseCase.execute(any())).thenReturn(quote);
+            when(reproveServiceOrderQuoteUseCase.execute(any())).thenReturn(mockReprovedQuote());
 
             mockMvc.perform(patch(BASE_URL + "/quote/{id}/reprove", QUOTE_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("""
-                                { "reason": "Preço muito alto" }
+                                {
+                                    "reason": "Preço muito alto"
+                                }
                                 """))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status").value("REPROVED"));
+                    .andExpect(jsonPath("$.id").value(QUOTE_ID.toString()))
+                    .andExpect(jsonPath("$.serviceOrderId").value(ORDER_ID.toString()))
+                    .andExpect(jsonPath("$.status").value("REPROVED"))
+                    .andExpect(jsonPath("$.totalPrice").value(1500.00))
+                    .andExpect(jsonPath("$.quoteRefusalReason").value("Preço muito alto"));
         }
 
         @Test
@@ -668,9 +686,12 @@ class ServiceOrderControllerTest {
             mockMvc.perform(patch(BASE_URL + "/quote/{id}/reprove", QUOTE_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("""
-                                { "reason": "Motivo" }
+                                {
+                                    "reason": "Motivo"
+                                }
                                 """))
-                    .andExpect(status().isNotFound());
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.title").value("Orçamento não encontrado"));
         }
 
         @Test
@@ -682,9 +703,12 @@ class ServiceOrderControllerTest {
             mockMvc.perform(patch(BASE_URL + "/quote/{id}/reprove", QUOTE_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("""
-                                { "reason": "Motivo" }
+                                {
+                                    "reason": "Motivo"
+                                }
                                 """))
-                    .andExpect(status().isConflict());
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.title").value("Transição de status inválida"));
         }
 
         @Test
@@ -692,13 +716,122 @@ class ServiceOrderControllerTest {
             mockMvc.perform(patch(BASE_URL + "/quote/{id}/reprove", "invalid-uuid")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("""
-                                { "reason": "Motivo" }
+                                {
+                                    "reason": "Motivo"
+                                }
                                 """))
                     .andExpect(status().isBadRequest());
         }
+
+        private Quote mockReprovedQuote() {
+            return Quote.reconstruct(QUOTE_ID, ORDER_ID, QuoteStatus.REPROVED,
+                    new BigDecimal("1500.00"), "Preço muito alto", List.of(), List.of(), NOW, NOW);
+        }
     }
 
-    // --- helpers ---
+    @Nested
+    class UpdateQuote {
+
+        private static final UUID QUOTE_ID = UUID.randomUUID();
+        private static final UUID ORDER_ID = UUID.randomUUID();
+
+        @Test
+        void shouldReturn200WithUpdatedQuote() throws Exception {
+            var quote = mockQuote(QUOTE_ID, ORDER_ID, QuoteStatus.PENDING);
+            when(updateQuoteUseCase.execute(any())).thenReturn(quote);
+
+            mockMvc.perform(patch(BASE_URL + "/quote/{id}/update", QUOTE_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(quoteBody()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id").value(QUOTE_ID.toString()))
+                    .andExpect(jsonPath("$.status").value("PENDING"));
+        }
+
+        @Test
+        void shouldReturn404WhenQuoteNotFound() throws Exception {
+            when(updateQuoteUseCase.execute(any()))
+                    .thenThrow(new QuoteNotFoundException(QUOTE_ID));
+
+            mockMvc.perform(patch(BASE_URL + "/quote/{id}/update", QUOTE_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(quoteBody()))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.title").value("Orçamento não encontrado"));
+        }
+
+        @Test
+        void shouldReturn409WhenQuoteIsNotPending() throws Exception {
+            when(updateQuoteUseCase.execute(any()))
+                    .thenThrow(new InvalidQuoteStatusException("editar", QuoteStatus.APPROVED));
+
+            mockMvc.perform(patch(BASE_URL + "/quote/{id}/update", QUOTE_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(quoteBody()))
+                    .andExpect(status().isConflict());
+        }
+    }
+
+    @Nested
+    class SubmitQuoteForApproval {
+
+        private static final UUID ORDER_ID = UUID.randomUUID();
+
+        @Test
+        void shouldReturn200WithUpdatedServiceOrder() throws Exception {
+            when(submitForApprovalUseCase.execute(ORDER_ID))
+                    .thenReturn(mockServiceOrder(ServiceOrderStatus.AWAITING_APPROVAL));
+
+            mockMvc.perform(patch(BASE_URL + "/{id}/submit-for-approval", ORDER_ID))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status").value("AWAITING_APPROVAL"));
+        }
+
+        @Test
+        void shouldReturn404WhenOrderDoesNotExist() throws Exception {
+            when(submitForApprovalUseCase.execute(ORDER_ID))
+                    .thenThrow(new ServiceOrderNotFoundException(ORDER_ID));
+
+            mockMvc.perform(patch(BASE_URL + "/{id}/submit-for-approval", ORDER_ID))
+                    .andExpect(status().isNotFound());
+        }
+
+        @Test
+        void shouldReturn409WhenTransitionIsInvalid() throws Exception {
+            when(submitForApprovalUseCase.execute(ORDER_ID))
+                    .thenThrow(new InvalidServiceOrderTransitionException(
+                            ServiceOrderStatus.RECEIVED, ServiceOrderStatus.AWAITING_APPROVAL));
+
+            mockMvc.perform(patch(BASE_URL + "/{id}/submit-for-approval", ORDER_ID))
+                    .andExpect(status().isConflict());
+        }
+    }
+
+    @Nested
+    class ListQuotesByServiceOrder {
+
+        private static final UUID ORDER_ID = UUID.randomUUID();
+
+        @Test
+        void shouldReturn200WithListOfQuotes() throws Exception {
+            var quote = mockQuote(UUID.randomUUID(), ORDER_ID, QuoteStatus.PENDING);
+            when(findQuoteByServiceOrderIdUseCase.execute(ORDER_ID)).thenReturn(List.of(quote));
+
+            mockMvc.perform(get(BASE_URL + "/{id}/quotes", ORDER_ID))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].serviceOrderId").value(ORDER_ID.toString()));
+        }
+
+        @Test
+        void shouldReturn200WithEmptyListWhenNoQuotes() throws Exception {
+            when(findQuoteByServiceOrderIdUseCase.execute(ORDER_ID)).thenReturn(List.of());
+
+            mockMvc.perform(get(BASE_URL + "/{id}/quotes", ORDER_ID))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$").isArray())
+                    .andExpect(jsonPath("$").isEmpty());
+        }
+    }
 
     private String validBody() {
         return """
@@ -724,13 +857,17 @@ class ServiceOrderControllerTest {
 
     private String bodyMissingVehicleId() {
         return """
-                { "customerId": "%s" }
+                {
+                    "customerId": "%s"
+                }
                 """.formatted(VALID_CUSTOMER_ID);
     }
 
     private String bodyMissingCustomerId() {
         return """
-                { "vehicleId": "%s" }
+                {
+                    "vehicleId": "%s"
+                }
                 """.formatted(VALID_VEHICLE_ID);
     }
 

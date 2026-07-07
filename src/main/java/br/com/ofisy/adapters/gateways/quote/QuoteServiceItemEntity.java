@@ -35,4 +35,10 @@ public class QuoteServiceItemEntity {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    void update(UUID serviceOrderExecutionId, BigDecimal price, LocalDateTime updatedAt) {
+        this.serviceOrderExecutionId = serviceOrderExecutionId;
+        this.price = price;
+        this.updatedAt = updatedAt;
+    }
 }

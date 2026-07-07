@@ -2,13 +2,19 @@ package br.com.ofisy.adapters.gateways.quote;
 
 import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.quote.QuoteRepository;
+import br.com.ofisy.domain.quote.QuoteServiceItem;
+import br.com.ofisy.domain.quote.QuoteStockItem;
 import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionRepository;
 import br.com.ofisy.domain.stock.StockRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Repository
 public class QuoteRepositoryImpl implements QuoteRepository {
@@ -60,20 +66,59 @@ public class QuoteRepositoryImpl implements QuoteRepository {
         entity.update(quote.getStatus(), quote.getTotalPrice(),
                 quote.getQuoteRefusalReason(), quote.getUpdatedAt());
 
-        entity.getStockItems().clear();
-        entity.getServiceItems().clear();
-        jpa.flush();
-
-        entity.getStockItems().addAll(
-                quote.getStockItems().stream()
-                        .map(item -> QuoteStockItemEntityMapper.toEntity(item, entity))
-                        .toList());
-
-        entity.getServiceItems().addAll(
-                quote.getServiceItems().stream()
-                        .map(item -> QuoteServiceItemEntityMapper.toEntity(item, entity))
-                        .toList());
+        reconcileStockItems(entity, quote);
+        reconcileServiceItems(entity, quote);
 
         return QuoteMapper.toDomain(jpa.save(entity), stockRepository, executionRepository);
+    }
+
+    private void reconcileStockItems(QuoteEntity entity, Quote quote) {
+        Map<UUID, QuoteStockItemEntity> existingById = entity.getStockItems().stream()
+                .filter(i -> i.getId() != null)
+                .collect(Collectors.toMap(QuoteStockItemEntity::getId, Function.identity()));
+
+        List<QuoteStockItemEntity> reconciled = new ArrayList<>();
+
+        for (QuoteStockItem domainItem : quote.getStockItems()) {
+            QuoteStockItemEntity existing = domainItem.getId() != null
+                    ? existingById.get(domainItem.getId())
+                    : null;
+
+            if (existing != null) {
+                existing.update(domainItem.getStock().getId(), domainItem.getUnitPrice(),
+                        domainItem.getQuantity(), domainItem.getUpdatedAt());
+                reconciled.add(existing);
+            } else {
+                reconciled.add(QuoteStockItemMapper.toEntity(domainItem, entity));
+            }
+        }
+
+        entity.getStockItems().clear();
+        entity.getStockItems().addAll(reconciled);
+    }
+
+    private void reconcileServiceItems(QuoteEntity entity, Quote quote) {
+        Map<UUID, QuoteServiceItemEntity> existingById = entity.getServiceItems().stream()
+                .filter(i -> i.getId() != null)
+                .collect(Collectors.toMap(QuoteServiceItemEntity::getId, Function.identity()));
+
+        List<QuoteServiceItemEntity> reconciled = new ArrayList<>();
+
+        for (QuoteServiceItem domainItem : quote.getServiceItems()) {
+            QuoteServiceItemEntity existing = domainItem.getId() != null
+                    ? existingById.get(domainItem.getId())
+                    : null;
+
+            if (existing != null) {
+                existing.update(domainItem.getServiceOrderExecution().getId(),
+                        domainItem.getPrice(), domainItem.getUpdatedAt());
+                reconciled.add(existing);
+            } else {
+                reconciled.add(QuoteServiceItemMapper.toEntity(domainItem, entity));
+            }
+        }
+
+        entity.getServiceItems().clear();
+        entity.getServiceItems().addAll(reconciled);
     }
 }

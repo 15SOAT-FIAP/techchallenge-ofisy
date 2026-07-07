@@ -1,4 +1,4 @@
-package br.com.ofisy.application.serviceorder.updatequote;
+package br.com.ofisy.application.quote.update;
 
 import br.com.ofisy.application.quote.create.CreateQuoteUseCase;
 import br.com.ofisy.domain.quote.Quote;

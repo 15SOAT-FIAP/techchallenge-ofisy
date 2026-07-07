@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.UUID;
 
-public record CreateServiceOrderRequestDTO(
+public record CreateCompleteServiceOrderRequestDTO(
         @NotNull(message = "Veiculo é obrigatório")
         UUID vehicleId,
         @NotNull(message = "Cliente é obrigatório")
