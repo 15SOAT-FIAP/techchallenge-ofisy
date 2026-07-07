@@ -1,6 +1,7 @@
 package br.com.ofisy.application.serviceorder.submitquoteforapproval;
 
 import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
+import br.com.ofisy.application.serviceorder.exceptions.QuoteNotFoundForServiceOrderException;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.quote.QuoteRepository;
@@ -79,7 +80,7 @@ class SubmitQuoteForApprovalServiceTest {
             when(quoteRepository.findByServiceOrderId(serviceOrderId)).thenReturn(List.of());
 
             assertThatThrownBy(() -> service.execute(serviceOrderId))
-                    .isInstanceOf(QuoteNotFoundException.class);
+                    .isInstanceOf(QuoteNotFoundForServiceOrderException.class);
 
             verify(serviceOrderRepository, never()).save(any());
         }

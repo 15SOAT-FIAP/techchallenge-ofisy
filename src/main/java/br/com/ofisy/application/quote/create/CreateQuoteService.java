@@ -3,7 +3,6 @@ package br.com.ofisy.application.quote.create;
 import br.com.ofisy.application.quote.exceptions.QuoteAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
 import br.com.ofisy.application.servicecatalog.exceptions.ServiceCatalogNotFoundException;
-import br.com.ofisy.application.serviceorderexecution.exceptions.ServiceOrderExecutionNotFoundException;
 import br.com.ofisy.application.stock.consume.ConsumeStockUseCase;
 import br.com.ofisy.application.stock.exceptions.StockNotFoundException;
 import br.com.ofisy.domain.quote.Quote;

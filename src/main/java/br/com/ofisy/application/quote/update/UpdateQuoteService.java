@@ -102,15 +102,13 @@ public class UpdateQuoteService implements UpdateQuoteUseCase {
             if (existing != null) {
                 int delta = command.quantity() - existing.getQuantity();
                 if (delta > 0) {
-                    consumeStockUseCase.execute(
-                            new ConsumeStockUseCase.ConsumeStockCommand(command.stockId(), delta));
+                    consumeStockUseCase.execute(new ConsumeStockUseCase.ConsumeStockCommand(command.stockId(), delta));
                 } else if (delta < 0) {
-                    releaseStockUseCase.execute(
-                            new ReleaseStockUseCase.ReleaseStockCommand(command.stockId(), -delta));
+                    releaseStockUseCase.execute(new ReleaseStockUseCase.ReleaseStockCommand(command.stockId(), -delta));
                 }
 
                 items.add(QuoteStockItem.reconstruct(
-                        existing.getId(), stock, stock.getUnitPrice(), command.quantity(),
+                        existing.getId(), stock, existing.getUnitPrice(), command.quantity(),
                         existing.getCreatedAt(), LocalDateTime.now()));
             } else {
                 consumeStockUseCase.execute(
@@ -153,7 +151,7 @@ public class UpdateQuoteService implements UpdateQuoteUseCase {
             QuoteServiceItem existing = existingByServiceCatalogId.get(command.serviceCatalogId());
             if (existing != null) {
                 items.add(QuoteServiceItem.reconstruct(
-                        existing.getId(), existing.getServiceOrderExecution(), catalog.getPrice(),
+                        existing.getId(), existing.getServiceOrderExecution(), existing.getPrice(),
                         existing.getCreatedAt(), LocalDateTime.now()));
             } else {
                 ServiceOrderExecution execution = serviceOrderExecutionRepository.save(ServiceOrderExecution.create(command.serviceCatalogId(), quote.getServiceOrderId()));
