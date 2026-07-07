@@ -33,8 +33,10 @@ class SubmitQuoteForApprovalServiceTest {
 
     public static final String RELATORIO = "Relatório";
     public static final String PRICE_100 = "100.00";
-    @Mock private ServiceOrderRepository serviceOrderRepository;
-    @Mock private QuoteRepository quoteRepository;
+    @Mock
+    private ServiceOrderRepository serviceOrderRepository;
+    @Mock
+    private QuoteRepository quoteRepository;
 
     @InjectMocks
     private SubmitQuoteForApprovalService service;

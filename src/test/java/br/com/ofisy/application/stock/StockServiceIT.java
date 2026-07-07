@@ -101,7 +101,7 @@ class StockServiceIT extends IntegrationTestBase {
             releaseStockUseCase.execute(new ReleaseStockUseCase.ReleaseStockCommand(stockId, 3));
 
             var stock = identifyByIdStockUseCase.execute(stockId);
-            assertThat(stock.getQuantity()).isEqualTo(8); // 10 - 5 + 3
+            assertThat(stock.getQuantity()).isEqualTo(8);
         }
 
         @Test
@@ -110,7 +110,7 @@ class StockServiceIT extends IntegrationTestBase {
             releaseStockUseCase.execute(new ReleaseStockUseCase.ReleaseStockCommand(stockId, 20));
 
             var stock = identifyByIdStockUseCase.execute(stockId);
-            assertThat(stock.getQuantity()).isEqualTo(30); // 10 + 20
+            assertThat(stock.getQuantity()).isEqualTo(30);
         }
     }
 }

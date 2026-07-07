@@ -36,16 +36,25 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class QuoteServiceIT extends IntegrationTestBase {
 
-    @Autowired private FindQuoteByIdUseCase findQuoteByIdUseCase;
-    @Autowired private FindQuoteByServiceOrderIdUseCase findQuoteByServiceOrderIdUseCase;
-    @Autowired private CreateServiceOrderUseCase createServiceOrderUseCase;
-    @Autowired private StartDiagnosticUseCase startDiagnosticUseCase;
-    @Autowired private GenerateServiceOrderQuoteUseCase generateServiceOrderQuoteUseCase;
+    @Autowired
+    private FindQuoteByIdUseCase findQuoteByIdUseCase;
+    @Autowired
+    private FindQuoteByServiceOrderIdUseCase findQuoteByServiceOrderIdUseCase;
+    @Autowired
+    private CreateServiceOrderUseCase createServiceOrderUseCase;
+    @Autowired
+    private StartDiagnosticUseCase startDiagnosticUseCase;
+    @Autowired
+    private GenerateServiceOrderQuoteUseCase generateServiceOrderQuoteUseCase;
 
-    @Autowired private CustomerRepository customerDomainRepository;
-    @Autowired private VehicleRepository vehicleDomainRepository;
-    @Autowired private UserRepository userDomainRepository;
-    @Autowired private StockRepository stockDomainRepository;
+    @Autowired
+    private CustomerRepository customerDomainRepository;
+    @Autowired
+    private VehicleRepository vehicleDomainRepository;
+    @Autowired
+    private UserRepository userDomainRepository;
+    @Autowired
+    private StockRepository stockDomainRepository;
 
     private UUID customerId;
     private UUID vehicleId;
