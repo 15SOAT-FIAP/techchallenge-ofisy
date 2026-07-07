@@ -219,6 +219,69 @@ class QuoteRepositoryImplTest {
             assertThat(existingEntity.getServiceItems()).hasSize(1);
             assertThat(existingEntity.getServiceItems().getFirst().getId()).isEqualTo(existingItemId);
         }
+
+        @Test
+        @DisplayName("Deve adicionar um novo item de serviço sem afetar o id do item existente")
+        void shouldAddNewServiceItemWithoutAffectingExistingId() {
+            var quoteId = UUID.randomUUID();
+            var serviceOrderId = UUID.randomUUID();
+            var existingItemId = UUID.randomUUID();
+            var executionId = UUID.randomUUID();
+            var newExecutionId = UUID.randomUUID();
+
+            var existingEntity = validEntity(quoteId, serviceOrderId);
+            existingEntity.getServiceItems().add(serviceItemEntity(existingItemId, executionId, existingEntity));
+
+            var existingExecution = validExecution(executionId, serviceOrderId);
+            var unchangedItem = QuoteServiceItem.reconstruct(existingItemId, existingExecution,
+                    new BigDecimal(PRICE_150), LocalDateTime.now(), LocalDateTime.now());
+
+            var newExecution = validExecution(newExecutionId, serviceOrderId);
+            var newItem = QuoteServiceItem.create(newExecution, new BigDecimal(PRICE_150));
+
+            var quote = quoteWithServiceItems(quoteId, serviceOrderId, List.of(unchangedItem, newItem));
+
+            when(jpaQuoteRepository.findById(quoteId)).thenReturn(Optional.of(existingEntity));
+            when(jpaQuoteRepository.save(any(QuoteEntity.class))).thenReturn(existingEntity);
+            when(executionRepository.findById(executionId)).thenReturn(Optional.of(existingExecution));
+            when(executionRepository.findById(newExecutionId)).thenReturn(Optional.of(newExecution));
+
+            repository.save(quote);
+
+            assertThat(existingEntity.getServiceItems()).hasSize(2);
+            assertThat(existingEntity.getServiceItems())
+                    .anyMatch(i -> i.getId().equals(existingItemId));
+        }
+
+        @Test
+        @DisplayName("Deve remover da entity o item de serviço que não está mais no domínio")
+        void shouldRemoveServiceItemNoLongerPresentInDomain() {
+            var quoteId = UUID.randomUUID();
+            var serviceOrderId = UUID.randomUUID();
+            var keptItemId = UUID.randomUUID();
+            var removedItemId = UUID.randomUUID();
+            var keptExecutionId = UUID.randomUUID();
+            var removedExecutionId = UUID.randomUUID();
+
+            var existingEntity = validEntity(quoteId, serviceOrderId);
+            existingEntity.getServiceItems().add(serviceItemEntity(keptItemId, keptExecutionId, existingEntity));
+            existingEntity.getServiceItems().add(serviceItemEntity(removedItemId, removedExecutionId, existingEntity));
+
+            var keptExecution = validExecution(keptExecutionId, serviceOrderId);
+            var keptItem = QuoteServiceItem.reconstruct(keptItemId, keptExecution,
+                    new BigDecimal(PRICE_150), LocalDateTime.now(), LocalDateTime.now());
+
+            var quote = quoteWithServiceItems(quoteId, serviceOrderId, List.of(keptItem));
+
+            when(jpaQuoteRepository.findById(quoteId)).thenReturn(Optional.of(existingEntity));
+            when(jpaQuoteRepository.save(any(QuoteEntity.class))).thenReturn(existingEntity);
+            when(executionRepository.findById(keptExecutionId)).thenReturn(Optional.of(keptExecution));
+
+            repository.save(quote);
+
+            assertThat(existingEntity.getServiceItems()).hasSize(1);
+            assertThat(existingEntity.getServiceItems().getFirst().getId()).isEqualTo(keptItemId);
+        }
     }
 
     @Nested

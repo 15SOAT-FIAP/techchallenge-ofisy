@@ -46,11 +46,16 @@ class CreateCompleteServiceOrderServiceTest {
     private static final String VALID_EMAIL = "mecanico@ofisy.com";
     private static final String VALID_REPORT = "Barulho na suspensão dianteira";
 
-    @Mock private ServiceOrderRepository serviceOrderRepository;
-    @Mock private IdentifyByIdCustomerUseCase identifyByIdCustomerUseCase;
-    @Mock private IdentifyVehicleByIdUseCase identifyVehicleByIdUseCase;
-    @Mock private GetIdByEmailUseCase getIdByEmailUseCase;
-    @Mock private CreateQuoteUseCase createQuoteUseCase;
+    @Mock
+    private ServiceOrderRepository serviceOrderRepository;
+    @Mock
+    private IdentifyByIdCustomerUseCase identifyByIdCustomerUseCase;
+    @Mock
+    private IdentifyVehicleByIdUseCase identifyVehicleByIdUseCase;
+    @Mock
+    private GetIdByEmailUseCase getIdByEmailUseCase;
+    @Mock
+    private CreateQuoteUseCase createQuoteUseCase;
 
     @InjectMocks
     private CreateCompleteServiceOrderService service;
