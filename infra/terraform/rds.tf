@@ -1,4 +1,4 @@
-﻿resource "aws_security_group" "db" {
+resource "aws_security_group" "db" {
   name        = "${local.project_name}-db-sg"
   description = "Acesso ao PostgreSQL RDS"
   vpc_id      = aws_vpc.main.id
@@ -45,4 +45,3 @@ output "rds_endpoint" {
   value       = aws_db_instance.postgres.address
   description = "Endpoint do banco de dados RDS"
 }
-

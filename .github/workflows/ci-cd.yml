@@ -1,69 +1,69 @@
-﻿name: Validacao de Deploy e Entrega CD
+name: 🚀 Validação de Deploy e Entrega CD
 
 on:
   workflow_dispatch:
     inputs:
       run_k8s_verify:
-        description: 'Executar validacao de deploy local (KinD)?'
+        description: '🚀 Executar validação de deploy local (KinD)?'
         type: boolean
         required: true
         default: false
       publish_to_dockerhub:
-        description: 'Publicar imagem de producao no Docker Hub (CD)?'
+        description: '📦 Publicar imagem de produção no Docker Hub (CD)?'
         type: boolean
         required: true
         default: false
       deploy_to_aws:
-        description: 'Executar deploy automatico na AWS (EKS & RDS)?'
+        description: '☁️ Executar deploy automático na AWS (EKS & RDS)?'
         type: boolean
         required: true
         default: false
       destroy_aws:
-        description: 'ÔÜá´©Å DESTRUIR infraestrutura completa na AWS (RDS, EKS, VPC)?'
+        description: '⚠️ DESTRUIR infraestrutura completa na AWS (RDS, EKS, VPC)?'
         type: boolean
         required: true
         default: false
       aws_access_key_id:
-        description: 'AWS Access Key ID (do Learner Lab)'
+        description: '🔑 AWS Access Key ID (do Learner Lab)'
         type: string
         required: false
       aws_secret_access_key:
-        description: 'AWS Secret Access Key (do Learner Lab)'
+        description: '🔑 AWS Secret Access Key (do Learner Lab)'
         type: string
         required: false
       aws_session_token:
-        description: 'AWS Session Token (do Learner Lab)'
+        description: '🔑 AWS Session Token (do Learner Lab)'
         type: string
         required: false
 
 jobs:
   ci-k8s-verify:
-    name: Validacao de Deploy Completa (KinD)
+    name: 🚀 Validação de Deploy Completa (KinD)
     runs-on: ubuntu-latest
     if: github.event.inputs.run_k8s_verify == 'true'
 
     steps:
-      - name: Checkout source
+      - name: 🔍 Checkout do código
         uses: actions/checkout@v4
 
       # 1. Build da imagem Docker localmente no runner do GitHub
-      - name: Build local Docker Image
+      - name: 🔨 Construir imagem Docker local
         run: |
           docker build -t ofisy-app:latest .
 
       # 2. Inicializar o cluster Kubernetes virtual (KinD) no runner
-      - name: Create KinD Cluster
+      - name: ☸️ Inicializar cluster KinD
         uses: helm/kind-action@v1.10.0
         with:
           cluster_name: ofisy-cluster
 
-      # 3. Carregar a imagem Docker constru├¡da diretamente no cluster KinD
-      - name: Load Docker Image into KinD
+      # 3. Carregar a imagem Docker construída diretamente no cluster KinD
+      - name: 📦 Carregar imagem no KinD
         run: |
           kind load docker-image ofisy-app:latest --name ofisy-cluster
 
-      # 4. Ajustar os manifestos e aplicar no cluster KinD tempor├írio
-      - name: Deploy and Verify Rollout
+      # 4. Ajustar os manifestos e aplicar no cluster KinD temporário
+      - name: 🧪 Deploy e Validação de Rollout
         run: |
           # Configura credenciais mockadas para o banco e a app rodarem no KinD
           sed -i "s|<BASE64_USERNAME>|b2Zpc3lfdXNlcg==|g" infra/k8s/db/secret.yml
@@ -79,28 +79,28 @@ jobs:
           # Aguarda o banco ficar pronto
           kubectl rollout status statefulset/db-statefulset --timeout=90s
           
-          # Valida se os Pods da aplica├º├úo sobem e ficam saud├íveis (READY 1/1)
+          # Valida se os Pods da aplicação sobem e ficam saudáveis (READY 1/1)
           kubectl rollout status deployment/ofisy-deployment --timeout=120s
 
   publish-and-deploy:
-    name: Publicacao em Producao (Docker Hub CD)
+    name: 📦 Publicação em Produção (Docker Hub CD)
     runs-on: ubuntu-latest
     if: github.event.inputs.publish_to_dockerhub == 'true'
 
     steps:
-      - name: Checkout source
+      - name: 🔍 Checkout do código
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
+      - name: 🐳 Configurar Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to Docker Hub
+      - name: 🔐 Login no Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and Push Docker Image to Registry
+      - name: 📤 Build e Push para o Docker Hub
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -110,16 +110,16 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/ofisy-app:latest
 
   deploy-to-aws:
-    name: Deploy Automatico na AWS (EKS & RDS)
+    name: ☁️ Deploy Automático na AWS (EKS & RDS)
     runs-on: ubuntu-latest
     if: github.event.inputs.deploy_to_aws == 'true'
 
     steps:
-      - name: Checkout source
+      - name: 🔍 Checkout do código
         uses: actions/checkout@v4
 
       # 1. Configurar Credenciais da AWS fornecidas no input manual
-      - name: Configure AWS credentials
+      - name: 🔐 Configurar Credenciais AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ github.event.inputs.aws_access_key_id }}
@@ -127,8 +127,8 @@ jobs:
           aws-session-token: ${{ github.event.inputs.aws_session_token }}
           aws-region: us-east-1
 
-      # 2. Configurar Java 21 para compilar a aplica├º├úo
-      - name: Set up JDK 21
+      # 2. Configurar Java 21 para compilar a aplicação
+      - name: ☕ Configurar JDK 21 (Java)
         uses: actions/setup-java@v4
         with:
           java-version: '21'
@@ -136,13 +136,13 @@ jobs:
           cache: maven
 
       # 3. Configurar Terraform
-      - name: Setup Terraform
+      - name: 🛠️ Configurar Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
 
       # 4. Inicializar e aplicar o Terraform
-      - name: Terraform Init and Apply
+      - name: 🏗️ Provisionar Infraestrutura (Terraform Apply)
         run: |
           cd infra/terraform
           
@@ -156,64 +156,64 @@ jobs:
           terraform init -backend-config=backend.hcl
           terraform apply -auto-approve
           
-          # Captura o endpoint do RDS gerado e salva em uma vari├ível de ambiente global
+          # Captura o endpoint do RDS gerado e salva em uma variável de ambiente global
           RDS_ENDPOINT=$(terraform output -raw rds_endpoint)
           echo "RDS_HOST=$RDS_ENDPOINT" >> $GITHUB_ENV
 
       # 5. Conectar kubectl no Cluster EKS
-      - name: Connect to EKS Cluster
+      - name: ☸️ Conectar ao EKS Cluster
         run: |
           aws eks update-kubeconfig --region us-east-1 --name ofisy-eks-cluster
 
       # 6. Autenticar Docker no ECR
-      - name: Login to Amazon ECR
+      - name: 🔐 Login no Amazon ECR
         run: |
           aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 058943964484.dkr.ecr.us-east-1.amazonaws.com
 
       # 7. Compilar o projeto e gerar o JAR
-      - name: Build with Maven
+      - name: ☕ Compilar Projeto (Maven)
         run: |
           mvn clean package -DskipTests
 
       # 8. Buildar e Push da imagem Docker para o ECR da AWS
-      - name: Build, Tag and Push Image to ECR
+      - name: 📤 Enviar Imagem para o ECR
         run: |
           docker build -t 058943964484.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest .
           docker push 058943964484.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest
 
       # 9. Injetar a URL do banco de dados (RDS) no ConfigMap do Kubernetes
-      - name: Inject RDS Host into Kubernetes ConfigMap
+      - name: 💉 Injetar Endpoint RDS no ConfigMap
         run: |
           # Substitui qualquer valor mockado ou host antigo pelo novo RDS Host
           sed -i "s|db-service|$RDS_HOST|g" infra/k8s/app/configmap.yml
           sed -i "s|terraform-8ecd7fd9c21f1aabc8cb1d9e1c.csgitff0o68h.us-east-1.rds.amazonaws.com|$RDS_HOST|g" infra/k8s/app/configmap.yml
 
       # 10. Atualizar imagem no deployment e aplicar no cluster EKS da AWS
-      - name: Deploy Manifests to EKS
+      - name: 🚀 Deploy dos Manifestos no EKS
         run: |
           sed -i "s|ofisy-app:latest|058943964484.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest|g" infra/k8s/app/deployment.yml
           
-          # Aplica os secrets de conex├úo
+          # Aplica os secrets de conexão
           kubectl apply -f infra/k8s/db/secret.yml
           kubectl apply -f infra/k8s/db/configmap.yml
           
-          # Aplica a aplica├º├úo e HPA
+          # Aplica a aplicação e HPA
           kubectl apply -f infra/k8s/app/
           
-          # Aguarda a inicializa├º├úo com o timeout seguro de 90 segundos
+          # Aguarda a inicialização com o timeout seguro de 90 segundos
           kubectl rollout status deployment/ofisy-deployment --timeout=150s
 
   destroy-aws:
-    name: Destruir Infraestrutura na AWS
+    name: ⚠️ Destruir Infraestrutura na AWS
     runs-on: ubuntu-latest
     if: github.event.inputs.destroy_aws == 'true'
 
     steps:
-      - name: Checkout source
+      - name: 🔍 Checkout do código
         uses: actions/checkout@v4
 
       # 1. Configurar Credenciais da AWS
-      - name: Configure AWS credentials
+      - name: 🔐 Configurar Credenciais AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ github.event.inputs.aws_access_key_id }}
@@ -222,18 +222,18 @@ jobs:
           aws-region: us-east-1
 
       # 2. Configurar Terraform
-      - name: Setup Terraform
+      - name: 🛠️ Configurar Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
 
-      # 3. Conectar ao EKS e apagar os servi├ºos (para liberar o LoadBalancer e ENIs da AWS)
-      - name: Clean up Kubernetes Services (Release AWS ELB/ENIs)
+      # 3. Conectar ao EKS e apagar os serviços (para liberar o LoadBalancer e ENIs da AWS)
+      - name: 🧹 Limpar Serviços Kubernetes (Liberar ELB/ENIs)
         run: |
-          # Conecta no cluster (ignora erro se o cluster j├í n├úo existir)
+          # Conecta no cluster (ignora erro se o cluster já não existir)
           aws eks update-kubeconfig --region us-east-1 --name ofisy-eks-cluster || echo "Cluster EKS nao encontrado ou ja removido."
           
-          # Apaga os servi├ºos K8s para que a AWS destrua o Load Balancer e libere as placas de rede (ENIs)
+          # Apaga os serviços K8s para que a AWS destrua o Load Balancer e libere as placas de rede (ENIs)
           kubectl delete -f infra/k8s/app/ --ignore-not-found=true || echo "Trabalho de limpeza do Kubernetes ignorado."
           kubectl delete -f infra/k8s/db/ --ignore-not-found=true || echo "Trabalho de limpeza do Kubernetes ignorado."
           
@@ -241,7 +241,7 @@ jobs:
           sleep 30
 
       # 4. Inicializar e Destruir Recursos do Terraform
-      - name: Terraform Destroy
+      - name: 💥 Destruir Recursos (Terraform Destroy)
         run: |
           cd infra/terraform
           

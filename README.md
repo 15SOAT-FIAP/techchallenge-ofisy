@@ -62,6 +62,7 @@ A combinação dessas tecnologias permite a construção de um backend robusto e
 | Flyway Database PostgreSQL | Extensão específica do Flyway que adiciona suporte completo às funcionalidades do PostgreSQL, permitindo que o framework se comunique corretamente com o dialeto e driver desse banco           | `flyway-database-postgresql`            |
 | Testcontainers             | Dependência para criação de containers Docker durante os testes de integração, permitindo subir um banco PostgreSQL real de forma isolada e automatizada | `spring-boot-testcontainers`, `testcontainers-postgresql`, `testcontainers-junit-jupiter` |
 | REST Assured               | Dependência para testes de integração de APIs REST, permitindo realizar requisições HTTP e validar respostas de forma fluente e legível | `rest-assured` |
+
 ---
 
 ## Arquivos de Configuração
@@ -100,7 +101,7 @@ Acesse o repositório clonado.
 
 ### 2. Crie o arquivo `.env`
 
-O arquivo `env.example` já contém os valores prontos para um novo ambiente ou avaliação. Para efetuar a cópia, execute o seguinte comando:
+O arquivo `env.example` já contém os valores prontos para um novo ambiente ou avaliação. Para efetuar a cópia, execute o RAMO:
 
 ```bash
 cp env.example .env
@@ -190,6 +191,6 @@ docker compose -f compose.db.yaml up -d
 ---
 
 ## Documentação Adicional
+- **[Guia de Deploy](docs/DEPLOY.md)** - Instruções completas para execução local (Docker/Minikube) e nuvem AWS (CI/CD ou CLI)
 - **[Guia de Testes](docs/TESTING.md)** - Instruções para executar análises de cobertura de testes e segurança
 - **[Guia de Flyway](docs/FLYWAY.md)** - Instruções para criar e executar migrations
-- **[Guia de Kubernetes](docs/K8S.md)** - Instruções para executar a aplicação localmente com Minikube
