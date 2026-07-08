@@ -8,3 +8,14 @@ variable "role_name" {
   type        = string
   default     = "LabRole"
 }
+
+variable "db_password" {
+  description = "Senha do usuário administrativo do banco de dados PostgreSQL"
+  type        = string
+  sensitive   = true
+
+  validation {
+    condition     = length(var.db_password) >= 8
+    error_message = "A senha do banco de dados deve ter no mínimo 8 caracteres."
+  }
+}
