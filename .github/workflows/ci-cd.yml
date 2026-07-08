@@ -8,11 +8,6 @@ on:
         type: boolean
         required: true
         default: false
-      publish_to_dockerhub:
-        description: '📦 Publicar imagem de produção no Docker Hub (CD)?'
-        type: boolean
-        required: true
-        default: false
       deploy_to_aws:
         description: '☁️ Executar deploy automático na AWS (EKS & RDS)?'
         type: boolean
@@ -81,33 +76,6 @@ jobs:
           
           # Valida se os Pods da aplicação sobem e ficam saudáveis (READY 1/1)
           kubectl rollout status deployment/ofisy-deployment --timeout=120s
-
-  publish-and-deploy:
-    name: 📦 Publicação em Produção (Docker Hub CD)
-    runs-on: ubuntu-latest
-    if: github.event.inputs.publish_to_dockerhub == 'true'
-
-    steps:
-      - name: 🔍 Checkout do código
-        uses: actions/checkout@v4
-
-      - name: 🐳 Configurar Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: 🔐 Login no Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: 📤 Build e Push para o Docker Hub
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/ofisy-app:${{ github.sha }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/ofisy-app:latest
 
   deploy-to-aws:
     name: ☁️ Deploy Automático na AWS (EKS & RDS)
