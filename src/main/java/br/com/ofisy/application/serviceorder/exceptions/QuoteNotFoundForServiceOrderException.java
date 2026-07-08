@@ -4,6 +4,6 @@ import java.util.UUID;
 
 public class QuoteNotFoundForServiceOrderException extends RuntimeException {
     public QuoteNotFoundForServiceOrderException(UUID id) {
-        super("Orçamento não encontrado para OS com " + id);
+        super("Orçamento não encontrado para OS com id: " + id);
     }
 }
