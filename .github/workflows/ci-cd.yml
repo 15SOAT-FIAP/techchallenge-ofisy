@@ -1,22 +1,39 @@
-name: 🚀 Validação de Deploy e Entrega CD
+﻿name: ­ƒÜÇ Valida├º├úo de Deploy e Entrega CD
 
 on:
   workflow_dispatch:
     inputs:
       run_k8s_verify:
-        description: '🚀 Executar validação de deploy local (KinD)?'
+        description: '­ƒÜÇ Executar valida├º├úo de deploy local (KinD)?'
         type: boolean
         required: true
         default: false
       publish_to_dockerhub:
-        description: '📦 Publicar imagem de produção no Docker Hub (CD)?'
+        description: '­ƒôª Publicar imagem de produ├º├úo no Docker Hub (CD)?'
         type: boolean
         required: true
         default: false
+      deploy_to_aws:
+        description: 'Ôÿü´©Å Executar deploy autom├ítico na AWS (EKS & RDS)?'
+        type: boolean
+        required: true
+        default: false
+      aws_access_key_id:
+        description: '­ƒöæ AWS Access Key ID (do Learner Lab)'
+        type: string
+        required: false
+      aws_secret_access_key:
+        description: '­ƒöæ AWS Secret Access Key (do Learner Lab)'
+        type: string
+        required: false
+      aws_session_token:
+        description: '­ƒöæ AWS Session Token (do Learner Lab)'
+        type: string
+        required: false
 
 jobs:
   ci-k8s-verify:
-    name: 🚀 Validação de Deploy Completa (KinD)
+    name: ­ƒÜÇ Valida├º├úo de Deploy Completa (KinD)
     runs-on: ubuntu-latest
     if: github.event.inputs.run_k8s_verify == 'true'
 
@@ -35,12 +52,12 @@ jobs:
         with:
           cluster_name: ofisy-cluster
 
-      # 3. Carregar a imagem Docker construída diretamente no cluster KinD
+      # 3. Carregar a imagem Docker constru├¡da diretamente no cluster KinD
       - name: Load Docker Image into KinD
         run: |
           kind load docker-image ofisy-app:latest --name ofisy-cluster
 
-      # 4. Ajustar os manifestos e aplicar no cluster KinD temporário
+      # 4. Ajustar os manifestos e aplicar no cluster KinD tempor├írio
       - name: Deploy and Verify Rollout
         run: |
           # Configura credenciais mockadas para o banco e a app rodarem no KinD
@@ -57,11 +74,11 @@ jobs:
           # Aguarda o banco ficar pronto
           kubectl rollout status statefulset/db-statefulset --timeout=90s
           
-          # Valida se os Pods da aplicação sobem e ficam saudáveis (READY 1/1)
+          # Valida se os Pods da aplica├º├úo sobem e ficam saud├íveis (READY 1/1)
           kubectl rollout status deployment/ofisy-deployment --timeout=120s
 
   publish-and-deploy:
-    name: 📦 Publicação em Produção (Docker Hub CD)
+    name: ­ƒôª Publica├º├úo em Produ├º├úo (Docker Hub CD)
     runs-on: ubuntu-latest
     if: github.event.inputs.publish_to_dockerhub == 'true'
 
@@ -86,3 +103,97 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/ofisy-app:${{ github.sha }}
             ${{ secrets.DOCKERHUB_USERNAME }}/ofisy-app:latest
+
+  deploy-to-aws:
+    name: Ôÿü´©Å Deploy Autom├ítico na AWS (EKS & RDS)
+    runs-on: ubuntu-latest
+    if: github.event.inputs.deploy_to_aws == 'true'
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      # 1. Configurar Credenciais da AWS fornecidas no input manual
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ github.event.inputs.aws_access_key_id }}
+          aws-secret-access-key: ${{ github.event.inputs.aws_secret_access_key }}
+          aws-session-token: ${{ github.event.inputs.aws_session_token }}
+          aws-region: us-east-1
+
+      # 2. Configurar Java 21 para compilar a aplica├º├úo
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      # 3. Configurar Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      # 4. Inicializar e aplicar o Terraform
+      - name: Terraform Init and Apply
+        run: |
+          cd infra/terraform
+          
+          # Cria o arquivo terraform.tfvars com os dados da AWS Academy
+          echo 'account_id = "058943964484"' > terraform.tfvars
+          echo 'role_name  = "LabRole"' >> terraform.tfvars
+          
+          # Cria o arquivo backend.hcl apontando para o bucket do tfstate
+          echo 'bucket = "ofisy-tfstate-058943964484"' > backend.hcl
+          
+          terraform init -backend-config=backend.hcl
+          terraform apply -auto-approve
+          
+          # Captura o endpoint do RDS gerado e salva em uma vari├ível de ambiente global
+          RDS_ENDPOINT=$(terraform output -raw rds_endpoint)
+          echo "RDS_HOST=$RDS_ENDPOINT" >> $GITHUB_ENV
+
+      # 5. Conectar kubectl no Cluster EKS
+      - name: Connect to EKS Cluster
+        run: |
+          aws eks update-kubeconfig --region us-east-1 --name ofisy-eks-cluster
+
+      # 6. Autenticar Docker no ECR
+      - name: Login to Amazon ECR
+        run: |
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 058943964484.dkr.ecr.us-east-1.amazonaws.com
+
+      # 7. Compilar o projeto e gerar o JAR
+      - name: Build with Maven
+        run: |
+          mvn clean package -DskipTests
+
+      # 8. Buildar e Push da imagem Docker para o ECR da AWS
+      - name: Build, Tag and Push Image to ECR
+        run: |
+          docker build -t 058943964484.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest .
+          docker push 058943964484.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest
+
+      # 9. Injetar a URL do banco de dados (RDS) no ConfigMap do Kubernetes
+      - name: Inject RDS Host into Kubernetes ConfigMap
+        run: |
+          # Substitui qualquer valor mockado ou host antigo pelo novo RDS Host
+          sed -i "s|db-service|$RDS_HOST|g" infra/k8s/app/configmap.yml
+          sed -i "s|terraform-8ecd7fd9c21f1aabc8cb1d9e1c.csgitff0o68h.us-east-1.rds.amazonaws.com|$RDS_HOST|g" infra/k8s/app/configmap.yml
+
+      # 10. Atualizar imagem no deployment e aplicar no cluster EKS da AWS
+      - name: Deploy Manifests to EKS
+        run: |
+          sed -i "s|ofisy-app:latest|058943964484.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest|g" infra/k8s/app/deployment.yml
+          
+          # Aplica os secrets de conex├úo
+          kubectl apply -f infra/k8s/db/secret.yml
+          kubectl apply -f infra/k8s/db/configmap.yml
+          
+          # Aplica a aplica├º├úo e HPA
+          kubectl apply -f infra/k8s/app/
+          
+          # Aguarda a inicializa├º├úo com o timeout seguro de 90 segundos
+          kubectl rollout status deployment/ofisy-deployment --timeout=150s

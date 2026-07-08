@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
         - name: ofisy-app
-          image: ofisy-app:latest
+          image: 058943964484.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
@@ -26,14 +26,14 @@ spec:
               port: 8080
             periodSeconds: 10
             failureThreshold: 3
-            initialDelaySeconds: 20
+            initialDelaySeconds: 90
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness
               port: 8080
             periodSeconds: 10
             failureThreshold: 5
-            initialDelaySeconds: 20
+            initialDelaySeconds: 90
           resources:
             requests:
               cpu: "250m"

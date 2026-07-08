@@ -1,4 +1,4 @@
-resource "aws_security_group" "db" {
+﻿resource "aws_security_group" "db" {
   name        = "${local.project_name}-db-sg"
   description = "Acesso ao PostgreSQL RDS"
   vpc_id      = aws_vpc.main.id
@@ -27,7 +27,7 @@ resource "aws_db_instance" "postgres" {
   max_allocated_storage  = 100
   db_name                = "ofisydb"
   engine                 = "postgres"
-  engine_version         = "16.1"
+  engine_version         = "16"
   instance_class         = "db.t4g.micro"
   username               = "ofisy_user"
   password               = "ofisy_pass"
@@ -40,3 +40,9 @@ resource "aws_db_instance" "postgres" {
     Name = "${local.project_name}-rds-postgres"
   }
 }
+
+output "rds_endpoint" {
+  value       = aws_db_instance.postgres.address
+  description = "Endpoint do banco de dados RDS"
+}
+

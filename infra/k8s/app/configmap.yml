@@ -1,7 +1,7 @@
-apiVersion: v1
+﻿apiVersion: v1
 kind: ConfigMap
 metadata:
   name: ofisy-config
 data:
-  POSTGRES_HOST: "db-service"
+  POSTGRES_HOST: "terraform-8ecd7fd9c21f1aabc8cb1d9e1c.csgitff0o68h.us-east-1.rds.amazonaws.com"
   SPRING_PROFILES_ACTIVE: "k8s"
