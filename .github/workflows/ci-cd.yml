@@ -18,6 +18,11 @@ on:
         type: boolean
         required: true
         default: false
+      destroy_aws:
+        description: 'ÔÜá´©Å DESTRUIR infraestrutura completa na AWS (RDS, EKS, VPC)?'
+        type: boolean
+        required: true
+        default: false
       aws_access_key_id:
         description: 'AWS Access Key ID (do Learner Lab)'
         type: string
@@ -197,3 +202,53 @@ jobs:
           
           # Aguarda a inicializa├º├úo com o timeout seguro de 90 segundos
           kubectl rollout status deployment/ofisy-deployment --timeout=150s
+
+  destroy-aws:
+    name: Destruir Infraestrutura na AWS
+    runs-on: ubuntu-latest
+    if: github.event.inputs.destroy_aws == 'true'
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      # 1. Configurar Credenciais da AWS
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ github.event.inputs.aws_access_key_id }}
+          aws-secret-access-key: ${{ github.event.inputs.aws_secret_access_key }}
+          aws-session-token: ${{ github.event.inputs.aws_session_token }}
+          aws-region: us-east-1
+
+      # 2. Configurar Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      # 3. Conectar ao EKS e apagar os servi├ºos (para liberar o LoadBalancer e ENIs da AWS)
+      - name: Clean up Kubernetes Services (Release AWS ELB/ENIs)
+        run: |
+          # Conecta no cluster (ignora erro se o cluster j├í n├úo existir)
+          aws eks update-kubeconfig --region us-east-1 --name ofisy-eks-cluster || echo "Cluster EKS nao encontrado ou ja removido."
+          
+          # Apaga os servi├ºos K8s para que a AWS destrua o Load Balancer e libere as placas de rede (ENIs)
+          kubectl delete -f infra/k8s/app/ --ignore-not-found=true || echo "Trabalho de limpeza do Kubernetes ignorado."
+          kubectl delete -f infra/k8s/db/ --ignore-not-found=true || echo "Trabalho de limpeza do Kubernetes ignorado."
+          
+          # Aguarda 30 segundos para a AWS remover fisicamente o ELB e ENIs
+          sleep 30
+
+      # 4. Inicializar e Destruir Recursos do Terraform
+      - name: Terraform Destroy
+        run: |
+          cd infra/terraform
+          
+          # Configura os arquivos de variaveis e backend
+          echo 'account_id = "058943964484"' > terraform.tfvars
+          echo 'role_name  = "LabRole"' >> terraform.tfvars
+          echo 'bucket = "ofisy-tfstate-058943964484"' > backend.hcl
+          
+          terraform init -backend-config=backend.hcl
+          terraform destroy -auto-approve
