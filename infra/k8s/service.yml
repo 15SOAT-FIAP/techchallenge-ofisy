@@ -3,10 +3,9 @@ kind: Service
 metadata:
   name: ofisy-service
 spec:
-  type: NodePort #trocar para LoadBalancer se estiver em cloud
+  type: LoadBalancer
   ports:
     - port: 8080
       targetPort: 8080
-      nodePort: 30080
   selector:
     app: ofisy-app
