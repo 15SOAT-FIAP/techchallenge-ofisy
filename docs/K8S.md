@@ -1,14 +1,15 @@
-# Kubernetes Local com Minikube
+# Kubernetes no EKS
 
-Manual para a execução da aplicação localmente num cluster Kubernetes usando Minikube.
+Manual para publicar a aplicação no cluster EKS provisionado via Terraform (veja `docs/INFRASTRUCTURE.md`).
 
 ---
 
 ## Pré-requisitos
 
-- [Docker](https://docs.docker.com/get-docker/)
-- [Minikube](https://minikube.sigs.k8s.io/docs/start/)
+- Infraestrutura já provisionada (`infra/terraform`), com cluster EKS, RDS e ECR de pé
+- [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) configurado com as credenciais do lab
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
+- [Docker](https://docs.docker.com/get-docker/)
 
 ---
 
@@ -16,98 +17,85 @@ Manual para a execução da aplicação localmente num cluster Kubernetes usando
 
 ```
 k8s/
-├── app/
-│   ├── configmap.yml    # variáveis de ambiente da aplicação
-│   ├── secret.yml       # template de secrets (não versionar valores reais)
-│   ├── deployment.yml   # deployment da aplicação com probes e resources
-│   ├── service.yml      # NodePort expondo a porta 30080
-│   └── hpa.yml          # HorizontalPodAutoscaler baseado em CPU
-└── db/
-    ├── configmap.yml    # variáveis de ambiente do banco
-    ├── secret.yml       # template de secrets do banco
-    ├── statefulset.yml  # StatefulSet do PostgreSQL
-    ├── service.yml      # Service headless interno do banco
-    └── pvc.yml          # PersistentVolumeClaim para os dados do banco
+├── configmap.yml    # variáveis de ambiente da aplicação (host do RDS, profile)
+├── secret.yml       # template de secrets (não versionar valores reais)
+├── deployment.yml   # deployment da aplicação com probes e resources
+├── service.yml      # LoadBalancer expondo a porta 8080
+└── hpa.yml          # HorizontalPodAutoscaler baseado em CPU
 ```
+
+O banco saiu do cluster. PostgreSQL agora roda no RDS criado pelo Terraform, e o StatefulSet e o PVC que existiam aqui foram removidos.
 
 ---
 
 ## Passo a passo
 
-### 1. Iniciar o Minikube
+### 1. Apontar o kubectl para o cluster
 
 ```bash
-minikube start
-minikube addons enable metrics-server
+aws eks update-kubeconfig --region us-east-1 --name ofisy-cluster
+kubectl get nodes
 ```
 
-O metrics-server é necessário para o HPA conseguir coletar as metricas e escalar os pods de acordo.
+Se a infra ainda não foi provisionada, comece por `docs/INFRASTRUCTURE.md`.
 
-### 2. Apontar o Docker para o contexto do Minikube
+### 2. Buildar e publicar a imagem no ECR
 
 ```bash
-eval $(minikube docker-env)
+aws ecr get-login-password --region us-east-1 \
+  | docker login --username AWS --password-stdin <ECR_REPOSITORY_URL>
+
+docker build -t <ECR_REPOSITORY_URL>:<IMAGE_TAG> .
+docker push <ECR_REPOSITORY_URL>:<IMAGE_TAG>
 ```
 
-> Esse comando precisa executar em cada novo terminal. Sem ele, a imagem buildada fica no nosso OS e não dentro do minikube.
+`<ECR_REPOSITORY_URL>` vem do output `ecr_repository_url` do Terraform. Para `<IMAGE_TAG>`, o hash curto do commit funciona bem (`git rev-parse --short HEAD`).
 
-### 3. Buildar a imagem da aplicação
+Atenção: o ECR está configurado com `image_tag_mutability = IMMUTABLE`, então `latest` não serve. Cada build exige uma tag nova.
 
-```bash
-docker build -t ofisy-app:latest .
-```
+### 3. Criar os secrets
 
-### 4. Criar os secrets
-
-Os arquivos `secret.yml` usam apenas placeholders e não devem ser aplicados diretamente, no futuro será feito o replace na pipeline, mas por enquanto precisa criar manualmente via `kubectl`:
+Os arquivos `secret.yml` trazem só placeholders, não aplique direto. O replace ainda é manual, deve entrar numa pipeline de CD mais pra frente.
 
 ```bash
-kubectl create secret generic db-secret \
-  --from-literal=POSTGRES_USER=postgres \
-  --from-literal=POSTGRES_PASSWORD=postgres
-
 kubectl create secret generic ofisy-secret \
-  --from-literal=POSTGRES_USER=postgres \
-  --from-literal=POSTGRES_PASSWORD=postgres \
-  --from-literal=JWT_SECRET=seu_jwt_secret
+  --from-literal=POSTGRES_USER=admin \
+  --from-literal=POSTGRES_PASSWORD=<DB_PASSWORD> \
+  --from-literal=JWT_SECRET=<JWT_SECRET>
 ```
 
-> Se os secrets já forem criados numa execução anterior, não é necessário recriar.
+Se o secret já existir de uma execução anterior, não precisa recriar.
 
-### 5. Aplicar os manifestos do banco
+### 4. Preencher os placeholders e aplicar os manifestos
+
+Antes de aplicar, abra `k8s/deployment.yml` e `k8s/configmap.yml` e substitua os placeholders pelos valores reais:
+
+- `deployment.yml`: `<ECR_REPOSITORY_URL>` e `<IMAGE_TAG>`, os mesmos valores usados no build da imagem no passo 2
+- `configmap.yml`: `<RDS_ADDRESS>`, o output `rds_address` do Terraform
 
 ```bash
-kubectl apply -f k8s/db/configmap.yml \
-              -f k8s/db/pvc.yml \
-              -f k8s/db/service.yml \
-              -f k8s/db/statefulset.yml
+kubectl apply -f k8s/configmap.yml \
+              -f k8s/deployment.yml \
+              -f k8s/service.yml \
+              -f k8s/hpa.yml
 ```
 
-Aguarde o pod do banco estar pronto, pode acompanhar com `kubectl get pods --watch`. O pod do banco estará pronto quando o STATUS for `Running` e o READY for `1/1`.
-
-### 6. Aplicar os manifestos da aplicação
-
-```bash
-kubectl apply -f k8s/app/configmap.yml \
-              -f k8s/app/deployment.yml \
-              -f k8s/app/service.yml \
-              -f k8s/app/hpa.yml
-```
-
-### 7. Verificar o status
+### 5. Verificar o status
 
 ```bash
 kubectl get pods,services,hpa
 kubectl top pods
 ```
 
-### 8. Acessar a aplicação
+O pod da aplicação estará pronto quando o STATUS for `Running` e o READY for `1/1`.
+
+### 6. Acessar a aplicação
 
 ```bash
-minikube service ofisy-service --url
+kubectl get service ofisy-service
 ```
 
-O comando retorna a URL com o NodePort para acessar a aplicação. A documentação Swagger estará disponível em `/swagger-ui.html`.
+O `EXTERNAL-IP` (hostname do Load Balancer) demora alguns minutos pra aparecer depois do apply, não se assuste se vier vazio de início. A documentação Swagger fica em `/swagger-ui.html`.
 
 ---
 
@@ -117,26 +105,33 @@ O comando retorna a URL com o NodePort para acessar a aplicação. A documentaç
 Os arquivos `secret.yml` existem apenas como documentação da estrutura esperada. Nunca commit valores reais de secrets.
 
 ### HPA e memória JVM
-O HPA está configurado para escalar apenas por CPU. Escalar por memória com JVM é problemático, pois a JVM reserva heap na inicialização e raramente libera, fazendo o HPA escalar indefinidamente sem necessidade.
+O HPA escala só por CPU de propósito. Memória com JVM não funciona bem pra isso: a JVM reserva heap na inicialização e quase nunca libera, então o HPA acabaria escalando sem parar mesmo sem necessidade real.
 
-### Imagem local
-O `imagePullPolicy: Never` no deployment garante que o k8s use a imagem local buildada no contexto do Minikube. Ao migrar para produção precisa alterar para `IfNotPresent` e configurar o ECR com a imagem.
+### Metrics Server
+O EKS não vem com metrics-server instalado. Sem ele o HPA fica cego e não escala nada:
+
+```bash
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+```
+
+### Imagem via ECR
+`imagePullPolicy: Always` faz o kubelet puxar a imagem do ECR toda vez antes de subir o pod. No Minikube era `Never`, porque a imagem já estava local.
+
+### LoadBalancer
+`service.yml` usa `type: LoadBalancer` sem anotações do AWS Load Balancer Controller: o EKS provisiona um Classic ELB direto pelo cloud provider nativo. É de propósito, o Load Balancer Controller pediria uma IAM policy que o AWS Academy não libera.
 
 ### Banco de dados
-O PostgreSQL futuramente será migrado para um RDS e deixará de ser gerenciado pelo k8s. O StatefulSet e PVC serão removidos, e a connection string passará a ser configurada diretamente nos secrets da aplicação.
+PostgreSQL roda no RDS (`infra/terraform/rds.tf`), fora do cluster. O `POSTGRES_HOST` do ConfigMap aponta pro endpoint do RDS; hoje isso é preenchido na mão a partir do output do Terraform.
 
 ---
 
-## Parar o ambiente
+## Destruir os recursos
+
+Os manifestos do Kubernetes não precisam ser removidos manualmente. Ao destruir o cluster (`terraform destroy` em `infra/terraform`), os pods, services e demais recursos somem junto.
+
+Se quiser apenas limpar a aplicação sem derrubar o cluster:
 
 ```bash
-minikube stop
-```
-
-Os recursos criados (pods, services, secrets) são preservados e restaurados na próxima vez que o Minikube iniciar.
-
-Para destruir tudo:
-
-```bash
-minikube delete
+kubectl delete -f k8s/deployment.yml -f k8s/service.yml -f k8s/hpa.yml -f k8s/configmap.yml
+kubectl delete secret ofisy-secret
 ```
