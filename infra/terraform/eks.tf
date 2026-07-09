@@ -56,8 +56,8 @@ resource "aws_eks_node_group" "main" {
   node_role_arn = local.eks_node_role_arn
 
   subnet_ids = [
-    aws_subnet.private_a.id,
-    aws_subnet.private_b.id
+    aws_subnet.public_a.id,
+    aws_subnet.public_b.id
   ]
 
   version = aws_eks_cluster.main.version
