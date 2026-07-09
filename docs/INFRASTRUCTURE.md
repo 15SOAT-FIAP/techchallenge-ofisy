@@ -135,11 +135,6 @@ EKS Control Plane (AWS Managed)
 # Opção A: Via arquivo (menos seguro)
 cp infra/terraform/terraform.tfvars.example infra/terraform/terraform.tfvars
 # Editar terraform.tfvars com seus valores
-
-# Opção B: Via variáveis de ambiente (RECOMENDADO)
-export TF_VAR_account_id="123456789012"
-export TF_VAR_role_name="LabRole"
-export TF_VAR_db_password="SenhaSegura123"
 ```
 
 ---
@@ -160,6 +155,34 @@ terraform apply
 
 Copie o valor de `bucket_name` retornado no output.
 
+### Localizando as IAM Roles no AWS Academy
+
+No AWS Academy Learner Lab, os nomes das IAM Roles do Amazon EKS são gerados automaticamente. Antes de executar o Terraform, identifique as ARNs disponíveis com o comando:
+
+```bash
+aws iam list-roles --query "Roles[?contains(RoleName, 'LabEks')].[RoleName, Arn]" --output table
+```
+
+Exemplo de saída:
+
+```text
+-------------------------------------------------------------
+|                        ListRoles                          |
++-----------------------------------------------------------+
+| c213429...-LabEksClusterRole-XXXX | arn:aws:iam::123456789012:role/c213429...-LabEksClusterRole-XXXX |
+| c213429...-LabEksNodeRole-YYYY    | arn:aws:iam::123456789012:role/c213429...-LabEksNodeRole-YYYY    |
++-----------------------------------------------------------+
+```
+
+Utilize essas ARNs para configurar as variáveis do Terraform:
+
+```hcl
+eks_cluster_role_arn = "arn:aws:iam::<ACCOUNT_ID>:role/<LabEksClusterRole>"
+eks_node_role_arn    = "arn:aws:iam::<ACCOUNT_ID>:role/<LabEksNodeRole>"
+```
+
+> **Observação:** Os nomes das roles variam para cada laboratório do AWS Academy. Nunca utilize valores fixos encontrados em outro ambiente.
+
 ### 2. Configurar o backend remoto
 
 ```bash
@@ -167,6 +190,7 @@ cd ../  # volta para infra/terraform
 cp backend.hcl.example backend.hcl
 # Editar: preencher o bucket com o valor retornado no passo anterior
 ```
+
 
 ### 3. Inicializar Terraform
 
