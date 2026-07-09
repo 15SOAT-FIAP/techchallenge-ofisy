@@ -23,7 +23,7 @@ resource "aws_security_group_rule" "eks_self_ingress" {
   security_group_id = aws_security_group.eks.id
 }
 
-# Permite conexões SSH para acesso administrativo e depuração.
+# Permite conexões SSH para administração da infraestrutura.
 resource "aws_security_group_rule" "eks_ssh_ingress" {
   type              = "ingress"
   from_port         = 22
@@ -97,4 +97,3 @@ resource "aws_security_group_rule" "rds_egress" {
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.rds.id
 }
-

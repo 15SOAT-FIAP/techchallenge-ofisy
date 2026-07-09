@@ -148,18 +148,6 @@ output "eks_node_group_status" {
   value       = aws_eks_node_group.main.status
 }
 
-# Exibe o ARN da IAM Role utilizada pelo cluster EKS.
-output "eks_cluster_role_arn" {
-  description = "ARN da IAM Role do cluster EKS"
-  value       = aws_iam_role.eks_cluster_role.arn
-}
-
-# Exibe o ARN da IAM Role utilizada pelo Node Group.
-output "eks_node_group_role_arn" {
-  description = "ARN da IAM Role do Node Group"
-  value       = aws_iam_role.eks_node_group_role.arn
-}
-
 # Exibe o nome configurado para o projeto.
 output "project_name" {
   description = "Nome do projeto"
@@ -177,4 +165,3 @@ output "account_id" {
   description = "ID da conta AWS"
   value       = var.account_id
 }
-
