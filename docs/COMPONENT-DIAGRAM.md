@@ -56,8 +56,8 @@ flowchart TB
     Swagger(["<b>Swagger UI</b><br/><i>[Software System]</i><br/>Documentação e testes<br/>manuais das rotas"])
 
     %% ================= Relationships =================
-    Client -->|"Autentica-se via<br/>[JSON/HTTPS]"| LoginCtrl
-    Client -->|"Consome recursos de negócio<br/>com Bearer JWT [JSON/HTTPS]"| BizCtrls
+    Client -->|"Autentica-se via<br/>[JSON/HTTP]"| LoginCtrl
+    Client -->|"Consome recursos de negócio<br/>com Bearer JWT [JSON/HTTP]"| BizCtrls
 
     JwtFilter -.->|"Autentica requests<br/>antes dos controllers"| BizCtrls
     JwtFilter -->|"Valida token usando"| JwtService
@@ -79,7 +79,7 @@ flowchart TB
     Gateways --> JpaRepos
     JpaRepos -->|"Lê e escreve em<br/>[JDBC / SQL]"| Db
 
-    Swagger -.->|"Chama os endpoints<br/>para teste manual<br/>[JSON/HTTPS]"| BizCtrls
+    Swagger -.->|"Chama os endpoints<br/>para teste manual<br/>[JSON/HTTP]"| BizCtrls
 
     %% ================= Styling =================
     classDef comp fill:#1168bd,stroke:#0b4884,color:#ffffff;
@@ -99,7 +99,7 @@ flowchart TB
 | **Business Controllers**          | Spring MVC             | Um controller por agregado (Customer, Vehicle, Stock, StockMovement, ServiceCatalog, ServiceOrder, ServiceOrderExecution, Quote, User, Notification). Expõem as rotas REST e delegam a casos de uso. Protegidos por `@PreAuthorize`. |
 | **Login Use Case**                | Spring Bean            | Valida credenciais (senha via `PasswordEncoder`) e solicita a emissão do token.                                                                                                                                                      |
 | **Business Use Cases**            | Spring Bean            | Um caso de uso por operação (create, list, approve, cancel, startDiagnostic…). Coordenam as entidades de domínio e os gateways.                                                                                                      |
-| **Notification Use Cases**        | Spring Bean            | Criam e consultam notificações internas. Outros casos de uso os chamam direto, no mesmo processo, quando geram um orçamento ou detectam estoque baixo. As notificações ficam no banco; nesta fase não sai e-mail nem SMS.           |
+| **Notification Use Cases**        | Spring Bean            | Criam e consultam notificações internas. Outros casos de uso os chamam direto, no mesmo processo, quando geram um orçamento ou detectam estoque baixo. As notificações ficam no banco; nesta fase não sai e-mail nem SMS.            |
 | **Domain Model**                  | POJO / DDD             | Entidades ricas, value objects (ex.: `Email`, `CpfCnpj`, `LicensePlate`) e regras de negócio. Define as interfaces de repositório.                                                                                                   |
 | **JWT Auth Filter**               | Spring Security Filter | Intercepta cada requisição, valida o Bearer token e popula o `SecurityContext`.                                                                                                                                                      |
 | **JWT Service / Token Generator** | Spring Bean (jjwt)     | Geração e validação dos tokens JWT.                                                                                                                                                                                                  |
