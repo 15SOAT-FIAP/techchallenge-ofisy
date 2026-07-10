@@ -62,8 +62,8 @@ resource "aws_eks_node_group" "main" {
   node_role_arn = data.aws_iam_role.eks_node.arn
 
   subnet_ids = [
-    aws_subnet.public_a.id,
-    aws_subnet.public_b.id
+    aws_subnet.private_a.id,
+    aws_subnet.private_b.id
   ]
 
   version = aws_eks_cluster.main.version
@@ -79,10 +79,6 @@ resource "aws_eks_node_group" "main" {
   tags = {
     Name = "${local.project_name}-node-group"
   }
-
-  depends_on = [
-    aws_eks_cluster.main
-  ]
 }
 
 ########################################
@@ -99,10 +95,6 @@ resource "aws_eks_access_entry" "admin" {
   tags = {
     Name = "${local.project_name}-access-entry-admin"
   }
-
-  depends_on = [
-    aws_eks_cluster.main
-  ]
 }
 
 ########################################
@@ -118,8 +110,4 @@ resource "aws_eks_access_policy_association" "admin" {
   access_scope {
     type = "cluster"
   }
-
-  depends_on = [
-    aws_eks_access_entry.admin
-  ]
 }
