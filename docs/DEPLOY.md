@@ -23,7 +23,10 @@ Cenário para testes rápidos de desenvolvimento local com aplicação e banco r
 
 ## ☸️ 2. Deploy Local em Kubernetes (Minikube)
 
-Cenário de simulação de orquestração local com Kubernetes para validar os manifestos cloud-ready:
+Cenário de simulação de orquestração local com Kubernetes para validar os manifestos cloud-ready. 
+
+> [!NOTE]
+> Como os manifestos do banco de dados local foram removidos para a migração para a nuvem (onde a aplicação conecta diretamente no AWS RDS), para rodar a aplicação localmente no Minikube você precisará subir o banco de dados separadamente (por exemplo, usando o Docker Compose local) e atualizar o `POSTGRES_HOST` no `k8s/configmap.yml` para apontar para o IP/host do banco acessível pelo Minikube.
 
 1.  Inicie o cluster local com o driver Docker:
     ```powershell
@@ -41,16 +44,25 @@ Cenário de simulação de orquestração local com Kubernetes para validar os m
     ```powershell
     docker build -t ofisy-app:latest .
     ```
-5.  Aplique os manifestos do banco local e do aplicativo:
+5.  Configure o secret local com credenciais mockadas e o configmap apontando para o seu banco:
     ```powershell
-    kubectl apply -f infra/k8s/db/
-    kubectl apply -f infra/k8s/app/
+    kubectl create secret generic ofisy-secret `
+      --from-literal=POSTGRES_USER=ofisy_user `
+      --from-literal=POSTGRES_PASSWORD=ofisy_pass `
+      --from-literal=JWT_SECRET=super_secret_local_jwt_token_for_ofisy_app_fase_2
     ```
-6.  Abra o túnel de rede local (em um terminal de Administrador separado):
+6.  Aplique os manifestos do aplicativo:
+    ```powershell
+    kubectl apply -f k8s/configmap.yml
+    kubectl apply -f k8s/deployment.yml
+    kubectl apply -f k8s/service.yml
+    kubectl apply -f k8s/hpa.yml
+    ```
+7.  Abra o túnel de rede local (em um terminal de Administrador separado):
     ```powershell
     minikube tunnel
     ```
-7.  Acesse o IP do serviço (`kubectl get svc ofisy-service`) na porta `8080`.
+8.  Acesse o IP do serviço (`kubectl get svc ofisy-service`) na porta `8080`.
 
 ---
 
@@ -65,14 +77,16 @@ Este método automatiza o provisionamento do Terraform, o build do código e o d
     *   `aws_access_key_id`
     *   `aws_secret_access_key`
     *   `aws_session_token`
+4.  Anote também o **AWS Account ID** (ID de 12 dígitos exibido nas informações da conta).
 
 ### Passo 2: Executar o Workflow no GitHub
 1.  Acesse o repositório do projeto no GitHub e clique na aba **Actions**.
-2.  No menu lateral esquerdo, selecione a esteira **Validacao de Deploy e Entrega CD**.
+2.  No menu lateral esquerdo, selecione a esteira **🚀 Validação de Deploy e Entrega CD**.
 3.  Clique no botão **Run workflow** à direita.
 4.  Preencha as opções:
+    *   Insira o seu **`aws_account_id`** (ID de 12 dígitos sem traços).
     *   Marque **`deploy_to_aws`** como `true`.
-    *   Cole as chaves correspondentes copias da AWS Academy nos campos apropriados de input.
+    *   Cole as chaves correspondentes copiadas da AWS Academy nos campos apropriados de input (`aws_access_key_id`, `aws_secret_access_key` e `aws_session_token`).
 5.  Clique em **Run workflow**. 
     *   *A esteira irá configurar o Terraform, aplicar o RDS e o EKS, buildar a aplicação, enviá-la ao ECR e realizar o deploy final no Kubernetes da AWS.*
 
@@ -94,15 +108,15 @@ $env:AWS_SESSION_TOKEN="SEU_TOKEN"
 1.  Navegue até a pasta de bootstrap para criar o bucket de estado remoto (S3):
     ```powershell
     cd infra/terraform/bootstrap
-    echo 'account_id = "058943964484"' > terraform.tfvars
+    echo 'account_id = "<AWS_ACCOUNT_ID>"' > terraform.tfvars
     terraform init
     terraform apply -auto-approve
     ```
 2.  Retorne à pasta principal do Terraform para subir o EKS e o RDS:
     ```powershell
     cd ..
-    echo 'bucket = "ofisy-tfstate-058943964484"' > backend.hcl
-    echo 'account_id = "058943964484"' > terraform.tfvars
+    echo 'bucket = "ofisy-tfstate-<AWS_ACCOUNT_ID>"' > backend.hcl
+    echo 'account_id = "<AWS_ACCOUNT_ID>"' > terraform.tfvars
     echo 'role_name  = "LabRole"' >> terraform.tfvars
     
     terraform init "-backend-config=backend.hcl"
@@ -112,34 +126,40 @@ $env:AWS_SESSION_TOKEN="SEU_TOKEN"
 ### Passo 3: Enviar a imagem e aplicar os manifestos
 1.  Conecte seu `kubectl` ao cluster EKS criado:
     ```powershell
-    aws eks update-kubeconfig --region us-east-1 --name ofisy-eks-cluster
+    aws eks update-kubeconfig --region us-east-1 --name ofisy-cluster
     ```
-2.  Insira o endpoint do banco RDS (gerado pelo Terraform) no arquivo `infra/k8s/app/configmap.yml` no campo `POSTGRES_HOST`.
+2.  Insira o endpoint do banco RDS (gerado pelo Terraform) no arquivo `k8s/configmap.yml` no campo `POSTGRES_HOST`.
 3.  Autentique o Docker no ECR, compile a aplicação e faça o push:
     ```powershell
-    aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 058943964484.dkr.ecr.us-east-1.amazonaws.com
+    aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com
     .\mvnw.cmd clean package -DskipTests
     docker build -t ofisy-app:latest .
-    docker tag ofisy-app:latest 058943964484.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest
-    docker push 058943964484.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest
+    docker tag ofisy-app:latest <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest
+    docker push <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest
     ```
-4.  Aplique os manifestos no cluster:
+4.  Crie os secrets e aplique os manifestos no cluster:
     ```powershell
-    kubectl apply -f infra/k8s/db/secret.yml
-    kubectl apply -f infra/k8s/db/configmap.yml
-    kubectl apply -f infra/k8s/app/
+    kubectl create secret generic ofisy-secret `
+      --from-literal=POSTGRES_USER=ofisy_user `
+      --from-literal=POSTGRES_PASSWORD=<SUA_SENHA_RDS> `
+      --from-literal=JWT_SECRET=<SEU_JWT_SECRET>
+
+    kubectl apply -f k8s/configmap.yml
+    kubectl apply -f k8s/deployment.yml
+    kubectl apply -f k8s/service.yml
+    kubectl apply -f k8s/hpa.yml
     ```
 
 ---
 
 ## ⚠️ 5. Limpeza e Destruição (Economia de Créditos)
 
-**Importante:** Os recursos na AWS gerados por esse deploy consomem cerca de $4.00 de créditos virtuais do seu laboratório por dia. Destrua-os sempre que terminar as apresentações ou avaliações.
+**Importante:** Os recursos na AWS gerados por esse deploy consomem créditos do seu laboratório. Destrua-os sempre que terminar as apresentações ou avaliações.
 
 ### Método A: Via GitHub Actions (Recomendado)
-1.  Acesse a aba **Actions** > **Validacao de Deploy e Entrega CD**.
+1.  Acesse a aba **Actions** > **🚀 Validação de Deploy e Entrega CD**.
 2.  Clique em **Run workflow**.
-3.  Marque **`destroy_aws`** como `true` e cole as credenciais de autenticação da AWS Academy.
+3.  Insira o **`aws_account_id`**, marque **`destroy_aws`** como `true` e cole as credenciais de autenticação da AWS Academy.
 4.  Execute o workflow para remover os serviços e a infraestrutura de forma limpa.
 
 ### Método B: Via CLI Local

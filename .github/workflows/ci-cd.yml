@@ -3,11 +3,10 @@ name: 🚀 Validação de Deploy e Entrega CD
 on:
   workflow_dispatch:
     inputs:
-      run_k8s_verify:
-        description: '🚀 Executar validação de deploy local (KinD)?'
-        type: boolean
+      aws_account_id:
+        description: '🆔 AWS Account ID (do Learner Lab)'
+        type: string
         required: true
-        default: false
       deploy_to_aws:
         description: '☁️ Executar deploy automático na AWS (EKS & RDS)?'
         type: boolean
@@ -32,51 +31,6 @@ on:
         required: false
 
 jobs:
-  ci-k8s-verify:
-    name: 🚀 Validação de Deploy Completa (KinD)
-    runs-on: ubuntu-latest
-    if: github.event.inputs.run_k8s_verify == 'true'
-
-    steps:
-      - name: 🔍 Checkout do código
-        uses: actions/checkout@v4
-
-      # 1. Build da imagem Docker localmente no runner do GitHub
-      - name: 🔨 Construir imagem Docker local
-        run: |
-          docker build -t ofisy-app:latest .
-
-      # 2. Inicializar o cluster Kubernetes virtual (KinD) no runner
-      - name: ☸️ Inicializar cluster KinD
-        uses: helm/kind-action@v1.10.0
-        with:
-          cluster_name: ofisy-cluster
-
-      # 3. Carregar a imagem Docker construída diretamente no cluster KinD
-      - name: 📦 Carregar imagem no KinD
-        run: |
-          kind load docker-image ofisy-app:latest --name ofisy-cluster
-
-      # 4. Ajustar os manifestos e aplicar no cluster KinD temporário
-      - name: 🧪 Deploy e Validação de Rollout
-        run: |
-          # Configura credenciais mockadas para o banco e a app rodarem no KinD
-          sed -i "s|<BASE64_USERNAME>|b2Zpc3lfdXNlcg==|g" infra/k8s/db/secret.yml
-          sed -i "s|<BASE64_PASSWORD>|b2Zpc3lfcGFzcw==|g" infra/k8s/db/secret.yml
-          sed -i "s|<BASE64_USERNAME>|b2Zpc3lfdXNlcg==|g" infra/k8s/app/secret.yml
-          sed -i "s|<BASE64_PASSWORD>|b2Zpc3lfcGFzcw==|g" infra/k8s/app/secret.yml
-          sed -i "s|<BASE64_JWT_SECRET>|c3VwZXJfc2VjcmV0X2xvY2FsX2p3dF90b2tlbl9mb3Jfb2Zpc3lfYXBwX2Zhc2VfMg==|g" infra/k8s/app/secret.yml
-
-          # Executa o deploy dos manifestos
-          kubectl apply -f infra/k8s/db/
-          kubectl apply -f infra/k8s/app/
-          
-          # Aguarda o banco ficar pronto
-          kubectl rollout status statefulset/db-statefulset --timeout=90s
-          
-          # Valida se os Pods da aplicação sobem e ficam saudáveis (READY 1/1)
-          kubectl rollout status deployment/ofisy-deployment --timeout=120s
-
   deploy-to-aws:
     name: ☁️ Deploy Automático na AWS (EKS & RDS)
     runs-on: ubuntu-latest
@@ -115,11 +69,11 @@ jobs:
           cd infra/terraform
           
           # Cria o arquivo terraform.tfvars com os dados da AWS Academy
-          echo 'account_id = "058943964484"' > terraform.tfvars
+          echo 'account_id = "${{ github.event.inputs.aws_account_id }}"' > terraform.tfvars
           echo 'role_name  = "LabRole"' >> terraform.tfvars
           
           # Cria o arquivo backend.hcl apontando para o bucket do tfstate
-          echo 'bucket = "ofisy-tfstate-058943964484"' > backend.hcl
+          echo 'bucket = "ofisy-tfstate-${{ github.event.inputs.aws_account_id }}"' > backend.hcl
           
           terraform init -backend-config=backend.hcl
           terraform apply -auto-approve
@@ -131,12 +85,12 @@ jobs:
       # 5. Conectar kubectl no Cluster EKS
       - name: ☸️ Conectar ao EKS Cluster
         run: |
-          aws eks update-kubeconfig --region us-east-1 --name ofisy-eks-cluster
+          aws eks update-kubeconfig --region us-east-1 --name ofisy-cluster
 
       # 6. Autenticar Docker no ECR
       - name: 🔐 Login no Amazon ECR
         run: |
-          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 058943964484.dkr.ecr.us-east-1.amazonaws.com
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ github.event.inputs.aws_account_id }}.dkr.ecr.us-east-1.amazonaws.com
 
       # 7. Compilar o projeto e gerar o JAR
       - name: ☕ Compilar Projeto (Maven)
@@ -146,29 +100,31 @@ jobs:
       # 8. Buildar e Push da imagem Docker para o ECR da AWS
       - name: 📤 Enviar Imagem para o ECR
         run: |
-          docker build -t 058943964484.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest .
-          docker push 058943964484.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest
+          docker build -t ${{ github.event.inputs.aws_account_id }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest .
+          docker push ${{ github.event.inputs.aws_account_id }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest
 
-      # 9. Injetar a URL do banco de dados (RDS) no ConfigMap do Kubernetes
-      - name: 💉 Injetar Endpoint RDS no ConfigMap
-        run: |
-          # Substitui qualquer valor mockado ou host antigo pelo novo RDS Host
-          sed -i "s|db-service|$RDS_HOST|g" infra/k8s/app/configmap.yml
-          sed -i "s|terraform-8ecd7fd9c21f1aabc8cb1d9e1c.csgitff0o68h.us-east-1.rds.amazonaws.com|$RDS_HOST|g" infra/k8s/app/configmap.yml
-
-      # 10. Atualizar imagem no deployment e aplicar no cluster EKS da AWS
+      # 9. Atualizar placeholders e aplicar no cluster EKS da AWS
       - name: 🚀 Deploy dos Manifestos no EKS
         run: |
-          sed -i "s|ofisy-app:latest|058943964484.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest|g" infra/k8s/app/deployment.yml
+          # Substitui placeholders no secret da aplicação com credenciais base64
+          sed -i "s|<BASE64_USERNAME>|b2Zpc3lfdXNlcg==|g" k8s/secret.yml
+          sed -i "s|<BASE64_PASSWORD>|b2Zpc3lfcGFzcw==|g" k8s/secret.yml
+          sed -i "s|<BASE64_JWT_SECRET>|c3VwZXJfc2VjcmV0X2xvY2FsX2p3dF90b2tlbl9mb3Jfb2Zpc3lfYXBwX2Zhc2VfMg==|g" k8s/secret.yml
           
-          # Aplica os secrets de conexão
-          kubectl apply -f infra/k8s/db/secret.yml
-          kubectl apply -f infra/k8s/db/configmap.yml
+          # Injeta o host do banco de dados (RDS) no ConfigMap
+          sed -i "s|<RDS_ADDRESS>|$RDS_HOST|g" k8s/configmap.yml
           
-          # Aplica a aplicação e HPA
-          kubectl apply -f infra/k8s/app/
+          # Injeta a imagem do ECR no Deployment
+          sed -i "s|<ECR_REPOSITORY_URL>:<IMAGE_TAG>|${{ github.event.inputs.aws_account_id }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest|g" k8s/deployment.yml
           
-          # Aguarda a inicialização com o timeout seguro de 90 segundos
+          # Aplica os recursos no cluster EKS
+          kubectl apply -f k8s/secret.yml
+          kubectl apply -f k8s/configmap.yml
+          kubectl apply -f k8s/deployment.yml
+          kubectl apply -f k8s/service.yml
+          kubectl apply -f k8s/hpa.yml
+          
+          # Aguarda a inicialização com o timeout seguro de 150 segundos
           kubectl rollout status deployment/ofisy-deployment --timeout=150s
 
   destroy-aws:
@@ -199,11 +155,10 @@ jobs:
       - name: 🧹 Limpar Serviços Kubernetes (Liberar ELB/ENIs)
         run: |
           # Conecta no cluster (ignora erro se o cluster já não existir)
-          aws eks update-kubeconfig --region us-east-1 --name ofisy-eks-cluster || echo "Cluster EKS nao encontrado ou ja removido."
+          aws eks update-kubeconfig --region us-east-1 --name ofisy-cluster || echo "Cluster EKS nao encontrado ou ja removido."
           
           # Apaga os serviços K8s para que a AWS destrua o Load Balancer e libere as placas de rede (ENIs)
-          kubectl delete -f infra/k8s/app/ --ignore-not-found=true || echo "Trabalho de limpeza do Kubernetes ignorado."
-          kubectl delete -f infra/k8s/db/ --ignore-not-found=true || echo "Trabalho de limpeza do Kubernetes ignorado."
+          kubectl delete -f k8s/ --ignore-not-found=true || echo "Trabalho de limpeza do Kubernetes ignorado."
           
           # Aguarda 30 segundos para a AWS remover fisicamente o ELB e ENIs
           sleep 30
@@ -214,9 +169,9 @@ jobs:
           cd infra/terraform
           
           # Configura os arquivos de variaveis e backend
-          echo 'account_id = "058943964484"' > terraform.tfvars
+          echo 'account_id = "${{ github.event.inputs.aws_account_id }}"' > terraform.tfvars
           echo 'role_name  = "LabRole"' >> terraform.tfvars
-          echo 'bucket = "ofisy-tfstate-058943964484"' > backend.hcl
+          echo 'bucket = "ofisy-tfstate-${{ github.event.inputs.aws_account_id }}"' > backend.hcl
           
           terraform init -backend-config=backend.hcl
           terraform destroy -auto-approve
