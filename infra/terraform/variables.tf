@@ -21,7 +21,7 @@ variable "db_password" {
 }
 variable "eks_cluster_role" {
   description = "Role utilizada pelo EKS Cluster"
-  type        = string,
+  type        = string
   default     = "c213429a5396203l15812067t1w131560-LabEksClusterRole-Ke9s0hySLUDZ"
 }
 
