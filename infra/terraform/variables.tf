@@ -19,13 +19,14 @@ variable "db_password" {
     error_message = "A senha do banco de dados deve ter no mínimo 8 caracteres."
   }
 }
-
 variable "eks_cluster_role" {
   description = "Role utilizada pelo EKS Cluster"
-  type        = string
+  type        = string,
+  default     = "c213429a5396203l15812067t1w131560-LabEksClusterRole-Ke9s0hySLUDZ"
 }
 
 variable "eks_node_role" {
   description = "Role utilizada pelo EKS Node Group"
   type        = string
+  default     = "c213429a5396203l15812067t1w131560185-LabEksNodeRole-vflF20cKYXce"
 }
