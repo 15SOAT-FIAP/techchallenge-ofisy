@@ -1,7 +1,7 @@
 package br.com.ofisy.adapters.controllers.serviceorderexecution;
 
 import br.com.ofisy.application.serviceorderexecution.cancel.CancelServiceOrderExecutionUseCase;
-import br.com.ofisy.application.serviceorderexecution.complete.CompleteServiceOrderExecutionUseCase;
+import br.com.ofisy.application.serviceorderexecution.createcomplete.CompleteServiceOrderExecutionUseCase;
 import br.com.ofisy.application.serviceorderexecution.create.CreateServiceOrderExecutionUseCase;
 import br.com.ofisy.application.serviceorderexecution.identifybyid.IdentifyByIdServiceOrderExecutionUseCase;
 import br.com.ofisy.application.serviceorderexecution.list.ListServiceOrderExecutionUseCase;

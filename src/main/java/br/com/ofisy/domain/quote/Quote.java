@@ -18,6 +18,7 @@ public class Quote {
 
     public static final String ACTION_APPROVE = "aprovar";
     public static final String ACTION_REPROVE = "reprovar";
+    public static final String ACTION_EDIT = "editar";
 
     private UUID id;
     private UUID serviceOrderId;
@@ -86,6 +87,22 @@ public class Quote {
         }
         this.status = QuoteStatus.REPROVED;
         this.quoteRefusalReason = reason;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void update(List<QuoteStockItem> newStockItems, List<QuoteServiceItem> newServiceItems) {
+        if (!QuoteStatus.PENDING.equals(this.status)) {
+            throw new InvalidQuoteStatusException(ACTION_EDIT, this.status);
+        }
+        if ((newStockItems == null || newStockItems.isEmpty())
+                && (newServiceItems == null || newServiceItems.isEmpty())) {
+            throw new InvalidQuoteDataException(this.serviceOrderId);
+        }
+        this.stockItems = newStockItems != null ? newStockItems : new ArrayList<>();
+        this.serviceItems = newServiceItems != null ? newServiceItems : new ArrayList<>();
+        this.totalPrice = calculateTotal(this.stockItems, this.serviceItems);
+        this.stockItems.forEach(item -> item.setQuote(this));
+        this.serviceItems.forEach(item -> item.setQuote(this));
         this.updatedAt = LocalDateTime.now();
     }
 

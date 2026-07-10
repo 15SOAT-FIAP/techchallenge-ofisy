@@ -8,6 +8,7 @@ import br.com.ofisy.application.quote.exceptions.QuoteAlreadyExistsException;
 import br.com.ofisy.application.servicecatalog.exceptions.ServiceCatalogNotFoundException;
 import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
+import br.com.ofisy.application.serviceorder.exceptions.QuoteNotFoundForServiceOrderException;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
 import br.com.ofisy.application.stock.exceptions.InsufficientStockException;
@@ -198,6 +199,13 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleQuoteNotFound(QuoteNotFoundException ex) {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         problem.setTitle("Orçamento não encontrado");
+        return problem;
+    }
+
+    @ExceptionHandler(QuoteNotFoundForServiceOrderException.class)
+    public ProblemDetail handleQuoteNotFoundForServiceOrder(QuoteNotFoundForServiceOrderException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problem.setTitle("Orçamento não encontrado para ordem de serviço informada");
         return problem;
     }
 

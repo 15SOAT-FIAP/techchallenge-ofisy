@@ -1,4 +1,4 @@
-package br.com.ofisy.application.serviceorderexecution.complete;
+package br.com.ofisy.application.serviceorderexecution.createcomplete;
 
 import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecution;
 

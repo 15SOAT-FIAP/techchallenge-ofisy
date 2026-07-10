@@ -1,18 +1,16 @@
 package br.com.ofisy.adapters.controllers.serviceorder;
 
-import br.com.ofisy.adapters.controllers.serviceorder.dto.ServiceOrderRequestDTO;
-import br.com.ofisy.adapters.controllers.serviceorder.dto.ServiceOrderResponseDTO;
-import br.com.ofisy.adapters.controllers.serviceorder.dto.ServiceOrderStatusResponseDTO;
+import br.com.ofisy.adapters.controllers.quote.dto.*;
+import br.com.ofisy.adapters.controllers.serviceorder.dto.*;
 import br.com.ofisy.adapters.presenters.quote.QuotePresenter;
 import br.com.ofisy.adapters.presenters.serviceorder.ServiceOrderPresenter;
 import br.com.ofisy.adapters.presenters.serviceorder.ServiceOrderStatusPresenter;
-import br.com.ofisy.adapters.controllers.quote.dto.CreateQuoteRequestDTO;
-import br.com.ofisy.adapters.controllers.quote.dto.QuoteResponseDTO;
-import br.com.ofisy.adapters.controllers.quote.dto.ReproveQuoteRequestDTO;
 import br.com.ofisy.application.quote.create.CreateQuoteUseCase;
+import br.com.ofisy.application.quote.findbyserviceorderid.FindQuoteByServiceOrderIdUseCase;
 import br.com.ofisy.application.serviceorder.approvequote.ApproveServiceOrderQuoteUseCase;
 import br.com.ofisy.application.serviceorder.cancel.CancelServiceOrderUseCase;
 import br.com.ofisy.application.serviceorder.create.CreateServiceOrderUseCase;
+import br.com.ofisy.application.serviceorder.createcomplete.CreateCompleteServiceOrderUseCase;
 import br.com.ofisy.application.serviceorder.delivertocustomer.DeliverToCustomerUseCase;
 import br.com.ofisy.application.serviceorder.generatequote.GenerateServiceOrderQuoteUseCase;
 import br.com.ofisy.application.serviceorder.getstatus.GetServiceOrderStatusUseCase;
@@ -21,7 +19,11 @@ import br.com.ofisy.application.serviceorder.listfinished.ListFinishedServiceOrd
 import br.com.ofisy.application.serviceorder.listreceived.ListReceivedServiceOrdersUseCase;
 import br.com.ofisy.application.serviceorder.reprovequote.ReproveServiceOrderQuoteUseCase;
 import br.com.ofisy.application.serviceorder.startdiagnostic.StartDiagnosticUseCase;
+import br.com.ofisy.application.serviceorder.submitquoteforapproval.SubmitQuoteForApprovalUseCase;
+import br.com.ofisy.application.quote.update.UpdateQuoteUseCase;
 import br.com.ofisy.domain.quote.Quote;
+import br.com.ofisy.domain.quote.QuoteServiceItem;
+import br.com.ofisy.domain.quote.QuoteStockItem;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -52,6 +54,7 @@ import java.util.UUID;
 public class ServiceOrderController implements ServiceOrderApi {
 
     private final CreateServiceOrderUseCase createServiceOrderUseCase;
+    private final CreateCompleteServiceOrderUseCase createCompleteServiceOrderUseCase;
     private final CancelServiceOrderUseCase cancelServiceOrderUseCase;
     private final ListReceivedServiceOrdersUseCase listReceivedServiceOrdersUseCase;
     private final ListFinishedServiceOrdersUseCase listFinishedServiceOrdersUseCase;
@@ -62,6 +65,9 @@ public class ServiceOrderController implements ServiceOrderApi {
     private final GenerateServiceOrderQuoteUseCase generateServiceOrderQuoteUseCase;
     private final ApproveServiceOrderQuoteUseCase approveServiceOrderQuoteUseCase;
     private final ReproveServiceOrderQuoteUseCase reproveServiceOrderQuoteUseCase;
+    private final UpdateQuoteUseCase updateQuoteUseCase;
+    private final SubmitQuoteForApprovalUseCase submitForApprovalUseCase;
+    private final FindQuoteByServiceOrderIdUseCase findQuoteByServiceOrderIdUseCase;
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT')")
@@ -75,6 +81,20 @@ public class ServiceOrderController implements ServiceOrderApi {
         return ResponseEntity.status(HttpStatus.CREATED).body(ServiceOrderPresenter.present(serviceOrder));
     }
 
+    @PostMapping("/create-complete")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT')")
+    public ResponseEntity<ServiceOrderResponseDTO> receiveCompleteServiceOrder(
+            @Valid @RequestBody CreateCompleteServiceOrderRequestDTO request,
+            @AuthenticationPrincipal UserDetails user) {
+
+        ServiceOrder serviceOrder = createCompleteServiceOrderUseCase.execute(
+                new CreateCompleteServiceOrderUseCase.CreateCompleteServiceOrderCommand(
+                        request.vehicleId(), request.customerId(), request.report(),
+                        user.getUsername(), toStockItemCommands(request.stockItems()), toServiceItemCommands(request.serviceItems())));
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(ServiceOrderPresenter.present(serviceOrder));
+    }
+
     @PostMapping("/{id}/quote")
     @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
     public ResponseEntity<QuoteResponseDTO> generateQuote(
@@ -83,7 +103,7 @@ public class ServiceOrderController implements ServiceOrderApi {
 
         Quote quote = generateServiceOrderQuoteUseCase.execute(
                 new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(
-                        id, toStockItemCommands(request), toServiceItemCommands(request)));
+                        id, toStockItemCommands(request.stockItems()), toServiceItemCommands(request.serviceItems())));
 
         return ResponseEntity.status(HttpStatus.CREATED).body(QuotePresenter.present(quote));
     }
@@ -110,6 +130,13 @@ public class ServiceOrderController implements ServiceOrderApi {
             @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
 
         return ResponseEntity.ok(listActiveServiceOrdersUseCase.execute(pageable).map(ServiceOrderPresenter::present));
+    }
+
+    @PatchMapping("/{id}/submit-for-approval")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
+    public ResponseEntity<ServiceOrderResponseDTO> submitQuoteForApproval(@PathVariable UUID id) {
+        ServiceOrder serviceOrder = submitForApprovalUseCase.execute(id);
+        return ResponseEntity.ok(ServiceOrderPresenter.present(serviceOrder));
     }
 
     @GetMapping("/{id}/status")
@@ -151,21 +178,40 @@ public class ServiceOrderController implements ServiceOrderApi {
         return ResponseEntity.ok(QuotePresenter.present(quote));
     }
 
-    private List<CreateQuoteUseCase.StockItemCommand> toStockItemCommands(CreateQuoteRequestDTO request) {
-        if (request.stockItems() == null) {
+    @PatchMapping("/quote/{id}/update")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
+    public ResponseEntity<QuoteResponseDTO> updateQuote(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateQuoteRequestDTO request) {
+
+        Quote quote = updateQuoteUseCase.execute(
+                new UpdateQuoteUseCase.UpdateQuoteCommand(id, toStockItemCommands(request.stockItems()), toServiceItemCommands(request.serviceItems())));
+
+        return ResponseEntity.ok(QuotePresenter.present(quote));
+    }
+
+    @GetMapping("/{id}/quotes")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
+    public ResponseEntity<List<QuoteResponseDTO>> listQuotesByServiceOrder(@PathVariable UUID id) {
+        List<Quote> quotes = findQuoteByServiceOrderIdUseCase.execute(id);
+        return ResponseEntity.ok(quotes.stream().map(QuotePresenter::present).toList());
+    }
+
+    private List<CreateQuoteUseCase.StockItemCommand> toStockItemCommands(List<StockItemRequestDTO> stockItems) {
+        if (stockItems == null) {
             return List.of();
         }
-        return request.stockItems().stream()
+        return stockItems.stream()
                 .map(stockItem -> new CreateQuoteUseCase.StockItemCommand(stockItem.stockId(), stockItem.quantity()))
                 .toList();
     }
 
-    private List<CreateQuoteUseCase.ServiceItemCommand> toServiceItemCommands(CreateQuoteRequestDTO request) {
-        if (request.serviceItems() == null) {
+    private List<CreateQuoteUseCase.ServiceItemCommand> toServiceItemCommands(List<ServiceItemRequestDTO> serviceItems) {
+        if (serviceItems == null) {
             return List.of();
         }
-        return request.serviceItems().stream()
-                .map(serviceItem -> new CreateQuoteUseCase.ServiceItemCommand(serviceItem.serviceOrderExecutionId()))
+        return serviceItems.stream()
+                .map(serviceItem -> new CreateQuoteUseCase.ServiceItemCommand(serviceItem.serviceCatalogId()))
                 .toList();
     }
 }
