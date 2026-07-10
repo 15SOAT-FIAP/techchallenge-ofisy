@@ -38,4 +38,11 @@ public class QuoteStockItemEntity {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    void update(UUID stockId, BigDecimal unitPrice, Integer quantity, LocalDateTime updatedAt) {
+        this.stockId = stockId;
+        this.unitPrice = unitPrice;
+        this.quantity = quantity;
+        this.updatedAt = updatedAt;
+    }
 }

@@ -3,7 +3,6 @@ package br.com.ofisy.application.quote.create;
 import br.com.ofisy.application.quote.exceptions.QuoteAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
 import br.com.ofisy.application.servicecatalog.exceptions.ServiceCatalogNotFoundException;
-import br.com.ofisy.application.serviceorderexecution.exceptions.ServiceOrderExecutionNotFoundException;
 import br.com.ofisy.application.stock.consume.ConsumeStockUseCase;
 import br.com.ofisy.application.stock.exceptions.StockNotFoundException;
 import br.com.ofisy.domain.quote.Quote;
@@ -22,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +41,7 @@ public class CreateQuoteService implements CreateQuoteUseCase {
         }
 
         List<QuoteStockItem> stockItems = buildStockItems(cmd.stockItems() != null ? cmd.stockItems() : List.of());
-        List<QuoteServiceItem> serviceItems = buildServiceItems(cmd.serviceItems() != null ? cmd.serviceItems() : List.of());
+        List<QuoteServiceItem> serviceItems = buildServiceItems(cmd.serviceOrderId(), cmd.serviceItems() != null ? cmd.serviceItems() : List.of());
 
         Quote quote = Quote.create(cmd.serviceOrderId(), stockItems, serviceItems);
         return quoteRepository.save(quote);
@@ -67,23 +67,25 @@ public class CreateQuoteService implements CreateQuoteUseCase {
         return items;
     }
 
-    private List<QuoteServiceItem> buildServiceItems(List<ServiceItemCommand> commands) {
+    private List<QuoteServiceItem> buildServiceItems(UUID serviceOrderId, List<ServiceItemCommand> commands) {
         List<QuoteServiceItem> items = new ArrayList<>();
 
         for (ServiceItemCommand command : commands) {
-            ServiceOrderExecution execution = serviceOrderExecutionRepository.findById(command.serviceOrderExecutionId())
-                    .orElseThrow(() -> new ServiceOrderExecutionNotFoundException(command.serviceOrderExecutionId()));
+            ServiceCatalog catalog = serviceCatalogRepository.findById(command.serviceCatalogId())
+                    .orElseThrow(() -> new ServiceCatalogNotFoundException(
+                            String.valueOf(command.serviceCatalogId())));
 
             boolean duplicate = items.stream()
-                    .anyMatch(i -> i.getServiceOrderExecution().getId().equals(command.serviceOrderExecutionId()));
+                    .anyMatch(i -> i.getServiceOrderExecution().getServiceCatalogId()
+                            .equals(command.serviceCatalogId()));
             if (duplicate) {
-                throw new QuoteItemAlreadyExistsException("Serviço " + command.serviceOrderExecutionId());
+                throw new QuoteItemAlreadyExistsException(catalog.getName());
             }
 
-            ServiceCatalog service = serviceCatalogRepository.findById(execution.getServiceCatalogId())
-                    .orElseThrow(() -> new ServiceCatalogNotFoundException(String.valueOf(execution.getServiceCatalogId())));
+            ServiceOrderExecution execution = serviceOrderExecutionRepository.save(
+                    ServiceOrderExecution.create(command.serviceCatalogId(), serviceOrderId));
 
-            items.add(QuoteServiceItem.create(execution, service.getPrice()));
+            items.add(QuoteServiceItem.create(execution, catalog.getPrice()));
         }
 
         return items;

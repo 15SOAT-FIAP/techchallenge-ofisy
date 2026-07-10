@@ -46,4 +46,11 @@ public class QuoteEntity {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    public void update(QuoteStatus status, BigDecimal totalPrice, String quoteRefusalReason, LocalDateTime updatedAt) {
+        this.status = status;
+        this.totalPrice = totalPrice;
+        this.quoteRefusalReason = quoteRefusalReason;
+        this.updatedAt = updatedAt;
+    }
 }

@@ -2,9 +2,11 @@ package br.com.ofisy.adapters.controllers.serviceorder;
 
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
 import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
+import br.com.ofisy.application.quote.findbyserviceorderid.FindQuoteByServiceOrderIdUseCase;
 import br.com.ofisy.application.serviceorder.approvequote.ApproveServiceOrderQuoteUseCase;
 import br.com.ofisy.application.serviceorder.cancel.CancelServiceOrderUseCase;
 import br.com.ofisy.application.serviceorder.create.CreateServiceOrderUseCase;
+import br.com.ofisy.application.serviceorder.createcomplete.CreateCompleteServiceOrderUseCase;
 import br.com.ofisy.application.serviceorder.delivertocustomer.DeliverToCustomerUseCase;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
@@ -15,10 +17,13 @@ import br.com.ofisy.application.serviceorder.listfinished.ListFinishedServiceOrd
 import br.com.ofisy.application.serviceorder.listreceived.ListReceivedServiceOrdersUseCase;
 import br.com.ofisy.application.serviceorder.reprovequote.ReproveServiceOrderQuoteUseCase;
 import br.com.ofisy.application.serviceorder.startdiagnostic.StartDiagnosticUseCase;
+import br.com.ofisy.application.serviceorder.submitquoteforapproval.SubmitQuoteForApprovalUseCase;
+import br.com.ofisy.application.quote.update.UpdateQuoteUseCase;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
 import br.com.ofisy.config.GlobalExceptionHandler;
 import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.quote.QuoteStatus;
+import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
 import br.com.ofisy.domain.serviceorder.exceptions.InvalidServiceOrderTransitionException;
@@ -67,9 +72,12 @@ class ServiceOrderControllerTest {
     private static final UUID VALID_CUSTOMER_ID = UUID.randomUUID();
     private static final UUID VALID_VEHICLE_ID = UUID.randomUUID();
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 1, 1, 12, 0);
+    public static final String PRICE_1500 = "1500.00";
 
     @Mock
     private CreateServiceOrderUseCase createServiceOrderUseCase;
+    @Mock
+    private CreateCompleteServiceOrderUseCase createCompleteServiceOrderUseCase;
     @Mock
     private CancelServiceOrderUseCase cancelServiceOrderUseCase;
     @Mock
@@ -90,6 +98,13 @@ class ServiceOrderControllerTest {
     private ApproveServiceOrderQuoteUseCase approveServiceOrderQuoteUseCase;
     @Mock
     private ReproveServiceOrderQuoteUseCase reproveServiceOrderQuoteUseCase;
+    @Mock
+    private UpdateQuoteUseCase updateQuoteUseCase;
+    @Mock
+    private SubmitQuoteForApprovalUseCase submitForApprovalUseCase;
+    @Mock
+    private FindQuoteByServiceOrderIdUseCase findQuoteByServiceOrderIdUseCase;
+
 
     private MockMvc mockMvc;
 
@@ -98,6 +113,7 @@ class ServiceOrderControllerTest {
         mockMvc = MockMvcBuilders
                 .standaloneSetup(new ServiceOrderController(
                         createServiceOrderUseCase,
+                        createCompleteServiceOrderUseCase,
                         cancelServiceOrderUseCase,
                         listReceivedServiceOrdersUseCase,
                         listFinishedServiceOrdersUseCase,
@@ -107,7 +123,10 @@ class ServiceOrderControllerTest {
                         getServiceOrderStatusUseCase,
                         generateServiceOrderQuoteUseCase,
                         approveServiceOrderQuoteUseCase,
-                        reproveServiceOrderQuoteUseCase))
+                        reproveServiceOrderQuoteUseCase,
+                        updateQuoteUseCase,
+                        submitForApprovalUseCase,
+                        findQuoteByServiceOrderIdUseCase))
                 .setCustomArgumentResolvers(
                         new AuthenticationPrincipalArgumentResolver(),
                         new PageableHandlerMethodArgumentResolver())
@@ -213,6 +232,87 @@ class ServiceOrderControllerTest {
                             .content(validBody()))
                     .andExpect(status().isUnprocessableContent())
                     .andExpect(jsonPath("$.title").value("Veículo não pertence ao cliente"));
+        }
+    }
+
+    @Nested
+    class ReceiveCompleteServiceOrder {
+
+        @Test
+        void shouldReturn201WithServiceOrderId() throws Exception {
+            var serviceOrder = mockServiceOrder(ServiceOrderStatus.RECEIVED);
+            when(createCompleteServiceOrderUseCase.execute(any())).thenReturn(serviceOrder);
+
+            mockMvc.perform(post(BASE_URL + "/create-complete")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(validBodyWithItems()))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.status").value("RECEIVED"))
+                    .andExpect(jsonPath("$.vehicleId").value(VALID_VEHICLE_ID.toString()))
+                    .andExpect(jsonPath("$.customerId").value(VALID_CUSTOMER_ID.toString()));
+        }
+
+        @Test
+        void shouldReturn400WhenBodyIsEmpty() throws Exception {
+            mockMvc.perform(post(BASE_URL + "/create-complete")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{}"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.errors.vehicleId").exists())
+                    .andExpect(jsonPath("$.errors.customerId").exists());
+        }
+
+        @Test
+        void shouldReturn404WhenCustomerNotFound() throws Exception {
+            when(createCompleteServiceOrderUseCase.execute(any()))
+                    .thenThrow(new CustomerNotFoundException(VALID_CUSTOMER_ID));
+
+            mockMvc.perform(post(BASE_URL + "/create-complete")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(validBodyWithItems()))
+                    .andExpect(status().isNotFound());
+        }
+
+        @Test
+        void shouldReturn422WhenVehicleNotOwnedByCustomer() throws Exception {
+            when(createCompleteServiceOrderUseCase.execute(any()))
+                    .thenThrow(new VehicleNotOwnedByCustomerException(VALID_VEHICLE_ID, VALID_CUSTOMER_ID));
+
+            mockMvc.perform(post(BASE_URL + "/create-complete")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(validBodyWithItems()))
+                    .andExpect(status().isUnprocessableContent());
+        }
+    }
+
+    @Nested
+    class GenerateQuote {
+
+        private static final UUID ORDER_ID = UUID.randomUUID();
+
+        @Test
+        void shouldReturn201WithGeneratedQuote() throws Exception {
+            var quote = mockQuote(UUID.randomUUID(), ORDER_ID, QuoteStatus.PENDING);
+            when(generateServiceOrderQuoteUseCase.execute(any())).thenReturn(quote);
+
+            mockMvc.perform(post(BASE_URL + "/{id}/quote", ORDER_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(quoteBody()))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.status").value("PENDING"))
+                    .andExpect(jsonPath("$.serviceOrderId").value(ORDER_ID.toString()));
+        }
+
+        @Test
+        void shouldReturn404WhenServiceOrderNotFound() throws Exception {
+            when(generateServiceOrderQuoteUseCase.execute(any()))
+                    .thenThrow(new ServiceOrderNotFoundException(ORDER_ID));
+
+            mockMvc.perform(post(BASE_URL + "/{id}/quote", ORDER_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(quoteBody()))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.title").value("Ordem de serviço não encontrada"));
         }
     }
 
@@ -629,6 +729,110 @@ class ServiceOrderControllerTest {
         }
     }
 
+    @Nested
+    class UpdateQuote {
+
+        private static final UUID QUOTE_ID = UUID.randomUUID();
+        private static final UUID ORDER_ID = UUID.randomUUID();
+
+        @Test
+        void shouldReturn200WithUpdatedQuote() throws Exception {
+            var quote = mockQuote(QUOTE_ID, ORDER_ID, QuoteStatus.PENDING);
+            when(updateQuoteUseCase.execute(any())).thenReturn(quote);
+
+            mockMvc.perform(patch(BASE_URL + "/quote/{id}/update", QUOTE_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(quoteBody()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id").value(QUOTE_ID.toString()))
+                    .andExpect(jsonPath("$.status").value("PENDING"));
+        }
+
+        @Test
+        void shouldReturn404WhenQuoteNotFound() throws Exception {
+            when(updateQuoteUseCase.execute(any()))
+                    .thenThrow(new QuoteNotFoundException(QUOTE_ID));
+
+            mockMvc.perform(patch(BASE_URL + "/quote/{id}/update", QUOTE_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(quoteBody()))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.title").value("Orçamento não encontrado"));
+        }
+
+        @Test
+        void shouldReturn409WhenQuoteIsNotPending() throws Exception {
+            when(updateQuoteUseCase.execute(any()))
+                    .thenThrow(new InvalidQuoteStatusException("editar", QuoteStatus.APPROVED));
+
+            mockMvc.perform(patch(BASE_URL + "/quote/{id}/update", QUOTE_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(quoteBody()))
+                    .andExpect(status().isConflict());
+        }
+    }
+
+    @Nested
+    class SubmitQuoteForApproval {
+
+        private static final UUID ORDER_ID = UUID.randomUUID();
+
+        @Test
+        void shouldReturn200WithUpdatedServiceOrder() throws Exception {
+            when(submitForApprovalUseCase.execute(ORDER_ID))
+                    .thenReturn(mockServiceOrder(ServiceOrderStatus.AWAITING_APPROVAL));
+
+            mockMvc.perform(patch(BASE_URL + "/{id}/submit-for-approval", ORDER_ID))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status").value("AWAITING_APPROVAL"));
+        }
+
+        @Test
+        void shouldReturn404WhenOrderDoesNotExist() throws Exception {
+            when(submitForApprovalUseCase.execute(ORDER_ID))
+                    .thenThrow(new ServiceOrderNotFoundException(ORDER_ID));
+
+            mockMvc.perform(patch(BASE_URL + "/{id}/submit-for-approval", ORDER_ID))
+                    .andExpect(status().isNotFound());
+        }
+
+        @Test
+        void shouldReturn409WhenTransitionIsInvalid() throws Exception {
+            when(submitForApprovalUseCase.execute(ORDER_ID))
+                    .thenThrow(new InvalidServiceOrderTransitionException(
+                            ServiceOrderStatus.RECEIVED, ServiceOrderStatus.AWAITING_APPROVAL));
+
+            mockMvc.perform(patch(BASE_URL + "/{id}/submit-for-approval", ORDER_ID))
+                    .andExpect(status().isConflict());
+        }
+    }
+
+    @Nested
+    class ListQuotesByServiceOrder {
+
+        private static final UUID ORDER_ID = UUID.randomUUID();
+
+        @Test
+        void shouldReturn200WithListOfQuotes() throws Exception {
+            var quote = mockQuote(UUID.randomUUID(), ORDER_ID, QuoteStatus.PENDING);
+            when(findQuoteByServiceOrderIdUseCase.execute(ORDER_ID)).thenReturn(List.of(quote));
+
+            mockMvc.perform(get(BASE_URL + "/{id}/quotes", ORDER_ID))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].serviceOrderId").value(ORDER_ID.toString()));
+        }
+
+        @Test
+        void shouldReturn200WithEmptyListWhenNoQuotes() throws Exception {
+            when(findQuoteByServiceOrderIdUseCase.execute(ORDER_ID)).thenReturn(List.of());
+
+            mockMvc.perform(get(BASE_URL + "/{id}/quotes", ORDER_ID))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$").isArray())
+                    .andExpect(jsonPath("$").isEmpty());
+        }
+    }
+
     private String validBody() {
         return """
                 {
@@ -637,6 +841,18 @@ class ServiceOrderControllerTest {
                     "report": "Barulho na suspensão"
                 }
                 """.formatted(VALID_VEHICLE_ID, VALID_CUSTOMER_ID);
+    }
+
+    private String validBodyWithItems() {
+        return """
+                {
+                    "vehicleId": "%s",
+                    "customerId": "%s",
+                    "report": "Barulho na suspensão",
+                    "stockItems": [{ "stockId": "%s", "quantity": 2 }],
+                    "serviceItems": []
+                }
+                """.formatted(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, UUID.randomUUID());
     }
 
     private String bodyMissingVehicleId() {
@@ -655,6 +871,15 @@ class ServiceOrderControllerTest {
                 """.formatted(VALID_VEHICLE_ID);
     }
 
+    private String quoteBody() {
+        return """
+                {
+                    "stockItems": [{ "stockId": "%s", "quantity": 2 }],
+                    "serviceItems": []
+                }
+                """.formatted(UUID.randomUUID());
+    }
+
     private ServiceOrder mockServiceOrder(ServiceOrderStatus status) {
         return ServiceOrder.reconstruct(UUID.randomUUID(), VALID_VEHICLE_ID, VALID_CUSTOMER_ID,
                 "Barulho na suspensão", status, UUID.randomUUID(), NOW, null, NOW);
@@ -663,5 +888,10 @@ class ServiceOrderControllerTest {
     private ServiceOrder mockServiceOrderWithId(UUID id, ServiceOrderStatus status) {
         return ServiceOrder.reconstruct(id, VALID_VEHICLE_ID, VALID_CUSTOMER_ID,
                 "Barulho na suspensão", status, UUID.randomUUID(), NOW, null, NOW);
+    }
+
+    private Quote mockQuote(UUID quoteId, UUID serviceOrderId, QuoteStatus status) {
+        return Quote.reconstruct(quoteId, serviceOrderId, status,
+                new BigDecimal(PRICE_1500), null, List.of(), List.of(), NOW, NOW);
     }
 }

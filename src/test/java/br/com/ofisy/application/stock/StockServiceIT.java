@@ -3,6 +3,7 @@ package br.com.ofisy.application.stock;
 import br.com.ofisy.application.stock.consume.ConsumeStockUseCase;
 import br.com.ofisy.application.stock.create.CreateStockUseCase;
 import br.com.ofisy.application.stock.identifybyid.IdentifyByIdStockUseCase;
+import br.com.ofisy.application.stock.release.ReleaseStockUseCase;
 import br.com.ofisy.domain.notification.NotificationRepository;
 import br.com.ofisy.domain.notification.NotificationType;
 import br.com.ofisy.domain.user.Role;
@@ -19,9 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class StockServiceIT extends IntegrationTestBase {
 
-    @Autowired private CreateStockUseCase createStockUseCase;
-    @Autowired private ConsumeStockUseCase consumeStockUseCase;
-    @Autowired private IdentifyByIdStockUseCase identifyByIdStockUseCase;
+    @Autowired
+    private CreateStockUseCase createStockUseCase;
+    @Autowired
+    private ConsumeStockUseCase consumeStockUseCase;
+    @Autowired
+    private ReleaseStockUseCase releaseStockUseCase;
+    @Autowired
+    private IdentifyByIdStockUseCase identifyByIdStockUseCase;
 
     @Autowired
     private UserRepository userDomainRepository;
@@ -81,6 +87,30 @@ class StockServiceIT extends IntegrationTestBase {
                     .toList();
 
             assertThat(notifications).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("releaseStock")
+    class ReleaseStock {
+
+        @Test
+        @DisplayName("Deve devolver quantidade ao estoque e persistir no banco")
+        void shouldReleaseStockAndPersist() {
+            consumeStockUseCase.execute(new ConsumeStockUseCase.ConsumeStockCommand(stockId, 5));
+            releaseStockUseCase.execute(new ReleaseStockUseCase.ReleaseStockCommand(stockId, 3));
+
+            var stock = identifyByIdStockUseCase.execute(stockId);
+            assertThat(stock.getQuantity()).isEqualTo(8);
+        }
+
+        @Test
+        @DisplayName("Deve permitir devolver estoque acima da quantidade original")
+        void shouldAllowReleasingAboveOriginalQuantity() {
+            releaseStockUseCase.execute(new ReleaseStockUseCase.ReleaseStockCommand(stockId, 20));
+
+            var stock = identifyByIdStockUseCase.execute(stockId);
+            assertThat(stock.getQuantity()).isEqualTo(30);
         }
     }
 }

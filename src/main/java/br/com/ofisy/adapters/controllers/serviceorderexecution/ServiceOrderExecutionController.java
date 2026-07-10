@@ -3,7 +3,7 @@ package br.com.ofisy.adapters.controllers.serviceorderexecution;
 import br.com.ofisy.adapters.controllers.serviceorderexecution.dto.ServiceOrderExecutionResponseDTO;
 import br.com.ofisy.adapters.presenters.serviceorderexecution.ServiceOrderExecutionPresenter;
 import br.com.ofisy.application.serviceorderexecution.cancel.CancelServiceOrderExecutionUseCase;
-import br.com.ofisy.application.serviceorderexecution.complete.CompleteServiceOrderExecutionUseCase;
+import br.com.ofisy.application.serviceorderexecution.createcomplete.CompleteServiceOrderExecutionUseCase;
 import br.com.ofisy.application.serviceorderexecution.create.CreateServiceOrderExecutionUseCase;
 import br.com.ofisy.adapters.controllers.serviceorderexecution.dto.ServiceOrderExecutionRequestDTO;
 import br.com.ofisy.application.serviceorderexecution.identifybyid.IdentifyByIdServiceOrderExecutionUseCase;
