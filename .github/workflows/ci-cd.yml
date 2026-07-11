@@ -44,6 +44,11 @@ jobs:
           cd infra/bootstrap
           echo 'account_id = "${{ secrets.AWS_ACCOUNT_ID }}"' > terraform.tfvars
           terraform init
+          
+          # Se o bucket já existir, importa ele para o estado para evitar erro de criação duplicada
+          aws s3api head-bucket --bucket "ofisy-tfstate-${{ secrets.AWS_ACCOUNT_ID }}" 2>/dev/null && \
+          terraform import aws_s3_bucket.tfstate ofisy-tfstate-${{ secrets.AWS_ACCOUNT_ID }} || echo "Bucket nao existe, sera criado."
+          
           terraform apply -auto-approve
 
       # 5. Inicializar o Terraform e Executar o Plan
