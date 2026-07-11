@@ -136,3 +136,27 @@ jobs:
           
           # Aguarda a inicialização com o timeout seguro de 150 segundos
           kubectl rollout status deployment/ofisy-deployment --timeout=150s
+
+          # Loop para aguardar o DNS do Load Balancer estar disponível
+          echo "⏳ Aguardando DNS do Load Balancer estar disponível..."
+          EXTERNAL_IP=""
+          for i in {1..30}; do
+            EXTERNAL_IP=$(kubectl get svc ofisy-service -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+            if [ -n "$EXTERNAL_IP" ]; then
+              echo "✅ Load Balancer DNS obtido: $EXTERNAL_IP"
+              break
+            fi
+            echo "Aguardando 10 segundos (tentativa $i de 30)..."
+            sleep 10
+          done
+
+          if [ -n "$EXTERNAL_IP" ]; then
+            SWAGGER_URL="http://$EXTERNAL_IP:8080/swagger-ui/index.html#/"
+            echo "🚀 Aplicação rodando em: $SWAGGER_URL"
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🌐 Link de Acesso da Aplicação (Swagger UI)" >> $GITHUB_STEP_SUMMARY
+            echo "Acesse a API implantada na AWS:" >> $GITHUB_STEP_SUMMARY
+            echo "- 🔗 **[Clique aqui para abrir o Swagger UI]($SWAGGER_URL)**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Não foi possível obter o DNS do Load Balancer a tempo." >> $GITHUB_STEP_SUMMARY
+          fi
