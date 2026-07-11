@@ -43,7 +43,7 @@ jobs:
       # 4. Inicializar e Destruir Recursos do Terraform
       - name: 💥 Destruir Recursos (Terraform Destroy)
         run: |
-          cd infra/terraform
+          cd infra
           
           # Configura os arquivos de variaveis e backend
           echo 'account_id = "${{ secrets.AWS_ACCOUNT_ID }}"' > terraform.tfvars

@@ -112,7 +112,7 @@ $env:AWS_SESSION_TOKEN="SEU_TOKEN"
 ### Passo 2: Provisionar a infraestrutura (Terraform)
 1.  Navegue até a pasta de bootstrap para criar o bucket de estado remoto (S3):
     ```powershell
-    cd infra/terraform/bootstrap
+    cd infra/bootstrap
     echo 'account_id = "<AWS_ACCOUNT_ID>"' > terraform.tfvars
     terraform init
     terraform apply -auto-approve

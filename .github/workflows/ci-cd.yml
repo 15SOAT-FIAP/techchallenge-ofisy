@@ -41,11 +41,16 @@ jobs:
       # 4. Inicializar o Terraform e Executar o Plan
       - name: 🔍 Terraform Plan
         run: |
-          # Garante que o bucket do S3 para o Terraform State existe
-          aws s3api head-bucket --bucket "ofisy-tfstate-${{ secrets.AWS_ACCOUNT_ID }}" 2>/dev/null || \
-          aws s3 mb "s3://ofisy-tfstate-${{ secrets.AWS_ACCOUNT_ID }}" --region us-east-1
+          # Provisiona o bucket S3 de estado remoto usando o Terraform Bootstrap
+          cd infra/bootstrap
+          echo 'account_id = "${{ secrets.AWS_ACCOUNT_ID }}"' > terraform.tfvars
+          terraform init
+          aws s3api head-bucket --bucket "ofisy-tfstate-${{ secrets.AWS_ACCOUNT_ID }}" 2>/dev/null && \
+          terraform import aws_s3_bucket.tfstate ofisy-tfstate-${{ secrets.AWS_ACCOUNT_ID }} || echo "Bucket nao existe, sera criado pelo apply."
+          terraform apply -auto-approve
+          cd ../..
           
-          cd infra/terraform
+          cd infra
           
           # Cria o arquivo terraform.tfvars com os dados da AWS Academy
           echo 'account_id = "${{ secrets.AWS_ACCOUNT_ID }}"' > terraform.tfvars
@@ -61,7 +66,7 @@ jobs:
       # 5. Executar o Terraform Apply
       - name: 🏗️ Provisionar Infraestrutura (Terraform Apply)
         run: |
-          cd infra/terraform
+          cd infra
           terraform apply -auto-approve
           
           # Captura o endereço (hostname) do RDS gerado e salva em uma variável de ambiente global
