@@ -66,6 +66,10 @@ jobs:
       # 4. Inicializar e aplicar o Terraform
       - name: 🏗️ Provisionar Infraestrutura (Terraform Apply)
         run: |
+          # Garante que o bucket do S3 para o Terraform State existe (evita falha se o bootstrap manual nao foi rodado)
+          aws s3api head-bucket --bucket "ofisy-tfstate-${{ github.event.inputs.aws_account_id }}" 2>/dev/null || \
+          aws s3 mb "s3://ofisy-tfstate-${{ github.event.inputs.aws_account_id }}" --region us-east-1
+          
           cd infra/terraform
           
           # Cria o arquivo terraform.tfvars com os dados da AWS Academy
