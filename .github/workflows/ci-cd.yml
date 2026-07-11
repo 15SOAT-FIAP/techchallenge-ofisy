@@ -41,6 +41,10 @@ jobs:
       # 4. Inicializar o Terraform e Executar o Plan
       - name: 🔍 Terraform Plan
         run: |
+          # Garante que o bucket do S3 para o Terraform State existe (cria se não existir)
+          aws s3api head-bucket --bucket "ofisy-tfstate-${{ secrets.AWS_ACCOUNT_ID }}" 2>/dev/null || \
+          aws s3 mb "s3://ofisy-tfstate-${{ secrets.AWS_ACCOUNT_ID }}" --region us-east-1
+          
           cd infra
           
           # Cria o arquivo terraform.tfvars com os dados da AWS Academy
