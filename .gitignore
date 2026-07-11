@@ -43,4 +43,8 @@ logs/
 # Reports
 zap-reports/
 
+# Local Helper Scripts
+deploy-local-aws.ps1
+destroy-local-aws.ps1
+
 !uploads/.gitkeep
