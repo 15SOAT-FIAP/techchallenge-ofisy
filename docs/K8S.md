@@ -118,7 +118,7 @@ kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/late
 `imagePullPolicy: Always` faz o kubelet puxar a imagem do ECR toda vez antes de subir o pod. No Minikube era `Never`, porque a imagem já estava local.
 
 ### LoadBalancer
-`service.yml` usa `type: LoadBalancer` sem anotações do AWS Load Balancer Controller: o EKS provisiona um Classic ELB direto pelo cloud provider nativo. É de propósito, o Load Balancer Controller pediria uma IAM policy que o AWS Academy não libera.
+`service.yml` usa `type: LoadBalancer` com a anotação `service.beta.kubernetes.io/aws-load-balancer-type: nlb`. Essa anotação é reconhecida pelo cloud provider nativo do EKS e faz o Kubernetes provisionar um Network Load Balancer (NLB) em vez do Classic ELB, que seria o padrão sem ela. É de propósito: o AWS Load Balancer Controller pediria uma IAM policy que o AWS Academy não libera, então usamos essa anotação nativa pra conseguir um NLB sem precisar instalar o controller.
 
 ### Banco de dados
 PostgreSQL roda no RDS (`infra/terraform/rds.tf`), fora do cluster. O `POSTGRES_HOST` do ConfigMap aponta pro endpoint do RDS; hoje isso é preenchido na mão a partir do output do Terraform.
