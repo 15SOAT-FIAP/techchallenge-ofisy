@@ -173,6 +173,6 @@ $env:AWS_SESSION_TOKEN="SEU_TOKEN"
 ### Método B: Via CLI Local
 No terminal do PowerShell autenticado, entre na pasta do Terraform e execute a destruição:
 ```powershell
-cd infra/terraform
+cd infra
 terraform destroy -auto-approve
 ```
