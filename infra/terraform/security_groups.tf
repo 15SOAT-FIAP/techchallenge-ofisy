@@ -88,6 +88,16 @@ resource "aws_security_group_rule" "rds_postgres_from_eks" {
   security_group_id        = aws_security_group.rds.id
 }
 
+# Permite conexões PostgreSQL provenientes dos nós do EKS.
+resource "aws_security_group_rule" "rds_postgres_from_eks_nodes" {
+  type                     = "ingress"
+  from_port                = 5432
+  to_port                  = 5432
+  protocol                 = "tcp"
+  source_security_group_id = aws_eks_cluster.main.vpc_config[0].cluster_security_group_id
+  security_group_id        = aws_security_group.rds.id
+}
+
 # Permite que a instância RDS realize conexões de saída para qualquer destino.
 resource "aws_security_group_rule" "rds_egress" {
   type              = "egress"
