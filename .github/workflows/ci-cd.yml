@@ -38,18 +38,19 @@ jobs:
         with:
           terraform_wrapper: false
 
-      # 4. Inicializar o Terraform e Executar o Plan
-      - name: 🔍 Terraform Plan
+      # 4. Criar Bucket S3 (Terraform Bootstrap)
+      - name: 🏗️ Terraform Bootstrap (S3 Bucket)
         run: |
-          # Provisiona o bucket S3 de estado remoto usando o Terraform Bootstrap
           cd infra/bootstrap
           echo 'account_id = "${{ secrets.AWS_ACCOUNT_ID }}"' > terraform.tfvars
           terraform init
           aws s3api head-bucket --bucket "ofisy-tfstate-${{ secrets.AWS_ACCOUNT_ID }}" 2>/dev/null && \
           terraform import aws_s3_bucket.tfstate ofisy-tfstate-${{ secrets.AWS_ACCOUNT_ID }} || echo "Bucket nao existe, sera criado pelo apply."
           terraform apply -auto-approve
-          cd ../..
-          
+
+      # 5. Inicializar o Terraform e Executar o Plan
+      - name: 🔍 Terraform Plan
+        run: |
           cd infra
           
           # Cria o arquivo terraform.tfvars com os dados da AWS Academy
@@ -63,7 +64,7 @@ jobs:
           terraform init -backend-config=backend.hcl
           terraform plan
 
-      # 5. Executar o Terraform Apply
+      # 6. Executar o Terraform Apply
       - name: 🏗️ Provisionar Infraestrutura (Terraform Apply)
         run: |
           cd infra
@@ -73,29 +74,29 @@ jobs:
           RDS_ENDPOINT=$(terraform output -raw rds_address)
           echo "RDS_HOST=$RDS_ENDPOINT" >> $GITHUB_ENV
 
-      # 6. Conectar kubectl no Cluster EKS
+      # 7. Conectar kubectl no Cluster EKS
       - name: ☸️ Conectar ao EKS Cluster
         run: |
           aws eks update-kubeconfig --region us-east-1 --name ofisy-cluster
 
-      # 7. Autenticar Docker no ECR
+      # 8. Autenticar Docker no ECR
       - name: 🔐 Login no Amazon ECR
         run: |
           aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
 
-      # 8. Compilar o projeto e gerar o JAR
+      # 9. Compilar o projeto e gerar o JAR
       - name: ☕ Compilar Projeto (Maven)
         run: |
           mvn clean package -DskipTests
           echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
-      # 9. Buildar e Push da imagem Docker para o ECR da AWS
+      # 10. Buildar e Push da imagem Docker para o ECR da AWS
       - name: 📤 Enviar Imagem para o ECR
         run: |
           docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:${{ env.IMAGE_TAG }} .
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:${{ env.IMAGE_TAG }}
 
-      # 10. Atualizar placeholders e aplicar no cluster EKS da AWS
+      # 11. Atualizar placeholders e aplicar no cluster EKS da AWS
       - name: 🚀 Deploy dos Manifestos no EKS
         run: |
           # Substitui placeholders no secret da aplicação com credenciais base64
