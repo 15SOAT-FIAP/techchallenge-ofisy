@@ -120,9 +120,16 @@ $env:AWS_SESSION_TOKEN="SEU_TOKEN"
 2.  Retorne à pasta principal do Terraform para subir o EKS e o RDS:
     ```powershell
     cd ..
+    # Busca os nomes dinâmicos das roles do EKS do AWS Academy
+    $clusterRole = aws iam list-roles --query "Roles[?contains(RoleName, 'LabEksClusterRole')].RoleName" --output text
+    $nodeRole = aws iam list-roles --query "Roles[?contains(RoleName, 'LabEksNodeRole')].RoleName" --output text
+
     echo 'bucket = "ofisy-tfstate-<AWS_ACCOUNT_ID>"' > backend.hcl
-    echo 'account_id = "<AWS_ACCOUNT_ID>"' > terraform.tfvars
-    echo 'role_name  = "LabRole"' >> terraform.tfvars
+    echo "account_id = `"<AWS_ACCOUNT_ID>`"" > terraform.tfvars
+    echo "role_name  = `"LabRole`"" >> terraform.tfvars
+    echo "db_password = `"ofisy_pass`"" >> terraform.tfvars
+    echo "eks_cluster_role = `"$clusterRole`"" >> terraform.tfvars
+    echo "eks_node_role = `"$nodeRole`"" >> terraform.tfvars
     
     terraform init "-backend-config=backend.hcl"
     terraform apply -auto-approve

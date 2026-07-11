@@ -45,10 +45,16 @@ jobs:
         run: |
           cd infra
           
+          # Busca dinamicamente os nomes das roles do EKS
+          EKS_CLUSTER_ROLE=$(aws iam list-roles --query "Roles[?contains(RoleName, 'LabEksClusterRole')].RoleName" --output text)
+          EKS_NODE_ROLE=$(aws iam list-roles --query "Roles[?contains(RoleName, 'LabEksNodeRole')].RoleName" --output text)
+          
           # Configura os arquivos de variaveis e backend
           echo 'account_id = "${{ secrets.AWS_ACCOUNT_ID }}"' > terraform.tfvars
           echo 'role_name  = "LabRole"' >> terraform.tfvars
           echo 'db_password = "ofisy_pass"' >> terraform.tfvars
+          echo "eks_cluster_role = \"$EKS_CLUSTER_ROLE\"" >> terraform.tfvars
+          echo "eks_node_role = \"$EKS_NODE_ROLE\"" >> terraform.tfvars
           echo 'bucket = "ofisy-tfstate-${{ secrets.AWS_ACCOUNT_ID }}"' > backend.hcl
           
           terraform init -backend-config=backend.hcl
