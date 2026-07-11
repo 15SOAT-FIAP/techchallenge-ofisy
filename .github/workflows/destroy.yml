@@ -1,0 +1,54 @@
+name: ⚠️ Destruir Infraestrutura AWS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  destroy-aws:
+    name: ⚠️ Destruir Infraestrutura na AWS
+    runs-on: ubuntu-latest
+    environment: AWS_ACADEMY
+
+    steps:
+      - name: 🔍 Checkout do código
+        uses: actions/checkout@v4
+
+      # 1. Configurar Credenciais da AWS
+      - name: 🔐 Configurar Credenciais AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+
+      # 2. Configurar Terraform
+      - name: 🛠️ Configurar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      # 3. Conectar ao EKS e apagar os serviços (para liberar o LoadBalancer e ENIs da AWS)
+      - name: 🧹 Limpar Serviços Kubernetes (Liberar ELB/ENIs)
+        run: |
+          # Conecta no cluster (ignora erro se o cluster já não existir)
+          aws eks update-kubeconfig --region us-east-1 --name ofisy-cluster || echo "Cluster EKS nao encontrado ou ja removido."
+          
+          # Apaga os serviços K8s para que a AWS destrua o Load Balancer e libere as placas de rede (ENIs)
+          kubectl delete -f k8s/ --ignore-not-found=true || echo "Trabalho de limpeza do Kubernetes ignorado."
+          
+          # Aguarda 30 segundos para a AWS remover fisicamente o ELB e ENIs
+          sleep 30
+
+      # 4. Inicializar e Destruir Recursos do Terraform
+      - name: 💥 Destruir Recursos (Terraform Destroy)
+        run: |
+          cd infra/terraform
+          
+          # Configura os arquivos de variaveis e backend
+          echo 'account_id = "${{ secrets.AWS_ACCOUNT_ID }}"' > terraform.tfvars
+          echo 'role_name  = "LabRole"' >> terraform.tfvars
+          echo 'bucket = "ofisy-tfstate-${{ secrets.AWS_ACCOUNT_ID }}"' > backend.hcl
+          
+          terraform init -backend-config=backend.hcl
+          terraform destroy -auto-approve

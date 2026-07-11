@@ -1,52 +1,27 @@
-name: 🚀 Validação de Deploy e Entrega CD
+name: 🚀 Deploy Automático na AWS (CD)
 
 on:
-  workflow_dispatch:
-    inputs:
-      aws_account_id:
-        description: '🆔 AWS Account ID (do Learner Lab)'
-        type: string
-        required: true
-      deploy_to_aws:
-        description: '☁️ Executar deploy automático na AWS (EKS & RDS)?'
-        type: boolean
-        required: true
-        default: false
-      destroy_aws:
-        description: '⚠️ DESTRUIR infraestrutura completa na AWS (RDS, EKS, VPC)?'
-        type: boolean
-        required: true
-        default: false
-      aws_access_key_id:
-        description: '🔑 AWS Access Key ID (do Learner Lab)'
-        type: string
-        required: false
-      aws_secret_access_key:
-        description: '🔑 AWS Secret Access Key (do Learner Lab)'
-        type: string
-        required: false
-      aws_session_token:
-        description: '🔑 AWS Session Token (do Learner Lab)'
-        type: string
-        required: false
+  push:
+    branches:
+      - master
 
 jobs:
   deploy-to-aws:
     name: ☁️ Deploy Automático na AWS (EKS & RDS)
     runs-on: ubuntu-latest
-    if: github.event.inputs.deploy_to_aws == 'true'
+    environment: AWS_ACADEMY
 
     steps:
       - name: 🔍 Checkout do código
         uses: actions/checkout@v4
 
-      # 1. Configurar Credenciais da AWS fornecidas no input manual
+      # 1. Configurar Credenciais da AWS a partir dos Secrets do GitHub
       - name: 🔐 Configurar Credenciais AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ github.event.inputs.aws_access_key_id }}
-          aws-secret-access-key: ${{ github.event.inputs.aws_secret_access_key }}
-          aws-session-token: ${{ github.event.inputs.aws_session_token }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
 
       # 2. Configurar Java 21 para compilar a aplicação
@@ -63,51 +38,57 @@ jobs:
         with:
           terraform_wrapper: false
 
-      # 4. Inicializar e aplicar o Terraform
-      - name: 🏗️ Provisionar Infraestrutura (Terraform Apply)
+      # 4. Inicializar o Terraform e Executar o Plan
+      - name: 🔍 Terraform Plan
         run: |
-          # Garante que o bucket do S3 para o Terraform State existe (evita falha se o bootstrap manual nao foi rodado)
-          aws s3api head-bucket --bucket "ofisy-tfstate-${{ github.event.inputs.aws_account_id }}" 2>/dev/null || \
-          aws s3 mb "s3://ofisy-tfstate-${{ github.event.inputs.aws_account_id }}" --region us-east-1
+          # Garante que o bucket do S3 para o Terraform State existe
+          aws s3api head-bucket --bucket "ofisy-tfstate-${{ secrets.AWS_ACCOUNT_ID }}" 2>/dev/null || \
+          aws s3 mb "s3://ofisy-tfstate-${{ secrets.AWS_ACCOUNT_ID }}" --region us-east-1
           
           cd infra/terraform
           
           # Cria o arquivo terraform.tfvars com os dados da AWS Academy
-          echo 'account_id = "${{ github.event.inputs.aws_account_id }}"' > terraform.tfvars
+          echo 'account_id = "${{ secrets.AWS_ACCOUNT_ID }}"' > terraform.tfvars
           echo 'role_name  = "LabRole"' >> terraform.tfvars
           
           # Cria o arquivo backend.hcl apontando para o bucket do tfstate
-          echo 'bucket = "ofisy-tfstate-${{ github.event.inputs.aws_account_id }}"' > backend.hcl
+          echo 'bucket = "ofisy-tfstate-${{ secrets.AWS_ACCOUNT_ID }}"' > backend.hcl
           
           terraform init -backend-config=backend.hcl
+          terraform plan
+
+      # 5. Executar o Terraform Apply
+      - name: 🏗️ Provisionar Infraestrutura (Terraform Apply)
+        run: |
+          cd infra/terraform
           terraform apply -auto-approve
           
           # Captura o endereço (hostname) do RDS gerado e salva em uma variável de ambiente global
           RDS_ENDPOINT=$(terraform output -raw rds_address)
           echo "RDS_HOST=$RDS_ENDPOINT" >> $GITHUB_ENV
 
-      # 5. Conectar kubectl no Cluster EKS
+      # 6. Conectar kubectl no Cluster EKS
       - name: ☸️ Conectar ao EKS Cluster
         run: |
           aws eks update-kubeconfig --region us-east-1 --name ofisy-cluster
 
-      # 6. Autenticar Docker no ECR
+      # 7. Autenticar Docker no ECR
       - name: 🔐 Login no Amazon ECR
         run: |
-          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ github.event.inputs.aws_account_id }}.dkr.ecr.us-east-1.amazonaws.com
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
 
-      # 7. Compilar o projeto e gerar o JAR
+      # 8. Compilar o projeto e gerar o JAR
       - name: ☕ Compilar Projeto (Maven)
         run: |
           mvn clean package -DskipTests
 
-      # 8. Buildar e Push da imagem Docker para o ECR da AWS
+      # 9. Buildar e Push da imagem Docker para o ECR da AWS
       - name: 📤 Enviar Imagem para o ECR
         run: |
-          docker build -t ${{ github.event.inputs.aws_account_id }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest .
-          docker push ${{ github.event.inputs.aws_account_id }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest
+          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest .
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest
 
-      # 9. Atualizar placeholders e aplicar no cluster EKS da AWS
+      # 10. Atualizar placeholders e aplicar no cluster EKS da AWS
       - name: 🚀 Deploy dos Manifestos no EKS
         run: |
           # Substitui placeholders no secret da aplicação com credenciais base64
@@ -119,7 +100,7 @@ jobs:
           sed -i "s|<RDS_ADDRESS>|$RDS_HOST|g" k8s/configmap.yml
           
           # Injeta a imagem do ECR no Deployment
-          sed -i "s|<ECR_REPOSITORY_URL>:<IMAGE_TAG>|${{ github.event.inputs.aws_account_id }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest|g" k8s/deployment.yml
+          sed -i "s|<ECR_REPOSITORY_URL>:<IMAGE_TAG>|${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest|g" k8s/deployment.yml
           
           # Aplica os recursos no cluster EKS
           kubectl apply -f k8s/secret.yml
@@ -130,52 +111,3 @@ jobs:
           
           # Aguarda a inicialização com o timeout seguro de 150 segundos
           kubectl rollout status deployment/ofisy-deployment --timeout=150s
-
-  destroy-aws:
-    name: ⚠️ Destruir Infraestrutura na AWS
-    runs-on: ubuntu-latest
-    if: github.event.inputs.destroy_aws == 'true'
-
-    steps:
-      - name: 🔍 Checkout do código
-        uses: actions/checkout@v4
-
-      # 1. Configurar Credenciais da AWS
-      - name: 🔐 Configurar Credenciais AWS
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ github.event.inputs.aws_access_key_id }}
-          aws-secret-access-key: ${{ github.event.inputs.aws_secret_access_key }}
-          aws-session-token: ${{ github.event.inputs.aws_session_token }}
-          aws-region: us-east-1
-
-      # 2. Configurar Terraform
-      - name: 🛠️ Configurar Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_wrapper: false
-
-      # 3. Conectar ao EKS e apagar os serviços (para liberar o LoadBalancer e ENIs da AWS)
-      - name: 🧹 Limpar Serviços Kubernetes (Liberar ELB/ENIs)
-        run: |
-          # Conecta no cluster (ignora erro se o cluster já não existir)
-          aws eks update-kubeconfig --region us-east-1 --name ofisy-cluster || echo "Cluster EKS nao encontrado ou ja removido."
-          
-          # Apaga os serviços K8s para que a AWS destrua o Load Balancer e libere as placas de rede (ENIs)
-          kubectl delete -f k8s/ --ignore-not-found=true || echo "Trabalho de limpeza do Kubernetes ignorado."
-          
-          # Aguarda 30 segundos para a AWS remover fisicamente o ELB e ENIs
-          sleep 30
-
-      # 4. Inicializar e Destruir Recursos do Terraform
-      - name: 💥 Destruir Recursos (Terraform Destroy)
-        run: |
-          cd infra/terraform
-          
-          # Configura os arquivos de variaveis e backend
-          echo 'account_id = "${{ github.event.inputs.aws_account_id }}"' > terraform.tfvars
-          echo 'role_name  = "LabRole"' >> terraform.tfvars
-          echo 'bucket = "ofisy-tfstate-${{ github.event.inputs.aws_account_id }}"' > backend.hcl
-          
-          terraform init -backend-config=backend.hcl
-          terraform destroy -auto-approve

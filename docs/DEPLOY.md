@@ -68,27 +68,32 @@ Cenário de simulação de orquestração local com Kubernetes para validar os m
 
 ## ☁️ 3. Deploy na AWS via GitHub Actions (Automático - Recomendado)
 
-Este método automatiza o provisionamento do Terraform, o build do código e o deploy no cluster EKS usando a esteira de CI/CD integrada no repositório.
+Este método automatiza o planejamento do Terraform (`terraform plan`), o provisionamento (`terraform apply`), o build do código e o deploy no cluster EKS da AWS. Ele é acionado **automaticamente** ao realizar o push ou merge de qualquer alteração na branch `master`.
 
-### Passo 1: Obter as Credenciais Temporárias da AWS Academy
-1.  Acesse seu laboratório da **AWS Academy** e clique em **Start Lab**.
-2.  Assim que o laboratório iniciar, clique no botão **AWS Details**.
-3.  Ao lado de *AWS CLI Credentials*, clique em **Show** e copie os valores das chaves:
-    *   `aws_access_key_id`
-    *   `aws_secret_access_key`
-    *   `aws_session_token`
-4.  Anote também o **AWS Account ID** (ID de 12 dígitos exibido nas informações da conta).
+### Passo 1: Configurar o Environment e Secrets no GitHub
+Como a esteira roda de forma 100% autônoma e segura, você deve criar um ambiente (**Environment**) no GitHub chamado **`AWS_ACADEMY`** e salvar as credenciais lá como **Environment Secrets**:
 
-### Passo 2: Executar o Workflow no GitHub
-1.  Acesse o repositório do projeto no GitHub e clique na aba **Actions**.
-2.  No menu lateral esquerdo, selecione a esteira **🚀 Validação de Deploy e Entrega CD**.
-3.  Clique no botão **Run workflow** à direita.
-4.  Preencha as opções:
-    *   Insira o seu **`aws_account_id`** (ID de 12 dígitos sem traços).
-    *   Marque **`deploy_to_aws`** como `true`.
-    *   Cole as chaves correspondentes copiadas da AWS Academy nos campos apropriados de input (`aws_access_key_id`, `aws_secret_access_key` e `aws_session_token`).
-5.  Clique em **Run workflow**. 
-    *   *A esteira irá configurar o Terraform, aplicar o RDS e o EKS, buildar a aplicação, enviá-la ao ECR e realizar o deploy final no Kubernetes da AWS.*
+1. No GitHub, acesse seu repositório e vá em **Settings** > **Environments** > **New environment**.
+2. Nomeie o ambiente como **`AWS_ACADEMY`** e clique em **Configure environment**.
+3. Na seção **Environment secrets**, clique em **Add secret** para adicionar as seguintes chaves:
+    *   `AWS_ACCESS_KEY_ID`: A sua *AWS Access Key ID* (obtida no painel *AWS Details* do Learner Lab).
+    *   `AWS_SECRET_ACCESS_KEY`: A sua *AWS Secret Access Key*.
+    *   `AWS_SESSION_TOKEN`: O seu *AWS Session Token*.
+    *   `AWS_ACCOUNT_ID`: O ID numérico de 12 dígitos da sua conta AWS Academy.
+
+> [!WARNING]
+> Como as chaves temporárias da AWS Academy expiram após algumas horas, lembre-se de atualizar os 3 secrets de autenticação (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` e `AWS_SESSION_TOKEN`) dentro do ambiente **`AWS_ACADEMY`** sempre que reiniciar o laboratório antes de realizar novos merges na `master`.
+
+### Passo 2: Executar o Deploy Automático
+1.  Realize o merge de qualquer PR ou faça um push direto para a branch `master`.
+2.  A esteira **🚀 Deploy Automático na AWS (CD)** iniciará automaticamente.
+3.  Ela executará os seguintes passos de forma 100% autônoma:
+    *   Garantirá que o bucket S3 de estado do Terraform exista.
+    *   Executará o `terraform plan` para exibição de plano das alterações nos logs.
+    *   Executará o `terraform apply` para provisionamento do RDS e EKS.
+    *   Compilará a aplicação Java com o Maven.
+    *   Enviará a imagem Docker ao ECR da AWS.
+    *   Substituirá os placeholders de imagem/RDS e aplicará os recursos no EKS.
 
 ---
 
@@ -159,10 +164,11 @@ $env:AWS_SESSION_TOKEN="SEU_TOKEN"
 **Importante:** Os recursos na AWS gerados por esse deploy consomem créditos do seu laboratório. Destrua-os sempre que terminar as apresentações ou avaliações.
 
 ### Método A: Via GitHub Actions (Recomendado)
-1.  Acesse a aba **Actions** > **🚀 Validação de Deploy e Entrega CD**.
-2.  Clique em **Run workflow**.
-3.  Insira o **`aws_account_id`**, marque **`destroy_aws`** como `true` e cole as credenciais de autenticação da AWS Academy.
-4.  Execute o workflow para remover os serviços e a infraestrutura de forma limpa.
+1.  Garanta que as suas chaves da AWS Academy nos Secrets do GitHub estejam atualizadas e válidas.
+2.  Acesse a aba **Actions** no seu repositório do GitHub.
+3.  No menu lateral esquerdo, selecione a esteira **⚠️ Destruir Infraestrutura AWS**.
+4.  Clique no botão **Run workflow** à direita e confirme a execução.
+5.  O workflow se conectará ao cluster, deletará os serviços Kubernetes públicos (ELB/ENIs) e destruirá a infraestrutura Terraform de forma totalmente limpa.
 
 ### Método B: Via CLI Local
 No terminal do PowerShell autenticado, entre na pasta do Terraform e execute a destruição:
