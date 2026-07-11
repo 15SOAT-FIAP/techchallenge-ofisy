@@ -4,11 +4,10 @@ Diagrama de infraestrutura (deployment) da aplicação Ofisy na AWS: como o cont
 Backend documentado em `docs/COMPONENT-DIAGRAM.md` roda, é exposto e persiste dados em
 produção.
 
-A aplicação roda em um cluster EKS dentro de uma VPC dedicada, com os nós de trabalho na
+A aplicação roda num cluster EKS dentro de uma VPC dedicada, com os nós de trabalho na
 subnet privada. Quem entra vindo da internet passa por um Load Balancer na subnet
 pública; quem sai (por exemplo, o pull de imagem no ECR) passa pelo NAT Gateway. O banco
-fica num RDS PostgreSQL e as credenciais sensíveis (usuário/senha do banco, segredo do
-JWT) ficam no Secrets Manager, os dois só acessíveis a partir da subnet privada.
+fica num RDS PostgreSQL, acessível a partir da subnet privada.
 
 ![Diagrama de Infraestrutura AWS](resources/infra-aws-diagram.png)
 
@@ -23,14 +22,13 @@ JWT) ficam no Secrets Manager, os dois só acessíveis a partir da subnet privad
 | **Ofisy Instance/Node** | Pod (Spring Boot / Java 21) | Executa o container do backend descrito em `docs/COMPONENT-DIAGRAM.md`; escala horizontalmente conforme carga.                      |
 | **ECR Repository**      | Amazon ECR                  | Registro privado da imagem Docker do backend, usada no deploy dos nós do EKS.                                                       |
 | **RDS PostgreSQL**      | Amazon RDS (PostgreSQL)     | Banco de dados relacional gerenciado, na subnet privada, acessado pelos pods do backend.                                            |
-| **Secrets Manager**     | AWS Secrets Manager         | Armazena credenciais sensíveis (usuário/senha do banco, segredo do JWT) consumidas pelos pods em tempo de execução.                 |
 
 ## Subnets e segurança de rede
 
-| Subnet             | Conteúdo                                        | Exposição                                                                             |
-|--------------------|-------------------------------------------------|---------------------------------------------------------------------------------------|
-| **Public subnet**  | Load Balancer, NAT Gateway                      | Acessível pela internet via Internet Gateway; único ponto de entrada externo.         |
-| **Private subnet** | EKS (nós/pods), RDS PostgreSQL, Secrets Manager | Sem IP público; saída à internet apenas via NAT Gateway (ex.: pull de imagem do ECR). |
+| Subnet             | Conteúdo                       | Exposição                                                                             |
+|--------------------|--------------------------------|---------------------------------------------------------------------------------------|
+| **Public subnet**  | Load Balancer, NAT Gateway     | Acessível pela internet via Internet Gateway; único ponto de entrada externo.         |
+| **Private subnet** | EKS (nós/pods), RDS PostgreSQL | Sem IP público; saída à internet apenas via NAT Gateway (ex.: pull de imagem do ECR). |
 
 ## Relação com o diagrama de componentes
 
