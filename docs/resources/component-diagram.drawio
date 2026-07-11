@@ -1,0 +1,268 @@
+<mxfile host="app.diagrams.net" agent="Claude">
+  <diagram id="componentes" name="C4 - Componentes do Backend (detalhado)">
+    <mxGraphModel dx="1921" dy="2489" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1550" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="swaggerui" parent="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B0B0B0;strokeColor=#B0B0B0;fontColor=#333333;fontSize=11;" value="&lt;b&gt;Swagger UI&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Software System]&lt;/i&gt;&lt;br&gt;Documentação e testes manuais das rotas" vertex="1">
+          <mxGeometry height="70" width="200" x="75" y="-90" as="geometry" />
+        </mxCell>
+        <mxCell id="apiclient" parent="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B0B0B0;strokeColor=#B0B0B0;fontColor=#333333;fontSize=11;" value="&lt;b&gt;API Client&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Software System]&lt;/i&gt;&lt;br&gt;Consumidor REST genérico (Postman, curl, integrações)" vertex="1">
+          <mxGeometry height="70" width="200" x="310" y="-90" as="geometry" />
+        </mxCell>
+        <mxCell id="backend" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#444444;verticalAlign=top;align=right;spacingRight=12;spacingTop=8;fontSize=13;fontStyle=1;fontColor=#333333;" value="Backend&amp;nbsp;&amp;nbsp;[Container: Spring Boot / Java 21]" vertex="1">
+          <mxGeometry height="1250" width="1350" x="40" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="laneInterface" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#888888;verticalAlign=top;align=left;spacingLeft=10;spacingTop=6;fontSize=12;fontStyle=1;fontColor=#555555;" value="Interface Adapters: C&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(85, 85, 85), rgb(164, 164, 164));&quot;&gt;ontrollers [REST]&lt;/span&gt;" vertex="1">
+          <mxGeometry height="180" width="570" x="60" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="a1IlGNKnTYxDlNgreO7x-20" edge="1" parent="1" source="ctrlFluxo" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;endArrow=none;endFill=0;strokeColor=#666666;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="330" y="262" />
+              <mxPoint x="330" y="160" />
+              <mxPoint x="690" y="160" />
+            </Array>
+            <mxPoint x="690" y="170" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ctrlFluxo" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1168BD;strokeColor=#0B4884;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;Business Controllers&lt;/b&gt;&lt;div&gt;&lt;i&gt;[Component: Spring MVC]&lt;/i&gt;&lt;br&gt;Customer, Vehicle, ServiceCatalog, User, ServiceOrder (inclui rotas de Quote), Execution,&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));&quot;&gt;Stock, StockMovement e Notification&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="110" width="155" x="135" y="235" as="geometry" />
+        </mxCell>
+        <mxCell id="ctrlLogin" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#707070;strokeColor=#4D4D4D;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;LoginController&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Component: Spring MVC]&lt;/i&gt;&lt;br&gt;POST /api/v1/login: autentica e emite JWT" vertex="1">
+          <mxGeometry height="110" width="155" x="390" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="laneApp" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#888888;verticalAlign=top;align=left;spacingLeft=10;spacingTop=6;fontSize=12;fontStyle=1;fontColor=#555555;" value="Application: UseCases (orquestração)" vertex="1">
+          <mxGeometry height="360" width="590" x="60" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="ucFluxo" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1168BD;strokeColor=#0B4884;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;Business UseCases&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Component: Spring Bean]&lt;/i&gt;&lt;br&gt;Um caso de uso por operação (create, list, approve, cancel...)&lt;div&gt;coordenando as entidades de domínio&lt;/div&gt;" vertex="1">
+          <mxGeometry height="130" width="155" x="135" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="a1IlGNKnTYxDlNgreO7x-6" edge="1" parent="1" source="ucLogin" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;strokeColor=#666666;endArrow=blockThin;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.681;entryY=0.01;entryDx=0;entryDy=0;entryPerimeter=0;" target="domainBox">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="468" y="650" />
+              <mxPoint x="530" y="650" />
+              <mxPoint x="530" y="870" />
+              <mxPoint x="531" y="870" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ucLogin" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#707070;strokeColor=#4D4D4D;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;Login use case&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Component: Spring Bean]&lt;/i&gt;&lt;br&gt;Valida credenciais e solicita geração do token" vertex="1">
+          <mxGeometry height="100" width="155" x="390" y="505" as="geometry" />
+        </mxCell>
+        <mxCell id="ucNotif" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1168BD;strokeColor=#0B4884;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;Notification use cases&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Component: Spring Bean]&lt;/i&gt;&lt;br&gt;Cria e consulta notificações" vertex="1">
+          <mxGeometry height="80" width="220" x="270" y="695" as="geometry" />
+        </mxCell>
+        <mxCell id="laneDomain" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#888888;verticalAlign=top;align=left;spacingLeft=10;spacingTop=6;fontSize=12;fontStyle=1;fontColor=#555555;" value="Domain: DDD&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="150" width="700" x="60" y="840" as="geometry" />
+        </mxCell>
+        <mxCell id="domainBox" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1168BD;strokeColor=#0B4884;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;Domain model&lt;/b&gt;&amp;nbsp;&amp;nbsp;&lt;i&gt;[Component: POJO / DDD]&lt;/i&gt;&lt;br&gt;10 agregados · value objects validados (CpfCnpj, LicensePlate, Email, NotificationMessage) · máquinas de estado com transições protegidas (ServiceOrderStatus, QuoteStatus, ServiceOrderExecutionStatus) · exceções de domínio · define as interfaces de repositório" vertex="1">
+          <mxGeometry height="90" width="670" x="75" y="880" as="geometry" />
+        </mxCell>
+        <mxCell id="lanePersist" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#888888;verticalAlign=top;align=left;spacingLeft=10;spacingTop=6;fontSize=12;fontStyle=1;fontColor=#555555;" value="Persistência" vertex="1">
+          <mxGeometry height="240" width="830" x="60" y="1030" as="geometry" />
+        </mxCell>
+        <mxCell id="gateways" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1168BD;strokeColor=#0B4884;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;Gateways (RepositoryImpl + Mappers)&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Component: Spring Bean]&lt;/i&gt;&lt;br&gt;Implementam as interfaces do domínio; mapeiam entidade de domínio ↔ entidade JPA (1 gateway por agregado)" vertex="1">
+          <mxGeometry height="110" width="320" x="75" y="1070" as="geometry" />
+        </mxCell>
+        <mxCell id="jparepos" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#707070;strokeColor=#707070;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;Spring Data JPA repositories&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Component: Spring Data]&lt;/i&gt;&lt;br&gt;Persistência ORM sobre o banco" vertex="1">
+          <mxGeometry height="110" width="300" x="550" y="1070" as="geometry" />
+        </mxCell>
+        <mxCell id="flyway" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#707070;strokeColor=#707070;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;Flyway&lt;/b&gt;&amp;nbsp;&amp;nbsp;&lt;i&gt;[Component]&lt;/i&gt;&amp;nbsp; migrations (schema + seeds), aplicadas no start" vertex="1">
+          <mxGeometry height="60" width="320" x="75" y="1200" as="geometry" />
+        </mxCell>
+        <mxCell id="laneSec" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#888888;verticalAlign=top;align=left;spacingLeft=10;spacingTop=6;fontSize=12;fontStyle=1;fontColor=#555555;" value="Segurança" vertex="1">
+          <mxGeometry height="570" width="230" x="800" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="jwtfilter" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#707070;strokeColor=#707070;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;JwtAuthFilter&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Component: Spring Security Filter]&lt;/i&gt;&lt;br&gt;Intercepta cada request, valida o token e popula o SecurityContext" vertex="1">
+          <mxGeometry height="100" width="200" x="815" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="secconfig" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#707070;strokeColor=#707070;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;SecurityConfig&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Component: Configuration]&lt;/i&gt;&lt;br&gt;Cadeia de filtros, rotas públicas, AccessDeniedHandler e AuthenticationEntryPoint" vertex="1">
+          <mxGeometry height="100" width="200" x="815" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="userdetails" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#707070;strokeColor=#707070;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;OfisyUserDetailsService&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Component: Spring Bean]&lt;/i&gt;&lt;br&gt;Carrega o usuário e seus papéis (Role) para o Spring Security" vertex="1">
+          <mxGeometry height="100" width="200" x="815" y="520" as="geometry" />
+        </mxCell>
+        <mxCell id="jwtservice" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#707070;strokeColor=#707070;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;JwtService / TokenGenerator&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Component: Spring Bean]&lt;/i&gt;&lt;br&gt;Gera e valida JWTs (jjwt), configurado por JwtProperties" vertex="1">
+          <mxGeometry height="100" width="200" x="815" y="650" as="geometry" />
+        </mxCell>
+        <mxCell id="laneCross" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#888888;verticalAlign=top;align=left;spacingLeft=10;spacingTop=6;fontSize=12;fontStyle=1;fontColor=#555555;" value="Transversal" vertex="1">
+          <mxGeometry height="440" width="250" x="1090" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="presenters" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1168BD;strokeColor=#0B4884;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;Presenters&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Component: Spring Bean]&lt;/i&gt;&lt;br&gt;Convertem entidades de domínio em DTOs de resposta (1 por agregado)" vertex="1">
+          <mxGeometry height="110" width="220" x="1105" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="exhandler" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#707070;strokeColor=#707070;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;GlobalExceptionHandler&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Component: ControllerAdvice]&lt;/i&gt;&lt;br&gt;Traduz exceções de domínio e aplicação em status HTTP" vertex="1">
+          <mxGeometry height="110" width="220" x="1105" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="swaggerconfig" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#707070;strokeColor=#707070;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;SwaggerConfig&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Component: Configuration]&lt;/i&gt;&lt;br&gt;OpenAPI / Swagger UI" vertex="1">
+          <mxGeometry height="90" width="220" x="1105" y="530" as="geometry" />
+        </mxCell>
+        <mxCell id="db" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#438DD5;strokeColor=#2E6295;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;Database&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Container: PostgreSQL 16]&lt;/i&gt;&lt;br&gt;Dados de OS, orçamentos, estoque, usuários, notificações" vertex="1">
+          <mxGeometry height="120" width="260" x="300" y="1380" as="geometry" />
+        </mxCell>
+        <mxCell id="eSwagger" edge="1" parent="1" source="swaggerui" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;fontSize=10;fontColor=#333333;dashed=1;endArrow=blockThin;exitX=0.5;exitY=1;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" target="ctrlFluxo" value="teste manual [JSON/HTTP]">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="152.5" y="240" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eApiBusiness" edge="1" parent="1" source="apiclient" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;fontSize=10;fontColor=#333333;endArrow=blockThin;exitX=0.25;exitY=1;entryX=0.821;entryY=0.015;entryDx=0;entryDy=0;entryPerimeter=0;dashed=1;" target="ctrlFluxo" value="consome a API com &lt;br&gt;Bearer JWT [JSON/HTTP]">
+          <mxGeometry relative="1" x="-0.488" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eApiLogin" edge="1" parent="1" source="apiclient" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;fontSize=10;fontColor=#333333;endArrow=blockThin;entryX=0.435;entryY=0.027;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;dashed=1;" target="ctrlLogin" value="autentica-se [JSON/HTTP]">
+          <mxGeometry relative="1" x="0.2724" y="23" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="457" y="-20" />
+            </Array>
+            <mxPoint x="457" y="110" as="sourcePoint" />
+            <mxPoint x="460" y="230" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eCtrlUc2" edge="1" parent="1" source="ctrlFluxo" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;fontSize=10;fontColor=#333333;dashed=1;endArrow=blockThin;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="ucFluxo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eCtrlUc4" edge="1" parent="1" source="ctrlLogin" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;fontSize=10;fontColor=#333333;dashed=1;endArrow=blockThin;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="ucLogin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eFluxoNotif" edge="1" parent="1" source="ucFluxo" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;fontSize=10;fontColor=#333333;dashed=1;endArrow=blockThin;exitX=0.5;exitY=1;entryX=0.25;entryY=0;" target="ucNotif" value="Dispara notificações&lt;br&gt;(orçamento gerado/&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(51, 51, 51), rgb(193, 193, 193));&quot;&gt;estoque baixo)&lt;/span&gt;">
+          <mxGeometry relative="1" x="0.1201" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eUcDomain1" edge="1" parent="1" source="ucFluxo" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;fontSize=10;fontColor=#333333;dashed=1;endArrow=blockThin;exitX=0.161;exitY=1.01;exitDx=0;exitDy=0;exitPerimeter=0;" value="">
+          <mxGeometry relative="1" x="0.0565" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points" />
+            <mxPoint x="152.5" y="580" as="sourcePoint" />
+            <mxPoint x="195" y="880" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eUcDomain2" edge="1" parent="1" source="ucNotif" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;fontSize=10;fontColor=#333333;dashed=1;endArrow=blockThin;exitX=0.5;exitY=1;entryX=0.455;entryY=0.003;entryDx=0;entryDy=0;entryPerimeter=0;" target="domainBox">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="400" y="880" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eGatewayDomain" edge="1" parent="1" source="gateways" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;fontSize=10;fontColor=#333333;dashed=1;endArrow=blockThin;endFill=1;exitX=0.5;exitY=0;entryX=0.24;entryY=1;" target="domainBox" value="implementam as interfaces de repositório usadas &lt;br&gt;pelos use cases (inversão de dependência)">
+          <mxGeometry relative="1" x="0.2099" y="-25" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="235" y="1010" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eGatewayJpa" edge="1" parent="1" source="gateways" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;fontSize=10;fontColor=#333333;dashed=1;endArrow=blockThin;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" target="jparepos" value="delegam ao &lt;br&gt;Spring Data">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eJpaDb" edge="1" parent="1" source="jparepos" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;fontSize=10;fontColor=#333333;dashed=1;endArrow=blockThin;exitX=0.5;exitY=1;entryX=0.73;entryY=0;" target="db" value="lê e escreve [JDBC/SQL]">
+          <mxGeometry relative="1" x="0.3651" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="595" y="1320" />
+              <mxPoint x="490" y="1320" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eFlywayDb" edge="1" parent="1" source="flyway" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;fontSize=10;fontColor=#333333;dashed=1;endArrow=blockThin;exitX=0.5;exitY=1;entryX=0.27;entryY=0;" target="db" value="aplica migrations">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235" y="1330" />
+              <mxPoint x="370" y="1330" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eFilterCtrl" edge="1" parent="1" source="jwtfilter" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;fontSize=10;fontColor=#333333;dashed=1;endArrow=blockThin;exitX=0;exitY=0.5;entryX=1.008;entryY=0.823;entryDx=0;entryDy=0;entryPerimeter=0;" target="ctrlFluxo" value="autentica requests antes &lt;br&gt;dos controllers (exceto /login)">
+          <mxGeometry relative="1" x="-0.1275" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="730" y="290" />
+              <mxPoint x="730" y="400" />
+              <mxPoint x="330" y="400" />
+              <mxPoint x="330" y="326" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eConfigFilter" edge="1" parent="1" source="secconfig" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;fontSize=10;fontColor=#333333;dashed=1;endArrow=blockThin;exitX=0.5;exitY=0;entryX=0.5;entryY=1;" target="jwtfilter" value="registra o filtro na cadeia">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eFilterUserDetails" edge="1" parent="1" source="jwtfilter" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;fontSize=10;fontColor=#333333;dashed=1;endArrow=blockThin;exitX=0;exitY=0.75;entryX=0;entryY=0.5;" target="userdetails" value="carrega usuário">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="750" y="315" />
+              <mxPoint x="750" y="550" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eFilterJwt" edge="1" parent="1" source="jwtfilter" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;fontSize=10;fontColor=#333333;dashed=1;endArrow=blockThin;exitX=1;exitY=0.5;entryX=1;entryY=0.5;" target="jwtservice" value="valida token &lt;br&gt;usando">
+          <mxGeometry relative="1" x="-0.0625" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="1050" y="290" />
+              <mxPoint x="1050" y="700" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eLoginJwt" edge="1" parent="1" source="ucLogin" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;fontSize=10;fontColor=#333333;dashed=1;endArrow=blockThin;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" target="jwtservice" value="gera token usando">
+          <mxGeometry relative="1" x="0.2" y="5" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="545" y="570" />
+              <mxPoint x="720" y="570" />
+              <mxPoint x="720" y="680" />
+              <mxPoint x="815" y="680" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="a1IlGNKnTYxDlNgreO7x-2" edge="1" parent="1" source="ctrlLogin" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;dashed=1;strokeColor=#666666;endArrow=blockThin;endFill=1;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="545" y="300" />
+              <mxPoint x="690" y="300" />
+              <mxPoint x="690" y="160" />
+              <mxPoint x="1240" y="160" />
+            </Array>
+            <mxPoint x="1240" y="250" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="a1IlGNKnTYxDlNgreO7x-4" connectable="0" parent="a1IlGNKnTYxDlNgreO7x-2" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="&lt;span style=&quot;color: rgb(51, 51, 51); font-size: 10px;&quot;&gt;utilizados para montar os DTOs de resposta&lt;/span&gt;" vertex="1">
+          <mxGeometry relative="1" x="0.0604" y="-2" as="geometry">
+            <mxPoint x="-183" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="a1IlGNKnTYxDlNgreO7x-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#333333;" value="" vertex="1">
+          <mxGeometry height="165" width="220" x="1160" y="1320" as="geometry" />
+        </mxCell>
+        <mxCell id="a1IlGNKnTYxDlNgreO7x-11" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;font style=&quot;font-size: 15px;&quot;&gt;&lt;b&gt;Legenda&lt;/b&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="60" x="1170" y="1325" as="geometry" />
+        </mxCell>
+        <mxCell id="a1IlGNKnTYxDlNgreO7x-12" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=#1168BD;" value="" vertex="1">
+          <mxGeometry height="20" width="20" x="1170" y="1365" as="geometry" />
+        </mxCell>
+        <mxCell id="a1IlGNKnTYxDlNgreO7x-13" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=#707070;" value="" vertex="1">
+          <mxGeometry height="20" width="20" x="1170" y="1395" as="geometry" />
+        </mxCell>
+        <mxCell id="a1IlGNKnTYxDlNgreO7x-14" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=#B0B0B0;" value="" vertex="1">
+          <mxGeometry height="20" width="20" x="1170" y="1425" as="geometry" />
+        </mxCell>
+        <mxCell id="a1IlGNKnTYxDlNgreO7x-15" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Infraestrutura / Segurança" vertex="1">
+          <mxGeometry height="30" width="220" x="1170" y="1390" as="geometry" />
+        </mxCell>
+        <mxCell id="a1IlGNKnTYxDlNgreO7x-16" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Atores Externos" vertex="1">
+          <mxGeometry height="30" width="102" x="1203" y="1422" as="geometry" />
+        </mxCell>
+        <mxCell id="a1IlGNKnTYxDlNgreO7x-17" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Negócio" vertex="1">
+          <mxGeometry height="30" width="220" x="1122" y="1360" as="geometry" />
+        </mxCell>
+        <mxCell id="a1IlGNKnTYxDlNgreO7x-18" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Base de Dados" vertex="1">
+          <mxGeometry height="30" width="220" x="1142" y="1450" as="geometry" />
+        </mxCell>
+        <mxCell id="a1IlGNKnTYxDlNgreO7x-19" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=#438DD5;" value="" vertex="1">
+          <mxGeometry height="20" width="20" x="1170" y="1455" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

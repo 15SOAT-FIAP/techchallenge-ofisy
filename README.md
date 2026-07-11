@@ -190,6 +190,11 @@ docker compose -f compose.db.yaml up -d
 
 ---
 
+## Diagramas
+- **[Diagrama de Componentes](docs/COMPONENT-DIAGRAM.md)** - Componentes do backend e como se relacionam (padrão C4)
+
+---
+
 ## Documentação Adicional
 - **[Guia de Deploy](docs/DEPLOY.md)** - Instruções completas para execução local (Docker/Minikube) e nuvem AWS (CI/CD ou CLI)
 - **[Guia de Testes](docs/TESTING.md)** - Instruções para executar análises de cobertura de testes e segurança

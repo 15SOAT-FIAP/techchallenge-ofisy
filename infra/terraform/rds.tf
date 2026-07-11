@@ -1,47 +1,38 @@
-resource "aws_security_group" "db" {
-  name        = "${local.project_name}-db-sg"
-  description = "Acesso ao PostgreSQL RDS"
-  vpc_id      = aws_vpc.main.id
+########################################
+# RDS POSTGRESQL DATABASE
+########################################
 
-  ingress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = [aws_vpc.main.cidr_block]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "${local.project_name}-db-sg"
-  }
-}
-
-resource "aws_db_instance" "postgres" {
+# Cria uma instância Amazon RDS utilizando o banco de dados PostgreSQL.
+resource "aws_db_instance" "main" {
   allocated_storage      = 20
-  max_allocated_storage  = 100
-  db_name                = "ofisydb"
+  storage_type           = "gp2"
   engine                 = "postgres"
-  engine_version         = "16"
-  instance_class         = "db.t4g.micro"
-  username               = "ofisy_user"
-  password               = "ofisy_pass"
+  instance_class         = "db.t3.micro"
+  username               = "ofisy"
+  password               = var.db_password
   db_subnet_group_name   = aws_db_subnet_group.main.name
-  vpc_security_group_ids = [aws_security_group.db.id]
-  skip_final_snapshot    = true
-  publicly_accessible    = false
+  vpc_security_group_ids = [aws_security_group.rds.id]
+
+  # Define o nome do banco de dados.
+  db_name = "ofisydb"
+
+  # Configura a política de backup e a janela de manutenção.
+  backup_retention_period = 7
+  backup_window           = "03:00-04:00"
+  maintenance_window      = "sun:04:00-sun:05:00"
+
+  # Configura o snapshot final, a disponibilidade e a segurança da instância.
+  skip_final_snapshot       = true
+
+  multi_az            = false
+  publicly_accessible = false
+  storage_encrypted   = true
 
   tags = {
-    Name = "${local.project_name}-rds-postgres"
+    Name = "${local.project_name}-postgres-db"
   }
-}
 
-output "rds_endpoint" {
-  value       = aws_db_instance.postgres.address
-  description = "Endpoint do banco de dados RDS"
+  depends_on = [
+    aws_security_group.rds
+  ]
 }
