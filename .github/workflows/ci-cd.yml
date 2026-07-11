@@ -51,10 +51,16 @@ jobs:
         run: |
           cd infra
           
+          # Busca dinamicamente os nomes das roles que mudam a cada reinício do AWS Academy
+          EKS_CLUSTER_ROLE=$(aws iam list-roles --query "Roles[?contains(RoleName, 'LabEksClusterRole')].RoleName" --output text)
+          EKS_NODE_ROLE=$(aws iam list-roles --query "Roles[?contains(RoleName, 'LabEksNodeRole')].RoleName" --output text)
+          
           # Cria o arquivo terraform.tfvars com os dados da AWS Academy
           echo 'account_id = "${{ secrets.AWS_ACCOUNT_ID }}"' > terraform.tfvars
           echo 'role_name  = "LabRole"' >> terraform.tfvars
           echo 'db_password = "ofisy_pass"' >> terraform.tfvars
+          echo "eks_cluster_role = \"$EKS_CLUSTER_ROLE\"" >> terraform.tfvars
+          echo "eks_node_role = \"$EKS_NODE_ROLE\"" >> terraform.tfvars
           
           # Cria o arquivo backend.hcl apontando para o bucket do tfstate
           echo 'bucket = "ofisy-tfstate-${{ secrets.AWS_ACCOUNT_ID }}"' > backend.hcl
