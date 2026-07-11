@@ -191,6 +191,7 @@ docker compose -f compose.db.yaml up -d
 
 ## Diagramas
 - **[Diagrama de Componentes](docs/COMPONENT-DIAGRAM.md)** - Componentes do backend e como se relacionam (padrão C4)
+- **[Diagrama de Infraestrutura](docs/INFRA-DIAGRAM.md)** - Infraestrutura AWS e como a aplicação é executada, exposta e persistida em produção
 
 ---
 
