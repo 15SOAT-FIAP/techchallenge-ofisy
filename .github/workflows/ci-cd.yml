@@ -78,8 +78,8 @@ jobs:
           terraform init -backend-config=backend.hcl
           terraform apply -auto-approve
           
-          # Captura o endpoint do RDS gerado e salva em uma variável de ambiente global
-          RDS_ENDPOINT=$(terraform output -raw rds_endpoint)
+          # Captura o endereço (hostname) do RDS gerado e salva em uma variável de ambiente global
+          RDS_ENDPOINT=$(terraform output -raw rds_address)
           echo "RDS_HOST=$RDS_ENDPOINT" >> $GITHUB_ENV
 
       # 5. Conectar kubectl no Cluster EKS
@@ -107,22 +107,23 @@ jobs:
       - name: 🚀 Deploy dos Manifestos no EKS
         run: |
           # Substitui placeholders no secret da aplicação com credenciais base64
-          sed -i "s|<BASE64_USERNAME>|b2Zpc3lfdXNlcg==|g" k8s/secret.yml
-          sed -i "s|<BASE64_PASSWORD>|b2Zpc3lfcGFzcw==|g" k8s/secret.yml
-          sed -i "s|<BASE64_JWT_SECRET>|c3VwZXJfc2VjcmV0X2xvY2FsX2p3dF90b2tlbl9mb3Jfb2Zpc3lfYXBwX2Zhc2VfMg==|g" k8s/secret.yml
+          sed -i "s|<BASE64_USERNAME>|b2Zpc3lfdXNlcg==|g" infra/k8s/app/secret.yml
+          sed -i "s|<BASE64_PASSWORD>|b2Zpc3lfcGFzcw==|g" infra/k8s/app/secret.yml
+          sed -i "s|<BASE64_JWT_SECRET>|c3VwZXJfc2VjcmV0X2xvY2FsX2p3dF90b2tlbl9mb3Jfb2Zpc3lfYXBwX2Zhc2VfMg==|g" infra/k8s/app/secret.yml
           
           # Injeta o host do banco de dados (RDS) no ConfigMap
-          sed -i "s|<RDS_ADDRESS>|$RDS_HOST|g" k8s/configmap.yml
+          sed -i "s|db-service|$RDS_HOST|g" infra/k8s/app/configmap.yml
           
-          # Injeta a imagem do ECR no Deployment
-          sed -i "s|<ECR_REPOSITORY_URL>:<IMAGE_TAG>|${{ github.event.inputs.aws_account_id }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest|g" k8s/deployment.yml
+          # Injeta a imagem do ECR e atualiza política de pull no Deployment
+          sed -i "s|ofisy-app:latest|${{ github.event.inputs.aws_account_id }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest|g" infra/k8s/app/deployment.yml
+          sed -i "s|imagePullPolicy: Never|imagePullPolicy: Always|g" infra/k8s/app/deployment.yml
           
           # Aplica os recursos no cluster EKS
-          kubectl apply -f k8s/secret.yml
-          kubectl apply -f k8s/configmap.yml
-          kubectl apply -f k8s/deployment.yml
-          kubectl apply -f k8s/service.yml
-          kubectl apply -f k8s/hpa.yml
+          kubectl apply -f infra/k8s/app/secret.yml
+          kubectl apply -f infra/k8s/app/configmap.yml
+          kubectl apply -f infra/k8s/app/deployment.yml
+          kubectl apply -f infra/k8s/app/service.yml
+          kubectl apply -f infra/k8s/app/hpa.yml
           
           # Aguarda a inicialização com o timeout seguro de 150 segundos
           kubectl rollout status deployment/ofisy-deployment --timeout=150s
@@ -158,7 +159,7 @@ jobs:
           aws eks update-kubeconfig --region us-east-1 --name ofisy-cluster || echo "Cluster EKS nao encontrado ou ja removido."
           
           # Apaga os serviços K8s para que a AWS destrua o Load Balancer e libere as placas de rede (ENIs)
-          kubectl delete -f k8s/ --ignore-not-found=true || echo "Trabalho de limpeza do Kubernetes ignorado."
+          kubectl delete -f infra/k8s/app/ --ignore-not-found=true || echo "Trabalho de limpeza do Kubernetes ignorado."
           
           # Aguarda 30 segundos para a AWS remover fisicamente o ELB e ENIs
           sleep 30

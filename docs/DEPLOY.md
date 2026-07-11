@@ -23,10 +23,7 @@ Cenário para testes rápidos de desenvolvimento local com aplicação e banco r
 
 ## ☸️ 2. Deploy Local em Kubernetes (Minikube)
 
-Cenário de simulação de orquestração local com Kubernetes para validar os manifestos cloud-ready. 
-
-> [!NOTE]
-> Como os manifestos do banco de dados local foram removidos para a migração para a nuvem (onde a aplicação conecta diretamente no AWS RDS), para rodar a aplicação localmente no Minikube você precisará subir o banco de dados separadamente (por exemplo, usando o Docker Compose local) e atualizar o `POSTGRES_HOST` no `k8s/configmap.yml` para apontar para o IP/host do banco acessível pelo Minikube.
+Cenário de simulação de orquestração local com Kubernetes para validar os manifestos:
 
 1.  Inicie o cluster local com o driver Docker:
     ```powershell
@@ -44,25 +41,16 @@ Cenário de simulação de orquestração local com Kubernetes para validar os m
     ```powershell
     docker build -t ofisy-app:latest .
     ```
-5.  Configure o secret local com credenciais mockadas e o configmap apontando para o seu banco:
+5.  Ajuste as credenciais locais no secret da pasta `infra/k8s/db/secret.yml` e `infra/k8s/app/secret.yml` se necessário, e aplique os manifestos do banco local e do aplicativo:
     ```powershell
-    kubectl create secret generic ofisy-secret `
-      --from-literal=POSTGRES_USER=ofisy_user `
-      --from-literal=POSTGRES_PASSWORD=ofisy_pass `
-      --from-literal=JWT_SECRET=super_secret_local_jwt_token_for_ofisy_app_fase_2
+    kubectl apply -f infra/k8s/db/
+    kubectl apply -f infra/k8s/app/
     ```
-6.  Aplique os manifestos do aplicativo:
-    ```powershell
-    kubectl apply -f k8s/configmap.yml
-    kubectl apply -f k8s/deployment.yml
-    kubectl apply -f k8s/service.yml
-    kubectl apply -f k8s/hpa.yml
-    ```
-7.  Abra o túnel de rede local (em um terminal de Administrador separado):
+6.  Abra o túnel de rede local (em um terminal de Administrador separado):
     ```powershell
     minikube tunnel
     ```
-8.  Acesse o IP do serviço (`kubectl get svc ofisy-service`) na porta `8080`.
+7.  Acesse o IP do serviço (`kubectl get svc ofisy-service`) na porta `8080`.
 
 ---
 
@@ -128,7 +116,7 @@ $env:AWS_SESSION_TOKEN="SEU_TOKEN"
     ```powershell
     aws eks update-kubeconfig --region us-east-1 --name ofisy-cluster
     ```
-2.  Insira o endpoint do banco RDS (gerado pelo Terraform) no arquivo `k8s/configmap.yml` no campo `POSTGRES_HOST`.
+2.  Insira o endpoint do banco RDS (endereço retornado pelo Terraform `rds_address`) no arquivo `infra/k8s/app/configmap.yml` no campo `POSTGRES_HOST`.
 3.  Autentique o Docker no ECR, compile a aplicação e faça o push:
     ```powershell
     aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com
@@ -139,15 +127,17 @@ $env:AWS_SESSION_TOKEN="SEU_TOKEN"
     ```
 4.  Crie os secrets e aplique os manifestos no cluster:
     ```powershell
+    # Substitua os placeholders correspondentes no secret de app e aplique os recursos:
+    # (ou crie o secret ofisy-secret via linha de comando):
     kubectl create secret generic ofisy-secret `
       --from-literal=POSTGRES_USER=ofisy_user `
       --from-literal=POSTGRES_PASSWORD=<SUA_SENHA_RDS> `
       --from-literal=JWT_SECRET=<SEU_JWT_SECRET>
 
-    kubectl apply -f k8s/configmap.yml
-    kubectl apply -f k8s/deployment.yml
-    kubectl apply -f k8s/service.yml
-    kubectl apply -f k8s/hpa.yml
+    kubectl apply -f infra/k8s/app/configmap.yml
+    kubectl apply -f infra/k8s/app/deployment.yml
+    kubectl apply -f infra/k8s/app/service.yml
+    kubectl apply -f infra/k8s/app/hpa.yml
     ```
 
 ---
