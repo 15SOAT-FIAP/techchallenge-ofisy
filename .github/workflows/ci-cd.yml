@@ -81,12 +81,13 @@ jobs:
       - name: ☕ Compilar Projeto (Maven)
         run: |
           mvn clean package -DskipTests
+          echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       # 9. Buildar e Push da imagem Docker para o ECR da AWS
       - name: 📤 Enviar Imagem para o ECR
         run: |
-          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest .
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest
+          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:${{ env.IMAGE_TAG }} .
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:${{ env.IMAGE_TAG }}
 
       # 10. Atualizar placeholders e aplicar no cluster EKS da AWS
       - name: 🚀 Deploy dos Manifestos no EKS
@@ -100,7 +101,7 @@ jobs:
           sed -i "s|<RDS_ADDRESS>|$RDS_HOST|g" k8s/configmap.yml
           
           # Injeta a imagem do ECR no Deployment
-          sed -i "s|<ECR_REPOSITORY_URL>:<IMAGE_TAG>|${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest|g" k8s/deployment.yml
+          sed -i "s|<ECR_REPOSITORY_URL>:<IMAGE_TAG>|${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:${{ env.IMAGE_TAG }}|g" k8s/deployment.yml
           
           # Aplica os recursos no cluster EKS
           kubectl apply -f k8s/secret.yml
