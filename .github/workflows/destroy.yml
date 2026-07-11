@@ -48,6 +48,7 @@ jobs:
           # Configura os arquivos de variaveis e backend
           echo 'account_id = "${{ secrets.AWS_ACCOUNT_ID }}"' > terraform.tfvars
           echo 'role_name  = "LabRole"' >> terraform.tfvars
+          echo 'db_password = "ofisy_pass"' >> terraform.tfvars
           echo 'bucket = "ofisy-tfstate-${{ secrets.AWS_ACCOUNT_ID }}"' > backend.hcl
           
           terraform init -backend-config=backend.hcl

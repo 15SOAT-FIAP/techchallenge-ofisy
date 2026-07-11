@@ -50,6 +50,7 @@ jobs:
           # Cria o arquivo terraform.tfvars com os dados da AWS Academy
           echo 'account_id = "${{ secrets.AWS_ACCOUNT_ID }}"' > terraform.tfvars
           echo 'role_name  = "LabRole"' >> terraform.tfvars
+          echo 'db_password = "ofisy_pass"' >> terraform.tfvars
           
           # Cria o arquivo backend.hcl apontando para o bucket do tfstate
           echo 'bucket = "ofisy-tfstate-${{ secrets.AWS_ACCOUNT_ID }}"' > backend.hcl
@@ -93,7 +94,7 @@ jobs:
       - name: 🚀 Deploy dos Manifestos no EKS
         run: |
           # Substitui placeholders no secret da aplicação com credenciais base64
-          sed -i "s|<BASE64_USERNAME>|b2Zpc3lfdXNlcg==|g" k8s/secret.yml
+          sed -i "s|<BASE64_USERNAME>|b2Zpc3k=|g" k8s/secret.yml
           sed -i "s|<BASE64_PASSWORD>|b2Zpc3lfcGFzcw==|g" k8s/secret.yml
           sed -i "s|<BASE64_JWT_SECRET>|c3VwZXJfc2VjcmV0X2xvY2FsX2p3dF90b2tlbl9mb3Jfb2Zpc3lfYXBwX2Zhc2VfMg==|g" k8s/secret.yml
           
