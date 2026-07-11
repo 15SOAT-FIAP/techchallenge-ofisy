@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ofisy-config
+data:
+  POSTGRES_HOST: "<RDS_ADDRESS>"
+  SPRING_PROFILES_ACTIVE: "k8s"
