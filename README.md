@@ -223,13 +223,20 @@ docker compose -f compose.db.yaml up -d
 
 ---
 
-## Diagramas
+## Documentação Adicional
+
+### Arquitetura
 - **[Diagrama de Componentes](docs/COMPONENT-DIAGRAM.md)** - Componentes do backend e como se relacionam (padrão C4)
+
+### Deploy e Infraestrutura
+- **[Guia de Deploy](docs/DEPLOY.md)** - Instruções completas para execução local (Docker Compose) e deploy em nuvem AWS (CI/CD ou CLI)
+- **[Infraestrutura AWS com Terraform](docs/INFRASTRUCTURE.md)** - Recursos AWS provisionados, arquitetura de rede e passo a passo para inicializar, validar e aplicar a infraestrutura
+- **[Kubernetes no EKS](docs/K8S.md)** - Manual para publicar e operar a aplicação no cluster EKS provisionado via Terraform
 - **[Diagrama de Infraestrutura](docs/INFRA-DIAGRAM.md)** - Infraestrutura AWS e como a aplicação é executada, exposta e persistida em produção
 
----
-
-## Documentação Adicional
-- **[Guia de Deploy](docs/DEPLOY.md)** - Instruções completas para execução local (Docker/Minikube) e nuvem AWS (CI/CD ou CLI)
+### Qualidade e Testes
 - **[Guia de Testes](docs/TESTING.md)** - Instruções para executar análises de cobertura de testes e segurança
+- **[Teste de Carga (k6)](docs/LOAD-TEST.md)** - Como executar o script de teste de carga para validar a estabilidade da API sob volume crescente de requisições
+
+### Banco de Dados
 - **[Guia de Flyway](docs/FLYWAY.md)** - Instruções para criar e executar migrations
