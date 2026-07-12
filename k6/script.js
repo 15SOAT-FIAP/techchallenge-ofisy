@@ -3,11 +3,10 @@ import { check, sleep } from 'k6';
 
 export const options = {
     stages: [
-        { duration: '20s', target: 20 },  // Sobe carga gradual
-        { duration: '20s', target: 50 },  // Mantem subindo
-        { duration: '20s', target: 100 }, // Força escalar mais ainda
-        { duration: '30s', target: 150 }, // Pico de carga
-        { duration: '30s', target: 0 },   // Desce carga gradual
+        { duration: '10s', target: 100 }, // Sobe rapido para 100 usuários
+        { duration: '30s', target: 150 },
+        { duration: '90s', target: 200 }, // Sustenta o pico (dá tempo do HPA reagir em vários ciclos)
+        { duration: '20s', target: 0 },   // Desce carga
     ],
     thresholds: {
         http_req_failed: ['rate<0.05'], // Taxa de falhas deve ser menor que 5%
