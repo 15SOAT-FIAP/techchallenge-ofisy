@@ -76,18 +76,42 @@ A combinação dessas tecnologias permite a construção de um backend robusto e
 
 ## Arquivos de Configuração
 
+### Aplicação e Build
+
 - `application.yml` — configurações para subir o servidor em ambiente local, sendo banco via Docker e a aplicação na IDE;
 - `application-docker.yml` — configurações para subir o ambiente completo via Docker;
-- `pom.xml` — dependências do projeto gerenciadas via Maven;
+- `application-k8s.yml` — configurações do perfil `k8s`, utilizado quando a aplicação é executada no cluster Kubernetes (EKS), incluindo conexão com o banco via `POSTGRES_HOST` e habilitação dos probes de saúde do Actuator para liveness/readiness;
+- `pom.xml` — dependências do projeto gerenciadas via Maven.
+
+### Docker
+
 - `Dockerfile` — instruções para o Docker buildar a aplicação;
 - `compose.yaml` — orquestração dos containers da aplicação e do banco, permitindo subir o ambiente completo em qualquer lugar, por qualquer pessoa. Segue a nomenclatura mais recente para esse tipo de arquivo;
 - `compose.db.yaml` — configurações para subir apenas o container do banco para desenvolvimento local;
 - `compose.sonar.yaml` — configurações para subir apenas o container do SonarQube para análise de qualidade, vulnerabilidades e cobertura de testes da aplicação;
 - `compose.zap.yaml` — configurações para subir apenas o container do OWASP ZAP para análise de vulnerabilidades da aplicação;
-- `.dockerignore` — instruções para que o Docker ignore determinados arquivos e pastas durante o build, reduzindo o tamanho da imagem gerada;
+- `.dockerignore` — instruções para que o Docker ignore determinados arquivos e pastas durante o build, reduzindo o tamanho da imagem gerada.
+
+### Git e Ambiente
+
 - `.gitignore` — instruções para que o Git ignore determinados tipos, pastas e denominações de arquivos;
+- `.gitattributes` — normaliza o final de linha (`eol`) dos scripts `mvnw`/`mvnw.cmd` entre diferentes sistemas operacionais;
 - `.env` — variáveis sensíveis utilizadas no projeto. Este arquivo **não é versionado**;
 - `env.example` — arquivo de exemplo do `.env` para criação do ambiente local.
+
+### CI/CD (GitHub Actions)
+
+- `.github/workflows/ci.yml` — pipeline de Build & Test (CI), executado a cada push/PR;
+- `.github/workflows/cd.yml` — pipeline de deploy automático na AWS (CD), executado após o sucesso do CI no merge para `master`;
+- `.github/workflows/destroy.yml` — pipeline manual para destruir a infraestrutura provisionada na AWS;
+- `.github/workflows/notify-pr.yml` — pipeline que notifica a criação/atualização de Pull Requests em um canal do Discord.
+
+### Infraestrutura e Testes de Carga/Segurança
+
+- `infra/` — arquivos Terraform para provisionamento da infraestrutura AWS (EKS, RDS, ECR, redes, etc.), detalhados no [Guia de Deploy](docs/DEPLOY.md);
+- `k8s/` — manifestos Kubernetes (`deployment`, `service`, `configmap`, `secret`, `hpa`) utilizados para executar a aplicação no cluster EKS;
+- `k6/` — scripts de teste de carga com [k6](https://k6.io/);
+- `zap/` — plano de varredura do OWASP ZAP para análise de vulnerabilidades da aplicação.
 
 ---
 
