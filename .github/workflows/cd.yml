@@ -101,24 +101,36 @@ jobs:
         run: |
           aws eks update-kubeconfig --region us-east-1 --name ofisy-cluster
 
-      # 8. Autenticar Docker no ECR
+      # 8. Garantir que o Metrics Server está instalado (necessário para o HPA calcular CPU/memória)
+      - name: Instalar/Atualizar Metrics Server
+        run: |
+          kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
+          # EKS usa certificado autoassinado no kubelet, então o metrics-server precisa dessa flag para coletar métricas
+          kubectl patch deployment metrics-server -n kube-system --type='json' \
+            -p='[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"}]' \
+            || true
+
+          kubectl rollout status deployment/metrics-server -n kube-system --timeout=120s
+
+      # 9. Autenticar Docker no ECR
       - name: Login no Amazon ECR
         run: |
           aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
 
-      # 9. Compilar o projeto e gerar o JAR
+      # 10. Compilar o projeto e gerar o JAR
       - name: Compilar Projeto (Maven)
         run: |
           mvn clean package -DskipTests
           echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
-      # 10. Buildar e Push da imagem Docker para o ECR da AWS
+      # 11. Buildar e Push da imagem Docker para o ECR da AWS
       - name: Enviar Imagem para o ECR
         run: |
           docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:${{ env.IMAGE_TAG }} .
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:${{ env.IMAGE_TAG }}
 
-      # 11. Atualizar placeholders e aplicar no cluster EKS da AWS
+      # 12. Atualizar placeholders e aplicar no cluster EKS da AWS
       - name: Deploy dos Manifestos no EKS
         run: |
           # Codifica as chaves do GitHub Secrets em base64 dinamicamente (sem quebra de linha)
