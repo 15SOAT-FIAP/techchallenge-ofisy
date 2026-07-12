@@ -11,18 +11,25 @@ Visto a solicitação da criação nesta primeira etapa do projeto de um monolit
 
 A utilização do Monolito Modular, além de permitir a criação da aplicação de maneira mais organizada, funcionando sob uma mesma base de dados, facilita a transição desse projeto para uma arquitetura de microsserviços posteriormente, algo que será exigido nas próximas fases do projeto.
 
-A estruturação das classes e entidades criadas seguirá os princípios de **DDD (Domain-Driven Design)**, organizadas nas seguintes camadas:
+A estruturação das classes e entidades criadas segue os princípios da **Clean Architecture**, combinados com conceitos de **DDD (Domain-Driven Design)** para a modelagem dos agregados, organizadas nas seguintes camadas:
 
 ```
 br.com.ofisy
-├── domain/               # Dominio do negócio
-│   └── <agregado>/       # Entidade rica + interface de repositório por agregado
-├── application/          # Orquestração de comandos
-├── infrastructure/       # Implementações técnicas externas ao domínio
-│   ├── config/           # Configurações transversais (segurança, Swagger, etc.)
-│   ├── persistence/      # Implementa os repositórios do domínio (Spring Data JPA)
-└── interfaces/
-    └── api/              # Controllers REST (endpoints)
+├── domain/                       # Regras de negócio e entidades ricas, sem dependências externas
+│   └── <agregado>/                   # Entidade, Value Objects, interface de repositório (porta) e exceções por agregado
+├── application/                  # Casos de uso da aplicação (orquestração das regras de negócio)
+│   └── <agregado>/
+│       └── <caso-de-uso>/            # Interface do UseCase + Service com a implementação do caso de uso
+├── adapters/                     # Implementações que conectam o domínio/aplicação ao mundo externo
+│   ├── controllers/                  # Adaptadores de entrada: Controllers REST, contrato da API (Api) e DTOs de request/response
+│   │   └── <agregado>/
+│   │       └── dto/
+│   ├── gateways/                     # Adaptadores de saída: implementação dos repositórios do domínio (Spring Data JPA)
+│   │   └── <agregado>/                   # Entity JPA, Mapper, RepositoryImpl (implementa a porta do domínio) e interface Spring Data
+│   └── presenters/                   # Conversão das entidades de domínio para os DTOs de resposta
+│       └── <agregado>/
+├── config/                       # Configurações transversais (segurança, JWT, Swagger, tratamento global de exceções)
+└── shared/                       # Utilitários compartilhados entre camadas (ex.: filtros de segurança, serviço de JWT)
 ```
 
 ---
