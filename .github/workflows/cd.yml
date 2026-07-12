@@ -1,22 +1,27 @@
-name: 🚀 Deploy Automático na AWS (CD)
+name: Deploy Automático na AWS (CD)
 
 on:
-  push:
-    branches:
-      - master
+  workflow_run:
+    workflows: ["Build & Test (CI)"]
+    branches: [master]
+    types:
+      - completed
 
 jobs:
   deploy-to-aws:
-    name: ☁️ Deploy Automático na AWS (EKS & RDS)
+    name: Deploy Automático na AWS (EKS & RDS)
     runs-on: ubuntu-latest
     environment: AWS_ACADEMY
+    if: github.event.workflow_run.conclusion == 'success'
 
     steps:
-      - name: 🔍 Checkout do código
+      - name: Checkout do código
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       # 1. Configurar Credenciais da AWS a partir dos Secrets do GitHub
-      - name: 🔐 Configurar Credenciais AWS
+      - name: Configurar Credenciais AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -25,7 +30,7 @@ jobs:
           aws-region: us-east-1
 
       # 2. Configurar Java 21 para compilar a aplicação
-      - name: ☕ Configurar JDK 21 (Java)
+      - name: Configurar JDK 21 (Java)
         uses: actions/setup-java@v4
         with:
           java-version: '21'
@@ -33,13 +38,13 @@ jobs:
           cache: maven
 
       # 3. Configurar Terraform
-      - name: 🛠️ Configurar Terraform
+      - name: Configurar Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
 
       # 4. Criar Bucket S3 (Terraform Bootstrap)
-      - name: 🏗️ Terraform Bootstrap (S3 Bucket)
+      - name: Terraform Bootstrap (S3 Bucket)
         run: |
           cd infra/bootstrap
           echo 'account_id = "${{ secrets.AWS_ACCOUNT_ID }}"' > terraform.tfvars
@@ -52,7 +57,7 @@ jobs:
           terraform apply -auto-approve
 
       # 5. Inicializar o Terraform e Executar o Plan
-      - name: 🔍 Terraform Plan
+      - name: Terraform Plan
         run: |
           cd infra
           
@@ -76,13 +81,13 @@ jobs:
           terraform plan -no-color > plan.txt
           cat plan.txt
           
-          echo "### 🔍 Planejamento de Alterações do Terraform (Plan)" >> $GITHUB_STEP_SUMMARY
+          echo "### Planejamento de Alterações do Terraform (Plan)" >> $GITHUB_STEP_SUMMARY
           echo '```terraform' >> $GITHUB_STEP_SUMMARY
           cat plan.txt >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
       # 6. Executar o Terraform Apply
-      - name: 🏗️ Provisionar Infraestrutura (Terraform Apply)
+      - name: Provisionar Infraestrutura (Terraform Apply)
         run: |
           cd infra
           terraform apply -auto-approve
@@ -92,29 +97,29 @@ jobs:
           echo "RDS_HOST=$RDS_ENDPOINT" >> $GITHUB_ENV
 
       # 7. Conectar kubectl no Cluster EKS
-      - name: ☸️ Conectar ao EKS Cluster
+      - name: Conectar ao EKS Cluster
         run: |
           aws eks update-kubeconfig --region us-east-1 --name ofisy-cluster
 
       # 8. Autenticar Docker no ECR
-      - name: 🔐 Login no Amazon ECR
+      - name: Login no Amazon ECR
         run: |
           aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
 
       # 9. Compilar o projeto e gerar o JAR
-      - name: ☕ Compilar Projeto (Maven)
+      - name: Compilar Projeto (Maven)
         run: |
           mvn clean package -DskipTests
           echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       # 10. Buildar e Push da imagem Docker para o ECR da AWS
-      - name: 📤 Enviar Imagem para o ECR
+      - name: Enviar Imagem para o ECR
         run: |
           docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:${{ env.IMAGE_TAG }} .
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:${{ env.IMAGE_TAG }}
 
       # 11. Atualizar placeholders e aplicar no cluster EKS da AWS
-      - name: 🚀 Deploy dos Manifestos no EKS
+      - name: Deploy dos Manifestos no EKS
         run: |
           # Codifica as chaves do GitHub Secrets em base64 dinamicamente (sem quebra de linha)
           BASE64_USER=$(echo -n "ofisy" | base64 -w 0)
@@ -143,12 +148,12 @@ jobs:
           kubectl rollout status deployment/ofisy-deployment --timeout=300s
 
           # Loop para aguardar o DNS do Load Balancer estar disponível
-          echo "⏳ Aguardando DNS do Load Balancer estar disponível..."
+          echo "Aguardando DNS do Load Balancer estar disponível..."
           EXTERNAL_IP=""
           for i in {1..30}; do
             EXTERNAL_IP=$(kubectl get svc ofisy-service -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
             if [ -n "$EXTERNAL_IP" ]; then
-              echo "✅ Load Balancer DNS obtido: $EXTERNAL_IP"
+              echo "Load Balancer DNS obtido: $EXTERNAL_IP"
               break
             fi
             echo "Aguardando 10 segundos (tentativa $i de 30)..."
@@ -156,12 +161,13 @@ jobs:
           done
 
           if [ -n "$EXTERNAL_IP" ]; then
-            SWAGGER_URL="http://$EXTERNAL_IP:8080/swagger-ui/index.html#/"
-            echo "🚀 Aplicação rodando em: $SWAGGER_URL"
+            API_URL="http://$EXTERNAL_IP:8080"
+            SWAGGER_URL="$API_URL/swagger-ui/index.html#/"
+            echo "Aplicação rodando em: $API_URL"
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### 🌐 Link de Acesso da Aplicação (Swagger UI)" >> $GITHUB_STEP_SUMMARY
-            echo "Acesse a API implantada na AWS:" >> $GITHUB_STEP_SUMMARY
-            echo "- 🔗 **[Clique aqui para abrir o Swagger UI]($SWAGGER_URL)**" >> $GITHUB_STEP_SUMMARY
+            echo "### Deploy concluído" >> $GITHUB_STEP_SUMMARY
+            echo "- API: $API_URL" >> $GITHUB_STEP_SUMMARY
+            echo "- Swagger UI: $SWAGGER_URL" >> $GITHUB_STEP_SUMMARY
           else
-            echo "⚠️ Não foi possível obter o DNS do Load Balancer a tempo." >> $GITHUB_STEP_SUMMARY
+            echo "Não foi possível obter o DNS do Load Balancer a tempo." >> $GITHUB_STEP_SUMMARY
           fi
