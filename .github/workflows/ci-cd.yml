@@ -116,10 +116,10 @@ jobs:
       # 11. Atualizar placeholders e aplicar no cluster EKS da AWS
       - name: 🚀 Deploy dos Manifestos no EKS
         run: |
-          # Codifica as chaves do GitHub Secrets em base64 dinamicamente
-          BASE64_USER=$(echo -n "ofisy" | base64)
-          BASE64_PASS=$(echo -n "${{ secrets.DB_PASSWORD }}" | base64)
-          BASE64_JWT=$(echo -n "${{ secrets.JWT_SECRET }}" | base64)
+          # Codifica as chaves do GitHub Secrets em base64 dinamicamente (sem quebra de linha)
+          BASE64_USER=$(echo -n "ofisy" | base64 -w 0)
+          BASE64_PASS=$(echo -n "${{ secrets.DB_PASSWORD }}" | base64 -w 0)
+          BASE64_JWT=$(echo -n "${{ secrets.JWT_SECRET }}" | base64 -w 0)
 
           # Substitui placeholders no secret da aplicação com credenciais base64
           sed -i "s|<BASE64_USERNAME>|$BASE64_USER|g" k8s/secret.yml
