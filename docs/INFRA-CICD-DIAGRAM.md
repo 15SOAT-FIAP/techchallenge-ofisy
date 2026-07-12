@@ -1,8 +1,9 @@
 # Diagrama de Infraestrutura e CI/CD - Ofisy
 
-Diagrama de infraestrutura (deployment) da aplicação Ofisy na AWS: como o container
-Backend documentado em `docs/COMPONENT-DIAGRAM.md` roda, é exposto e persiste dados em
-produção.
+Diagrama de infraestrutura (deployment) e de CI/CD da aplicação Ofisy na AWS: como o
+container Backend documentado em `docs/COMPONENT-DIAGRAM.md` roda, é exposto e persiste
+dados em produção, e como o pipeline de CI/CD (detalhado mais abaixo) leva o código até
+esse ambiente.
 
 A aplicação roda num cluster EKS dentro de uma VPC dedicada, com os nós de trabalho na
 subnet privada. Quem entra vindo da internet passa por um Load Balancer na subnet
