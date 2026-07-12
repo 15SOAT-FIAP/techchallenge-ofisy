@@ -139,8 +139,8 @@ jobs:
           kubectl apply -f k8s/service.yml
           kubectl apply -f k8s/hpa.yml
           
-          # Aguarda a inicialização com o timeout seguro de 150 segundos
-          kubectl rollout status deployment/ofisy-deployment --timeout=150s
+          # Aguarda a inicialização com o timeout seguro de 300 segundos
+          kubectl rollout status deployment/ofisy-deployment --timeout=300s
 
           # Loop para aguardar o DNS do Load Balancer estar disponível
           echo "⏳ Aguardando DNS do Load Balancer estar disponível..."
