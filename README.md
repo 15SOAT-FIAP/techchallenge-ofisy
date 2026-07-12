@@ -232,7 +232,7 @@ docker compose -f compose.db.yaml up -d
 - **[Guia de Deploy](docs/DEPLOY.md)** - Instruções completas para execução local (Docker Compose) e deploy em nuvem AWS (CI/CD ou CLI)
 - **[Infraestrutura AWS com Terraform](docs/INFRASTRUCTURE.md)** - Recursos AWS provisionados, arquitetura de rede e passo a passo para inicializar, validar e aplicar a infraestrutura
 - **[Kubernetes no EKS](docs/K8S.md)** - Manual para publicar e operar a aplicação no cluster EKS provisionado via Terraform
-- **[Diagrama de Infraestrutura](docs/INFRA-DIAGRAM.md)** - Infraestrutura AWS e como a aplicação é executada, exposta e persistida em produção
+- **[Diagrama de Infraestrutura e CI/CD](docs/INFRA-CICD-DIAGRAM.md)** - Infraestrutura AWS e como é o fluxo de CI/CD para deploy da aplicação
 
 ### Qualidade e Testes
 - **[Guia de Testes](docs/TESTING.md)** - Instruções para executar análises de cobertura de testes e segurança
