@@ -63,7 +63,7 @@ jobs:
           # Cria o arquivo terraform.tfvars com os dados da AWS Academy
           echo 'account_id = "${{ secrets.AWS_ACCOUNT_ID }}"' > terraform.tfvars
           echo 'role_name  = "LabRole"' >> terraform.tfvars
-          echo 'db_password = "ofisy_pass"' >> terraform.tfvars
+          echo 'db_password = "${{ secrets.DB_PASSWORD }}"' >> terraform.tfvars
           echo "eks_cluster_role = \"$EKS_CLUSTER_ROLE\"" >> terraform.tfvars
           echo "eks_node_role = \"$EKS_NODE_ROLE\"" >> terraform.tfvars
           
@@ -116,10 +116,15 @@ jobs:
       # 11. Atualizar placeholders e aplicar no cluster EKS da AWS
       - name: 🚀 Deploy dos Manifestos no EKS
         run: |
+          # Codifica as chaves do GitHub Secrets em base64 dinamicamente
+          BASE64_USER=$(echo -n "ofisy" | base64)
+          BASE64_PASS=$(echo -n "${{ secrets.DB_PASSWORD }}" | base64)
+          BASE64_JWT=$(echo -n "${{ secrets.JWT_SECRET }}" | base64)
+
           # Substitui placeholders no secret da aplicação com credenciais base64
-          sed -i "s|<BASE64_USERNAME>|b2Zpc3k=|g" k8s/secret.yml
-          sed -i "s|<BASE64_PASSWORD>|b2Zpc3lfcGFzcw==|g" k8s/secret.yml
-          sed -i "s|<BASE64_JWT_SECRET>|c3VwZXJfc2VjcmV0X2xvY2FsX2p3dF90b2tlbl9mb3Jfb2Zpc3lfYXBwX2Zhc2VfMg==|g" k8s/secret.yml
+          sed -i "s|<BASE64_USERNAME>|$BASE64_USER|g" k8s/secret.yml
+          sed -i "s|<BASE64_PASSWORD>|$BASE64_PASS|g" k8s/secret.yml
+          sed -i "s|<BASE64_JWT_SECRET>|$BASE64_JWT|g" k8s/secret.yml
           
           # Injeta o host do banco de dados (RDS) no ConfigMap
           sed -i "s|<RDS_ADDRESS>|$RDS_HOST|g" k8s/configmap.yml
@@ -136,3 +141,27 @@ jobs:
           
           # Aguarda a inicialização com o timeout seguro de 150 segundos
           kubectl rollout status deployment/ofisy-deployment --timeout=150s
+
+          # Loop para aguardar o DNS do Load Balancer estar disponível
+          echo "⏳ Aguardando DNS do Load Balancer estar disponível..."
+          EXTERNAL_IP=""
+          for i in {1..30}; do
+            EXTERNAL_IP=$(kubectl get svc ofisy-service -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+            if [ -n "$EXTERNAL_IP" ]; then
+              echo "✅ Load Balancer DNS obtido: $EXTERNAL_IP"
+              break
+            fi
+            echo "Aguardando 10 segundos (tentativa $i de 30)..."
+            sleep 10
+          done
+
+          if [ -n "$EXTERNAL_IP" ]; then
+            SWAGGER_URL="http://$EXTERNAL_IP:8080/swagger-ui/index.html#/"
+            echo "🚀 Aplicação rodando em: $SWAGGER_URL"
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🌐 Link de Acesso da Aplicação (Swagger UI)" >> $GITHUB_STEP_SUMMARY
+            echo "Acesse a API implantada na AWS:" >> $GITHUB_STEP_SUMMARY
+            echo "- 🔗 **[Clique aqui para abrir o Swagger UI]($SWAGGER_URL)**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Não foi possível obter o DNS do Load Balancer a tempo." >> $GITHUB_STEP_SUMMARY
+          fi
