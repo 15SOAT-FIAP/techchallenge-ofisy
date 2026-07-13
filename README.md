@@ -1,6 +1,6 @@
 # Ofisy 
 
-FIAP 15SOAT15 - Tech Challenge Fase 1 - Grupo 38
+FIAP 15SOAT15 - Tech Challenge Fase 2 - Grupo 138
 
 Sistema de gestão de oficina automotiva desenvolvido com Spring Boot e DDD.
 
