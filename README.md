@@ -11,18 +11,25 @@ Visto a solicitação da criação nesta primeira etapa do projeto de um monolit
 
 A utilização do Monolito Modular, além de permitir a criação da aplicação de maneira mais organizada, funcionando sob uma mesma base de dados, facilita a transição desse projeto para uma arquitetura de microsserviços posteriormente, algo que será exigido nas próximas fases do projeto.
 
-A estruturação das classes e entidades criadas seguirá os princípios de **DDD (Domain-Driven Design)**, organizadas nas seguintes camadas:
+A estruturação das classes e entidades criadas segue os princípios da **Clean Architecture**, combinados com conceitos de **DDD (Domain-Driven Design)** para a modelagem dos agregados, organizadas nas seguintes camadas:
 
 ```
 br.com.ofisy
-├── domain/               # Dominio do negócio
-│   └── <agregado>/       # Entidade rica + interface de repositório por agregado
-├── application/          # Orquestração de comandos
-├── infrastructure/       # Implementações técnicas externas ao domínio
-│   ├── config/           # Configurações transversais (segurança, Swagger, etc.)
-│   ├── persistence/      # Implementa os repositórios do domínio (Spring Data JPA)
-└── interfaces/
-    └── api/              # Controllers REST (endpoints)
+├── domain/                       # Regras de negócio e entidades ricas, sem dependências externas
+│   └── <agregado>/                   # Entidade, Value Objects, interface de repositório (porta) e exceções por agregado
+├── application/                  # Casos de uso da aplicação (orquestração das regras de negócio)
+│   └── <agregado>/
+│       └── <caso-de-uso>/            # Interface do UseCase + Service com a implementação do caso de uso
+├── adapters/                     # Implementações que conectam o domínio/aplicação ao mundo externo
+│   ├── controllers/                  # Adaptadores de entrada: Controllers REST, contrato da API (Api) e DTOs de request/response
+│   │   └── <agregado>/
+│   │       └── dto/
+│   ├── gateways/                     # Adaptadores de saída: implementação dos repositórios do domínio (Spring Data JPA)
+│   │   └── <agregado>/                   # Entity JPA, Mapper, RepositoryImpl (implementa a porta do domínio) e interface Spring Data
+│   └── presenters/                   # Conversão das entidades de domínio para os DTOs de resposta
+│       └── <agregado>/
+├── config/                       # Configurações transversais (segurança, JWT, Swagger, tratamento global de exceções)
+└── shared/                       # Utilitários compartilhados entre camadas (ex.: filtros de segurança, serviço de JWT)
 ```
 
 ---
@@ -54,12 +61,14 @@ A combinação dessas tecnologias permite a construção de um backend robusto e
 | PostgreSQL	                | Dependência para o banco de dados PostgreSQL                                                                                                                                                    | 	`postgresql`                           |
 | Docker Compose	            | Dependência para permitir utilização de docker compose para aplicação                                                                                                                           | 	`spring-boot-docker-compose`           |
 | Lombok                     | 	Dependência para permitir redução de código boilerplate através de anotações, gerando automaticamente getters, setters, construtores etc.	                                                     | `lombok`                                |
+| Spring Boot DevTools       | Dependência para acelerar o ciclo de desenvolvimento local, com reinício automático da aplicação a cada alteração de código                                                                     | `spring-boot-devtools`                  |
 | Spring Actuator            | 	Dependência utilizada para obter endpoints de monitoramento e observabilidade da aplicação, como verificação de saúde (/actuator/health), métricas entre outras informações	                   | `spring-boot-starter-actuator`          |
 | Spring Boot Test           | 	Dependência para escrita de testes automatizados, incluindo suporte a testes unitários e de integração com JUnit e Mockito	                                                                    | `spring-boot-starter-test`              |
 | Spring Boot Webmvc Test    |   Dependência que permite testar de forma isolada a camada de Controller (Web), simulando requisições HTTP, validando rotas, parâmetros de entrada e o JSON de retorno sem subir o servidor completo | `spring-boot-webmvc-test`               |
 | Spring Security Test       | 	Dependência para testes de endpoints protegidos, permitindo simular usuários autenticados e verificar comportamentos de segurança nos testes	                                                  | `spring-security-test`                  |
-| Flyway Core                | Dependência principal do framework de migração de banco de dados, responsável por gerenciar o histórico de versões, executar scripts SQL automaticamente e garantir a integridade do esquema    | `flyway-core`                           |
+| Flyway Core                | Dependência principal do framework de migração de banco de dados, responsável por gerenciar o histórico de versões, executar scripts SQL automaticamente e garantir a integridade do esquema    | `spring-boot-starter-flyway`            |
 | Flyway Database PostgreSQL | Extensão específica do Flyway que adiciona suporte completo às funcionalidades do PostgreSQL, permitindo que o framework se comunique corretamente com o dialeto e driver desse banco           | `flyway-database-postgresql`            |
+| Flyway Test                | Dependência com suporte do Spring Boot ao Flyway em ambiente de testes, utilizada em conjunto com o Testcontainers para garantir que as migrations sejam aplicadas nos testes de integração      | `spring-boot-starter-flyway-test`       |
 | Testcontainers             | Dependência para criação de containers Docker durante os testes de integração, permitindo subir um banco PostgreSQL real de forma isolada e automatizada | `spring-boot-testcontainers`, `testcontainers-postgresql`, `testcontainers-junit-jupiter` |
 | REST Assured               | Dependência para testes de integração de APIs REST, permitindo realizar requisições HTTP e validar respostas de forma fluente e legível | `rest-assured` |
 
@@ -67,18 +76,42 @@ A combinação dessas tecnologias permite a construção de um backend robusto e
 
 ## Arquivos de Configuração
 
+### Aplicação e Build
+
 - `application.yml` — configurações para subir o servidor em ambiente local, sendo banco via Docker e a aplicação na IDE;
 - `application-docker.yml` — configurações para subir o ambiente completo via Docker;
-- `pom.xml` — dependências do projeto gerenciadas via Maven;
+- `application-k8s.yml` — configurações do perfil `k8s`, utilizado quando a aplicação é executada no cluster Kubernetes (EKS), incluindo conexão com o banco via `POSTGRES_HOST` e habilitação dos probes de saúde do Actuator para liveness/readiness;
+- `pom.xml` — dependências do projeto gerenciadas via Maven.
+
+### Docker
+
 - `Dockerfile` — instruções para o Docker buildar a aplicação;
 - `compose.yaml` — orquestração dos containers da aplicação e do banco, permitindo subir o ambiente completo em qualquer lugar, por qualquer pessoa. Segue a nomenclatura mais recente para esse tipo de arquivo;
 - `compose.db.yaml` — configurações para subir apenas o container do banco para desenvolvimento local;
 - `compose.sonar.yaml` — configurações para subir apenas o container do SonarQube para análise de qualidade, vulnerabilidades e cobertura de testes da aplicação;
 - `compose.zap.yaml` — configurações para subir apenas o container do OWASP ZAP para análise de vulnerabilidades da aplicação;
-- `.dockerignore` — instruções para que o Docker ignore determinados arquivos e pastas durante o build, reduzindo o tamanho da imagem gerada;
+- `.dockerignore` — instruções para que o Docker ignore determinados arquivos e pastas durante o build, reduzindo o tamanho da imagem gerada.
+
+### Git e Ambiente
+
 - `.gitignore` — instruções para que o Git ignore determinados tipos, pastas e denominações de arquivos;
+- `.gitattributes` — normaliza o final de linha (`eol`) dos scripts `mvnw`/`mvnw.cmd` entre diferentes sistemas operacionais;
 - `.env` — variáveis sensíveis utilizadas no projeto. Este arquivo **não é versionado**;
 - `env.example` — arquivo de exemplo do `.env` para criação do ambiente local.
+
+### CI/CD (GitHub Actions)
+
+- `.github/workflows/ci.yml` — pipeline de Build & Test (CI), executado a cada push/PR;
+- `.github/workflows/cd.yml` — pipeline de deploy automático na AWS (CD), executado após o sucesso do CI no merge para `master`;
+- `.github/workflows/destroy.yml` — pipeline manual para destruir a infraestrutura provisionada na AWS;
+- `.github/workflows/notify-pr.yml` — pipeline que notifica a criação/atualização de Pull Requests em um canal do Discord.
+
+### Infraestrutura e Testes de Carga/Segurança
+
+- `infra/` — arquivos Terraform para provisionamento da infraestrutura AWS (EKS, RDS, ECR, redes, etc.), detalhados no [Guia de Deploy](docs/DEPLOY.md);
+- `k8s/` — manifestos Kubernetes (`deployment`, `service`, `configmap`, `secret`, `hpa`) utilizados para executar a aplicação no cluster EKS;
+- `k6/` — scripts de teste de carga com [k6](https://k6.io/);
+- `zap/` — plano de varredura do OWASP ZAP para análise de vulnerabilidades da aplicação.
 
 ---
 
@@ -190,13 +223,20 @@ docker compose -f compose.db.yaml up -d
 
 ---
 
-## Diagramas
+## Documentação Adicional
+
+### Arquitetura
 - **[Diagrama de Componentes](docs/COMPONENT-DIAGRAM.md)** - Componentes do backend e como se relacionam (padrão C4)
+
+### Deploy e Infraestrutura
+- **[Guia de Deploy](docs/DEPLOY.md)** - Instruções completas para execução local (Docker Compose) e deploy em nuvem AWS (CI/CD ou CLI)
+- **[Infraestrutura AWS com Terraform](docs/INFRASTRUCTURE.md)** - Recursos AWS provisionados, arquitetura de rede e passo a passo para inicializar, validar e aplicar a infraestrutura
+- **[Kubernetes no EKS](docs/K8S.md)** - Manual para publicar e operar a aplicação no cluster EKS provisionado via Terraform
 - **[Diagrama de Infraestrutura e CI/CD](docs/INFRA-CICD-DIAGRAM.md)** - Infraestrutura AWS e como é o fluxo de CI/CD para deploy da aplicação
 
----
-
-## Documentação Adicional
-- **[Guia de Deploy](docs/DEPLOY.md)** - Instruções completas para execução local (Docker/Minikube) e nuvem AWS (CI/CD ou CLI)
+### Qualidade e Testes
 - **[Guia de Testes](docs/TESTING.md)** - Instruções para executar análises de cobertura de testes e segurança
+- **[Teste de Carga (k6)](docs/LOAD-TEST.md)** - Como executar o script de teste de carga para validar a estabilidade da API sob volume crescente de requisições
+
+### Banco de Dados
 - **[Guia de Flyway](docs/FLYWAY.md)** - Instruções para criar e executar migrations
