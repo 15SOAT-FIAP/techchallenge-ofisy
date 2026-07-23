@@ -1,5 +1,0 @@
-account_id = "131560185906"
-role_name  = "LabRole"
-db_password = "SenhaSegura123"
-eks_cluster_role = "<EKS_CLUSTER_ROLE>"
-eks_node_role = "<EKS_NODE_ROLE>"
