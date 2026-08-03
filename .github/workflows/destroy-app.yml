@@ -32,4 +32,9 @@ jobs:
           kubectl delete -f k8s/deployment.yml --ignore-not-found
           kubectl delete -f k8s/configmap.yml --ignore-not-found
           kubectl delete -f k8s/secret.yml --ignore-not-found
+          
+          # Aguarda a AWS remover fisicamente o Load Balancer e liberar ENIs
+          echo "Aguardando 30 segundos para liberação do Elastic Load Balancer..."
+          sleep 30
+          
           echo "Aplicação desinstalada do Kubernetes com sucesso."
