@@ -40,7 +40,7 @@ jobs:
       # 3. Obter o Endereço do Banco de Dados RDS PostgreSQL
       - name: Obter Endereço do RDS (PostgreSQL)
         run: |
-          RDS_ENDPOINT=$(aws rds describe-db-instances --query "DBInstances[?Engine=='postgres'].Endpoint.Address" --output text | head -n 1)
+          RDS_ENDPOINT=$(aws rds describe-db-instances --db-instance-identifier ofisy-postgres-db --query "DBInstances[0].Endpoint.Address" --output text)
           if [ -z "$RDS_ENDPOINT" ] || [ "$RDS_ENDPOINT" == "None" ]; then
             echo "RDS não retornado dinamicamente. Utilizando secret RDS_HOST se disponível."
             RDS_ENDPOINT="${{ secrets.RDS_HOST }}"
