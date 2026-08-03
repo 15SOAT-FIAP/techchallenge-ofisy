@@ -40,7 +40,7 @@ jobs:
       # 3. Obter o Endereço do Banco de Dados RDS PostgreSQL
       - name: Obter Endereço do RDS (PostgreSQL)
         run: |
-          RDS_ENDPOINT=$(aws rds describe-db-instances --db-instance-identifier techchallenge-ofisy-postgres-db --query "DBInstances[0].Endpoint.Address" --output text)
+          RDS_ENDPOINT=$(aws rds describe-db-instances --db-instance-identifier ofisy-postgres-db --query "DBInstances[0].Endpoint.Address" --output text)
           if [ -z "$RDS_ENDPOINT" ] || [ "$RDS_ENDPOINT" == "None" ]; then
             echo "RDS não retornado dinamicamente. Utilizando secret RDS_HOST se disponível."
             RDS_ENDPOINT="${{ secrets.RDS_HOST }}"
@@ -51,7 +51,7 @@ jobs:
       # 4. Conectar kubectl no Cluster EKS
       - name: Conectar ao EKS Cluster
         run: |
-          aws eks update-kubeconfig --region us-east-1 --name techchallenge-ofisy-cluster
+          aws eks update-kubeconfig --region us-east-1 --name ofisy-cluster
 
       # 5. Garantir que o Metrics Server está instalado (necessário para o HPA calcular CPU/memória)
       - name: Instalar/Atualizar Metrics Server

@@ -23,7 +23,7 @@ jobs:
 
       - name: Conectar ao EKS Cluster
         run: |
-          aws eks update-kubeconfig --region us-east-1 --name techchallenge-ofisy-cluster
+          aws eks update-kubeconfig --region us-east-1 --name ofisy-cluster
 
       - name: Remover Recursos do EKS
         run: |
