@@ -102,13 +102,25 @@ A combinação dessas tecnologias permite a construção de um backend robusto e
 ### CI/CD (GitHub Actions)
 
 - `.github/workflows/ci.yml` — pipeline de Build & Test (CI), executado a cada push/PR;
-- `.github/workflows/cd.yml` — pipeline de deploy automático na AWS (CD), executado após o sucesso do CI no merge para `master`;
-- `.github/workflows/destroy.yml` — pipeline manual para destruir a infraestrutura provisionada na AWS;
+- `.github/workflows/cd.yml` — pipeline de deploy automático na AWS EKS (CD), executado após o sucesso do CI no merge para `master`;
+- `.github/workflows/destroy-app.yml` — pipeline manual para desinstalar os recursos da aplicação no Kubernetes (EKS);
 - `.github/workflows/notify-pr.yml` — pipeline que notifica a criação/atualização de Pull Requests em um canal do Discord.
 
-### Infraestrutura e Testes de Carga/Segurança
+---
 
-- `infra/` — arquivos Terraform para provisionamento da infraestrutura AWS (EKS, RDS, ECR, redes, etc.);
+## 🏛️ Arquitetura e Repositórios da Fase 3 (Tech Challenge)
+
+Em atendimento às diretrizes da **Fase 3**, o projeto foi estruturado de forma desacoplada em **4 repositórios independentes**, cada um com seu próprio ciclo de entrega e CI/CD automatizado:
+
+1. 🔐 **Serverless Function (Lambda)** — Autenticação de clientes via CPF e geração de JWT token.
+2. ☁️ **[Infraestrutura Kubernetes EKS (Terraform)](https://github.com/15SOAT-FIAP/techchallenge-ofisy-eks-infra)** — Provisionamento da rede (VPC, Subnets, Gateways) e cluster EKS na AWS.
+3. 🗄️ **[Infraestrutura do Banco de Dados RDS (Terraform)](https://github.com/15SOAT-FIAP/techchallenge-ofisy-rds-infra)** — Provisionamento isolado do banco de dados relacional gerenciado AWS RDS PostgreSQL.
+4. 🚀 **[Aplicação Principal executando em Kubernetes](https://github.com/15SOAT-FIAP/techchallenge-ofisy)** *(Este repositório)* — Aplicação Spring Boot, Dockerfile, manifestos Kubernetes (`k8s/`) e pipeline CD no EKS.
+
+---
+
+### Manifestos Kubernetes e Testes
+
 - `k8s/` — manifestos Kubernetes (`deployment`, `service`, `configmap`, `secret`, `hpa`) utilizados para executar a aplicação no cluster EKS;
 - `k6/` — scripts de teste de carga com [k6](https://k6.io/);
 - `zap/` — plano de varredura do OWASP ZAP para análise de vulnerabilidades da aplicação.

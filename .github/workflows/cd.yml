@@ -9,7 +9,7 @@ on:
 
 jobs:
   deploy-to-aws:
-    name: Deploy Automático na AWS (EKS & RDS)
+    name: Deploy Automático na AWS (Kubernetes EKS)
     runs-on: ubuntu-latest
     environment: AWS_ACADEMY
     if: github.event.workflow_run.conclusion == 'success'
@@ -37,71 +37,23 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # 3. Configurar Terraform
-      - name: Configurar Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_wrapper: false
-
-      # 4. Criar Bucket S3 (Terraform Bootstrap)
-      - name: Terraform Bootstrap (S3 Bucket)
+      # 3. Obter o Endereço do Banco de Dados RDS PostgreSQL
+      - name: Obter Endereço do RDS (PostgreSQL)
         run: |
-          cd infra/bootstrap
-          echo 'account_id = "${{ secrets.AWS_ACCOUNT_ID }}"' > terraform.tfvars
-          terraform init
-          
-          # Se o bucket já existir, importa ele para o estado para evitar erro de criação duplicada
-          aws s3api head-bucket --bucket "ofisy-tfstate-${{ secrets.AWS_ACCOUNT_ID }}" 2>/dev/null && \
-          terraform import aws_s3_bucket.tfstate ofisy-tfstate-${{ secrets.AWS_ACCOUNT_ID }} || echo "Bucket nao existe, sera criado."
-          
-          terraform apply -auto-approve
-
-      # 5. Inicializar o Terraform e Executar o Plan
-      - name: Terraform Plan
-        run: |
-          cd infra
-          
-          # Busca dinamicamente os nomes das roles que mudam a cada reinício do AWS Academy
-          EKS_CLUSTER_ROLE=$(aws iam list-roles --query "Roles[?contains(RoleName, 'LabEksClusterRole')].RoleName" --output text)
-          EKS_NODE_ROLE=$(aws iam list-roles --query "Roles[?contains(RoleName, 'LabEksNodeRole')].RoleName" --output text)
-          
-          # Cria o arquivo terraform.tfvars com os dados da AWS Academy
-          echo 'account_id = "${{ secrets.AWS_ACCOUNT_ID }}"' > terraform.tfvars
-          echo 'role_name  = "LabRole"' >> terraform.tfvars
-          echo 'db_password = "${{ secrets.DB_PASSWORD }}"' >> terraform.tfvars
-          echo "eks_cluster_role = \"$EKS_CLUSTER_ROLE\"" >> terraform.tfvars
-          echo "eks_node_role = \"$EKS_NODE_ROLE\"" >> terraform.tfvars
-          
-          # Cria o arquivo backend.hcl apontando para o bucket do tfstate
-          echo 'bucket = "ofisy-tfstate-${{ secrets.AWS_ACCOUNT_ID }}"' > backend.hcl
-          
-          terraform init -backend-config=backend.hcl
-          
-          # Executa o plan e salva o output para o sumário do GitHub Actions (Job Summary)
-          terraform plan -no-color > plan.txt
-          cat plan.txt
-          
-          echo "### Planejamento de Alterações do Terraform (Plan)" >> $GITHUB_STEP_SUMMARY
-          echo '```terraform' >> $GITHUB_STEP_SUMMARY
-          cat plan.txt >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-
-      # 6. Executar o Terraform Apply
-      - name: Provisionar Infraestrutura (Terraform Apply)
-        run: |
-          cd infra
-          terraform apply -auto-approve
-          
-          # Captura o endereço (hostname) do RDS gerado e salva em uma variável de ambiente global
-          RDS_ENDPOINT=$(terraform output -raw rds_address)
+          RDS_ENDPOINT=$(aws rds describe-db-instances --db-instance-identifier ofisy-postgres-db --query "DBInstances[0].Endpoint.Address" --output text)
+          if [ -z "$RDS_ENDPOINT" ] || [ "$RDS_ENDPOINT" == "None" ]; then
+            echo "RDS não retornado dinamicamente. Utilizando secret RDS_HOST se disponível."
+            RDS_ENDPOINT="${{ secrets.RDS_HOST }}"
+          fi
           echo "RDS_HOST=$RDS_ENDPOINT" >> $GITHUB_ENV
+          echo "RDS Host configurado: $RDS_ENDPOINT"
 
-      # 7. Conectar kubectl no Cluster EKS
+      # 4. Conectar kubectl no Cluster EKS
       - name: Conectar ao EKS Cluster
         run: |
           aws eks update-kubeconfig --region us-east-1 --name ofisy-cluster
 
-      # 8. Garantir que o Metrics Server está instalado (necessário para o HPA calcular CPU/memória)
+      # 5. Garantir que o Metrics Server está instalado (necessário para o HPA calcular CPU/memória)
       - name: Instalar/Atualizar Metrics Server
         run: |
           kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
@@ -113,24 +65,24 @@ jobs:
 
           kubectl rollout status deployment/metrics-server -n kube-system --timeout=120s
 
-      # 9. Autenticar Docker no ECR
+      # 6. Autenticar Docker no ECR
       - name: Login no Amazon ECR
         run: |
           aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
 
-      # 10. Compilar o projeto e gerar o JAR
+      # 7. Compilar o projeto e gerar o JAR
       - name: Compilar Projeto (Maven)
         run: |
           mvn clean package -DskipTests
           echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
-      # 11. Buildar e Push da imagem Docker para o ECR da AWS
+      # 8. Buildar e Push da imagem Docker para o ECR da AWS
       - name: Enviar Imagem para o ECR
         run: |
           docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:${{ env.IMAGE_TAG }} .
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:${{ env.IMAGE_TAG }}
 
-      # 12. Atualizar placeholders e aplicar no cluster EKS da AWS
+      # 9. Atualizar placeholders e aplicar no cluster EKS da AWS
       - name: Deploy dos Manifestos no EKS
         run: |
           # Codifica as chaves do GitHub Secrets em base64 dinamicamente (sem quebra de linha)
@@ -183,3 +135,4 @@ jobs:
           else
             echo "Não foi possível obter o DNS do Load Balancer a tempo." >> $GITHUB_STEP_SUMMARY
           fi
+
