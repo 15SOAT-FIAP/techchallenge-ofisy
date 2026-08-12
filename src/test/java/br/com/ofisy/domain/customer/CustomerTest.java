@@ -2,6 +2,7 @@ package br.com.ofisy.domain.customer;
 
 import br.com.ofisy.domain.customer.exceptions.CustomerAlreadyActiveException;
 import br.com.ofisy.domain.customer.exceptions.CustomerAlreadyInactiveException;
+import br.com.ofisy.domain.customer.exceptions.InactiveCustomerException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CustomerTest {
@@ -233,6 +235,23 @@ class CustomerTest {
             assertThatThrownBy(customer::deactivate)
                     .isInstanceOf(CustomerAlreadyInactiveException.class)
                     .hasMessageContaining("já está desativado");
+        }
+
+        @Test
+        void shouldNotThrowOnValidateIsActiveWhenActive() {
+            var customer = Customer.create(new CpfCnpj(VALID_CPF), VALID_NAME, VALID_EMAIL, VALID_PHONE);
+
+            assertThatCode(customer::validateIsActive).doesNotThrowAnyException();
+        }
+
+        @Test
+        void shouldThrowOnValidateIsActiveWhenInactive() {
+            var customer = Customer.create(new CpfCnpj(VALID_CPF), VALID_NAME, VALID_EMAIL, VALID_PHONE);
+            customer.deactivate();
+
+            assertThatThrownBy(customer::validateIsActive)
+                    .isInstanceOf(InactiveCustomerException.class)
+                    .hasMessageContaining("está inativo");
         }
     }
 }
