@@ -50,7 +50,7 @@ class CustomerGatewayMapperTest {
         void shouldPreserveIdForReconstructedCustomer() {
             var id = UUID.randomUUID();
             var customer = Customer.reconstruct(id, new CpfCnpj(VALID_CPF), VALID_NAME, VALID_EMAIL, VALID_PHONE,
-                    LocalDateTime.now(), LocalDateTime.now());
+                    true, LocalDateTime.now(), LocalDateTime.now());
 
             var entity = CustomerMapper.toEntity(customer);
 
@@ -72,7 +72,7 @@ class CustomerGatewayMapperTest {
             var createdAt = LocalDateTime.of(2024, 1, 10, 10, 0);
             var updatedAt = LocalDateTime.of(2024, 1, 15, 12, 0);
             var customer = Customer.reconstruct(UUID.randomUUID(), new CpfCnpj(VALID_CPF),
-                    VALID_NAME, VALID_EMAIL, VALID_PHONE, createdAt, updatedAt);
+                    VALID_NAME, VALID_EMAIL, VALID_PHONE, true, createdAt, updatedAt);
 
             var entity = CustomerMapper.toEntity(customer);
 
@@ -143,6 +143,7 @@ class CustomerGatewayMapperTest {
                 .name(VALID_NAME)
                 .email(VALID_EMAIL)
                 .phone(VALID_PHONE)
+                .active(true)
                 .createdAt(LocalDateTime.of(2024, 1, 10, 10, 0))
                 .updatedAt(LocalDateTime.of(2024, 1, 15, 12, 0))
                 .build();

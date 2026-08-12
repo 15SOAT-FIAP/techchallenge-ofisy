@@ -137,9 +137,10 @@ class CustomerTest {
             var createdAt = LocalDateTime.of(2024, 1, 10, 10, 0);
             var updatedAt = LocalDateTime.of(2024, 1, 15, 12, 0);
 
-            var customer = Customer.reconstruct(id, cpfCnpj, VALID_NAME, VALID_EMAIL, VALID_PHONE, createdAt, updatedAt);
+            var customer = Customer.reconstruct(id, cpfCnpj, VALID_NAME, VALID_EMAIL, VALID_PHONE, false, createdAt, updatedAt);
 
             assertThat(customer.getId()).isEqualTo(id);
+            assertThat(customer.isActive()).isFalse();
             assertThat(customer.getCpfCnpj()).isEqualTo(cpfCnpj);
             assertThat(customer.getName()).isEqualTo(VALID_NAME);
             assertThat(customer.getEmail()).isEqualTo(VALID_EMAIL);
@@ -155,7 +156,7 @@ class CustomerTest {
             var updatedAt = LocalDateTime.of(2021, 3, 15, 9, 30);
 
             var customer = Customer.reconstruct(id, new CpfCnpj(VALID_CPF), VALID_NAME, VALID_EMAIL, VALID_PHONE,
-                    createdAt, updatedAt);
+                    true, createdAt, updatedAt);
 
             assertThat(customer.getCreatedAt()).isEqualTo(createdAt);
             assertThat(customer.getUpdatedAt()).isEqualTo(updatedAt);
@@ -167,7 +168,7 @@ class CustomerTest {
             var updatedAt = LocalDateTime.now();
 
             var customer = Customer.reconstruct(null, new CpfCnpj(VALID_CPF), VALID_NAME, VALID_EMAIL, VALID_PHONE,
-                    createdAt, updatedAt);
+                    true, createdAt, updatedAt);
 
             assertThat(customer.getId()).isNull();
         }

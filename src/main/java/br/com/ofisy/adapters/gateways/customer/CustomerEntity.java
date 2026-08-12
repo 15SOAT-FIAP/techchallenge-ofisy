@@ -39,6 +39,9 @@ public class CustomerEntity {
     @Column(nullable = false)
     private String phone;
 
+    @Column(nullable = false)
+    private boolean active;
+
     @Column
     private LocalDateTime createdAt;
 
