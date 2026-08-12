@@ -1,6 +1,7 @@
 package br.com.ofisy.application.serviceorder.createcomplete;
 
 import br.com.ofisy.application.customer.identifybyid.IdentifyByIdCustomerUseCase;
+import br.com.ofisy.domain.customer.Customer;
 import br.com.ofisy.application.quote.create.CreateQuoteUseCase;
 import br.com.ofisy.application.serviceorder.create.CreateServiceOrderUseCase;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
@@ -29,7 +30,8 @@ public class CreateCompleteServiceOrderService implements CreateCompleteServiceO
     @Override
     @Transactional
     public ServiceOrder execute(CreateCompleteServiceOrderUseCase.CreateCompleteServiceOrderCommand cmd) {
-        identifyByIdCustomerUseCase.execute(cmd.customerId());
+        Customer customer = identifyByIdCustomerUseCase.execute(cmd.customerId());
+        customer.validateIsActive();
 
         Vehicle vehicle = identifyVehicleByIdUseCase.execute(cmd.vehicleId());
         if (!vehicle.getCustomerId().equals(cmd.customerId())) {
