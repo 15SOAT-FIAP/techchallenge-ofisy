@@ -223,6 +223,7 @@ class CustomerControllerTest extends ControllerTestBase {
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.cpfCnpj").value(VALID_CPF))
                     .andExpect(jsonPath("$.name").value("John Doe"))
+                    .andExpect(jsonPath("$.active").value(true))
                     .andExpect(jsonPath("$.createdAt").exists())
                     .andExpect(jsonPath("$.updatedAt").exists());
         }

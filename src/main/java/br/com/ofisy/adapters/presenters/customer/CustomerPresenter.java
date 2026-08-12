@@ -16,6 +16,7 @@ public class CustomerPresenter {
                 customer.getName(),
                 customer.getEmail(),
                 customer.getPhone(),
+                customer.isActive(),
                 customer.getCreatedAt(),
                 customer.getUpdatedAt()
         );
