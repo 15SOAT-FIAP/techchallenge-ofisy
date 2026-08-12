@@ -3,6 +3,8 @@ package br.com.ofisy.adapters.controllers.customer;
 import br.com.ofisy.adapters.controllers.customer.dto.CustomerRequestDTO;
 import br.com.ofisy.adapters.controllers.customer.dto.CustomerResponseDTO;
 import br.com.ofisy.adapters.presenters.customer.CustomerPresenter;
+import br.com.ofisy.application.customer.activate.ActivateCustomerUseCase;
+import br.com.ofisy.application.customer.deactivate.DeactivateCustomerUseCase;
 import br.com.ofisy.application.customer.identifybycpfcnpj.IdentifyByCpfCnpjCustomerUseCase;
 import br.com.ofisy.application.customer.identifybyid.IdentifyByIdCustomerUseCase;
 import br.com.ofisy.application.customer.list.ListRegisteredCustomerUseCase;
@@ -29,6 +31,8 @@ public class CustomerController implements CustomerApi {
     private final ListRegisteredCustomerUseCase listRegisteredCustomerUseCase;
     private final IdentifyByIdCustomerUseCase identifyByIdCustomerUseCase;
     private final IdentifyByCpfCnpjCustomerUseCase identifyByCpfCnpjCustomerUseCase;
+    private final ActivateCustomerUseCase activateCustomerUseCase;
+    private final DeactivateCustomerUseCase deactivateCustomerUseCase;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT')")
@@ -60,5 +64,19 @@ public class CustomerController implements CustomerApi {
         RegisterCustomerUseCase.RegisterCustomerCommand cmd = new RegisterCustomerUseCase.RegisterCustomerCommand(
                 requestDTO.cpfCnpj(), requestDTO.name(), requestDTO.email(), requestDTO.phone());
         return ResponseEntity.status(HttpStatus.CREATED).body(CustomerPresenter.present(registerCustomerUseCase.execute(cmd)));
+    }
+
+    @PatchMapping("/{id}/activate")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT')")
+    public ResponseEntity<CustomerResponseDTO> activateCustomer(@PathVariable UUID id) {
+
+        return ResponseEntity.ok(CustomerPresenter.present(activateCustomerUseCase.execute(id)));
+    }
+
+    @PatchMapping("/{id}/deactivate")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT')")
+    public ResponseEntity<CustomerResponseDTO> deactivateCustomer(@PathVariable UUID id) {
+
+        return ResponseEntity.ok(CustomerPresenter.present(deactivateCustomerUseCase.execute(id)));
     }
 }

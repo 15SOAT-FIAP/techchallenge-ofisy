@@ -6,6 +6,8 @@ import br.com.ofisy.adapters.controllers.user.dto.CreateUserRequestDTO;
 import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsException;
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
+import br.com.ofisy.application.customer.activate.ActivateCustomerUseCase;
+import br.com.ofisy.application.customer.deactivate.DeactivateCustomerUseCase;
 import br.com.ofisy.application.customer.identifybycpfcnpj.IdentifyByCpfCnpjCustomerUseCase;
 import br.com.ofisy.application.customer.identifybyid.IdentifyByIdCustomerUseCase;
 import br.com.ofisy.application.customer.list.ListRegisteredCustomerUseCase;
@@ -106,6 +108,12 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
     private IdentifyByIdCustomerUseCase identifyByIdCustomerUseCase;
     @MockitoBean
     private IdentifyByCpfCnpjCustomerUseCase identifyByCpfCnpjCustomerUseCase;
+
+    @MockitoBean
+    private ActivateCustomerUseCase activateCustomerUseCase;
+
+    @MockitoBean
+    private DeactivateCustomerUseCase deactivateCustomerUseCase;
 
     @MockitoBean
     private CreateServiceOrderUseCase createServiceOrderUseCase;
