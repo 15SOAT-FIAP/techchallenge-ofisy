@@ -1,5 +1,7 @@
 package br.com.ofisy.domain.customer;
 
+import br.com.ofisy.domain.customer.exceptions.CustomerAlreadyActiveException;
+import br.com.ofisy.domain.customer.exceptions.CustomerAlreadyInactiveException;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -41,5 +43,21 @@ public class Customer {
         customer.createdAt = createdAt;
         customer.updatedAt = updatedAt;
         return customer;
+    }
+
+    public void activate() {
+        if (this.active) {
+            throw new CustomerAlreadyActiveException(this.id);
+        }
+        this.active = true;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void deactivate() {
+        if (!this.active) {
+            throw new CustomerAlreadyInactiveException(this.id);
+        }
+        this.active = false;
+        this.updatedAt = LocalDateTime.now();
     }
 }

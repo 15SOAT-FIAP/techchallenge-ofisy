@@ -1,5 +1,7 @@
 package br.com.ofisy.domain.customer;
 
+import br.com.ofisy.domain.customer.exceptions.CustomerAlreadyActiveException;
+import br.com.ofisy.domain.customer.exceptions.CustomerAlreadyInactiveException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -7,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CustomerTest {
 
@@ -171,6 +174,65 @@ class CustomerTest {
                     true, createdAt, updatedAt);
 
             assertThat(customer.getId()).isNull();
+        }
+    }
+
+    @Nested
+    class Activation {
+
+        @Test
+        void shouldCreateCustomerAsActive() {
+            var customer = Customer.create(new CpfCnpj(VALID_CPF), VALID_NAME, VALID_EMAIL, VALID_PHONE);
+
+            assertThat(customer.isActive()).isTrue();
+        }
+
+        @Test
+        void shouldDeactivateActiveCustomer() {
+            var customer = Customer.create(new CpfCnpj(VALID_CPF), VALID_NAME, VALID_EMAIL, VALID_PHONE);
+
+            customer.deactivate();
+
+            assertThat(customer.isActive()).isFalse();
+        }
+
+        @Test
+        void shouldActivateInactiveCustomer() {
+            var customer = Customer.create(new CpfCnpj(VALID_CPF), VALID_NAME, VALID_EMAIL, VALID_PHONE);
+            customer.deactivate();
+
+            customer.activate();
+
+            assertThat(customer.isActive()).isTrue();
+        }
+
+        @Test
+        void shouldRefreshUpdatedAtOnDeactivate() {
+            var customer = Customer.reconstruct(UUID.randomUUID(), new CpfCnpj(VALID_CPF), VALID_NAME, VALID_EMAIL,
+                    VALID_PHONE, true, LocalDateTime.of(2020, 1, 1, 0, 0), LocalDateTime.of(2020, 1, 1, 0, 0));
+
+            customer.deactivate();
+
+            assertThat(customer.getUpdatedAt()).isAfter(LocalDateTime.of(2020, 1, 1, 0, 0));
+        }
+
+        @Test
+        void shouldThrowWhenActivatingAlreadyActiveCustomer() {
+            var customer = Customer.create(new CpfCnpj(VALID_CPF), VALID_NAME, VALID_EMAIL, VALID_PHONE);
+
+            assertThatThrownBy(customer::activate)
+                    .isInstanceOf(CustomerAlreadyActiveException.class)
+                    .hasMessageContaining("já está ativo");
+        }
+
+        @Test
+        void shouldThrowWhenDeactivatingAlreadyInactiveCustomer() {
+            var customer = Customer.create(new CpfCnpj(VALID_CPF), VALID_NAME, VALID_EMAIL, VALID_PHONE);
+            customer.deactivate();
+
+            assertThatThrownBy(customer::deactivate)
+                    .isInstanceOf(CustomerAlreadyInactiveException.class)
+                    .hasMessageContaining("já está desativado");
         }
     }
 }
