@@ -15,6 +15,7 @@ public class CustomerMapper {
                 entity.getName(),
                 entity.getEmail(),
                 entity.getPhone(),
+                entity.isActive(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt()
         );
@@ -27,6 +28,7 @@ public class CustomerMapper {
                 .name(customer.getName())
                 .email(customer.getEmail())
                 .phone(customer.getPhone())
+                .active(customer.isActive())
                 .createdAt(customer.getCreatedAt())
                 .updatedAt(customer.getUpdatedAt())
                 .build();

@@ -1,6 +1,11 @@
 package br.com.ofisy.application.vehicle.register;
 
+import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
+import br.com.ofisy.application.customer.identifybyid.IdentifyByIdCustomerUseCase;
 import br.com.ofisy.application.vehicle.exceptions.VehicleAlreadyExistsException;
+import br.com.ofisy.domain.customer.CpfCnpj;
+import br.com.ofisy.domain.customer.Customer;
+import br.com.ofisy.domain.customer.exceptions.InactiveCustomerException;
 import br.com.ofisy.domain.vehicle.LicensePlate;
 import br.com.ofisy.domain.vehicle.Vehicle;
 import br.com.ofisy.domain.vehicle.VehicleRepository;
@@ -39,6 +44,9 @@ class RegisterVehicleServiceTest {
     @Mock
     private VehicleRepository vehicleRepository;
 
+    @Mock
+    private IdentifyByIdCustomerUseCase identifyByIdCustomerUseCase;
+
     @InjectMocks
     private RegisterVehicleService registerVehicleService;
 
@@ -49,6 +57,7 @@ class RegisterVehicleServiceTest {
         @ValueSource(strings = {VALID_OLD_PLATE, VALID_MERCOSUL_PLATE})
         void shouldSaveAndReturnVehicleWhenPlateIsNew(String plate) {
             RegisterVehicleUseCase.RegisterVehicleCommand cmd = validCommand(plate);
+            when(identifyByIdCustomerUseCase.execute(VALID_CUSTOMER_ID)).thenReturn(activeCustomer());
             when(vehicleRepository.findByLicensePlate(any(LicensePlate.class))).thenReturn(Optional.empty());
             when(vehicleRepository.save(any(Vehicle.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -72,6 +81,7 @@ class RegisterVehicleServiceTest {
 
         @Test
         void shouldCallRepositorySaveExactlyOnce() {
+            when(identifyByIdCustomerUseCase.execute(VALID_CUSTOMER_ID)).thenReturn(activeCustomer());
             when(vehicleRepository.findByLicensePlate(any(LicensePlate.class))).thenReturn(Optional.empty());
             when(vehicleRepository.save(any(Vehicle.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -85,6 +95,7 @@ class RegisterVehicleServiceTest {
         void shouldThrowVehicleAlreadyExistsExceptionWhenPlateAlreadyRegistered(String plate) {
             Vehicle existing = Vehicle.create(VALID_CUSTOMER_ID, new LicensePlate(plate),
                     VALID_MODEL, VALID_BRAND, VALID_COLOR, VALID_YEAR, null);
+            when(identifyByIdCustomerUseCase.execute(VALID_CUSTOMER_ID)).thenReturn(activeCustomer());
             when(vehicleRepository.findByLicensePlate(any(LicensePlate.class))).thenReturn(Optional.of(existing));
 
             assertThatThrownBy(() -> registerVehicleService.execute(validCommand(plate)))
@@ -93,10 +104,41 @@ class RegisterVehicleServiceTest {
 
             verify(vehicleRepository, never()).save(any(Vehicle.class));
         }
+
+        @Test
+        void shouldThrowInactiveCustomerExceptionWhenCustomerIsInactive() {
+            when(identifyByIdCustomerUseCase.execute(VALID_CUSTOMER_ID)).thenReturn(inactiveCustomer());
+
+            assertThatThrownBy(() -> registerVehicleService.execute(validCommand(VALID_OLD_PLATE)))
+                    .isInstanceOf(InactiveCustomerException.class);
+
+            verify(vehicleRepository, never()).save(any(Vehicle.class));
+        }
+
+        @Test
+        void shouldPropagateCustomerNotFoundExceptionWhenCustomerDoesNotExist() {
+            when(identifyByIdCustomerUseCase.execute(VALID_CUSTOMER_ID))
+                    .thenThrow(new CustomerNotFoundException(VALID_CUSTOMER_ID));
+
+            assertThatThrownBy(() -> registerVehicleService.execute(validCommand(VALID_OLD_PLATE)))
+                    .isInstanceOf(CustomerNotFoundException.class);
+
+            verify(vehicleRepository, never()).save(any(Vehicle.class));
+        }
     }
 
     private RegisterVehicleUseCase.RegisterVehicleCommand validCommand(String plate) {
         return new RegisterVehicleUseCase.RegisterVehicleCommand(
                 VALID_CUSTOMER_ID, plate, VALID_MODEL, VALID_BRAND, VALID_COLOR, VALID_YEAR, null);
+    }
+
+    private Customer activeCustomer() {
+        return Customer.create(new CpfCnpj("52998224725"), "John Doe", "john@example.com", "11999999999");
+    }
+
+    private Customer inactiveCustomer() {
+        Customer customer = activeCustomer();
+        customer.deactivate();
+        return customer;
     }
 }

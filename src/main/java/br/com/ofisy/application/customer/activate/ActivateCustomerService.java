@@ -1,0 +1,29 @@
+package br.com.ofisy.application.customer.activate;
+
+import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
+import br.com.ofisy.domain.customer.Customer;
+import br.com.ofisy.domain.customer.CustomerRepository;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
+
+@Service
+@Transactional
+public class ActivateCustomerService implements ActivateCustomerUseCase {
+
+    private final CustomerRepository repository;
+
+    public ActivateCustomerService(CustomerRepository repository) {
+        this.repository = repository;
+    }
+
+    @Override
+    public Customer execute(UUID id) {
+        Customer customer = repository.findById(id)
+                .orElseThrow(() -> new CustomerNotFoundException(id));
+        customer.activate();
+        return repository.save(customer);
+    }
+}

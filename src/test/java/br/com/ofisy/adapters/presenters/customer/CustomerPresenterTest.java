@@ -54,7 +54,7 @@ class CustomerPresenterTest {
             var createdAt = LocalDateTime.of(2024, 1, 10, 10, 0);
             var updatedAt = LocalDateTime.of(2024, 1, 15, 12, 0);
             var customer = Customer.reconstruct(id, new CpfCnpj(VALID_CPF), VALID_NAME, VALID_EMAIL, VALID_PHONE,
-                    createdAt, updatedAt);
+                    true, createdAt, updatedAt);
 
             var dto = CustomerPresenter.present(customer);
 

@@ -1,6 +1,7 @@
 package br.com.ofisy.application.serviceorder.create;
 
 import br.com.ofisy.application.customer.identifybyid.IdentifyByIdCustomerUseCase;
+import br.com.ofisy.domain.customer.Customer;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
 import br.com.ofisy.application.user.getidbyemail.GetIdByEmailUseCase;
 import br.com.ofisy.application.vehicle.identifybyid.IdentifyVehicleByIdUseCase;
@@ -25,7 +26,8 @@ public class CreateServiceOrderService implements CreateServiceOrderUseCase {
     @Override
     @Transactional
     public ServiceOrder execute(CreateServiceOrderCommand cmd) {
-        identifyByIdCustomerUseCase.execute(cmd.customerId());
+        Customer customer = identifyByIdCustomerUseCase.execute(cmd.customerId());
+        customer.validateIsActive();
         Vehicle vehicle = identifyVehicleByIdUseCase.execute(cmd.vehicleId());
         if (!vehicle.getCustomerId().equals(cmd.customerId())) {
             throw new VehicleNotOwnedByCustomerException(cmd.vehicleId(), cmd.customerId());

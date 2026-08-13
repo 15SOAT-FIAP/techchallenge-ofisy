@@ -3,12 +3,16 @@ package br.com.ofisy.adapters.controllers.customer;
 import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsException;
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
+import br.com.ofisy.application.customer.activate.ActivateCustomerUseCase;
+import br.com.ofisy.application.customer.deactivate.DeactivateCustomerUseCase;
 import br.com.ofisy.application.customer.identifybycpfcnpj.IdentifyByCpfCnpjCustomerUseCase;
 import br.com.ofisy.application.customer.identifybyid.IdentifyByIdCustomerUseCase;
 import br.com.ofisy.application.customer.list.ListRegisteredCustomerUseCase;
 import br.com.ofisy.application.customer.register.RegisterCustomerUseCase;
 import br.com.ofisy.domain.customer.CpfCnpj;
 import br.com.ofisy.domain.customer.Customer;
+import br.com.ofisy.domain.customer.exceptions.CustomerAlreadyActiveException;
+import br.com.ofisy.domain.customer.exceptions.CustomerAlreadyInactiveException;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
 import br.com.ofisy.interfaces.api.ControllerTestBase;
 import org.junit.jupiter.api.Nested;
@@ -31,6 +35,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -54,6 +59,10 @@ class CustomerControllerTest extends ControllerTestBase {
     private IdentifyByIdCustomerUseCase identifyByIdCustomerUseCase;
     @MockitoBean
     private IdentifyByCpfCnpjCustomerUseCase identifyByCpfCnpjCustomerUseCase;
+    @MockitoBean
+    private ActivateCustomerUseCase activateCustomerUseCase;
+    @MockitoBean
+    private DeactivateCustomerUseCase deactivateCustomerUseCase;
 
     @Nested
     class GetAllCustomers {
@@ -223,6 +232,7 @@ class CustomerControllerTest extends ControllerTestBase {
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.cpfCnpj").value(VALID_CPF))
                     .andExpect(jsonPath("$.name").value("John Doe"))
+                    .andExpect(jsonPath("$.active").value(true))
                     .andExpect(jsonPath("$.createdAt").exists())
                     .andExpect(jsonPath("$.updatedAt").exists());
         }
@@ -369,6 +379,78 @@ class CustomerControllerTest extends ControllerTestBase {
                             .content(validBody()))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.title").value("CPF/CNPJ inválido"));
+        }
+    }
+
+    @Nested
+    class ActivateCustomer {
+
+        @Test
+        void shouldReturn200WithActiveCustomer() throws Exception {
+            var id = UUID.randomUUID();
+            when(activateCustomerUseCase.execute(id)).thenReturn(customerDomain(VALID_CPF, "John Doe"));
+
+            mockMvc.perform(patch(BASE_URL + "/{id}/activate", id).with(csrf()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.active").value(true));
+
+            verify(activateCustomerUseCase).execute(id);
+        }
+
+        @Test
+        void shouldReturn404WhenCustomerNotFound() throws Exception {
+            var id = UUID.randomUUID();
+            when(activateCustomerUseCase.execute(id)).thenThrow(new CustomerNotFoundException(id));
+
+            mockMvc.perform(patch(BASE_URL + "/{id}/activate", id).with(csrf()))
+                    .andExpect(status().isNotFound());
+        }
+
+        @Test
+        void shouldReturn409WhenCustomerAlreadyActive() throws Exception {
+            var id = UUID.randomUUID();
+            when(activateCustomerUseCase.execute(id)).thenThrow(new CustomerAlreadyActiveException(id));
+
+            mockMvc.perform(patch(BASE_URL + "/{id}/activate", id).with(csrf()))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.title").value("Conflito no status do cliente"));
+        }
+    }
+
+    @Nested
+    class DeactivateCustomer {
+
+        @Test
+        void shouldReturn200WithInactiveCustomer() throws Exception {
+            var id = UUID.randomUUID();
+            var customer = customerDomain(VALID_CPF, "John Doe");
+            customer.deactivate();
+            when(deactivateCustomerUseCase.execute(id)).thenReturn(customer);
+
+            mockMvc.perform(patch(BASE_URL + "/{id}/deactivate", id).with(csrf()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.active").value(false));
+
+            verify(deactivateCustomerUseCase).execute(id);
+        }
+
+        @Test
+        void shouldReturn404WhenCustomerNotFound() throws Exception {
+            var id = UUID.randomUUID();
+            when(deactivateCustomerUseCase.execute(id)).thenThrow(new CustomerNotFoundException(id));
+
+            mockMvc.perform(patch(BASE_URL + "/{id}/deactivate", id).with(csrf()))
+                    .andExpect(status().isNotFound());
+        }
+
+        @Test
+        void shouldReturn409WhenCustomerAlreadyInactive() throws Exception {
+            var id = UUID.randomUUID();
+            when(deactivateCustomerUseCase.execute(id)).thenThrow(new CustomerAlreadyInactiveException(id));
+
+            mockMvc.perform(patch(BASE_URL + "/{id}/deactivate", id).with(csrf()))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.title").value("Conflito no status do cliente"));
         }
     }
 

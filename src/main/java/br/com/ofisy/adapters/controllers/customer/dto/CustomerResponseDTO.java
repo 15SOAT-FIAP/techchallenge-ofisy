@@ -9,6 +9,7 @@ public record CustomerResponseDTO(
         String name,
         String email,
         String phone,
+        boolean active,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {}

@@ -18,6 +18,9 @@ import br.com.ofisy.application.user.exceptions.UserNotFoundException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleAlreadyExistsException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleLicensePlateNotFoundException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
+import br.com.ofisy.domain.customer.exceptions.CustomerAlreadyActiveException;
+import br.com.ofisy.domain.customer.exceptions.CustomerAlreadyInactiveException;
+import br.com.ofisy.domain.customer.exceptions.InactiveCustomerException;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
 import br.com.ofisy.domain.notification.exceptions.InvalidNotificationMessageException;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteDataException;
@@ -45,6 +48,20 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleCustomerNotFound(RuntimeException ex) {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         problem.setTitle("Cliente não encontrado");
+        return problem;
+    }
+
+    @ExceptionHandler({CustomerAlreadyActiveException.class, CustomerAlreadyInactiveException.class})
+    public ProblemDetail handleCustomerActivationConflict(RuntimeException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problem.setTitle("Conflito no status do cliente");
+        return problem;
+    }
+
+    @ExceptionHandler(InactiveCustomerException.class)
+    public ProblemDetail handleInactiveCustomer(InactiveCustomerException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problem.setTitle("Cliente inativo");
         return problem;
     }
 

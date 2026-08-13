@@ -7,6 +7,9 @@ import br.com.ofisy.application.user.exceptions.EmailNotFoundException;
 import br.com.ofisy.application.user.getidbyemail.GetIdByEmailUseCase;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
 import br.com.ofisy.application.vehicle.identifybyid.IdentifyVehicleByIdUseCase;
+import br.com.ofisy.domain.customer.CpfCnpj;
+import br.com.ofisy.domain.customer.Customer;
+import br.com.ofisy.domain.customer.exceptions.InactiveCustomerException;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import br.com.ofisy.domain.serviceorder.ServiceOrderRepository;
 import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
@@ -51,16 +54,12 @@ class CreateServiceOrderServiceTest {
     @InjectMocks
     private CreateServiceOrderService createServiceOrderService;
 
-    private CreateServiceOrderUseCase.CreateServiceOrderCommand validCommand() {
-        return new CreateServiceOrderUseCase.CreateServiceOrderCommand(
-                VALID_VEHICLE_ID, VALID_CUSTOMER_ID, VALID_REPORT, VALID_EMAIL);
-    }
-
     @Nested
     class Execute {
 
         @Test
         void shouldCreateServiceOrderSuccessfully() {
+            when(identifyByIdCustomerUseCase.execute(VALID_CUSTOMER_ID)).thenReturn(activeCustomer());
             when(identifyVehicleByIdUseCase.execute(VALID_VEHICLE_ID)).thenReturn(vehicleOwnedByCustomer());
             when(getIdByEmailUseCase.execute(VALID_EMAIL)).thenReturn(VALID_USER_ID);
             when(serviceOrderRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -81,6 +80,7 @@ class CreateServiceOrderServiceTest {
                     new CreateServiceOrderUseCase.CreateServiceOrderCommand(
                             VALID_VEHICLE_ID, VALID_CUSTOMER_ID, null, VALID_EMAIL);
 
+            when(identifyByIdCustomerUseCase.execute(VALID_CUSTOMER_ID)).thenReturn(activeCustomer());
             when(identifyVehicleByIdUseCase.execute(VALID_VEHICLE_ID)).thenReturn(vehicleOwnedByCustomer());
             when(getIdByEmailUseCase.execute(VALID_EMAIL)).thenReturn(VALID_USER_ID);
             when(serviceOrderRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -104,6 +104,7 @@ class CreateServiceOrderServiceTest {
 
         @Test
         void shouldThrowVehicleNotFoundExceptionWhenVehicleDoesNotExist() {
+            when(identifyByIdCustomerUseCase.execute(VALID_CUSTOMER_ID)).thenReturn(activeCustomer());
             doThrow(new VehicleNotFoundException(VALID_VEHICLE_ID))
                     .when(identifyVehicleByIdUseCase).execute(VALID_VEHICLE_ID);
 
@@ -115,6 +116,7 @@ class CreateServiceOrderServiceTest {
 
         @Test
         void shouldThrowVehicleNotOwnedByCustomerExceptionWhenOwnershipMismatch() {
+            when(identifyByIdCustomerUseCase.execute(VALID_CUSTOMER_ID)).thenReturn(activeCustomer());
             when(identifyVehicleByIdUseCase.execute(VALID_VEHICLE_ID)).thenReturn(vehicleOwnedByOther());
 
             assertThatThrownBy(() -> createServiceOrderService.execute(validCommand()))
@@ -127,12 +129,23 @@ class CreateServiceOrderServiceTest {
 
         @Test
         void shouldThrowEmailNotFoundExceptionWhenUserDoesNotExist() {
+            when(identifyByIdCustomerUseCase.execute(VALID_CUSTOMER_ID)).thenReturn(activeCustomer());
             when(identifyVehicleByIdUseCase.execute(VALID_VEHICLE_ID)).thenReturn(vehicleOwnedByCustomer());
             doThrow(new EmailNotFoundException(VALID_EMAIL))
                     .when(getIdByEmailUseCase).execute(VALID_EMAIL);
 
             assertThatThrownBy(() -> createServiceOrderService.execute(validCommand()))
                     .isInstanceOf(EmailNotFoundException.class);
+
+            verify(serviceOrderRepository, never()).save(any());
+        }
+
+        @Test
+        void shouldThrowInactiveCustomerExceptionWhenCustomerIsInactive() {
+            when(identifyByIdCustomerUseCase.execute(VALID_CUSTOMER_ID)).thenReturn(inactiveCustomer());
+
+            assertThatThrownBy(() -> createServiceOrderService.execute(validCommand()))
+                    .isInstanceOf(InactiveCustomerException.class);
 
             verify(serviceOrderRepository, never()).save(any());
         }
@@ -146,5 +159,20 @@ class CreateServiceOrderServiceTest {
     private Vehicle vehicleOwnedByOther() {
         return Vehicle.reconstruct(VALID_VEHICLE_ID, UUID.randomUUID(), new LicensePlate("ABC1234"),
                 "Civic", "Honda", "Preto", 2022, null, LocalDateTime.now(), LocalDateTime.now());
+    }
+
+    private Customer activeCustomer() {
+        return Customer.create(new CpfCnpj("52998224725"), "John Doe", "john@example.com", "11999999999");
+    }
+
+    private Customer inactiveCustomer() {
+        Customer customer = activeCustomer();
+        customer.deactivate();
+        return customer;
+    }
+
+    private CreateServiceOrderUseCase.CreateServiceOrderCommand validCommand() {
+        return new CreateServiceOrderUseCase.CreateServiceOrderCommand(
+                VALID_VEHICLE_ID, VALID_CUSTOMER_ID, VALID_REPORT, VALID_EMAIL);
     }
 }
