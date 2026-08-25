@@ -1,4 +1,4 @@
-package br.com.ofisy.application.notification.findbyid;
+package br.com.ofisy.application.notification.findserviceorderbyid;
 
 import br.com.ofisy.application.notification.exceptions.NotificationNotFoundException;
 import br.com.ofisy.domain.notification.Notification;
@@ -20,34 +20,48 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class FindNotificationByIdServiceTest {
+class FindServiceOrderNotificationByIdServiceTest {
 
     @Mock
     private NotificationRepository notificationRepository;
 
     @InjectMocks
-    private FindNotificationByIdService findByIdService;
+    private FindServiceOrderNotificationByIdService findServiceOrderByIdService;
 
     @Test
-    @DisplayName("Deve buscar notificação por id com sucesso")
-    void shouldFindNotificationById() {
+    @DisplayName("Deve buscar notificação de ordem de serviço por id com sucesso")
+    void shouldFindServiceOrderNotificationById() {
         UUID id = UUID.randomUUID();
-        Notification n = Notification.createForStock(UUID.randomUUID(), NotificationMessage.fromString("Mensagem"));
+        Notification n = Notification.createForQuote(UUID.randomUUID(), NotificationMessage.fromString("Orçamento gerado"));
         when(notificationRepository.findById(id)).thenReturn(Optional.of(n));
 
-        Notification result = findByIdService.execute(id);
+        Notification result = findServiceOrderByIdService.execute(id);
 
         assertThat(result).isEqualTo(n);
         verify(notificationRepository).findById(id);
     }
 
     @Test
-    @DisplayName("Deve lançar erro ao buscar notificação por id inexistente")
+    @DisplayName("Deve lançar erro ao buscar notificação de ordem de serviço por id inexistente")
     void shouldThrowWhenNotificationNotFoundById() {
         UUID id = UUID.randomUUID();
         when(notificationRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> findByIdService.execute(id))
+        assertThatThrownBy(() -> findServiceOrderByIdService.execute(id))
+                .isInstanceOf(NotificationNotFoundException.class)
+                .hasMessageContaining("Notificação não encontrada");
+
+        verify(notificationRepository).findById(id);
+    }
+
+    @Test
+    @DisplayName("Deve lançar erro ao buscar por id de uma notificação que não é de ordem de serviço")
+    void shouldThrowWhenNotificationIsWrongType() {
+        UUID id = UUID.randomUUID();
+        Notification stockNotification = Notification.createForStock(UUID.randomUUID(), NotificationMessage.fromString("Estoque baixo"));
+        when(notificationRepository.findById(id)).thenReturn(Optional.of(stockNotification));
+
+        assertThatThrownBy(() -> findServiceOrderByIdService.execute(id))
                 .isInstanceOf(NotificationNotFoundException.class)
                 .hasMessageContaining("Notificação não encontrada");
 
