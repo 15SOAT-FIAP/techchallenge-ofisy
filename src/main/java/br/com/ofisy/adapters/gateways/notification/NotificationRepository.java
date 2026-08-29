@@ -1,4 +1,7 @@
-package br.com.ofisy.domain.notification;
+package br.com.ofisy.adapters.gateways.notification;
+
+import br.com.ofisy.domain.notification.Notification;
+import br.com.ofisy.domain.notification.NotificationType;
 
 import java.util.List;
 import java.util.Optional;

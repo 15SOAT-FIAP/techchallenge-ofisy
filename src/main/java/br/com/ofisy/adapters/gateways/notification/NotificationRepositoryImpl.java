@@ -2,6 +2,7 @@ package br.com.ofisy.adapters.gateways.notification;
 
 import br.com.ofisy.domain.notification.Notification;
 import br.com.ofisy.domain.notification.NotificationRepository;
+import br.com.ofisy.domain.notification.NotificationType;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -45,6 +46,20 @@ public class NotificationRepositoryImpl implements NotificationRepository {
     @Override
     public List<Notification> findByRead(Boolean read) {
         return jpaRepository.findByRead(read).stream()
+                .map(NotificationMapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<Notification> findAllByType(NotificationType type) {
+        return jpaRepository.findByType(type).stream()
+                .map(NotificationMapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<Notification> findByReadAndType(Boolean read, NotificationType type) {
+        return jpaRepository.findByReadAndType(read, type).stream()
                 .map(NotificationMapper::toDomain)
                 .toList();
     }

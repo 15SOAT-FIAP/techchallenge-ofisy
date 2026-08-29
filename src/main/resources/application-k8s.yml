@@ -13,7 +13,11 @@ security:
   public-paths:
     - /api/v1/login
     - /api/v1/service-orders/*/status
-    - /api/v1/notifications
+    - /api/v1/service-orders/quote/*/approve
+    - /api/v1/service-orders/quote/*/reprove
+    - /api/v1/notifications/service-orders
+    - /api/v1/notifications/service-orders/*
+    - /api/v1/notifications/service-orders/*/read
     - /swagger-ui/**
     - /swagger-ui.html
     - /v3/api-docs/**
