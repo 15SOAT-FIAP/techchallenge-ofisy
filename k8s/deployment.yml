@@ -8,6 +8,19 @@ spec:
       name: ofisy-app
       labels:
         app: ofisy-app
+        tags.datadoghq.com/service: ofisy-api
+      annotations:
+        ad.datadoghq.com/ofisy-app.checks: |
+          {
+            "http_check": {
+              "instances": [
+                {
+                  "name": "ofisy-api",
+                  "url": "http://%%host%%:8080/actuator/health"
+                }
+              ]
+            }
+          }
     spec:
       containers:
         - name: ofisy-app
@@ -20,6 +33,11 @@ spec:
                 name: ofisy-config
             - secretRef:
                 name: ofisy-secret
+          env:
+            - name: DD_AGENT_HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
