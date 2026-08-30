@@ -34,7 +34,7 @@ public class NotificationController implements NotificationApi {
 
     @Override
     @GetMapping("/stock/{id}")
-    @PreAuthorize("hasRole('STOCKMAN')")
+    @PreAuthorize("hasAnyRole('ADMIN','STOCKMAN')")
     public ResponseEntity<NotificationResponseDTO> findStockById(@PathVariable UUID id) {
         return ResponseEntity.ok(NotificationPresenter.present(findStockNotificationByIdUseCase.execute(id)));
     }
@@ -47,7 +47,7 @@ public class NotificationController implements NotificationApi {
 
     @Override
     @GetMapping("/stock")
-    @PreAuthorize("hasRole('STOCKMAN')")
+    @PreAuthorize("hasAnyRole('ADMIN','STOCKMAN')")
     public ResponseEntity<List<NotificationResponseDTO>> findAllStock() {
         List<NotificationResponseDTO> list = findAllStockNotificationsUseCase.execute().stream()
                 .map(NotificationPresenter::present)
@@ -57,7 +57,7 @@ public class NotificationController implements NotificationApi {
 
     @Override
     @GetMapping("/stock/unread")
-    @PreAuthorize("hasRole('STOCKMAN')")
+    @PreAuthorize("hasAnyRole('ADMIN','STOCKMAN')")
     public ResponseEntity<List<NotificationResponseDTO>> findUnreadStock() {
         List<NotificationResponseDTO> list = findUnreadStockNotificationsUseCase.execute().stream()
                 .map(NotificationPresenter::present)
@@ -85,7 +85,7 @@ public class NotificationController implements NotificationApi {
 
     @Override
     @PatchMapping("/stock/{id}/read")
-    @PreAuthorize("hasRole('STOCKMAN')")
+    @PreAuthorize("hasAnyRole('ADMIN','STOCKMAN')")
     public ResponseEntity<NotificationResponseDTO> markStockAsRead(@PathVariable UUID id) {
         MarkStockNotificationAsReadUseCase.MarkAsReadCommand cmd = new MarkStockNotificationAsReadUseCase.MarkAsReadCommand(id);
         return ResponseEntity.ok(NotificationPresenter.present(markStockNotificationAsReadUseCase.execute(cmd)));
