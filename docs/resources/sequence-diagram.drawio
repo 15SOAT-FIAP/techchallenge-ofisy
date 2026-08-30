@@ -1,10 +1,10 @@
 <mxfile host="app.diagrams.net" agent="Claude">
   <diagram id="seq-ofisy" name="Sequencia - Autenticacao a Finalizacao da OS">
-    <mxGraphModel dx="1627" dy="5405" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1770" pageHeight="4500" math="0" shadow="0">
+    <mxGraphModel dx="1914" dy="6857" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1990" pageHeight="5792" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" parent="1" style="text;html=1;fontSize=20;fontStyle=1;align=left;verticalAlign=middle;fontColor=#1A1A1A;" value="Diagrama de Sequência - Ofisy: Autenticação até Finalização da Ordem de Serviço" vertex="1">
+        <mxCell id="title" parent="1" style="text;html=1;fontSize=20;fontStyle=1;align=left;verticalAlign=middle;fontColor=#1A1A1A;" value="Diagrama de Sequência Ofisy: Autenticação até Finalização da Ordem de Serviço" vertex="1">
           <mxGeometry height="40" width="1200" x="20" y="-40" as="geometry" />
         </mxCell>
         <mxCell id="hdr_cliente" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fontStyle=1;" value="Cliente" vertex="1">
@@ -13,7 +13,7 @@
         <mxCell id="life_cliente" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;strokeWidth=1;">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="90" y="120" as="sourcePoint" />
-            <mxPoint x="90" y="4440" as="targetPoint" />
+            <mxPoint x="90" y="5732" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="hdr_atendente" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fontStyle=1;" value="Atendente" vertex="1">
@@ -22,7 +22,7 @@
         <mxCell id="life_atendente" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;strokeWidth=1;">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="290" y="120" as="sourcePoint" />
-            <mxPoint x="290" y="4440" as="targetPoint" />
+            <mxPoint x="290" y="5732" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="hdr_mecanico" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fontStyle=1;" value="Mecânico" vertex="1">
@@ -31,7 +31,7 @@
         <mxCell id="life_mecanico" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;strokeWidth=1;">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="490" y="120" as="sourcePoint" />
-            <mxPoint x="490" y="4440" as="targetPoint" />
+            <mxPoint x="490" y="5732" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="hdr_gateway" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#1168BD;strokeColor=#0B4884;fontColor=#ffffff;fontSize=12;fontStyle=1;" value="API Gateway (AWS)&lt;br&gt;&lt;font style=&quot;font-size:9px&quot; color=&quot;#dbe9fb&quot;&gt;techchallenge-ofisy-eks-infra&lt;/font&gt;" vertex="1">
@@ -40,686 +40,815 @@
         <mxCell id="life_gateway" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;strokeWidth=1;">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="730" y="120" as="sourcePoint" />
-            <mxPoint x="730" y="4440" as="targetPoint" />
+            <mxPoint x="730" y="5732" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="hdr_authlambda" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#1168BD;strokeColor=#0B4884;fontColor=#ffffff;fontSize=12;fontStyle=1;" value="Auth Lambda&lt;br&gt;&lt;font style=&quot;font-size:9px&quot; color=&quot;#dbe9fb&quot;&gt;techchallenge-ofisy-auth&lt;/font&gt;" vertex="1">
-          <mxGeometry height="70" width="160" x="910" y="20" as="geometry" />
+        <mxCell id="hdr_authorizer" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#1168BD;strokeColor=#0B4884;fontColor=#ffffff;fontSize=12;fontStyle=1;" value="Lambda Authorizer&lt;br&gt;&lt;font style=&quot;font-size:9px&quot; color=&quot;#dbe9fb&quot;&gt;techchallenge-ofisy-auth (cmd/authorizer)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="70" width="160" x="890" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="life_authorizer" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;strokeWidth=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="970" y="120" as="sourcePoint" />
+            <mxPoint x="970" y="5732" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hdr_authlambda" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#1168BD;strokeColor=#0B4884;fontColor=#ffffff;fontSize=12;fontStyle=1;" value="Auth Lambda&lt;br&gt;&lt;font style=&quot;font-size:9px&quot; color=&quot;#dbe9fb&quot;&gt;techchallenge-ofisy-auth (cmd/lambda, emissão)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="70" width="160" x="1130" y="20" as="geometry" />
         </mxCell>
         <mxCell id="life_authlambda" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;strokeWidth=1;">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="990" y="120" as="sourcePoint" />
-            <mxPoint x="990" y="4440" as="targetPoint" />
+            <mxPoint x="1210" y="120" as="sourcePoint" />
+            <mxPoint x="1210" y="5732" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="hdr_ofisyapi" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#1168BD;strokeColor=#0B4884;fontColor=#ffffff;fontSize=12;fontStyle=1;" value="Ofisy API&lt;br&gt;&lt;font style=&quot;font-size:9px&quot; color=&quot;#dbe9fb&quot;&gt;techchallenge-ofisy (Spring Boot / EKS)&lt;/font&gt;" vertex="1">
-          <mxGeometry height="70" width="160" x="1170" y="20" as="geometry" />
+          <mxGeometry height="70" width="160" x="1390" y="20" as="geometry" />
         </mxCell>
         <mxCell id="life_ofisyapi" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;strokeWidth=1;">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1250" y="120" as="sourcePoint" />
-            <mxPoint x="1250" y="4440" as="targetPoint" />
+            <mxPoint x="1470" y="120" as="sourcePoint" />
+            <mxPoint x="1470" y="5732" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="hdr_db" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=12;fillColor=#4d7ea8;strokeColor=#2c5c85;fontColor=#ffffff;fontSize=12;fontStyle=1;" value="PostgreSQL&lt;br&gt;&lt;font style=&quot;font-size:9px&quot; color=&quot;#f5f5f5&quot;&gt;techchallenge-ofisy-rds-infra (RDS)&lt;/font&gt;" vertex="1">
-          <mxGeometry height="80" width="140" x="1440" y="20" as="geometry" />
+          <mxGeometry height="80" width="140" x="1660" y="20" as="geometry" />
         </mxCell>
         <mxCell id="life_db" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;strokeWidth=1;">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1510" y="120" as="sourcePoint" />
-            <mxPoint x="1510" y="4440" as="targetPoint" />
+            <mxPoint x="1730" y="120" as="sourcePoint" />
+            <mxPoint x="1730" y="5732" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="c1001" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="316.5" width="12" x="724" y="194" as="geometry" />
+          <mxGeometry height="316.5" width="12" x="724" y="324" as="geometry" />
         </mxCell>
         <mxCell id="c1002" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="302.5" width="12" x="724" y="580" as="geometry" />
+          <mxGeometry height="302.5" width="12" x="724" y="710" as="geometry" />
         </mxCell>
         <mxCell id="c1003" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="214.5" width="12" x="724" y="1040" as="geometry" />
+          <mxGeometry height="214.5" width="12" x="724" y="1170" as="geometry" />
         </mxCell>
         <mxCell id="c1004" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="452.5" width="12" x="724" y="1324" as="geometry" />
+          <mxGeometry height="452.5" width="12" x="724" y="1454" as="geometry" />
         </mxCell>
         <mxCell id="c1005" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="202.5" width="12" x="724" y="1846" as="geometry" />
+          <mxGeometry height="202.5" width="12" x="724" y="1976" as="geometry" />
         </mxCell>
         <mxCell id="c1006" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="316.5" width="12" x="724" y="2118" as="geometry" />
+          <mxGeometry height="316.5" width="12" x="724" y="2248" as="geometry" />
         </mxCell>
         <mxCell id="c1007" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="214.5" width="12" x="724" y="2538" as="geometry" />
+          <mxGeometry height="486.5" width="12" x="724" y="2668" as="geometry" />
         </mxCell>
         <mxCell id="c1008" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="228.5" width="12" x="724" y="2804" as="geometry" />
+          <mxGeometry height="324.5" width="12" x="724" y="3206" as="geometry" />
         </mxCell>
         <mxCell id="c1009" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="202.5" width="12" x="724" y="3134" as="geometry" />
+          <mxGeometry height="202.5" width="12" x="724" y="3632" as="geometry" />
         </mxCell>
         <mxCell id="c1010" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="426.5" width="12" x="724" y="3396" as="geometry" />
+          <mxGeometry height="426.5" width="12" x="724" y="3894" as="geometry" />
         </mxCell>
         <mxCell id="c1011" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="190.5" width="12" x="724" y="3924" as="geometry" />
+          <mxGeometry height="190.5" width="12" x="724" y="4422" as="geometry" />
         </mxCell>
         <mxCell id="c1012" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="190.5" width="12" x="724" y="4184" as="geometry" />
+          <mxGeometry height="400.5" width="12" x="724" y="4682" as="geometry" />
         </mxCell>
         <mxCell id="c1013" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="232.5" width="12" x="984" y="2166" as="geometry" />
+          <mxGeometry height="412.5" width="12" x="724" y="5152" as="geometry" />
         </mxCell>
         <mxCell id="c1014" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="232.5" width="12" x="1244" y="242" as="geometry" />
+          <mxGeometry height="150.69999999999982" width="12" x="964" y="2716" as="geometry" />
         </mxCell>
         <mxCell id="c1015" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="204.5" width="12" x="1244" y="642" as="geometry" />
+          <mxGeometry height="62.69999999999982" width="12" x="964" y="3268" as="geometry" />
         </mxCell>
         <mxCell id="c1016" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="130.5" width="12" x="1244" y="1088" as="geometry" />
+          <mxGeometry height="62.69999999999982" width="12" x="964" y="4730" as="geometry" />
         </mxCell>
         <mxCell id="c1017" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="368.5" width="12" x="1244" y="1372" as="geometry" />
+          <mxGeometry height="62.69999999999982" width="12" x="964" y="5200" as="geometry" />
         </mxCell>
         <mxCell id="c1018" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="130.5" width="12" x="1244" y="1882" as="geometry" />
+          <mxGeometry height="232.5" width="12" x="1204" y="2296" as="geometry" />
         </mxCell>
         <mxCell id="c1019" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="130.5" width="12" x="1244" y="2586" as="geometry" />
+          <mxGeometry height="232.5" width="12" x="1464" y="372" as="geometry" />
         </mxCell>
         <mxCell id="c1020" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="130.5" width="12" x="1244" y="2866" as="geometry" />
+          <mxGeometry height="204.5" width="12" x="1464" y="772" as="geometry" />
         </mxCell>
         <mxCell id="c1021" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="130.5" width="12" x="1244" y="3170" as="geometry" />
+          <mxGeometry height="130.5" width="12" x="1464" y="1218" as="geometry" />
         </mxCell>
         <mxCell id="c1022" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="354.5" width="12" x="1244" y="3432" as="geometry" />
+          <mxGeometry height="368.5" width="12" x="1464" y="1502" as="geometry" />
         </mxCell>
         <mxCell id="c1023" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="118.5" width="12" x="1244" y="3960" as="geometry" />
+          <mxGeometry height="130.5" width="12" x="1464" y="2012" as="geometry" />
         </mxCell>
         <mxCell id="c1024" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="118.5" width="12" x="1244" y="4220" as="geometry" />
+          <mxGeometry height="130.5" width="12" x="1464" y="2988" as="geometry" />
         </mxCell>
         <mxCell id="c1025" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="58.5" width="12" x="1504" y="278" as="geometry" />
+          <mxGeometry height="130.5" width="12" x="1464" y="3364" as="geometry" />
         </mxCell>
         <mxCell id="c1026" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="58.5" width="12" x="1504" y="752" as="geometry" />
+          <mxGeometry height="130.5" width="12" x="1464" y="3668" as="geometry" />
         </mxCell>
         <mxCell id="c1027" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="58.5" width="12" x="1504" y="1124" as="geometry" />
+          <mxGeometry height="354.5" width="12" x="1464" y="3930" as="geometry" />
         </mxCell>
         <mxCell id="c1028" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="58.5" width="12" x="1504" y="1442" as="geometry" />
+          <mxGeometry height="118.5" width="12" x="1464" y="4458" as="geometry" />
         </mxCell>
         <mxCell id="c1029" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="58.5" width="12" x="1504" y="1646" as="geometry" />
+          <mxGeometry height="118.5" width="12" x="1464" y="4928" as="geometry" />
         </mxCell>
         <mxCell id="c1030" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="58.5" width="12" x="1504" y="1918" as="geometry" />
+          <mxGeometry height="232.5" width="12" x="1464" y="5296" as="geometry" />
         </mxCell>
         <mxCell id="c1031" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="58.5" width="12" x="1504" y="2202" as="geometry" />
+          <mxGeometry height="58.5" width="12" x="1724" y="408" as="geometry" />
         </mxCell>
         <mxCell id="c1032" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="58.5" width="12" x="1504" y="2622" as="geometry" />
+          <mxGeometry height="58.5" width="12" x="1724" y="882" as="geometry" />
         </mxCell>
         <mxCell id="c1033" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="58.5" width="12" x="1504" y="2902" as="geometry" />
+          <mxGeometry height="58.5" width="12" x="1724" y="1254" as="geometry" />
         </mxCell>
         <mxCell id="c1034" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="58.5" width="12" x="1504" y="3206" as="geometry" />
+          <mxGeometry height="58.5" width="12" x="1724" y="1572" as="geometry" />
         </mxCell>
         <mxCell id="c1035" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="58.5" width="12" x="1504" y="3468" as="geometry" />
+          <mxGeometry height="58.5" width="12" x="1724" y="1776" as="geometry" />
         </mxCell>
         <mxCell id="c1036" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="58.5" width="12" x="1504" y="3660" as="geometry" />
+          <mxGeometry height="58.5" width="12" x="1724" y="2048" as="geometry" />
         </mxCell>
         <mxCell id="c1037" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="46.5" width="12" x="1504" y="3996" as="geometry" />
+          <mxGeometry height="58.5" width="12" x="1724" y="2332" as="geometry" />
         </mxCell>
         <mxCell id="c1038" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="46.5" width="12" x="1504" y="4256" as="geometry" />
+          <mxGeometry height="58.5" width="12" x="1724" y="3024" as="geometry" />
         </mxCell>
-        <mxCell id="c1039" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO A · Autenticação do Atendente (login com e-mail/senha)" vertex="1">
-          <mxGeometry height="30" width="1730" x="20" y="150" as="geometry" />
+        <mxCell id="c1039" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
+          <mxGeometry height="58.5" width="12" x="1724" y="3400" as="geometry" />
         </mxCell>
-        <mxCell id="c1040" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO B · Abertura da Ordem de Serviço" vertex="1">
-          <mxGeometry height="30" width="1730" x="20" y="536" as="geometry" />
+        <mxCell id="c1040" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
+          <mxGeometry height="58.5" width="12" x="1724" y="3704" as="geometry" />
         </mxCell>
-        <mxCell id="c1041" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO C · Diagnóstico do Veículo" vertex="1">
-          <mxGeometry height="30" width="1730" x="20" y="996" as="geometry" />
+        <mxCell id="c1041" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
+          <mxGeometry height="58.5" width="12" x="1724" y="3966" as="geometry" />
         </mxCell>
-        <mxCell id="c1042" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO D · Geração do Orçamento (peças + serviços)" vertex="1">
-          <mxGeometry height="30" width="1730" x="20" y="1280" as="geometry" />
+        <mxCell id="c1042" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
+          <mxGeometry height="58.5" width="12" x="1724" y="4158" as="geometry" />
         </mxCell>
-        <mxCell id="c1043" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO E · Submissão do Orçamento para Aprovação" vertex="1">
-          <mxGeometry height="30" width="1730" x="20" y="1802" as="geometry" />
+        <mxCell id="c1043" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
+          <mxGeometry height="46.5" width="12" x="1724" y="4494" as="geometry" />
         </mxCell>
-        <mxCell id="c1044" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO F · Autenticação do Cliente (CPF/CNPJ, sem senha)" vertex="1">
-          <mxGeometry height="30" width="1730" x="20" y="2074" as="geometry" />
+        <mxCell id="c1044" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
+          <mxGeometry height="46.5" width="12" x="1724" y="4964" as="geometry" />
         </mxCell>
-        <mxCell id="c1045" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO G · Aprovação ou Reprovação do Orçamento pelo Cliente" vertex="1">
-          <mxGeometry height="30" width="1730" x="20" y="2460" as="geometry" />
+        <mxCell id="c1045" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
+          <mxGeometry height="58.5" width="12" x="1724" y="5434" as="geometry" />
         </mxCell>
-        <mxCell id="c1046" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO H · Execução dos Serviços pelo Mecânico" vertex="1">
-          <mxGeometry height="30" width="1730" x="20" y="3090" as="geometry" />
+        <mxCell id="c1046" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO A · Autenticação do Atendente (login com e-mail/senha)" vertex="1">
+          <mxGeometry height="30" width="1950" x="20" y="280" as="geometry" />
         </mxCell>
-        <mxCell id="c1047" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO I · Entrega do Veículo ao Cliente (fim do ciclo da OS)" vertex="1">
-          <mxGeometry height="30" width="1730" x="20" y="3880" as="geometry" />
+        <mxCell id="c1047" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO B · Abertura da Ordem de Serviço" vertex="1">
+          <mxGeometry height="30" width="1950" x="20" y="666" as="geometry" />
         </mxCell>
-        <mxCell id="c1048" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO J · Consulta de Status (rota pública, sem autenticação)" vertex="1">
-          <mxGeometry height="30" width="1730" x="20" y="4140" as="geometry" />
+        <mxCell id="c1048" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO C · Diagnóstico do Veículo" vertex="1">
+          <mxGeometry height="30" width="1950" x="20" y="1126" as="geometry" />
         </mxCell>
-        <mxCell id="c1049" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="POST /api/v1/login&lt;br&gt;{ email, password }">
+        <mxCell id="c1049" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO D · Geração do Orçamento (peças + serviços)" vertex="1">
+          <mxGeometry height="30" width="1950" x="20" y="1410" as="geometry" />
+        </mxCell>
+        <mxCell id="c1050" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO E · Submissão do Orçamento para Aprovação" vertex="1">
+          <mxGeometry height="30" width="1950" x="20" y="1932" as="geometry" />
+        </mxCell>
+        <mxCell id="c1051" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO F · Autenticação do Cliente (CPF/CNPJ, sem senha)" vertex="1">
+          <mxGeometry height="30" width="1950" x="20" y="2204" as="geometry" />
+        </mxCell>
+        <mxCell id="c1052" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO G · Aprovação ou Reprovação do Orçamento pelo Cliente" vertex="1">
+          <mxGeometry height="30" width="1950" x="20" y="2590" as="geometry" />
+        </mxCell>
+        <mxCell id="c1053" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO H · Execução dos Serviços pelo Mecânico" vertex="1">
+          <mxGeometry height="30" width="1950" x="20" y="3588" as="geometry" />
+        </mxCell>
+        <mxCell id="c1054" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO I · Entrega do Veículo ao Cliente (fim do ciclo da OS)" vertex="1">
+          <mxGeometry height="30" width="1950" x="20" y="4378" as="geometry" />
+        </mxCell>
+        <mxCell id="c1055" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO J · Consulta de Status (protegida pelo Lambda Authorizer)" vertex="1">
+          <mxGeometry height="30" width="1950" x="20" y="4638" as="geometry" />
+        </mxCell>
+        <mxCell id="c1056" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO K · Notificações do Cliente (protegidas pelo Lambda Authorizer)" vertex="1">
+          <mxGeometry height="30" width="1950" x="20" y="5108" as="geometry" />
+        </mxCell>
+        <mxCell id="c1057" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="POST /api/v1/login&lt;br&gt;{ email, password }">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="290" y="217.1" as="sourcePoint" />
-            <mxPoint x="730" y="217.1" as="targetPoint" />
+            <mxPoint x="290" y="347.1" as="sourcePoint" />
+            <mxPoint x="730" y="347.1" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1050" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="encaminha (HTTP_PROXY, ANY /{proxy+})">
+        <mxCell id="c1058" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="encaminha (HTTP_PROXY, ANY /{proxy+})">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="258.5" as="sourcePoint" />
-            <mxPoint x="1250" y="258.5" as="targetPoint" />
+            <mxPoint x="730" y="388.5" as="sourcePoint" />
+            <mxPoint x="1470" y="388.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1051" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="SELECT * FROM users&lt;br&gt;WHERE email = ?">
+        <mxCell id="c1059" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="SELECT * FROM users&lt;br&gt;WHERE email = ?">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1250" y="301.1" as="sourcePoint" />
-            <mxPoint x="1510" y="301.1" as="targetPoint" />
+            <mxPoint x="1470" y="431.1" as="sourcePoint" />
+            <mxPoint x="1730" y="431.1" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1052" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="usuário (password hash, role, active)">
+        <mxCell id="c1060" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="usuário (password hash, role, active)">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1510" y="342.5" as="sourcePoint" />
-            <mxPoint x="1250" y="342.5" as="targetPoint" />
+            <mxPoint x="1730" y="472.5" as="sourcePoint" />
+            <mxPoint x="1470" y="472.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1053" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK { token }">
+        <mxCell id="c1061" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK { token }">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1250" y="480.5" as="sourcePoint" />
-            <mxPoint x="730" y="480.5" as="targetPoint" />
+            <mxPoint x="1470" y="610.5" as="sourcePoint" />
+            <mxPoint x="730" y="610.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1054" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK { token }">
+        <mxCell id="c1062" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK { token }">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="516.5" as="sourcePoint" />
-            <mxPoint x="290" y="516.5" as="targetPoint" />
+            <mxPoint x="730" y="646.5" as="sourcePoint" />
+            <mxPoint x="290" y="646.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1055" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="POST /api/v1/service-orders&lt;br&gt;Authorization: Bearer token&lt;br&gt;{ vehicleId, customerId, report }">
+        <mxCell id="c1063" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="POST /api/v1/service-orders&lt;br&gt;Authorization: Bearer token&lt;br&gt;{ vehicleId, customerId, report }">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="290" y="610.8" as="sourcePoint" />
-            <mxPoint x="730" y="610.8" as="targetPoint" />
+            <mxPoint x="290" y="740.8" as="sourcePoint" />
+            <mxPoint x="730" y="740.8" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1056" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="encaminha">
+        <mxCell id="c1064" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="encaminha">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="658.5" as="sourcePoint" />
-            <mxPoint x="1250" y="658.5" as="targetPoint" />
+            <mxPoint x="730" y="788.5" as="sourcePoint" />
+            <mxPoint x="1470" y="788.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1057" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="INSERT INTO service_orders&lt;br&gt;(status = RECEIVED, created_by)">
+        <mxCell id="c1065" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="INSERT INTO service_orders&lt;br&gt;(status = RECEIVED, created_by)">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1250" y="775.1" as="sourcePoint" />
-            <mxPoint x="1510" y="775.1" as="targetPoint" />
+            <mxPoint x="1470" y="905.1" as="sourcePoint" />
+            <mxPoint x="1730" y="905.1" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1058" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="OS criada (id, status = RECEIVED)">
+        <mxCell id="c1066" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="OS criada (id, status = RECEIVED)">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1510" y="816.5" as="sourcePoint" />
-            <mxPoint x="1250" y="816.5" as="targetPoint" />
+            <mxPoint x="1730" y="946.5" as="sourcePoint" />
+            <mxPoint x="1470" y="946.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1059" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="201 Created { OS }">
+        <mxCell id="c1067" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="201 Created { OS }">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1250" y="852.5" as="sourcePoint" />
-            <mxPoint x="730" y="852.5" as="targetPoint" />
+            <mxPoint x="1470" y="982.5" as="sourcePoint" />
+            <mxPoint x="730" y="982.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1060" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="201 Created { OS }">
+        <mxCell id="c1068" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="201 Created { OS }">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="888.5" as="sourcePoint" />
-            <mxPoint x="290" y="888.5" as="targetPoint" />
+            <mxPoint x="730" y="1018.5" as="sourcePoint" />
+            <mxPoint x="290" y="1018.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1061" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /service-orders/{id}/start-diagnostic&lt;br&gt;Bearer token">
+        <mxCell id="c1069" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /service-orders/{id}/start-diagnostic&lt;br&gt;Bearer token">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="490" y="1063.1" as="sourcePoint" />
-            <mxPoint x="730" y="1063.1" as="targetPoint" />
+            <mxPoint x="490" y="1193.1" as="sourcePoint" />
+            <mxPoint x="730" y="1193.1" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1062" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="encaminha">
+        <mxCell id="c1070" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="encaminha">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="1104.5" as="sourcePoint" />
-            <mxPoint x="1250" y="1104.5" as="targetPoint" />
+            <mxPoint x="730" y="1234.5" as="sourcePoint" />
+            <mxPoint x="1470" y="1234.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1063" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="UPDATE service_orders&lt;br&gt;SET status = IN_DIAGNOSTIC">
+        <mxCell id="c1071" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="UPDATE service_orders&lt;br&gt;SET status = IN_DIAGNOSTIC">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1250" y="1147.1" as="sourcePoint" />
-            <mxPoint x="1510" y="1147.1" as="targetPoint" />
+            <mxPoint x="1470" y="1277.1" as="sourcePoint" />
+            <mxPoint x="1730" y="1277.1" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1064" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="ok">
+        <mxCell id="c1072" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="ok">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1510" y="1188.5" as="sourcePoint" />
-            <mxPoint x="1250" y="1188.5" as="targetPoint" />
+            <mxPoint x="1730" y="1318.5" as="sourcePoint" />
+            <mxPoint x="1470" y="1318.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1065" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK { OS: IN_DIAGNOSTIC }">
+        <mxCell id="c1073" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK { OS: IN_DIAGNOSTIC }">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1250" y="1224.5" as="sourcePoint" />
-            <mxPoint x="730" y="1224.5" as="targetPoint" />
+            <mxPoint x="1470" y="1354.5" as="sourcePoint" />
+            <mxPoint x="730" y="1354.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1066" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK">
+        <mxCell id="c1074" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="1260.5" as="sourcePoint" />
-            <mxPoint x="490" y="1260.5" as="targetPoint" />
+            <mxPoint x="730" y="1390.5" as="sourcePoint" />
+            <mxPoint x="490" y="1390.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1067" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="POST /service-orders/{id}/quote&lt;br&gt;{ stockItems[], serviceItems[] }">
+        <mxCell id="c1075" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="POST /service-orders/{id}/quote&lt;br&gt;{ stockItems[], serviceItems[] }">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="490" y="1347.1" as="sourcePoint" />
-            <mxPoint x="730" y="1347.1" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="c1068" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="encaminha">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="1388.5" as="sourcePoint" />
-            <mxPoint x="1250" y="1388.5" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="c1069" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="valida stocks / services_catalog&lt;br&gt;e reserva quantidade (consumeStock)">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1250" y="1465.1" as="sourcePoint" />
-            <mxPoint x="1510" y="1465.1" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="c1070" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="preço unitário / disponibilidade">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1510" y="1506.5" as="sourcePoint" />
-            <mxPoint x="1250" y="1506.5" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="c1071" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="INSERT quotes (PENDING), quote_stock_items,&lt;br&gt;quote_service_items, service_order_executions">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1250" y="1669.1" as="sourcePoint" />
-            <mxPoint x="1510" y="1669.1" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="c1072" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="orçamento persistido">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1510" y="1710.5" as="sourcePoint" />
-            <mxPoint x="1250" y="1710.5" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="c1073" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="201 Created { orçamento }">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1250" y="1746.5" as="sourcePoint" />
-            <mxPoint x="730" y="1746.5" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="c1074" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="201 Created">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="1782.5" as="sourcePoint" />
-            <mxPoint x="490" y="1782.5" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="c1075" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /service-orders/{id}/submit-for-approval">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="490" y="1862.5" as="sourcePoint" />
-            <mxPoint x="730" y="1862.5" as="targetPoint" />
+            <mxPoint x="490" y="1477.1" as="sourcePoint" />
+            <mxPoint x="730" y="1477.1" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="c1076" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="encaminha">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="1898.5" as="sourcePoint" />
-            <mxPoint x="1250" y="1898.5" as="targetPoint" />
+            <mxPoint x="730" y="1518.5" as="sourcePoint" />
+            <mxPoint x="1470" y="1518.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1077" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="UPDATE service_orders SET status = AWAITING_APPROVAL&lt;br&gt;INSERT notifications (type = QUOTE)">
+        <mxCell id="c1077" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="valida stocks / services_catalog&lt;br&gt;e reserva quantidade (consumeStock)">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1250" y="1941.1" as="sourcePoint" />
-            <mxPoint x="1510" y="1941.1" as="targetPoint" />
+            <mxPoint x="1470" y="1595.1" as="sourcePoint" />
+            <mxPoint x="1730" y="1595.1" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1078" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="ok">
+        <mxCell id="c1078" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="preço unitário / disponibilidade">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1510" y="1982.5" as="sourcePoint" />
-            <mxPoint x="1250" y="1982.5" as="targetPoint" />
+            <mxPoint x="1730" y="1636.5" as="sourcePoint" />
+            <mxPoint x="1470" y="1636.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1079" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK { OS: AWAITING_APPROVAL }">
+        <mxCell id="c1079" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="INSERT quotes (PENDING), quote_stock_items,&lt;br&gt;quote_service_items, service_order_executions">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1250" y="2018.5" as="sourcePoint" />
-            <mxPoint x="730" y="2018.5" as="targetPoint" />
+            <mxPoint x="1470" y="1799.1" as="sourcePoint" />
+            <mxPoint x="1730" y="1799.1" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1080" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK">
+        <mxCell id="c1080" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="orçamento persistido">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="2054.5" as="sourcePoint" />
-            <mxPoint x="490" y="2054.5" as="targetPoint" />
+            <mxPoint x="1730" y="1840.5" as="sourcePoint" />
+            <mxPoint x="1470" y="1840.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1081" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="POST /auth/customers&lt;br&gt;{ cpfCnpj }">
+        <mxCell id="c1081" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="201 Created { orçamento }">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="90" y="2141.1" as="sourcePoint" />
-            <mxPoint x="730" y="2141.1" as="targetPoint" />
+            <mxPoint x="1470" y="1876.5" as="sourcePoint" />
+            <mxPoint x="730" y="1876.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1082" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="AWS_PROXY (invoca a função Lambda)">
+        <mxCell id="c1082" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="201 Created">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="2182.5" as="sourcePoint" />
-            <mxPoint x="990" y="2182.5" as="targetPoint" />
+            <mxPoint x="730" y="1912.5" as="sourcePoint" />
+            <mxPoint x="490" y="1912.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1083" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="SELECT * FROM customers&lt;br&gt;WHERE cpf_cnpj = ?">
+        <mxCell id="c1083" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /service-orders/{id}/submit-for-approval">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="990" y="2225.1" as="sourcePoint" />
-            <mxPoint x="1510" y="2225.1" as="targetPoint" />
+            <mxPoint x="490" y="1992.5" as="sourcePoint" />
+            <mxPoint x="730" y="1992.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1084" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="cliente (id, active)">
+        <mxCell id="c1084" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="encaminha">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1510" y="2266.5" as="sourcePoint" />
-            <mxPoint x="990" y="2266.5" as="targetPoint" />
+            <mxPoint x="730" y="2028.5" as="sourcePoint" />
+            <mxPoint x="1470" y="2028.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1085" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK { token }">
+        <mxCell id="c1085" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="UPDATE service_orders SET status = AWAITING_APPROVAL&lt;br&gt;INSERT notifications (type = QUOTE)">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="990" y="2404.5" as="sourcePoint" />
-            <mxPoint x="730" y="2404.5" as="targetPoint" />
+            <mxPoint x="1470" y="2071.1" as="sourcePoint" />
+            <mxPoint x="1730" y="2071.1" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1086" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK { token }">
+        <mxCell id="c1086" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="ok">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="2440.5" as="sourcePoint" />
-            <mxPoint x="90" y="2440.5" as="targetPoint" />
+            <mxPoint x="1730" y="2112.5" as="sourcePoint" />
+            <mxPoint x="1470" y="2112.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1087" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /service-orders/quote/{id}/approve&lt;br&gt;Bearer token (cliente)">
+        <mxCell id="c1087" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK { OS: AWAITING_APPROVAL }">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="90" y="2561.1" as="sourcePoint" />
-            <mxPoint x="730" y="2561.1" as="targetPoint" />
+            <mxPoint x="1470" y="2148.5" as="sourcePoint" />
+            <mxPoint x="730" y="2148.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1088" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="encaminha, validado pelo Lambda Authorizer">
+        <mxCell id="c1088" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="2602.5" as="sourcePoint" />
-            <mxPoint x="1250" y="2602.5" as="targetPoint" />
+            <mxPoint x="730" y="2184.5" as="sourcePoint" />
+            <mxPoint x="490" y="2184.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1089" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="UPDATE quotes SET status = APPROVED&lt;br&gt;UPDATE service_orders SET status = AWAITING_EXECUTION">
+        <mxCell id="c1089" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="POST /auth/customers&lt;br&gt;{ cpfCnpj }">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1250" y="2645.1" as="sourcePoint" />
-            <mxPoint x="1510" y="2645.1" as="targetPoint" />
+            <mxPoint x="90" y="2271.1" as="sourcePoint" />
+            <mxPoint x="730" y="2271.1" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1090" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="ok">
+        <mxCell id="c1090" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="AWS_PROXY (invoca a função Lambda)">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1510" y="2686.5" as="sourcePoint" />
-            <mxPoint x="1250" y="2686.5" as="targetPoint" />
+            <mxPoint x="730" y="2312.5" as="sourcePoint" />
+            <mxPoint x="1210" y="2312.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1091" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK { orçamento: APPROVED }">
+        <mxCell id="c1091" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="SELECT * FROM customers&lt;br&gt;WHERE cpf_cnpj = ?">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1250" y="2722.5" as="sourcePoint" />
-            <mxPoint x="730" y="2722.5" as="targetPoint" />
+            <mxPoint x="1210" y="2355.1" as="sourcePoint" />
+            <mxPoint x="1730" y="2355.1" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1092" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK">
+        <mxCell id="c1092" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="cliente (id, active)">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="2758.5" as="sourcePoint" />
-            <mxPoint x="90" y="2758.5" as="targetPoint" />
+            <mxPoint x="1730" y="2396.5" as="sourcePoint" />
+            <mxPoint x="1210" y="2396.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1093" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /service-orders/quote/{id}/reprove&lt;br&gt;Bearer token (cliente)&lt;br&gt;{ reason }">
+        <mxCell id="c1093" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK { token }">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="90" y="2834.8" as="sourcePoint" />
-            <mxPoint x="730" y="2834.8" as="targetPoint" />
+            <mxPoint x="1210" y="2534.5" as="sourcePoint" />
+            <mxPoint x="730" y="2534.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1094" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="encaminha, validado pelo Lambda Authorizer">
+        <mxCell id="c1094" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK { token }">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="2882.5" as="sourcePoint" />
-            <mxPoint x="1250" y="2882.5" as="targetPoint" />
+            <mxPoint x="730" y="2570.5" as="sourcePoint" />
+            <mxPoint x="90" y="2570.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1095" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="UPDATE quotes SET status = REPROVED, quote_refusal_reason&lt;br&gt;UPDATE service_orders SET status = CANCELLED">
+        <mxCell id="c1095" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /service-orders/quote/{id}/approve&lt;br&gt;Bearer token (cliente)">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1250" y="2925.1" as="sourcePoint" />
-            <mxPoint x="1510" y="2925.1" as="targetPoint" />
+            <mxPoint x="90" y="2691.1" as="sourcePoint" />
+            <mxPoint x="730" y="2691.1" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1096" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="ok">
+        <mxCell id="c1096" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="REQUEST authorizer (format 2.0)&lt;br&gt;Authorization: Bearer token">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1510" y="2966.5" as="sourcePoint" />
-            <mxPoint x="1250" y="2966.5" as="targetPoint" />
+            <mxPoint x="730" y="2739.1" as="sourcePoint" />
+            <mxPoint x="970" y="2739.1" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1097" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK { orçamento: REPROVED }">
+        <mxCell id="c1097" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="{ isAuthorized: true,&lt;br&gt;  context: { customerId } }">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1250" y="3002.5" as="sourcePoint" />
-            <mxPoint x="730" y="3002.5" as="targetPoint" />
+            <mxPoint x="970" y="2875.1" as="sourcePoint" />
+            <mxPoint x="730" y="2875.1" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1098" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK">
+        <mxCell id="c1098" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="encaminha (autorizado)">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="3038.5" as="sourcePoint" />
-            <mxPoint x="90" y="3038.5" as="targetPoint" />
+            <mxPoint x="730" y="3004.5" as="sourcePoint" />
+            <mxPoint x="1470" y="3004.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1099" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /service_order_executions/{id}/start">
+        <mxCell id="c1099" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="UPDATE quotes SET status = APPROVED&lt;br&gt;UPDATE service_orders SET status = AWAITING_EXECUTION">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="490" y="3150.5" as="sourcePoint" />
-            <mxPoint x="730" y="3150.5" as="targetPoint" />
+            <mxPoint x="1470" y="3047.1" as="sourcePoint" />
+            <mxPoint x="1730" y="3047.1" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1100" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="encaminha">
+        <mxCell id="c1100" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="ok">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="3186.5" as="sourcePoint" />
-            <mxPoint x="1250" y="3186.5" as="targetPoint" />
+            <mxPoint x="1730" y="3088.5" as="sourcePoint" />
+            <mxPoint x="1470" y="3088.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1101" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="UPDATE service_order_executions SET status = IN_PROGRESS, started_at&lt;br&gt;UPDATE service_orders SET status = IN_PROGRESS">
+        <mxCell id="c1101" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK { orçamento: APPROVED }">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1250" y="3229.1" as="sourcePoint" />
-            <mxPoint x="1510" y="3229.1" as="targetPoint" />
+            <mxPoint x="1470" y="3124.5" as="sourcePoint" />
+            <mxPoint x="730" y="3124.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1102" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="ok">
+        <mxCell id="c1102" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1510" y="3270.5" as="sourcePoint" />
-            <mxPoint x="1250" y="3270.5" as="targetPoint" />
+            <mxPoint x="730" y="3160.5" as="sourcePoint" />
+            <mxPoint x="90" y="3160.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1103" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK">
+        <mxCell id="c1103" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /service-orders/quote/{id}/reprove&lt;br&gt;Bearer token (cliente)&lt;br&gt;{ reason }">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1250" y="3306.5" as="sourcePoint" />
-            <mxPoint x="730" y="3306.5" as="targetPoint" />
+            <mxPoint x="90" y="3236.8" as="sourcePoint" />
+            <mxPoint x="730" y="3236.8" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1104" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK">
+        <mxCell id="c1104" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="REQUEST authorizer (format 2.0)&lt;br&gt;Authorization: Bearer token">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="3342.5" as="sourcePoint" />
-            <mxPoint x="490" y="3342.5" as="targetPoint" />
+            <mxPoint x="730" y="3291.1" as="sourcePoint" />
+            <mxPoint x="970" y="3291.1" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1105" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /service_order_executions/{id}/complete">
+        <mxCell id="c1105" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="{ isAuthorized: true,&lt;br&gt;  context: { customerId } }">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="490" y="3412.5" as="sourcePoint" />
-            <mxPoint x="730" y="3412.5" as="targetPoint" />
+            <mxPoint x="970" y="3339.1" as="sourcePoint" />
+            <mxPoint x="730" y="3339.1" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1106" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="encaminha">
+        <mxCell id="c1106" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="encaminha (autorizado)">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="3448.5" as="sourcePoint" />
-            <mxPoint x="1250" y="3448.5" as="targetPoint" />
+            <mxPoint x="730" y="3380.5" as="sourcePoint" />
+            <mxPoint x="1470" y="3380.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1107" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="UPDATE service_order_executions&lt;br&gt;SET status = COMPLETED, finished_at">
+        <mxCell id="c1107" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="UPDATE quotes SET status = REPROVED, quote_refusal_reason&lt;br&gt;UPDATE service_orders SET status = CANCELLED">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1250" y="3491.1" as="sourcePoint" />
-            <mxPoint x="1510" y="3491.1" as="targetPoint" />
+            <mxPoint x="1470" y="3423.1" as="sourcePoint" />
+            <mxPoint x="1730" y="3423.1" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="c1108" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="ok">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1510" y="3532.5" as="sourcePoint" />
-            <mxPoint x="1250" y="3532.5" as="targetPoint" />
+            <mxPoint x="1730" y="3464.5" as="sourcePoint" />
+            <mxPoint x="1470" y="3464.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1109" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="UPDATE service_orders&lt;br&gt;SET status = FINISHED, finished_at = now()">
+        <mxCell id="c1109" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK { orçamento: REPROVED }">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1250" y="3683.1" as="sourcePoint" />
-            <mxPoint x="1510" y="3683.1" as="targetPoint" />
+            <mxPoint x="1470" y="3500.5" as="sourcePoint" />
+            <mxPoint x="730" y="3500.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1110" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="ok">
+        <mxCell id="c1110" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1510" y="3724.5" as="sourcePoint" />
-            <mxPoint x="1250" y="3724.5" as="targetPoint" />
+            <mxPoint x="730" y="3536.5" as="sourcePoint" />
+            <mxPoint x="90" y="3536.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1111" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK { execução }">
+        <mxCell id="c1111" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /service_order_executions/{id}/start">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1250" y="3792.5" as="sourcePoint" />
-            <mxPoint x="730" y="3792.5" as="targetPoint" />
+            <mxPoint x="490" y="3648.5" as="sourcePoint" />
+            <mxPoint x="730" y="3648.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1112" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK">
+        <mxCell id="c1112" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="encaminha">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="3828.5" as="sourcePoint" />
-            <mxPoint x="490" y="3828.5" as="targetPoint" />
+            <mxPoint x="730" y="3684.5" as="sourcePoint" />
+            <mxPoint x="1470" y="3684.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1113" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /service-orders/{id}/deliver">
+        <mxCell id="c1113" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="UPDATE service_order_executions SET status = IN_PROGRESS, started_at&lt;br&gt;UPDATE service_orders SET status = IN_PROGRESS">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="290" y="3940.5" as="sourcePoint" />
-            <mxPoint x="730" y="3940.5" as="targetPoint" />
+            <mxPoint x="1470" y="3727.1" as="sourcePoint" />
+            <mxPoint x="1730" y="3727.1" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1114" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="encaminha">
+        <mxCell id="c1114" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="ok">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="3976.5" as="sourcePoint" />
-            <mxPoint x="1250" y="3976.5" as="targetPoint" />
+            <mxPoint x="1730" y="3768.5" as="sourcePoint" />
+            <mxPoint x="1470" y="3768.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1115" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="UPDATE service_orders SET status = DELIVERED">
+        <mxCell id="c1115" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1250" y="4012.5" as="sourcePoint" />
-            <mxPoint x="1510" y="4012.5" as="targetPoint" />
+            <mxPoint x="1470" y="3804.5" as="sourcePoint" />
+            <mxPoint x="730" y="3804.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1116" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="ok">
+        <mxCell id="c1116" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1510" y="4048.5" as="sourcePoint" />
-            <mxPoint x="1250" y="4048.5" as="targetPoint" />
+            <mxPoint x="730" y="3840.5" as="sourcePoint" />
+            <mxPoint x="490" y="3840.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1117" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK { OS: DELIVERED }">
+        <mxCell id="c1117" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /service_order_executions/{id}/complete">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1250" y="4084.5" as="sourcePoint" />
-            <mxPoint x="730" y="4084.5" as="targetPoint" />
+            <mxPoint x="490" y="3910.5" as="sourcePoint" />
+            <mxPoint x="730" y="3910.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1118" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK">
+        <mxCell id="c1118" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="encaminha">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="4120.5" as="sourcePoint" />
-            <mxPoint x="290" y="4120.5" as="targetPoint" />
+            <mxPoint x="730" y="3946.5" as="sourcePoint" />
+            <mxPoint x="1470" y="3946.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1119" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="GET /service-orders/{id}/status">
+        <mxCell id="c1119" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="UPDATE service_order_executions&lt;br&gt;SET status = COMPLETED, finished_at">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="90" y="4200.5" as="sourcePoint" />
-            <mxPoint x="730" y="4200.5" as="targetPoint" />
+            <mxPoint x="1470" y="3989.1" as="sourcePoint" />
+            <mxPoint x="1730" y="3989.1" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1120" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="encaminha (rota pública, HTTP_PROXY direto)">
+        <mxCell id="c1120" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="ok">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="4236.5" as="sourcePoint" />
-            <mxPoint x="1250" y="4236.5" as="targetPoint" />
+            <mxPoint x="1730" y="4030.5" as="sourcePoint" />
+            <mxPoint x="1470" y="4030.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1121" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="SELECT status FROM service_orders WHERE id = ?">
+        <mxCell id="c1121" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="UPDATE service_orders&lt;br&gt;SET status = FINISHED, finished_at = now()">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1250" y="4272.5" as="sourcePoint" />
-            <mxPoint x="1510" y="4272.5" as="targetPoint" />
+            <mxPoint x="1470" y="4181.1" as="sourcePoint" />
+            <mxPoint x="1730" y="4181.1" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1122" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="status atual">
+        <mxCell id="c1122" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="ok">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1510" y="4308.5" as="sourcePoint" />
-            <mxPoint x="1250" y="4308.5" as="targetPoint" />
+            <mxPoint x="1730" y="4222.5" as="sourcePoint" />
+            <mxPoint x="1470" y="4222.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1123" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK { status }">
+        <mxCell id="c1123" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK { execução }">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1250" y="4344.5" as="sourcePoint" />
-            <mxPoint x="730" y="4344.5" as="targetPoint" />
+            <mxPoint x="1470" y="4290.5" as="sourcePoint" />
+            <mxPoint x="730" y="4290.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1124" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK { status }">
+        <mxCell id="c1124" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="4380.5" as="sourcePoint" />
-            <mxPoint x="90" y="4380.5" as="targetPoint" />
+            <mxPoint x="730" y="4326.5" as="sourcePoint" />
+            <mxPoint x="490" y="4326.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1125" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="Valida senha com BCryptPasswordEncoder&lt;br&gt;Gera JWT HS256 (sub = email, exp = 24h)&lt;br&gt;Papel (ROLE_ADMIN | ATTENDANT | MECHANIC)&lt;br&gt;carregado via OfisyUserDetailsService" vertex="1">
-          <mxGeometry height="88" width="280" x="1272" y="362" as="geometry" />
-        </mxCell>
-        <mxCell id="c1126" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="JwtAuthFilter valida o token&lt;br&gt;@PreAuthorize: role ADMIN ou ATTENDANT" vertex="1">
-          <mxGeometry height="60" width="280" x="1272" y="678" as="geometry" />
-        </mxCell>
-        <mxCell id="c1127" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="O Mecânico autentica-se pelo mesmo fluxo&lt;br&gt;de login do Bloco A, recebendo um token&lt;br&gt;com a role MECHANIC" vertex="1">
-          <mxGeometry height="74" width="280" x="512" y="908" as="geometry" />
-        </mxCell>
-        <mxCell id="c1128" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="Cria 1 ServiceOrderExecution (PENDING)&lt;br&gt;por serviço do orçamento&lt;br&gt;Soma os itens em total_price" vertex="1">
-          <mxGeometry height="74" width="280" x="1272" y="1558" as="geometry" />
-        </mxCell>
-        <mxCell id="c1129" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="Valida formato do CPF/CNPJ&lt;br&gt;Confere existência e active = true&lt;br&gt;Gera JWT HS256 (sub = customerId,&lt;br&gt;iss = techchallenge-ofisy-auth)" vertex="1">
-          <mxGeometry height="88" width="280" x="1012" y="2286" as="geometry" />
-        </mxCell>
-        <mxCell id="c1130" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="Verifica se todas as execuções da OS&lt;br&gt;já estão com status = COMPLETED" vertex="1">
-          <mxGeometry height="60" width="280" x="1272" y="3552" as="geometry" />
-        </mxCell>
-        <mxCell id="c1131" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#8C8C8C;verticalAlign=top;align=left;strokeWidth=1;dashed=0;" vertex="1">
-          <mxGeometry height="136" width="360" x="1200" y="1408" as="geometry" />
-        </mxCell>
-        <mxCell id="c1132" parent="1" style="shape=note2;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;fontStyle=1;align=left;spacingLeft=4;size=8;" value="loop  [para cada item de estoque / serviço do orçamento]" vertex="1">
-          <mxGeometry height="22" width="350" x="1200" y="1408" as="geometry" />
-        </mxCell>
-        <mxCell id="c1133" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#8C8C8C;verticalAlign=top;align=left;strokeWidth=1;dashed=0;" vertex="1">
-          <mxGeometry height="572" width="1520" x="40" y="2504" as="geometry" />
-        </mxCell>
-        <mxCell id="c1134" parent="1" style="shape=note2;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;fontStyle=1;align=left;spacingLeft=4;size=8;" value="alt  [Cliente aprova o orçamento]" vertex="1">
-          <mxGeometry height="22" width="360" x="40" y="2504" as="geometry" />
-        </mxCell>
-        <mxCell id="c1135" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;strokeColor=#8C8C8C;">
+        <mxCell id="c1125" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /service-orders/{id}/deliver">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="40" y="2778" as="sourcePoint" />
-            <mxPoint x="1560" y="2778" as="targetPoint" />
+            <mxPoint x="290" y="4438.5" as="sourcePoint" />
+            <mxPoint x="730" y="4438.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1136" parent="1" style="text;html=1;fontSize=9;fontStyle=2;fontColor=#666666;align=left;" value="[Cliente reprova o orçamento]" vertex="1">
-          <mxGeometry height="18" width="360" x="48" y="2780" as="geometry" />
+        <mxCell id="c1126" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="encaminha">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="730" y="4474.5" as="sourcePoint" />
+            <mxPoint x="1470" y="4474.5" as="targetPoint" />
+          </mxGeometry>
         </mxCell>
-        <mxCell id="c1137" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#8C8C8C;verticalAlign=top;align=left;strokeWidth=1;dashed=0;" vertex="1">
-          <mxGeometry height="136" width="360" x="1200" y="3626" as="geometry" />
+        <mxCell id="c1127" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="UPDATE service_orders SET status = DELIVERED">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1470" y="4510.5" as="sourcePoint" />
+            <mxPoint x="1730" y="4510.5" as="targetPoint" />
+          </mxGeometry>
         </mxCell>
-        <mxCell id="c1138" parent="1" style="shape=note2;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;fontStyle=1;align=left;spacingLeft=4;size=8;" value="opt  [todas as execuções concluídas]" vertex="1">
-          <mxGeometry height="22" width="350" x="1200" y="3626" as="geometry" />
+        <mxCell id="c1128" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="ok">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1730" y="4546.5" as="sourcePoint" />
+            <mxPoint x="1470" y="4546.5" as="targetPoint" />
+          </mxGeometry>
         </mxCell>
-        <mxCell id="c1139" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#8C8C8C;verticalAlign=top;align=left;strokeWidth=1;dashed=0;" vertex="1">
-          <mxGeometry height="504" width="1120" x="440" y="3362" as="geometry" />
+        <mxCell id="c1129" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK { OS: DELIVERED }">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1470" y="4582.5" as="sourcePoint" />
+            <mxPoint x="730" y="4582.5" as="targetPoint" />
+          </mxGeometry>
         </mxCell>
-        <mxCell id="c1140" parent="1" style="shape=note2;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;fontStyle=1;align=left;spacingLeft=4;size=8;" value="loop  [repete para cada ServiceOrderExecution da OS]" vertex="1">
-          <mxGeometry height="22" width="360" x="440" y="3362" as="geometry" />
+        <mxCell id="c1130" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="730" y="4618.5" as="sourcePoint" />
+            <mxPoint x="290" y="4618.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1131" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="GET /service-orders/{id}/status&lt;br&gt;Bearer token (cliente)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="90" y="4705.1" as="sourcePoint" />
+            <mxPoint x="730" y="4705.1" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1132" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="REQUEST authorizer (format 2.0)&lt;br&gt;Authorization: Bearer token">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="730" y="4753.1" as="sourcePoint" />
+            <mxPoint x="970" y="4753.1" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1133" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="{ isAuthorized: true,&lt;br&gt;  context: { customerId } }">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="970" y="4801.1" as="sourcePoint" />
+            <mxPoint x="730" y="4801.1" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1134" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="encaminha (autorizado)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="730" y="4944.5" as="sourcePoint" />
+            <mxPoint x="1470" y="4944.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1135" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="SELECT status FROM service_orders WHERE id = ?">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1470" y="4980.5" as="sourcePoint" />
+            <mxPoint x="1730" y="4980.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1136" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="status atual">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1730" y="5016.5" as="sourcePoint" />
+            <mxPoint x="1470" y="5016.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1137" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK { status }">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1470" y="5052.5" as="sourcePoint" />
+            <mxPoint x="730" y="5052.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1138" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK { status }">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="730" y="5088.5" as="sourcePoint" />
+            <mxPoint x="90" y="5088.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1139" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="GET /notifications/service-orders&lt;br&gt;Bearer token (cliente)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="90" y="5175.1" as="sourcePoint" />
+            <mxPoint x="730" y="5175.1" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1140" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="REQUEST authorizer (format 2.0)&lt;br&gt;Authorization: Bearer token">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="730" y="5223.1" as="sourcePoint" />
+            <mxPoint x="970" y="5223.1" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1141" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="{ isAuthorized: true,&lt;br&gt;  context: { customerId } }">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="970" y="5271.1" as="sourcePoint" />
+            <mxPoint x="730" y="5271.1" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1142" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="encaminha (autorizado, context.customerId disponível)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="730" y="5312.5" as="sourcePoint" />
+            <mxPoint x="1470" y="5312.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1143" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="SELECT * FROM notifications&lt;br&gt;(sem filtro por cliente)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1470" y="5457.1" as="sourcePoint" />
+            <mxPoint x="1730" y="5457.1" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1144" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="notificações">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1730" y="5498.5" as="sourcePoint" />
+            <mxPoint x="1470" y="5498.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1145" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK { notificações }">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1470" y="5534.5" as="sourcePoint" />
+            <mxPoint x="730" y="5534.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1146" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="730" y="5570.5" as="sourcePoint" />
+            <mxPoint x="90" y="5570.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1147" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="Nota de infraestrutura: toda chamada HTTP_PROXY desta&lt;br&gt;API Gateway para a Ofisy API atravessa um VPC Link até&lt;br&gt;a NLB privada do EKS&amp;nbsp; a NLB não tem exposição pública&lt;br&gt;direta (ver techchallenge-ofisy-eks-infra). Válido para&lt;br&gt;todas as setas Gateway → Ofisy API deste diagrama;&lt;br&gt;omitido nas demais para não repetir." vertex="1">
+          <mxGeometry height="116" width="280" x="752" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="c1148" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="Valida senha com BCryptPasswordEncoder&lt;br&gt;Gera JWT HS256 (sub = email, exp = 24h)&lt;br&gt;Papel (ROLE_ADMIN | ATTENDANT | MECHANIC)&lt;br&gt;carregado via OfisyUserDetailsService" vertex="1">
+          <mxGeometry height="88" width="280" x="1492" y="492" as="geometry" />
+        </mxCell>
+        <mxCell id="c1149" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="JwtAuthFilter valida o token&lt;br&gt;@PreAuthorize: role ADMIN ou ATTENDANT" vertex="1">
+          <mxGeometry height="60" width="280" x="1492" y="808" as="geometry" />
+        </mxCell>
+        <mxCell id="c1150" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="O Mecânico autentica-se pelo mesmo fluxo&lt;br&gt;de login do Bloco A, recebendo um token&lt;br&gt;com a role MECHANIC" vertex="1">
+          <mxGeometry height="74" width="280" x="512" y="1038" as="geometry" />
+        </mxCell>
+        <mxCell id="c1151" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="Cria 1 ServiceOrderExecution (PENDING)&lt;br&gt;por serviço do orçamento&lt;br&gt;Soma os itens em total_price" vertex="1">
+          <mxGeometry height="74" width="280" x="1492" y="1688" as="geometry" />
+        </mxCell>
+        <mxCell id="c1152" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="Valida formato do CPF/CNPJ&lt;br&gt;Confere existência e active = true&lt;br&gt;Gera JWT HS256 (sub = customerId,&lt;br&gt;iss = techchallenge-ofisy-auth)" vertex="1">
+          <mxGeometry height="88" width="280" x="1232" y="2416" as="geometry" />
+        </mxCell>
+        <mxCell id="c1153" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="Confere apenas assinatura, expiração e&lt;br&gt;issuer do token (sem consulta ao Postgres)&lt;br&gt;internal/jwt/validator.go · ValidateToken" vertex="1">
+          <mxGeometry height="74" width="280" x="992" y="2764" as="geometry" />
+        </mxCell>
+        <mxCell id="c1154" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="Se isAuthorized = false, a API Gateway&lt;br&gt;responde 401 direto ao Cliente,&amp;nbsp; a&lt;br&gt;chamada nem chega até a Ofisy API" vertex="1">
+          <mxGeometry height="74" width="280" x="752" y="2900" as="geometry" />
+        </mxCell>
+        <mxCell id="c1155" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="Verifica se todas as execuções da OS&lt;br&gt;já estão com status = COMPLETED" vertex="1">
+          <mxGeometry height="60" width="280" x="1492" y="4050" as="geometry" />
+        </mxCell>
+        <mxCell id="c1156" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="A rota continua marcada como pública&lt;br&gt;dentro do Spring (security.public-paths),&lt;br&gt;mas a proteção do cliente hoje acontece&lt;br&gt;na borda: API Gateway + Lambda Authorizer" vertex="1">
+          <mxGeometry height="88" width="280" x="752" y="4826" as="geometry" />
+        </mxCell>
+        <mxCell id="c1159" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#8C8C8C;verticalAlign=top;align=left;strokeWidth=1;dashed=0;" vertex="1">
+          <mxGeometry height="136" width="360" x="1420" y="1538" as="geometry" />
+        </mxCell>
+        <mxCell id="c1162" parent="1" style="shape=note2;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;fontStyle=1;align=left;spacingLeft=4;size=8;" value="alt  [Cliente aprova o orçamento]" vertex="1">
+          <mxGeometry height="22" width="360" x="40" y="2634" as="geometry" />
+        </mxCell>
+        <mxCell id="c1161" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#8C8C8C;verticalAlign=top;align=left;strokeWidth=1;dashed=0;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" vertex="1">
+          <mxGeometry height="940" width="1740" x="40" y="2634" as="geometry" />
+        </mxCell>
+        <mxCell id="c1160" parent="1" style="shape=note2;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;fontStyle=1;align=left;spacingLeft=4;size=8;" value="loop  [para cada item de estoque / serviço do orçamento]" vertex="1">
+          <mxGeometry height="22" width="350" x="1420" y="1538" as="geometry" />
+        </mxCell>
+        <mxCell id="c1163" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;strokeColor=#8C8C8C;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="40" y="3180" as="sourcePoint" />
+            <mxPoint x="1780" y="3180" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1164" parent="1" style="text;html=1;fontSize=9;fontStyle=2;fontColor=#666666;align=left;" value="[Cliente reprova o orçamento]" vertex="1">
+          <mxGeometry height="18" width="360" x="48" y="3182" as="geometry" />
+        </mxCell>
+        <mxCell id="c1165" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#8C8C8C;verticalAlign=top;align=left;strokeWidth=1;dashed=0;" vertex="1">
+          <mxGeometry height="136" width="360" x="1420" y="4124" as="geometry" />
+        </mxCell>
+        <mxCell id="c1166" parent="1" style="shape=note2;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;fontStyle=1;align=left;spacingLeft=4;size=8;" value="opt  [todas as execuções concluídas]" vertex="1">
+          <mxGeometry height="22" width="350" x="1420" y="4124" as="geometry" />
+        </mxCell>
+        <mxCell id="c1167" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#8C8C8C;verticalAlign=top;align=left;strokeWidth=1;dashed=0;" vertex="1">
+          <mxGeometry height="504" width="1340" x="440" y="3860" as="geometry" />
+        </mxCell>
+        <mxCell id="c1168" parent="1" style="shape=note2;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;fontStyle=1;align=left;spacingLeft=4;size=8;" value="loop  [repete para cada ServiceOrderExecution da OS]" vertex="1">
+          <mxGeometry height="22" width="360" x="440" y="3860" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
