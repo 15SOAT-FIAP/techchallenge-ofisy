@@ -30,6 +30,7 @@ jobs:
         with:
           name: app-jar
           path: target/*.jar
+          retention-days: 1
 
       - name: Upload coverage report
         if: always()
