@@ -13,6 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     environment: AWS_ACADEMY
     if: github.event.workflow_run.conclusion == 'success'
+    
+    concurrency:
+      group: deploy-aws
+      cancel-in-progress: false
 
     steps:
       - name: Checkout do código
@@ -29,15 +33,7 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
 
-      # 2. Configurar Java 21 para compilar a aplicação
-      - name: Configurar JDK 21 (Java)
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: maven
-
-      # 3. Obter o Endereço do Banco de Dados RDS PostgreSQL
+      # 2. Obter o Endereço do Banco de Dados RDS PostgreSQL
       - name: Obter Endereço do RDS (PostgreSQL)
         run: |
           RDS_ENDPOINT=$(aws rds describe-db-instances --db-instance-identifier ofisy-postgres-db --query "DBInstances[0].Endpoint.Address" --output text)
@@ -46,15 +42,17 @@ jobs:
             RDS_ENDPOINT="${{ secrets.RDS_HOST }}"
           fi
           echo "RDS_HOST=$RDS_ENDPOINT" >> $GITHUB_ENV
-          echo "RDS Host configurado: $RDS_ENDPOINT"
+          echo "::add-mask::$RDS_ENDPOINT"
+          echo "RDS Host configurado com sucesso."
 
-      # 4. Conectar kubectl no Cluster EKS
+      # 3. Conectar kubectl no Cluster EKS
       - name: Conectar ao EKS Cluster
         run: |
           aws eks update-kubeconfig --region us-east-1 --name ofisy-cluster
 
-      # 5. Garantir que o Metrics Server está instalado (necessário para o HPA calcular CPU/memória)
+      # 4. Garantir que o Metrics Server está instalado (necessário para o HPA calcular CPU/memória)
       - name: Instalar/Atualizar Metrics Server
+        continue-on-error: true
         run: |
           kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 
@@ -63,32 +61,44 @@ jobs:
             -p='[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"}]' \
             || true
 
-          kubectl rollout status deployment/metrics-server -n kube-system --timeout=120s
+          kubectl rollout status deployment/metrics-server -n kube-system --timeout=180s
 
-      # 6. Autenticar Docker no ECR
+      # 5. Autenticar Docker no ECR
       - name: Login no Amazon ECR
         run: |
           aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
 
-      # 7. Compilar o projeto e gerar o JAR
-      - name: Compilar Projeto (Maven)
-        run: |
-          mvn clean package -DskipTests
-          echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+      # 6. Baixar o artefato compilado da etapa de CI
+      - name: Download JAR artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-jar
+          path: target/
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      # 8. Buildar e Push da imagem Docker para o ECR da AWS
+      # 7. Buildar e Push da imagem Docker para o ECR da AWS
       - name: Enviar Imagem para o ECR
         run: |
-          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:${{ env.IMAGE_TAG }} .
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:${{ env.IMAGE_TAG }}
+          echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          # Garantir que a IMAGE_TAG está disponível no env do step
+          IMAGE_TAG=$(git rev-parse --short HEAD)
+          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:$IMAGE_TAG .
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:$IMAGE_TAG
 
-      # 9. Atualizar placeholders e aplicar no cluster EKS da AWS
+      # 8. Atualizar placeholders e aplicar no cluster EKS da AWS
       - name: Deploy dos Manifestos no EKS
+        env:
+          DB_PASS: ${{ secrets.DB_PASSWORD }}
+          JWT_SEC: ${{ secrets.JWT_SECRET }}
         run: |
+          echo "::add-mask::$DB_PASS"
+          echo "::add-mask::$JWT_SEC"
+          
           # Codifica as chaves do GitHub Secrets em base64 dinamicamente (sem quebra de linha)
           BASE64_USER=$(echo -n "ofisy" | base64 -w 0)
-          BASE64_PASS=$(echo -n "${{ secrets.DB_PASSWORD }}" | base64 -w 0)
-          BASE64_JWT=$(echo -n "${{ secrets.JWT_SECRET }}" | base64 -w 0)
+          BASE64_PASS=$(echo -n "$DB_PASS" | base64 -w 0)
+          BASE64_JWT=$(echo -n "$JWT_SEC" | base64 -w 0)
 
           # Substitui placeholders no secret da aplicação com credenciais base64
           sed -i "s|<BASE64_USERNAME>|$BASE64_USER|g" k8s/secret.yml
