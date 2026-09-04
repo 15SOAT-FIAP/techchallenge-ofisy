@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: AWS_ACADEMY
     if: github.event.workflow_run.conclusion == 'success'
-    
+
     concurrency:
       group: deploy-aws
       cancel-in-progress: false
@@ -91,23 +91,28 @@ jobs:
         env:
           DB_PASS: ${{ secrets.DB_PASSWORD }}
           JWT_SEC: ${{ secrets.JWT_SECRET }}
+          DD_KEY: ${{ secrets.DD_API_KEY }}
         run: |
           echo "::add-mask::$DB_PASS"
           echo "::add-mask::$JWT_SEC"
-          
+          echo "::add-mask::$DD_KEY"
+
           # Codifica as chaves do GitHub Secrets em base64 dinamicamente (sem quebra de linha)
           BASE64_USER=$(echo -n "ofisy" | base64 -w 0)
           BASE64_PASS=$(echo -n "$DB_PASS" | base64 -w 0)
           BASE64_JWT=$(echo -n "$JWT_SEC" | base64 -w 0)
+          BASE64_DD_KEY=$(echo -n "$DD_KEY" | base64 -w 0)
 
           # Substitui placeholders no secret da aplicação com credenciais base64
           sed -i "s|<BASE64_USERNAME>|$BASE64_USER|g" k8s/secret.yml
           sed -i "s|<BASE64_PASSWORD>|$BASE64_PASS|g" k8s/secret.yml
           sed -i "s|<BASE64_JWT_SECRET>|$BASE64_JWT|g" k8s/secret.yml
-          
-          # Injeta o host do banco de dados (RDS) no ConfigMap
+          sed -i "s|<BASE64_DD_API_KEY>|$BASE64_DD_KEY|g" k8s/secret.yml
+
+          # Injeta o host do banco de dados (RDS) e a versão da imagem (unified service tagging) no ConfigMap
           sed -i "s|<RDS_ADDRESS>|$RDS_HOST|g" k8s/configmap.yml
-          
+          sed -i "s|<IMAGE_TAG>|${{ env.IMAGE_TAG }}|g" k8s/configmap.yml
+
           # Injeta a imagem do ECR no Deployment
           sed -i "s|<ECR_REPOSITORY_URL>:<IMAGE_TAG>|${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:${{ env.IMAGE_TAG }}|g" k8s/deployment.yml
           

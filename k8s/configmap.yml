@@ -5,3 +5,9 @@ metadata:
 data:
   POSTGRES_HOST: "<RDS_ADDRESS>"
   SPRING_PROFILES_ACTIVE: "k8s"
+  DD_SERVICE: "ofisy-api"
+  DD_ENV: "production"
+  DD_VERSION: "<IMAGE_TAG>"
+  DD_METRICS_ENABLED: "true"
+  DD_LOGS_INJECTION: "true"
+  DD_TRACE_AGENT_PORT: "8126"
