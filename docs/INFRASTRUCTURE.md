@@ -15,28 +15,28 @@ Este documento aborda:
 
 ## Recursos criados
 
-| Recurso | Tipo Terraform | Descrição |
-|---|---|---|
-| VPC | `aws_vpc` | Rede isolada `10.0.0.0/16` com suporte a DNS |
-| Internet Gateway | `aws_internet_gateway` | Acesso à internet para recursos públicos da VPC |
-| Subnet pública A | `aws_subnet` | `10.0.1.0/24` — AZ `us-east-1a` — Load balancer e EKS |
-| Subnet pública B | `aws_subnet` | `10.0.4.0/24` — AZ `us-east-1b` — Load balancer e EKS |
-| Subnet privada A | `aws_subnet` | `10.0.2.0/24` — AZ `us-east-1a` — RDS e Pods internos |
-| Subnet privada B | `aws_subnet` | `10.0.3.0/24` — AZ `us-east-1b` — RDS e Pods internos |
-| Route Table pública | `aws_route_table` | Roteia `0.0.0.0/0` para o Internet Gateway |
-| Associações de Route Table | `aws_route_table_association` | Vincula as subnets públicas à route table |
-| DB Subnet Group | `aws_db_subnet_group` | Agrupa subnets privadas para uso pelo RDS |
-| ECR | `aws_ecr_repository` | Repositório de imagens Docker da aplicação |
-| Security Group EKS | `aws_security_group` | Firewall do EKS — abre SSH(22), HTTP(80), HTTPS(443) e tráfego interno |
-| Security Group RDS | `aws_security_group` | Firewall do RDS — permite PostgreSQL(5432) apenas de EKS |
-| RDS PostgreSQL | `aws_db_instance` | PostgreSQL 15.4 gerenciado (`db.t3.micro`, 20GB, backup 7 dias, criptografia habilitada) |
-| RDS Parameter Group | `aws_db_parameter_group` | Configurações otimizadas para o PostgreSQL |
-| EKS Cluster | `aws_eks_cluster` | Kubernetes v1.29 gerenciado — control plane, logging (5 tipos) |
-| EKS Cluster IAM Role | `aws_iam_role` | Permissões para o control plane do EKS |
-| EKS Node Group | `aws_eks_node_group` | 2 instâncias `t3.medium` (min:1, max:4) que executam os workloads |
-| EKS Node Group IAM Role | `aws_iam_role` | Permissões para nodes (worker policy, CNI, ECR read) |
-| EKS Access Entry | `aws_eks_access_entry` | Controle de acesso ao cluster via IAM Role |
-| EKS Access Policy Association | `aws_eks_access_policy_association` | Associa política de administrador para acesso ao cluster |
+| Recurso                       | Tipo Terraform                      | Descrição                                                                                |
+|-------------------------------|-------------------------------------|------------------------------------------------------------------------------------------|
+| VPC                           | `aws_vpc`                           | Rede isolada `10.0.0.0/16` com suporte a DNS                                             |
+| Internet Gateway              | `aws_internet_gateway`              | Acesso à internet para recursos públicos da VPC                                          |
+| Subnet pública A              | `aws_subnet`                        | `10.0.1.0/24` — AZ `us-east-1a` — Nodes EKS e saída à internet                           |
+| Subnet pública B              | `aws_subnet`                        | `10.0.4.0/24` — AZ `us-east-1b` — Nodes EKS e saída à internet                           |
+| Subnet privada A              | `aws_subnet`                        | `10.0.2.0/24` — AZ `us-east-1a` — RDS e Pods internos                                    |
+| Subnet privada B              | `aws_subnet`                        | `10.0.3.0/24` — AZ `us-east-1b` — RDS e Pods internos                                    |
+| Route Table pública           | `aws_route_table`                   | Roteia `0.0.0.0/0` para o Internet Gateway                                               |
+| Associações de Route Table    | `aws_route_table_association`       | Vincula as subnets públicas à route table                                                |
+| DB Subnet Group               | `aws_db_subnet_group`               | Agrupa subnets privadas para uso pelo RDS                                                |
+| ECR                           | `aws_ecr_repository`                | Repositório de imagens Docker da aplicação                                               |
+| Security Group EKS            | `aws_security_group`                | Firewall do EKS — abre SSH(22), HTTP(80), HTTPS(443) e tráfego interno                   |
+| Security Group RDS            | `aws_security_group`                | Firewall do RDS — permite PostgreSQL(5432) apenas de EKS                                 |
+| RDS PostgreSQL                | `aws_db_instance`                   | PostgreSQL 15.4 gerenciado (`db.t3.micro`, 20GB, backup 7 dias, criptografia habilitada) |
+| RDS Parameter Group           | `aws_db_parameter_group`            | Configurações otimizadas para o PostgreSQL                                               |
+| EKS Cluster                   | `aws_eks_cluster`                   | Kubernetes v1.29 gerenciado — control plane, logging (5 tipos)                           |
+| EKS Cluster IAM Role          | `aws_iam_role`                      | Permissões para o control plane do EKS                                                   |
+| EKS Node Group                | `aws_eks_node_group`                | 2 instâncias `t3.medium` (min:1, max:4) que executam os workloads                        |
+| EKS Node Group IAM Role       | `aws_iam_role`                      | Permissões para nodes (worker policy, CNI, ECR read)                                     |
+| EKS Access Entry              | `aws_eks_access_entry`              | Controle de acesso ao cluster via IAM Role                                               |
+| EKS Access Policy Association | `aws_eks_access_policy_association` | Associa política de administrador para acesso ao cluster                                 |
 
 ---
 
@@ -45,14 +45,17 @@ Este documento aborda:
 ```
 Internet
     │
-    ▼ (HTTP/HTTPS portas 80, 443)
-Internet Gateway (ofisy-igw)
+    ▼ (HTTPS)
+API Gateway  ──►  Lambda Authorizer (valida JWT)
+    │
+    ▼ (VPC Link)
+Internet Gateway (ofisy-igw)  ──►  saída à internet dos recursos da VPC
     │
     ▼ (0.0.0.0/0)
-┌────────────────────────────────────────────────────────┐
-│  VPC  10.0.0.0/16                                      │
-│                                                        │
-│  Public Subnets (Expostas à internet)                 │
+┌──────────────────────────────────────────────────────┐
+│  VPC  10.0.0.0/16                                    │
+│                                                      │
+│  Public Subnets (Expostas à internet)                │
 │  ┌──────────────────┐      ┌──────────────────┐      │
 │  │ Subnet A         │      │ Subnet B         │      │
 │  │ 10.0.1.0/24      │      │ 10.0.4.0/24      │      │
@@ -63,30 +66,30 @@ Internet Gateway (ofisy-igw)
 │  │ │ (Pods)       │ │      │ │ (Pods)       │ │      │
 │  │ └──────────────┘ │      │ └──────────────┘ │      │
 │  └──────────────────┘      └──────────────────┘      │
-│                                                        │
-│  Security Group EKS                                   │
+│                                                      │
+│  Security Group EKS                                  │
 │  ├─ SSH (22), HTTP (80), HTTPS (443)                 │
 │  └─ Tráfego interno entre nodes                      │
-│                                                        │
+│                                                      │
 │  Private Subnets (Isoladas da internet)              │
-│  ┌──────────────────────────┐  ┌────────────────┐   │
-│  │ Subnet A                 │  │ Subnet B       │   │
-│  │ 10.0.2.0/24              │  │ 10.0.3.0/24    │   │
-│  │ us-east-1a               │  │ us-east-1b     │   │
-│  │ ┌──────────────────────┐ │  │                │   │
-│  │ │ RDS PostgreSQL 15.4  │ │  │ (Standby)      │   │
-│  │ │ ofisy-postgres-db    │ │  │                │   │
-│  │ │ db.t3.micro          │ │  │                │   │
-│  │ │ 20GB storage         │ │  │                │   │
-│  │ │ Criptografia: SIM    │ │  │                │   │
-│  │ │ Backup: 7 dias       │ │  │                │   │
-│  │ └──────────────────────┘ │  │                │   │
-│  └──────────────────────────┘  └────────────────┘   │
-│                                                        │
-│  Security Group RDS                                   │
+│  ┌──────────────────────────┐  ┌────────────────┐    │
+│  │ Subnet A                 │  │ Subnet B       │    │
+│  │ 10.0.2.0/24              │  │ 10.0.3.0/24    │    │
+│  │ us-east-1a               │  │ us-east-1b     │    │
+│  │ ┌──────────────────────┐ │  │                │    │
+│  │ │ RDS PostgreSQL 15.4  │ │  │ (Standby)      │    │
+│  │ │ ofisy-postgres-db    │ │  │                │    │
+│  │ │ db.t3.micro          │ │  │                │    │
+│  │ │ 20GB storage         │ │  │                │    │
+│  │ │ Criptografia: SIM    │ │  │                │    │
+│  │ │ Backup: 7 dias       │ │  │                │    │
+│  │ └──────────────────────┘ │  │                │    │
+│  └──────────────────────────┘  └────────────────┘    │
+│                                                      │
+│  Security Group RDS                                  │
 │  └─ PostgreSQL (5432) apenas de EKS                  │
-│                                                        │
-└────────────────────────────────────────────────────────┘
+│                                                      │
+└──────────────────────────────────────────────────    ────┘
 
 EKS Control Plane (AWS Managed)
 ├─ Kubernetes v1.29
@@ -97,17 +100,18 @@ EKS Control Plane (AWS Managed)
 
 #### Fluxo de Dados
 
-1. **Requisição externa** → Internet Gateway → Public Subnet (Load Balancer)
-2. **Load Balancer** → EKS Nodes (via Security Group EKS)
-3. **Pods** → Query SQL → RDS (via Security Group RDS, porta 5432)
-4. **RDS** → Retorna dados → Pods
-5. **Pods** → Response → Load Balancer → Cliente
+1. **Requisição externa** → API Gateway (valida o acesso no authorizer Lambda)
+2. **API Gateway** → VPC Link → Load Balancer
+3. **Load Balancer** → EKS Nodes (via Security Group EKS)
+4. **Pods** → Query SQL → RDS (via Security Group RDS, porta 5432)
+5. **RDS** → Retorna dados → Pods
+6. **Pods** → Response → Load Balancer → VPC Link → API Gateway → Cliente
 
 #### Isolamento de Segurança
 
 - **RDS em subnets privadas** — sem acesso direto da internet
 - **RDS só aceita conexões do Security Group EKS** — isolamento em nível de firewall
-- **EKS nodes em subnets privadas** — acessíveis apenas via Load Balancer público
+- **EKS nodes sem exposição direta à internet** — alcançáveis apenas pelo Load Balancer, que recebe o tráfego do API Gateway via VPC Link
 - **Backups automáticos** — diários com retenção de 7 dias
 - **Criptografia** — dados armazenados criptografados
 
@@ -123,11 +127,11 @@ EKS Control Plane (AWS Managed)
 
 ## Variáveis
 
-| Variável | Descrição | Padrão | Obrigatório |
-|---|---|---|---|
-| `account_id` | ID da conta AWS (12 dígitos) | — | ✅ SIM |
-| `role_name` | IAM Role com acesso ao EKS | `LabRole` | No AWS Academy |
-| `db_password` | Senha do usuário admin do banco de dados | — | ✅ SIM |
+| Variável      | Descrição                                | Padrão    | Obrigatório    |
+|---------------|------------------------------------------|-----------|----------------|
+| `account_id`  | ID da conta AWS (12 dígitos)             | —         | ✅ SIM         |
+| `role_name`   | IAM Role com acesso ao EKS               | `LabRole` | No AWS Academy |
+| `db_password` | Senha do usuário admin do banco de dados | —         | ✅ SIM         |
 
 **Configuração:**
 

@@ -95,7 +95,13 @@ O pod da aplicação estará pronto quando o STATUS for `Running` e o READY for 
 kubectl get service ofisy-service
 ```
 
-O `EXTERNAL-IP` (hostname do Load Balancer) demora alguns minutos pra aparecer depois do apply, não se assuste se vier vazio de início. A documentação Swagger fica em `/swagger-ui.html`.
+O `EXTERNAL-IP` (hostname do Load Balancer) demora alguns minutos pra aparecer depois do apply, não se assuste se vier vazio de início.
+
+Esse NLB é interno (ver a seção LoadBalancer nas observações), então o hostname só resolve de dentro da VPC. O acesso externo à aplicação, incluindo a documentação Swagger em `/swagger-ui.html`, é feito pela URL do API Gateway. Pra testar direto o service durante a operação do cluster, use um port-forward:
+
+```bash
+kubectl port-forward service/ofisy-service 8080:8080
+```
 
 ---
 
@@ -119,6 +125,8 @@ kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/late
 
 ### LoadBalancer
 `service.yml` usa `type: LoadBalancer` com a anotação `service.beta.kubernetes.io/aws-load-balancer-type: nlb`. Essa anotação é reconhecida pelo cloud provider nativo do EKS e faz o Kubernetes provisionar um Network Load Balancer (NLB) em vez do Classic ELB, que seria o padrão sem ela. É de propósito: o AWS Load Balancer Controller pediria uma IAM policy que o AWS Academy não libera, então usamos essa anotação nativa pra conseguir um NLB sem precisar instalar o controller.
+
+A segunda anotação, `service.beta.kubernetes.io/aws-load-balancer-internal: "true"`, faz o NLB ser criado como interno, sem IP público. Quem entra na aplicação vem pelo API Gateway, que alcança esse NLB por um VPC Link (ver `docs/INFRA-CICD-DIAGRAM.md`). Por isso o hostname que aparece no `EXTERNAL-IP` do service só resolve de dentro da VPC.
 
 ### Banco de dados
 PostgreSQL roda no RDS (`infra/terraform/rds.tf`), fora do cluster. O `POSTGRES_HOST` do ConfigMap aponta pro endpoint do RDS; hoje isso é preenchido na mão a partir do output do Terraform.

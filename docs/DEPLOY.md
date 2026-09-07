@@ -23,7 +23,9 @@ Para testes rápidos com aplicação e banco rodando em containers integrados:
 
 ## 2. Deploy na AWS via GitHub Actions (automático)
 
-Esse método automatiza o planejamento do Terraform (`terraform plan`), o provisionamento (`terraform apply`), o build do código e o deploy no cluster EKS da AWS. É acionado automaticamente a cada push ou merge na branch `master`.
+Esse método automatiza o build do código, a publicação da imagem no ECR e o deploy no cluster EKS da AWS. É acionado automaticamente a cada push ou merge na branch `master`.
+
+O provisionamento da infraestrutura não faz parte dessa esteira: o cluster EKS e o RDS vêm dos repositórios `techchallenge-ofisy-eks-infra` e `techchallenge-ofisy-rds-infra`, cada um com sua própria pipeline de Terraform. O CD daqui assume os dois já de pé.
 
 ### Passo 1: configurar o Environment e Secrets no GitHub
 
@@ -44,11 +46,9 @@ Como a esteira roda de forma autônoma, crie um ambiente (**Environment**) no Gi
 
 1.  Faça o merge de um PR ou push direto para a branch `master`.
 2.  A esteira **Deploy Automático na AWS (CD)** inicia automaticamente e executa:
-    *   Garante que o bucket S3 de estado do Terraform existe.
-    *   Executa `terraform plan` para exibir o plano de alterações nos logs.
-    *   Executa `terraform apply` para provisionar RDS e EKS.
-    *   Compila a aplicação Java com Maven.
-    *   Envia a imagem Docker ao ECR da AWS.
+    *   Obtém o endereço do RDS (PostgreSQL) já provisionado.
+    *   Conecta o `kubectl` ao cluster EKS e garante o Metrics Server instalado.
+    *   Faz login no ECR e envia a imagem Docker da aplicação.
     *   Substitui os placeholders de imagem/RDS e aplica os recursos no EKS.
 
 ---
