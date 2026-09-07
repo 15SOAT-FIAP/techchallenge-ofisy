@@ -10,9 +10,17 @@ A adoção dos ADRs neste projeto está registrada no
 
 ## Índice
 
-| ADR | Título | Status | Data |
-|-----|--------|--------|------|
-| [0001](0001-registrar-decisoes-de-arquitetura.md) | Registrar decisões de arquitetura | Aceito | 2026-09-05 |
+| ADR                                                                  | Título                                               | Status | Data       |
+|----------------------------------------------------------------------|------------------------------------------------------|--------|------------|
+| [0001](0001-registrar-decisoes-de-arquitetura.md)                    | Registrar decisões de arquitetura                    | Aceito | 2026-09-05 |
+| [0002](0002-adotar-clean-architecture-com-ddd.md)                    | Adotar Clean Architecture com DDD                    | Aceito | 2026-09-06 |
+| [0003](0003-expor-a-aplicacao-por-api-rest.md)                       | Expor a aplicação por API REST                       | Aceito | 2026-09-06 |
+| [0004](0004-utilizar-a-aws-como-provedor-de-nuvem.md)                | Utilizar a AWS como provedor de nuvem                | Aceito | 2026-09-06 |
+| [0005](0005-escalar-a-aplicacao-com-hpa-por-cpu.md)                  | Escalar a aplicação com HPA por CPU                  | Aceito | 2026-09-06 |
+| [0006](0006-separar-a-autenticacao-de-clientes-e-de-funcionarios.md) | Separar a autenticação de clientes e de funcionários | Aceito | 2026-09-06 |
+| [0007](0007-versionar-o-schema-com-flyway.md)                        | Versionar o schema do banco com Flyway               | Aceito | 2026-09-06 |
+| [0008](0008-testar-integracao-com-testcontainers.md)                 | Testar a integração com Testcontainers               | Aceito | 2026-09-06 |
+| [0009](0009-registrar-notificacoes-de-forma-sincrona-no-banco.md)    | Registrar notificações de forma síncrona no banco    | Aceito | 2026-09-06 |
 
 ## Formato
 
