@@ -1,18 +1,22 @@
-name: Deploy Automático na AWS (CD)
+name: Deploy Manual na AWS (CD)
 
 on:
-  workflow_run:
-    workflows: ["Build & Test (CI)"]
-    branches: [master]
-    types:
-      - completed
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch, tag ou commit a ser implantado"
+        required: false
+        default: master
+
+env:
+  JAVA_VERSION: "21"
+  JAVA_DISTRIBUTION: temurin
 
 jobs:
   deploy-to-aws:
-    name: Deploy Automático na AWS (Kubernetes EKS)
+    name: Deploy Manual na AWS (Kubernetes EKS)
     runs-on: ubuntu-latest
     environment: AWS_ACADEMY
-    if: github.event.workflow_run.conclusion == 'success'
 
     concurrency:
       group: deploy-aws
@@ -22,7 +26,7 @@ jobs:
       - name: Checkout do código
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ inputs.ref }}
 
       # 1. Configurar Credenciais da AWS a partir dos Secrets do GitHub
       - name: Configurar Credenciais AWS
@@ -68,14 +72,16 @@ jobs:
         run: |
           aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
 
-      # 6. Baixar o artefato compilado da etapa de CI
-      - name: Download JAR artifact
-        uses: actions/download-artifact@v4
+      # 6. Compilar o artefato da aplicação (os testes já rodam no CI)
+      - name: Setup JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
         with:
-          name: app-jar
-          path: target/
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: maven
+
+      - name: Build do JAR
+        run: mvn -B package -DskipTests --no-transfer-progress
 
       # 7. Buildar e Push da imagem Docker para o ECR da AWS
       - name: Enviar Imagem para o ECR

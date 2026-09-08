@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [master]
 
+env:
+  JAVA_VERSION: "21"
+  JAVA_DISTRIBUTION: temurin
+
 jobs:
   build:
     name: Build & Test
@@ -15,11 +19,11 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v7
 
-      - name: Setup JDK 21
+      - name: Setup JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
         with:
-          java-version: "21"
-          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
           cache: maven
 
       - name: Build & Test
