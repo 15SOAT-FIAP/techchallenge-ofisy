@@ -38,26 +38,30 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+          startupProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            periodSeconds: 10
+            failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
               port: 8080
             periodSeconds: 10
             failureThreshold: 3
-            initialDelaySeconds: 60
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness
               port: 8080
             periodSeconds: 10
             failureThreshold: 5
-            initialDelaySeconds: 60
           resources:
             requests:
-              cpu: "250m"
+              cpu: "500m"
               memory: "512Mi"
             limits:
-              cpu: "500m"
+              cpu: "1"
               memory: "1Gi"
   selector:
     matchLabels:
