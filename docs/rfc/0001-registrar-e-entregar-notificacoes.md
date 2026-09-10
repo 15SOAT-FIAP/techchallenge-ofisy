@@ -1,20 +1,19 @@
 # RFC-0001. Registrar e entregar notificações
 
-Data: 2026-09-04
+Data: 04/09/2026
 Autor: @rogerbertan
 
 ## Status
 
-Aceita
+Encerrada - Aprovada
 
 ## Resumo
 
-O sistema precisa avisar sobre dois eventos: quando o estoque de um produto cai abaixo do
-mínimo e quando um orçamento é gerado para uma ordem de serviço. Esta RFC propõe registrar
-as notificações de forma síncrona no próprio banco, dentro da transação que originou o
-evento, expondo-as por endpoints de leitura, sem entrega ativa nesta fase.
+Registrar as notificações de estoque baixo e de orçamento gerado de forma síncrona no
+próprio banco, dentro da transação que originou o evento, expondo-as por endpoints de
+leitura, sem entrega ativa nesta fase.
 
-## Motivação
+## Problema
 
 Dois pontos do sistema produzem informação que alguém precisa receber, e hoje não há
 nenhum mecanismo para isso.
@@ -31,7 +30,7 @@ São dois interessados diferentes, com dois tipos de aviso diferentes, e ambos p
 um lugar onde o evento fique registrado. A questão em aberto é onde esse registro vive e
 se o sistema deve despachar o aviso ativamente ou apenas disponibilizá-lo para consulta.
 
-## Proposta
+## Proposta Técnica
 
 Registrar as notificações como linhas no banco, gravadas de forma síncrona dentro da
 transação que originou o evento.
@@ -56,7 +55,21 @@ consultar as próprias notificações, conforme a separação de autenticação 
 **Entrega.** Não há envio ativo nesta fase: nenhum e-mail, SMS ou push. A notificação é um
 registro consultado sob demanda.
 
-## Desvantagens
+## Impacto esperado
+
+**Benefícios.**
+
+- Os dois eventos que hoje não têm registro nenhum passam a ficar persistidos: o almoxarife
+  tem onde ver que o estoque caiu abaixo do mínimo, e o cliente, que existe um orçamento
+  esperando aprovação.
+- A notificação é gravada na mesma transação da operação de negócio, de modo que não existe
+  estado em que o evento aconteceu e o aviso se perdeu.
+- Não há infraestrutura nova: nenhuma mensageria, nenhum publicador, nenhum Terraform
+  adicional. O desenho cabe no que o projeto já opera.
+- O registro em banco é o passo que torna segura uma migração futura para entrega ativa ou
+  mensageria, porque o que precisaria ser entregue já está persistido.
+
+**Riscos e custos.**
 
 - A notificação passa a estar no caminho crítico da operação. Uma falha ao gravá-la desfaz
   a transação inteira e impede o consumo de estoque ou a geração do orçamento, ainda que o
@@ -90,7 +103,7 @@ registro consultado sob demanda.
   telas existentes. Nenhum custo, mas deixa a ordem de serviço parada esperando uma
   aprovação que o cliente não sabe que precisa dar.
 
-## Questões em aberto
+## Pontos em aberto
 
 - A entrega ativa é requisito desta fase? Se for, a proposta muda: o outbox passa a ser o
   desenho mínimo, porque despachar dentro da transação não é opção.
@@ -100,20 +113,10 @@ registro consultado sob demanda.
 - As duas notificações têm o mesmo ciclo de vida, ou a de orçamento precisa de estados
   próprios (aprovado, reprovado) que a de estoque não tem?
 
-## Possibilidades futuras
-
-- Acrescentar entrega ativa por e-mail ou push, migrando para o padrão outbox sem perder o
-  histórico já registrado.
-- Migrar para mensageria na Fase 4, se o projeto seguir para microsserviços como o
-  [ADR-0002](../adr/0002-adotar-clean-architecture-com-ddd.md) aponta. O registro em banco
-  é o passo que torna essa migração segura, porque o que precisa ser entregue já está
-  persistido.
-- Preferência de canal por destinatário, uma vez que exista mais de um canal.
-
 ## Decisão registrada
 
-- **Resultado**: Aceita
-- **Data**: 2026-09-06
+- **Resultado**: Encerrada - Aprovada
+- **Data**: 06/09/2026
 - **Aprovada por**: @binhajus, @kalelfleith, @Tetheugas
 - **ADR gerado**:
   [ADR-0009](../adr/0009-registrar-notificacoes-de-forma-sincrona-no-banco.md)

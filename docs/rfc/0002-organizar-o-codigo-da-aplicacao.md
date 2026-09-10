@@ -1,20 +1,19 @@
 # RFC-0002. Organizar o código da aplicação
 
-Data: 2026-09-03
+Data: 03/09/2026
 Autor: @rogerbertan
 
 ## Status
 
-Aceita
+Encerrada - Aprovada
 
 ## Resumo
 
-Definir como o código da aplicação será organizado internamente. A proposta é adotar a
-Clean Architecture, com a regra de dependência apontando sempre para dentro, combinada com
-DDD para modelar os agregados, em vez da divisão convencional em `controller`, `service` e
-`repository`.
+Organizar o código pela Clean Architecture, com a regra de dependência apontando sempre
+para dentro e DDD para modelar os agregados, em vez da divisão convencional em
+`controller`, `service` e `repository`.
 
-## Motivação
+## Problema
 
 O Ofisy nasceu como monolito por exigência da primeira fase do Tech Challenge, mas as
 fases seguintes pedem a evolução para microsserviços. A organização interna do código
@@ -34,7 +33,7 @@ começo, define o custo de todos os testes que virão.
 A escolha precisa ser feita agora, no início, porque reorganizar as camadas depois de dez
 agregados implementados é uma reescrita.
 
-## Proposta
+## Proposta Técnica
 
 Organizar o código segundo a Clean Architecture, com os agregados modelados por DDD, em
 quatro camadas: `domain`, `application`, `adapters` e `config`.
@@ -54,7 +53,21 @@ A inversão de dependência fica concreta em `CustomerRepositoryImpl`, que vive 
 implementa `CustomerRepository` do domínio e faz o mapeamento entre `CustomerEntity` e
 `Customer`.
 
-## Desvantagens
+## Impacto esperado
+
+**Benefícios.**
+
+- As regras de cada um dos dez agregados ficam compreensíveis de forma isolada, em vez de
+  espalhadas entre controllers e entidades JPA.
+- O domínio não depende de Spring nem de banco, de modo que exercitar uma regra de negócio
+  não exige subir contexto nem infraestrutura. Isso define o custo de todos os testes que
+  virão.
+- A fronteira entre agregados fica explícita, o que torna a extração para microsserviços na
+  Fase 4 um recorte por pacote em vez de uma reescrita.
+- A tecnologia de persistência pode ser trocada sem tocar no domínio, que conhece apenas a
+  interface do repositório.
+
+**Riscos e custos.**
 
 - O volume de código cresce de forma significativa: cada operação exige interface,
   service, DTOs, mapper e presenter, mesmo quando é um simples cadastro. Para um CRUD, a
@@ -91,7 +104,7 @@ implementa `CustomerRepository` do domínio e faz o mapeamento entre `CustomerEn
   Descartada pelo custo de configuração e porque fragmenta o projeto cedo demais, quando o
   recorte entre módulos ainda não está claro.
 
-## Questões em aberto
+## Pontos em aberto
 
 - Vale acrescentar uma verificação automatizada de dependências entre camadas, algo como
   ArchUnit, já nesta fase? Ou a revisão de Pull Request é suficiente enquanto o time é
@@ -102,19 +115,10 @@ implementa `CustomerRepository` do domínio e faz o mapeamento entre `CustomerEn
 - Um caso de uso por operação gera muitos pacotes. Vale agrupar as operações de leitura de
   um mesmo agregado, ou a granularidade fina compensa pela clareza?
 
-## Possibilidades futuras
-
-- Extrair agregados para microsserviços na Fase 4, com o recorte já dado pelas fronteiras
-  de pacote.
-- Trocar a tecnologia de persistência sem tocar no domínio, já que ele conhece apenas a
-  interface do repositório.
-- Introduzir verificação automatizada da regra de dependência, se o vazamento por descuido
-  se mostrar um problema recorrente.
-
 ## Decisão registrada
 
-- **Resultado**: Aceita
-- **Data**: 2026-09-06
+- **Resultado**: Encerrada - Aprovada
+- **Data**: 06/09/2026
 - **Aprovada por**: @binhajus, @kalelfleith, @Tetheugas
 - **ADR gerado**: [ADR-0002](../adr/0002-adotar-clean-architecture-com-ddd.md)
 

@@ -1,19 +1,18 @@
 # RFC-0006. Versionar a evolução do schema
 
-Data: 2026-09-04
+Data: 04/09/2026
 Autor: @rogerbertan
 
 ## Status
 
-Aceita
+Encerrada - Aprovada
 
 ## Resumo
 
-Definir como a evolução do schema do banco chega a cada ambiente. A proposta é versionar o
-schema com Flyway, em scripts SQL numerados, e impedir que o Hibernate altere o banco em
-qualquer ambiente.
+Versionar o schema do banco com Flyway, em scripts SQL numerados, e impedir que o
+Hibernate altere o banco em qualquer ambiente.
 
-## Motivação
+## Problema
 
 O schema do banco evolui junto com a aplicação: novas tabelas por agregado, colunas
 acrescentadas a entidades existentes e dados de carga inicial, como usuários e catálogo de
@@ -29,7 +28,7 @@ onde, e a divergência só aparece quando uma consulta falha em um ambiente e fu
 outro. Como o laboratório é reiniciado com frequência e o banco precisa ser recriado do
 zero, o problema deixa de ser hipotético.
 
-## Proposta
+## Proposta Técnica
 
 Versionar o schema com Flyway, em scripts SQL numerados sob
 `src/main/resources/db/migration`, seguindo a convenção `V<n>__descricao.sql`.
@@ -44,7 +43,22 @@ As migrations cobrem tanto estrutura quanto dados de carga inicial, incluindo os
 usados na avaliação do projeto. Elas também rodam nos testes de integração, sobre o
 PostgreSQL provisionado por Testcontainers.
 
-## Desvantagens
+## Impacto esperado
+
+**Benefícios.**
+
+- Os quatro ambientes convergem para o mesmo estado a partir do mesmo conjunto de scripts,
+  sem depender de alguém lembrar do que rodou onde.
+- A mudança de schema deixa de ser efeito colateral e passa pela revisão de Pull Request
+  como qualquer outro código.
+- Com `ddl-auto: validate`, uma divergência entre entidade e tabela derruba a aplicação na
+  inicialização, em vez de virar erro obscuro na primeira consulta.
+- O banco pode ser recriado do zero de forma confiável, o que importa porque o laboratório
+  é reiniciado com frequência.
+- As migrations expressam também carga inicial de dados, incluindo os usuários usados na
+  avaliação do projeto.
+
+**Riscos e custos.**
 
 - Migration aplicada é imutável: corrigir um script já executado exige uma migration nova,
   e nunca a edição do arquivo anterior, sob pena de quebrar a validação de checksum do
@@ -57,6 +71,8 @@ PostgreSQL provisionado por Testcontainers.
   esse banco.
 - Migrations desenvolvidas em paralelo podem colidir na numeração, exigindo coordenação
   entre as pessoas do grupo ou renumeração no momento do merge.
+- Migrations destrutivas, como remoção de coluna, não têm procedimento de revisão próprio.
+  Enquanto não houver, o cuidado depende de quem revisa o Pull Request perceber o risco.
 
 ## Alternativas consideradas
 
@@ -77,7 +93,7 @@ PostgreSQL provisionado por Testcontainers.
   recriar do zero, mas não expressa transformação de dados existentes e torna impossível
   evoluir um banco que já tem conteúdo.
 
-## Questões em aberto
+## Pontos em aberto
 
 - Como evitar colisão de numeração entre migrations desenvolvidas em paralelo? Convenção
   de faixas por pessoa, ou renumeração no merge?
@@ -89,18 +105,10 @@ PostgreSQL provisionado por Testcontainers.
 - Migrations que alterem a tabela `customers` podem quebrar a Lambda de autenticação, que
   a lê diretamente. Como sinalizar isso na revisão?
 
-## Possibilidades futuras
-
-- Acrescentar verificação no CI de que as migrations rodam do zero em banco limpo, se a
-  suíte de integração deixar de cobrir esse caminho.
-- Adotar migrations repetíveis (`R__`) para views ou funções, caso venham a existir.
-- Estabelecer um procedimento de revisão específico para migrations destrutivas, como
-  remoção de coluna.
-
 ## Decisão registrada
 
-- **Resultado**: Aceita
-- **Data**: 2026-09-06
+- **Resultado**: Encerrada - Aprovada
+- **Data**: 06/09/2026
 - **Aprovada por**: @binhajus, @kalelfleith, @Tetheugas
 - **ADR gerado**: [ADR-0007](../adr/0007-versionar-o-schema-com-flyway.md)
 

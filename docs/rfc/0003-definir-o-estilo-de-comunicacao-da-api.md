@@ -1,11 +1,11 @@
 # RFC-0003. Definir o estilo de comunicação da API
 
-Data: 2026-09-03
+Data: 03/09/2026
 Autor: @rogerbertan
 
 ## Status
 
-Aceita
+Encerrada - Aprovada
 
 ## Resumo
 
@@ -13,7 +13,7 @@ Escolher o estilo de comunicação da fronteira externa da aplicação. A propos
 operações da oficina por uma API REST sobre HTTP com payloads JSON, com rotas versionadas
 no caminho e documentação automática via OpenAPI.
 
-## Motivação
+## Problema
 
 O projeto entrega apenas o backend do sistema, sem front-end. A fronteira externa da
 aplicação é, portanto, a própria API, e ela tem dois consumidores reais.
@@ -31,7 +31,7 @@ individualmente, sem inspecionar o corpo da requisição.
 O estilo escolhido determina o contrato com ambos e é caro de trocar depois, então a
 decisão precisa ser tomada antes de a primeira rota ser escrita.
 
-## Proposta
+## Proposta Técnica
 
 Expor a aplicação por uma API REST sobre HTTP com payloads JSON, implementada com
 `spring-boot-starter-web`.
@@ -47,7 +47,21 @@ uma ordem de serviço.
 separada, que concentra as anotações OpenAPI e mantém a documentação fora da
 implementação. A documentação fica disponível em `/swagger-ui.html`.
 
-## Desvantagens
+## Impacto esperado
+
+**Benefícios.**
+
+- Todas as operações da oficina ficam exercitáveis pelo Swagger UI, sem que o avaliador
+  instale ferramenta, gere stub ou escreva código de cliente. Sem front-end no projeto,
+  essa é a única superfície pela qual o sistema pode ser demonstrado.
+- A identificação de rotas por método e caminho permite ao API Gateway proteger endpoints
+  de cliente individualmente, sem inspecionar o corpo da requisição.
+- O versionamento em `/api/v1` abre espaço para publicar uma `/api/v2` mais adiante sem
+  quebrar os consumidores existentes.
+- O documento OpenAPI permite gerar clientes automaticamente, caso venha a existir um
+  front-end em fase posterior.
+
+**Riscos e custos.**
 
 - Não há contrato verificado em tempo de compilação entre cliente e servidor. Uma mudança
   de DTO só aparece como erro em execução.
@@ -68,7 +82,9 @@ implementação. A documentação fica disponível em `/swagger-ui.html`.
   comunicação entre serviços. Em compensação, exige geração de stubs e não é consumível
   direto do navegador sem uma camada de tradução, o que tornaria a avaliação por Swagger
   inviável. Sem front-end no projeto, perder a superfície de demonstração é um custo alto,
-  e o ganho de desempenho não se justifica no volume deste sistema.
+  e o ganho de desempenho não se justifica no volume deste sistema. Nada impede adotá-lo
+  apenas na comunicação entre serviços na Fase 4, mantendo REST na fronteira externa, caso
+  o desempenho passe a importar.
 - **GraphQL.** Resolve over-fetching e dá flexibilidade de consulta ao cliente. O sistema
   tem consumidores previsíveis e operações majoritariamente de escrita e transição de
   estado de ordem de serviço, não de composição de leituras. O schema e os resolvers
@@ -80,7 +96,7 @@ implementação. A documentação fica disponível em `/swagger-ui.html`.
   mantém a URL estável entre versões, mas dificulta o roteamento no API Gateway, que
   precisaria inspecionar cabeçalho para decidir, e torna o teste manual menos direto.
 
-## Questões em aberto
+## Pontos em aberto
 
 - Transições de estado devem ser `PATCH` no próprio recurso ou sub-recursos de ação, como
   `POST /service-orders/{id}/approve`? A primeira é mais REST, a segunda é mais explícita
@@ -89,19 +105,10 @@ implementação. A documentação fica disponível em `/swagger-ui.html`.
 - O versionamento em `/api/v1` deve valer também para as rotas de cliente que passarão
   pelo API Gateway, ou elas terão um prefixo próprio?
 
-## Possibilidades futuras
-
-- Publicar uma `/api/v2` sem quebrar os consumidores existentes, se algum contrato
-  precisar mudar de forma incompatível.
-- Gerar clientes a partir do documento OpenAPI, caso venha a existir um front-end em fase
-  posterior.
-- Adotar gRPC apenas na comunicação entre serviços na Fase 4, mantendo REST na fronteira
-  externa, caso o desempenho passe a importar.
-
 ## Decisão registrada
 
-- **Resultado**: Aceita
-- **Data**: 2026-09-06
+- **Resultado**: Encerrada - Aprovada
+- **Data**: 06/09/2026
 - **Aprovada por**: @binhajus, @kalelfleith, @Tetheugas
 - **ADR gerado**: [ADR-0003](../adr/0003-expor-a-aplicacao-por-api-rest.md)
 

@@ -1,19 +1,18 @@
 # RFC-0005. Escalar a aplicação no cluster
 
-Data: 2026-09-05
+Data: 05/09/2026
 Autor: @rogerbertan
 
 ## Status
 
-Aceita
+Encerrada - Aprovada
 
 ## Resumo
 
-Definir o mecanismo de escalabilidade da aplicação no cluster Kubernetes. A proposta é
-usar um HorizontalPodAutoscaler baseado exclusivamente em utilização de CPU, com piso de
-duas réplicas e teto de dez.
+Escalar a aplicação no cluster Kubernetes com um HorizontalPodAutoscaler baseado
+exclusivamente em utilização de CPU, com piso de duas réplicas e teto de dez.
 
-## Motivação
+## Problema
 
 A Fase 3 exige um cluster Kubernetes com escalabilidade, motivada pela expansão da oficina
 para múltiplas unidades e pelo crescimento da base de clientes. A aplicação precisa
@@ -28,7 +27,7 @@ contrapartida, e o laboratório precisa durar até a entrega.
 Duas decisões estão em aberto: qual mecanismo de escalabilidade usar, e sobre qual métrica
 ele deve reagir.
 
-## Proposta
+## Proposta Técnica
 
 Escalar a aplicação com um HorizontalPodAutoscaler baseado exclusivamente em utilização de
 CPU, definido em `k8s/hpa.yml`.
@@ -44,7 +43,20 @@ absorver um pico enquanto novos pods sobem.
 O HPA depende do metrics-server, que não vem instalado no EKS e precisa ser aplicado no
 cluster. Sem ele o autoscaler não enxerga métrica alguma e não escala.
 
-## Desvantagens
+## Impacto esperado
+
+**Benefícios.**
+
+- A aplicação absorve variação de carga sem intervenção manual, atendendo o requisito de
+  escalabilidade da fase.
+- O teto de dez réplicas limita o consumo de créditos do laboratório, e a redução no vale
+  evita gastar crédito sem contrapartida, o laboratório precisa durar até a entrega.
+- O piso de duas réplicas garante disponibilidade durante atualizações e na falha de um
+  pod, o que o número fixo anterior não assegurava.
+- É o mecanismo que atende o requisito com o menor número de componentes novos no cluster:
+  apenas o metrics-server.
+
+**Riscos e custos.**
 
 - O HPA fica cego se o metrics-server não estiver instalado, e a falha é silenciosa: o
   autoscaler simplesmente não escala, sem erro evidente. Isso pode passar despercebido até
@@ -83,7 +95,7 @@ cluster. Sem ele o autoscaler não enxerga métrica alguma e não escala.
   margem para o teto proposto, e acrescentar mais um componente aumenta o consumo de
   créditos.
 
-## Questões em aberto
+## Pontos em aberto
 
 - Os valores de `minReplicas: 2`, `maxReplicas: 10` e alvo de 50% são estimativas. Vale
   rodar um teste de carga com k6 antes de fixá-los, ou ajustar depois com base no
@@ -95,20 +107,10 @@ cluster. Sem ele o autoscaler não enxerga métrica alguma e não escala.
 - Vale configurar `behavior` no HPA para suavizar a redução de réplicas, evitando
   oscilação?
 
-## Possibilidades futuras
-
-- Migrar para métricas customizadas, como requisições por segundo ou latência, se a CPU se
-  mostrar uma aproximação ruim da carga real.
-- Acrescentar Cluster Autoscaler, se o teto de réplicas passar a não caber nos nodes.
-- Revisar o dimensionamento do RDS, uma vez que o banco se confirme como gargalo sob
-  carga.
-- Usar os resultados do k6 para calibrar os limiares com base em medição, não em
-  estimativa.
-
 ## Decisão registrada
 
-- **Resultado**: Aceita
-- **Data**: 2026-09-06
+- **Resultado**: Encerrada - Aprovada
+- **Data**: 06/09/2026
 - **Aprovada por**: @binhajus, @kalelfleith, @Tetheugas
 - **ADR gerado**: [ADR-0005](../adr/0005-escalar-a-aplicacao-com-hpa-por-cpu.md)
 

@@ -1,20 +1,19 @@
 # RFC-0004. Autenticar clientes sem cadastro de senha
 
-Data: 2026-09-05
+Data: 05/09/2026
 Autor: @rogerbertan
 
 ## Status
 
-Aceita
+Encerrada - Aprovada
 
 ## Resumo
 
-Definir como os clientes da oficina se autenticam para acessar as próprias ordens de
-serviço. A proposta é manter dois fluxos independentes, com o de funcionários seguindo
-nesta aplicação por usuário e senha, e o de clientes indo para uma function serverless
-separada, com validação do token na borda por um Lambda Authorizer no API Gateway.
+Manter dois fluxos de autenticação independentes: funcionários seguem nesta aplicação por
+usuário e senha, e clientes vão para uma function serverless separada, com validação do
+token na borda por um Lambda Authorizer no API Gateway.
 
-## Motivação
+## Problema
 
 O sistema tem dois públicos com necessidades de acesso muito diferentes.
 
@@ -32,7 +31,7 @@ monolito, o que não é aceitável para dados de ordem de serviço: qualquer pes
 descubra o identificador de uma ordem consegue lê-la. Isso precisa ser fechado, e a forma
 de fechar determina o desenho da autenticação de clientes.
 
-## Proposta
+## Proposta Técnica
 
 Manter dois fluxos de autenticação independentes, com tecnologias e ciclos de vida
 próprios.
@@ -64,14 +63,31 @@ privadas.
 
 Ambos os lados assinam e validam com HS256 sobre o mesmo segredo compartilhado.
 
-## Desvantagens
+## Impacto esperado
+
+**Benefícios.**
+
+- Os endpoints de ordem de serviço, hoje públicos no monolito, passam a ser protegidos sem
+  alteração no código da aplicação principal.
+- A validação acontece na borda: requisição de cliente com token inválido é barrada no API
+  Gateway e nunca consome recurso do cluster.
+- O cliente acessa o próprio recorte sem cadastrar senha, eliminando o atrito que a fase
+  quis evitar.
+- Os dois fluxos têm ciclos de deploy independentes, de modo que mudar a autenticação de
+  cliente não exige redeploy da aplicação principal.
+- O authorizer poderá ser reaproveitado pelos serviços extraídos na Fase 4, que precisarão
+  validar o token de cliente por conta própria.
+
+**Riscos e custos.**
 
 - O JWT usa HS256, algoritmo simétrico: o mesmo segredo assina e valida, e precisa ser
   distribuído entre a Lambda e a aplicação. Um algoritmo assimétrico como RS256 permitiria
   publicar apenas a chave pública para quem valida, ao custo de gerenciar um par de
   chaves.
 - O segredo compartilhado cria acoplamento operacional entre repositórios: rotacioná-lo
-  exige atualizar a Lambda e a aplicação de forma coordenada.
+  exige atualizar a Lambda e a aplicação de forma coordenada. Migrar para RS256, com chave
+  privada apenas no emissor, e publicar um endpoint JWKS eliminaria o segredo compartilhado
+  e permitiria rotação sem redeploy coordenado.
 - Toda rota de cliente é declarada individualmente no Terraform do API Gateway. Um
   endpoint novo para cliente só fica protegido depois de acrescentado lá, e esquecer disso
   o deixa cair na rota `ANY /{proxy+}`, que não tem authorizer. A falha é silenciosa: o
@@ -83,7 +99,8 @@ Ambos os lados assinam e validam com HS256 sobre o mesmo segredo compartilhado.
   do time familiaridade com duas linguagens.
 - Autenticar por CPF sem segredo algum significa que conhecer o CPF de alguém basta para
   acessar as ordens de serviço dessa pessoa. É o que a fase pede, mas é uma credencial
-  fraca por natureza.
+  fraca por natureza. Um segundo fator, como código enviado por e-mail, é o caminho caso
+  ela se mostre fraca demais.
 
 ## Alternativas consideradas
 
@@ -102,7 +119,7 @@ Ambos os lados assinam e validam com HS256 sobre o mesmo segredo compartilhado.
   Inaceitável: expõe dados de ordem de serviço de qualquer cliente a quem descobrir o
   identificador.
 
-## Questões em aberto
+## Pontos em aberto
 
 - HS256 resolve para esta fase, mas o segredo compartilhado entre dois repositórios é
   dívida assumida. Vale já adotar RS256, ou fica para depois de a Fase 3 ser entregue?
@@ -114,20 +131,10 @@ Ambos os lados assinam e validam com HS256 sobre o mesmo segredo compartilhado.
 - O token de cliente deve ter expiração mais curta que o de funcionário, dado que a
   credencial de entrada é apenas o CPF?
 
-## Possibilidades futuras
-
-- Migrar a assinatura para RS256, com chave privada apenas no emissor e pública nos
-  validadores, eliminando o segredo compartilhado.
-- Publicar um endpoint JWKS, permitindo rotação de chave sem redeploy coordenado.
-- Reaproveitar o authorizer para serviços extraídos na Fase 4, que precisarão validar o
-  token de cliente por conta própria.
-- Acrescentar um segundo fator ao login de cliente, como código enviado por e-mail, se a
-  credencial por CPF se mostrar fraca demais.
-
 ## Decisão registrada
 
-- **Resultado**: Aceita
-- **Data**: 2026-09-06
+- **Resultado**: Encerrada - Aprovada
+- **Data**: 06/09/2026
 - **Aprovada por**: @binhajus, @kalelfleith, @Tetheugas
 - **ADR gerado**:
   [ADR-0006](../adr/0006-separar-a-autenticacao-de-clientes-e-de-funcionarios.md)
