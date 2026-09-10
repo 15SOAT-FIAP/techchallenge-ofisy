@@ -25,14 +25,14 @@ Uma RFC que ninguém pode contestar é burocracia. Os ADRs deste projeto estão 
 
 ## Índice
 
-| RFC                                                       | Título                                    | Status               | Data       | ADR gerado                                                                      |
-|-----------------------------------------------------------|-------------------------------------------|----------------------|------------|---------------------------------------------------------------------------------|
-| [0001](0001-registrar-e-entregar-notificacoes.md)         | Registrar e entregar notificações         | Encerrada - Aprovada | 04/09/2026 | [ADR-0009](../adr/0009-registrar-notificacoes-de-forma-sincrona-no-banco.md)    |
-| [0002](0002-organizar-o-codigo-da-aplicacao.md)           | Organizar o código da aplicação           | Encerrada - Aprovada | 03/09/2026 | [ADR-0002](../adr/0002-adotar-clean-architecture-com-ddd.md)                    |
-| [0003](0003-definir-o-estilo-de-comunicacao-da-api.md)    | Definir o estilo de comunicação da API    | Encerrada - Aprovada | 03/09/2026 | [ADR-0003](../adr/0003-expor-a-aplicacao-por-api-rest.md)                       |
-| [0004](0004-autenticar-clientes-sem-cadastro-de-senha.md) | Autenticar clientes sem cadastro de senha | Encerrada - Aprovada | 05/09/2026 | [ADR-0006](../adr/0006-separar-a-autenticacao-de-clientes-e-de-funcionarios.md) |
-| [0005](0005-escalar-a-aplicacao-no-cluster.md)            | Escalar a aplicação no cluster            | Encerrada - Aprovada | 05/09/2026 | [ADR-0005](../adr/0005-escalar-a-aplicacao-com-hpa-por-cpu.md)                  |
-| [0006](0006-versionar-a-evolucao-do-schema.md)            | Versionar a evolução do schema            | Encerrada - Aprovada | 04/09/2026 | [ADR-0007](../adr/0007-versionar-o-schema-com-flyway.md)                        |
+| RFC                                                       | Título                                    | Status               | Data       | ADR gerado                                                                      | Discussão                                                                  |
+|-----------------------------------------------------------|-------------------------------------------|----------------------|------------|---------------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| [0001](0001-registrar-e-entregar-notificacoes.md)         | Registrar e entregar notificações         | Encerrada - Aprovada | 04/09/2026 | [ADR-0009](../adr/0009-registrar-notificacoes-de-forma-sincrona-no-banco.md)    | [#209](https://github.com/15SOAT-FIAP/techchallenge-ofisy/discussions/209) |
+| [0002](0002-organizar-o-codigo-da-aplicacao.md)           | Organizar o código da aplicação           | Encerrada - Aprovada | 03/09/2026 | [ADR-0002](../adr/0002-adotar-clean-architecture-com-ddd.md)                    | [#210](https://github.com/15SOAT-FIAP/techchallenge-ofisy/discussions/210) |
+| [0003](0003-definir-o-estilo-de-comunicacao-da-api.md)    | Definir o estilo de comunicação da API    | Encerrada - Aprovada | 03/09/2026 | [ADR-0003](../adr/0003-expor-a-aplicacao-por-api-rest.md)                       | [#211](https://github.com/15SOAT-FIAP/techchallenge-ofisy/discussions/211) |
+| [0004](0004-autenticar-clientes-sem-cadastro-de-senha.md) | Autenticar clientes sem cadastro de senha | Encerrada - Aprovada | 05/09/2026 | [ADR-0006](../adr/0006-separar-a-autenticacao-de-clientes-e-de-funcionarios.md) | [#212](https://github.com/15SOAT-FIAP/techchallenge-ofisy/discussions/212) |
+| [0005](0005-escalar-a-aplicacao-no-cluster.md)            | Escalar a aplicação no cluster            | Encerrada - Aprovada | 05/09/2026 | [ADR-0005](../adr/0005-escalar-a-aplicacao-com-hpa-por-cpu.md)                  | [#213](https://github.com/15SOAT-FIAP/techchallenge-ofisy/discussions/213) |
+| [0006](0006-versionar-a-evolucao-do-schema.md)            | Versionar a evolução do schema            | Encerrada - Aprovada | 04/09/2026 | [ADR-0007](../adr/0007-versionar-o-schema-com-flyway.md)                        | [#214](https://github.com/15SOAT-FIAP/techchallenge-ofisy/discussions/214) |
 
 ## Formato
 
