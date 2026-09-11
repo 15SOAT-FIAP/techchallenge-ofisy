@@ -8,6 +8,10 @@ diretório não contam, e deixar rastro do que foi descartado no caminho.
 A adoção dos ADRs neste projeto está registrada no
 [ADR-0001](0001-registrar-decisoes-de-arquitetura.md).
 
+O ADR registra a decisão **depois** de tomada. Quando a mudança ainda está em aberto e
+precisa ser discutida pelo time, o instrumento é uma RFC, em
+[`docs/rfc`](../rfc/README.md); uma RFC aceita normalmente gera o ADR correspondente.
+
 ## Índice
 
 | ADR                                                                  | Título                                               | Status | Data       |
