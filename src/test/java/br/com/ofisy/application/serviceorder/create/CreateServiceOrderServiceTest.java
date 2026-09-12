@@ -7,6 +7,7 @@ import br.com.ofisy.application.user.exceptions.EmailNotFoundException;
 import br.com.ofisy.application.user.getidbyemail.GetIdByEmailUseCase;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
 import br.com.ofisy.application.vehicle.identifybyid.IdentifyVehicleByIdUseCase;
+import br.com.ofisy.config.metrics.ServiceOrderMetrics;
 import br.com.ofisy.domain.customer.CpfCnpj;
 import br.com.ofisy.domain.customer.Customer;
 import br.com.ofisy.domain.customer.exceptions.InactiveCustomerException;
@@ -50,6 +51,8 @@ class CreateServiceOrderServiceTest {
     private IdentifyVehicleByIdUseCase identifyVehicleByIdUseCase;
     @Mock
     private GetIdByEmailUseCase getIdByEmailUseCase;
+    @Mock
+    private ServiceOrderMetrics serviceOrderMetrics;
 
     @InjectMocks
     private CreateServiceOrderService createServiceOrderService;

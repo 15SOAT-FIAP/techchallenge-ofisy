@@ -27,6 +27,7 @@ import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
 import br.com.ofisy.domain.serviceorder.exceptions.InvalidServiceOrderTransitionException;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -130,7 +131,7 @@ class ServiceOrderControllerTest {
                 .setCustomArgumentResolvers(
                         new AuthenticationPrincipalArgumentResolver(),
                         new PageableHandlerMethodArgumentResolver())
-                .setControllerAdvice(new GlobalExceptionHandler())
+                .setControllerAdvice(new GlobalExceptionHandler(new SimpleMeterRegistry()))
                 .build();
 
         UserDetails mockUser = User.withUsername(MOCK_USER_EMAIL).password("").roles("ATTENDANT").build();

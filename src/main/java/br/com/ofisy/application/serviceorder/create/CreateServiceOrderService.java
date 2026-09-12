@@ -5,6 +5,7 @@ import br.com.ofisy.domain.customer.Customer;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
 import br.com.ofisy.application.user.getidbyemail.GetIdByEmailUseCase;
 import br.com.ofisy.application.vehicle.identifybyid.IdentifyVehicleByIdUseCase;
+import br.com.ofisy.config.metrics.ServiceOrderMetrics;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import br.com.ofisy.domain.serviceorder.ServiceOrderRepository;
 import br.com.ofisy.domain.vehicle.Vehicle;
@@ -22,6 +23,7 @@ public class CreateServiceOrderService implements CreateServiceOrderUseCase {
     private final IdentifyByIdCustomerUseCase identifyByIdCustomerUseCase;
     private final IdentifyVehicleByIdUseCase identifyVehicleByIdUseCase;
     private final GetIdByEmailUseCase getIdByEmailUseCase;
+    private final ServiceOrderMetrics serviceOrderMetrics;
 
     @Override
     @Transactional
@@ -34,6 +36,8 @@ public class CreateServiceOrderService implements CreateServiceOrderUseCase {
         }
         UUID createdBy = getIdByEmailUseCase.execute(cmd.createdByEmail());
         ServiceOrder serviceOrder = ServiceOrder.receive(cmd.vehicleId(), cmd.customerId(), cmd.report(), createdBy);
-        return serviceOrderRepository.save(serviceOrder);
+        ServiceOrder saved = serviceOrderRepository.save(serviceOrder);
+        serviceOrderMetrics.recordCreated();
+        return saved;
     }
 }
