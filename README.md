@@ -241,6 +241,7 @@ docker compose -f compose.db.yaml up -d
 - **[Diagrama de Componentes](docs/COMPONENT-DIAGRAM.md)** - Componentes do backend e como se relacionam (padrão C4)
 - **[Architecture Decision Records (ADRs)](docs/adr/README.md)** - Registro das decisões arquiteturais do projeto, sua motivação e consequências
 - **[Requests for Comments (RFCs)](docs/rfc/README.md)** - Propostas de mudança discutidas pelo time antes de virarem decisão
+- **[Diagrama de Sequência](docs/SEQUENCE-DIAGRAM.md)** - Diagrama de Sequência do fluxo da aplicação Ofisy
 
 ### Deploy e Infraestrutura
 - **[Guia de Deploy](docs/DEPLOY.md)** - Instruções completas para execução local (Docker Compose) e deploy em nuvem AWS (CI/CD ou CLI)
