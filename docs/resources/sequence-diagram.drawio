@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Claude">
   <diagram id="seq-ofisy" name="Sequencia - Autenticacao a Finalizacao da OS">
-    <mxGraphModel dx="1914" dy="6857" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1990" pageHeight="5792" math="0" shadow="0">
+    <mxGraphModel dx="1356" dy="6546" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1990" pageHeight="5792" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -319,7 +319,7 @@
             <mxPoint x="290" y="1018.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1069" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /service-orders/{id}/start-diagnostic&lt;br&gt;Bearer token">
+        <mxCell id="c1069" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /api/v1/service-orders/{id}/start-diagnostic&lt;br&gt;Bearer token">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="490" y="1193.1" as="sourcePoint" />
             <mxPoint x="730" y="1193.1" as="targetPoint" />
@@ -355,7 +355,7 @@
             <mxPoint x="490" y="1390.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1075" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="POST /service-orders/{id}/quote&lt;br&gt;{ stockItems[], serviceItems[] }">
+        <mxCell id="c1075" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="POST /api/v1/service-orders/{id}/quote&lt;br&gt;{ stockItems[], serviceItems[] }">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="490" y="1477.1" as="sourcePoint" />
             <mxPoint x="730" y="1477.1" as="targetPoint" />
@@ -403,7 +403,7 @@
             <mxPoint x="490" y="1912.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1083" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /service-orders/{id}/submit-for-approval">
+        <mxCell id="c1083" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /api/v1/service-orders/{id}/submit-for-approval">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="490" y="1992.5" as="sourcePoint" />
             <mxPoint x="730" y="1992.5" as="targetPoint" />
@@ -475,8 +475,9 @@
             <mxPoint x="90" y="2570.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1095" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /service-orders/quote/{id}/approve&lt;br&gt;Bearer token (cliente)">
+        <mxCell id="c1095" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /api/v1/service-orders/quote/{id}/approve&lt;br&gt;Bearer token (cliente)">
           <mxGeometry relative="1" as="geometry">
+            <mxPoint as="offset" />
             <mxPoint x="90" y="2691.1" as="sourcePoint" />
             <mxPoint x="730" y="2691.1" as="targetPoint" />
           </mxGeometry>
@@ -523,7 +524,7 @@
             <mxPoint x="90" y="3160.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1103" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /service-orders/quote/{id}/reprove&lt;br&gt;Bearer token (cliente)&lt;br&gt;{ reason }">
+        <mxCell id="c1103" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /api/v1/service-orders/quote/{id}/reprove&lt;br&gt;Bearer token (cliente)&lt;br&gt;{ reason }">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="90" y="3236.8" as="sourcePoint" />
             <mxPoint x="730" y="3236.8" as="targetPoint" />
@@ -571,8 +572,9 @@
             <mxPoint x="90" y="3536.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1111" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /service_order_executions/{id}/start">
-          <mxGeometry relative="1" as="geometry">
+        <mxCell id="c1111" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /api/v1/service_order_executions/{id}/start">
+          <mxGeometry relative="1" y="-1" as="geometry">
+            <mxPoint as="offset" />
             <mxPoint x="490" y="3648.5" as="sourcePoint" />
             <mxPoint x="730" y="3648.5" as="targetPoint" />
           </mxGeometry>
@@ -607,7 +609,7 @@
             <mxPoint x="490" y="3840.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1117" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /service_order_executions/{id}/complete">
+        <mxCell id="c1117" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /api/v1/service_order_executions/{id}/complete">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="490" y="3910.5" as="sourcePoint" />
             <mxPoint x="730" y="3910.5" as="targetPoint" />
@@ -655,7 +657,7 @@
             <mxPoint x="490" y="4326.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1125" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /service-orders/{id}/deliver">
+        <mxCell id="c1125" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /api/v1/service-orders/{id}/deliver">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="290" y="4438.5" as="sourcePoint" />
             <mxPoint x="730" y="4438.5" as="targetPoint" />
@@ -691,7 +693,7 @@
             <mxPoint x="290" y="4618.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1131" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="GET /service-orders/{id}/status&lt;br&gt;Bearer token (cliente)">
+        <mxCell id="c1131" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="GET /api/v1/service-orders/{id}/status&lt;br&gt;Bearer token (cliente)">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="90" y="4705.1" as="sourcePoint" />
             <mxPoint x="730" y="4705.1" as="targetPoint" />
@@ -739,7 +741,7 @@
             <mxPoint x="90" y="5088.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1139" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="GET /notifications/service-orders&lt;br&gt;Bearer token (cliente)">
+        <mxCell id="c1139" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="GET /api/v1/notifications/service-orders&lt;br&gt;Bearer token (cliente)">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="90" y="5175.1" as="sourcePoint" />
             <mxPoint x="730" y="5175.1" as="targetPoint" />
