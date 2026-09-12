@@ -29,6 +29,8 @@ import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
 import br.com.ofisy.domain.serviceorder.exceptions.InvalidServiceOrderTransitionException;
 import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
 import br.com.ofisy.domain.user.exceptions.InactiveUserException;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import net.logstash.logback.argument.StructuredArguments;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,84 +51,121 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    private final MeterRegistry meterRegistry;
+
+    public GlobalExceptionHandler(MeterRegistry meterRegistry) {
+        this.meterRegistry = meterRegistry;
+    }
+
+    private void countError(HttpStatus status, String title, Throwable ex) {
+        Counter.builder("api.errors")
+                .tag("title", title)
+                .tag("exception", ex.getClass().getSimpleName())
+                .tag("status", String.valueOf(status.value()))
+                .register(meterRegistry)
+                .increment();
+    }
+
     @ExceptionHandler({CustomerNotFoundException.class, CustomerCpfCnpjNotFoundException.class})
     public ProblemDetail handleCustomerNotFound(RuntimeException ex) {
+        String title = "Cliente não encontrado";
+        countError(HttpStatus.NOT_FOUND, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        problem.setTitle("Cliente não encontrado");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler({CustomerAlreadyActiveException.class, CustomerAlreadyInactiveException.class})
     public ProblemDetail handleCustomerActivationConflict(RuntimeException ex) {
+        String title = "Conflito no status do cliente";
+        countError(HttpStatus.CONFLICT, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        problem.setTitle("Conflito no status do cliente");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler(InactiveCustomerException.class)
     public ProblemDetail handleInactiveCustomer(InactiveCustomerException ex) {
+        String title = "Cliente inativo";
+        countError(HttpStatus.CONFLICT, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        problem.setTitle("Cliente inativo");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler(InvalidCpfCnpjException.class)
     public ProblemDetail handleInvalidCpfCnpj(InvalidCpfCnpjException ex) {
+        String title = "CPF/CNPJ inválido";
+        countError(HttpStatus.BAD_REQUEST, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        problem.setTitle("CPF/CNPJ inválido");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler(InvalidNotificationMessageException.class)
     public ProblemDetail handleInvalidNotificationMessage(InvalidNotificationMessageException ex) {
+        String title = "Mensagem de notificação inválida";
+        countError(HttpStatus.BAD_REQUEST, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        problem.setTitle("Mensagem de notificação inválida");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler(CustomerAlreadyExistsException.class)
     public ProblemDetail handleCustomerAlreadyExists(CustomerAlreadyExistsException ex) {
+        String title = "Cliente já existe";
+        countError(HttpStatus.CONFLICT, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        problem.setTitle("Cliente já existe");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler(VehicleNotFoundException.class)
     public ProblemDetail handleVehicleNotFound(VehicleNotFoundException ex) {
+        String title = "Veículo não encontrado";
+        countError(HttpStatus.NOT_FOUND, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        problem.setTitle("Veículo não encontrado");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler(VehicleLicensePlateNotFoundException.class)
     public ProblemDetail handleVehicleLicensePlateNotFound(VehicleLicensePlateNotFoundException ex) {
+        String title = "Veículo não encontrado pela placa";
+        countError(HttpStatus.NOT_FOUND, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        problem.setTitle("Veículo não encontrado pela placa");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler(VehicleAlreadyExistsException.class)
     public ProblemDetail handleVehicleAlreadyExists(VehicleAlreadyExistsException ex) {
+        String title = "Veículo já existe";
+        countError(HttpStatus.CONFLICT, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        problem.setTitle("Veículo já existe");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ProblemDetail handleIllegalArgument(IllegalArgumentException ex) {
+        String title = "Requisição inválida";
+        countError(HttpStatus.BAD_REQUEST, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        problem.setTitle("Requisição inválida");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleValidation(MethodArgumentNotValidException ex) {
+        String title = "Erro de validação";
+        countError(HttpStatus.BAD_REQUEST, title, ex);
         Map<String, String> fieldErrors = new LinkedHashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(error ->
                 fieldErrors.put(error.getField(), error.getDefaultMessage()));
 
         var problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        problem.setTitle("Erro de validação");
+        problem.setTitle(title);
         problem.setDetail("Um ou mais campos são inválidos");
         problem.setProperty("errors", fieldErrors);
         return problem;
@@ -134,153 +173,195 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UserNotFoundException.class)
     public ProblemDetail handleUserNotFound(UserNotFoundException ex) {
+        String title = "Usuário não encontrado";
+        countError(HttpStatus.NOT_FOUND, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        problem.setTitle("Usuário não encontrado");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ProblemDetail handleEmailAlreadyExists(EmailAlreadyExistsException ex) {
+        String title = "Email já cadastrado";
+        countError(HttpStatus.CONFLICT, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        problem.setTitle("Email já cadastrado");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler(EmailNotFoundException.class)
     public ProblemDetail handleEmailAddressNotFound(EmailNotFoundException ex) {
+        String title = "Email informado não encontrado";
+        countError(HttpStatus.NOT_FOUND, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        problem.setTitle("Email informado não encontrado");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler(InactiveUserException.class)
     public ProblemDetail handleDisabled(InactiveUserException ex) {
+        String title = "Usuário inativo";
+        countError(HttpStatus.UNAUTHORIZED, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
-        problem.setTitle("Usuário inativo");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler({BadCredentialsException.class})
     public ProblemDetail handleBadCredentials(BadCredentialsException ex) {
+        String title = "Não autorizado";
+        countError(HttpStatus.UNAUTHORIZED, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Email ou senha inválidos");
-        problem.setTitle("Não autorizado");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ProblemDetail handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
+        String title = "Erro de validação";
+        countError(HttpStatus.BAD_REQUEST, title, ex);
         var problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        problem.setTitle("Erro de validação");
+        problem.setTitle(title);
         problem.setDetail("Um ou mais campos são inválidos ou contêm valores não permitidos");
         return problem;
     }
 
     @ExceptionHandler(UsernameNotFoundException.class)
     public ProblemDetail handleUsernameNotFound(UsernameNotFoundException ex) {
+        String title = "Usuário não autorizado";
+        countError(HttpStatus.UNAUTHORIZED, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
-        problem.setTitle("Usuário não autorizado");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler(NotificationNotFoundException.class)
     public ProblemDetail handleNotificationNotFound(NotificationNotFoundException ex) {
+        String title = "Notificação não encontrada";
+        countError(HttpStatus.NOT_FOUND, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        problem.setTitle("Notificação não encontrada");
+        problem.setTitle(title);
         return problem;
     }
-  
+
     @ExceptionHandler(VehicleNotOwnedByCustomerException.class)
     public ProblemDetail handleVehicleNotOwnedByCustomer(VehicleNotOwnedByCustomerException ex) {
+        String title = "Veículo não pertence ao cliente";
+        countError(HttpStatus.UNPROCESSABLE_CONTENT, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, ex.getMessage());
-        problem.setTitle("Veículo não pertence ao cliente");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler(InvalidServiceOrderTransitionException.class)
     public ProblemDetail handleInvalidServiceOrderTransition(InvalidServiceOrderTransitionException ex) {
+        String title = "Transição de status inválida";
+        countError(HttpStatus.CONFLICT, title, ex);
         log.error("GlobalExceptionHandler.handleInvalidServiceOrderTransition >> {}", ex.getMessage(),
                 StructuredArguments.kv("event", "order_processing_failed"));
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        problem.setTitle("Transição de status inválida");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler(ServiceOrderNotFoundException.class)
     public ProblemDetail handleServiceOrderNotFound(ServiceOrderNotFoundException ex) {
+        String title = "Ordem de serviço não encontrada";
+        countError(HttpStatus.NOT_FOUND, title, ex);
         log.error("GlobalExceptionHandler.handleServiceOrderNotFound >> {}", ex.getMessage(),
                 StructuredArguments.kv("event", "order_processing_failed"));
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        problem.setTitle("Ordem de serviço não encontrada");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler(ServiceCatalogNotFoundException.class)
     public ProblemDetail handleServiceCatalogNotFound(ServiceCatalogNotFoundException ex) {
+        String title = "Serviço não encontrado no catalogo";
+        countError(HttpStatus.NOT_FOUND, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        problem.setTitle("Serviço não encontrado no catalogo");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler(QuoteNotFoundException.class)
     public ProblemDetail handleQuoteNotFound(QuoteNotFoundException ex) {
+        String title = "Orçamento não encontrado";
+        countError(HttpStatus.NOT_FOUND, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        problem.setTitle("Orçamento não encontrado");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler(QuoteNotFoundForServiceOrderException.class)
     public ProblemDetail handleQuoteNotFoundForServiceOrder(QuoteNotFoundForServiceOrderException ex) {
+        String title = "Orçamento não encontrado para ordem de serviço informada";
+        countError(HttpStatus.NOT_FOUND, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        problem.setTitle("Orçamento não encontrado para ordem de serviço informada");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler(InvalidQuoteStatusException.class)
     public ProblemDetail handleInvalidQuoteStatus(InvalidQuoteStatusException ex) {
+        String title = "Status do orçamento inválido";
+        countError(HttpStatus.CONFLICT, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        problem.setTitle("Status do orçamento inválido");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler(QuoteItemAlreadyExistsException.class)
     public ProblemDetail handleQuoteItemAlreadyExists(QuoteItemAlreadyExistsException ex) {
+        String title = "Item já existe no orçamento";
+        countError(HttpStatus.CONFLICT, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        problem.setTitle("Item já existe no orçamento");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler(InvalidQuoteDataException.class)
     public ProblemDetail handleInvalidQuoteData(InvalidQuoteDataException ex) {
+        String title = "Dados do orçamento inválidos";
+        countError(HttpStatus.BAD_REQUEST, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        problem.setTitle("Dados do orçamento inválidos");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler(InvalidQuoteItemException.class)
     public ProblemDetail handleInvalidQuoteItem(InvalidQuoteItemException ex) {
+        String title = "Item do orçamento inválido";
+        countError(HttpStatus.BAD_REQUEST, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        problem.setTitle("Item do orçamento inválido");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler(StockNotFoundException.class)
     public ProblemDetail handleStockNotFound(StockNotFoundException ex) {
+        String title = "Estoque não encontrado";
+        countError(HttpStatus.NOT_FOUND, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        problem.setTitle("Estoque não encontrado");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler(InsufficientStockException.class)
     public ProblemDetail handleInsufficientStock(InsufficientStockException ex) {
+        String title = "Estoque insuficiente";
+        countError(HttpStatus.CONFLICT, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        problem.setTitle("Estoque insuficiente");
+        problem.setTitle(title);
         return problem;
     }
 
     @ExceptionHandler(QuoteAlreadyExistsException.class)
     public ProblemDetail handleQuoteAlreadyExists(QuoteAlreadyExistsException ex) {
+        String title = "Orçamento já existe para a ordem de serviço";
+        countError(HttpStatus.CONFLICT, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        problem.setTitle("Orçamento já existe para a ordem de serviço");
+        problem.setTitle(title);
         return problem;
     }
 }
