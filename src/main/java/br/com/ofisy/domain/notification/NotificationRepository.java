@@ -13,4 +13,8 @@ public interface NotificationRepository {
     List<Notification> findAll();
 
     List<Notification> findByRead(Boolean read);
+
+    List<Notification> findAllByType(NotificationType type);
+
+    List<Notification> findByReadAndType(Boolean read, NotificationType type);
 }

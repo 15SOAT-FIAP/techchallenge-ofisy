@@ -17,10 +17,11 @@ RUN addgroup -S app && adduser -S app -G app
 
 WORKDIR /app
 
+ADD --chown=app:app https://dtdg.co/latest-java-tracer dd-java-agent.jar
 COPY --chown=app:app --from=build /app/target/*.jar app.jar
 
 USER app
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-javaagent:/app/dd-java-agent.jar", "-jar", "app.jar"]

@@ -126,6 +126,40 @@ class NotificationRepositoryImplTest {
         }
     }
 
+    @Nested
+    class FindAllByType {
+
+        @Test
+        @DisplayName("Deve buscar e mapear todas as notificações de um tipo")
+        void shouldReturnNotificationsByType() {
+            UUID id = UUID.randomUUID();
+            NotificationEntity entity = validEntity(id);
+            when(jpaRepository.findByType(NotificationType.LOW_STOCK)).thenReturn(List.of(entity));
+
+            List<Notification> result = repository.findAllByType(NotificationType.LOW_STOCK);
+
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getId()).isEqualTo(id);
+        }
+    }
+
+    @Nested
+    class FindByReadAndType {
+
+        @Test
+        @DisplayName("Deve buscar notificações filtrando por status de leitura e tipo")
+        void shouldReturnNotificationsByReadStatusAndType() {
+            UUID id = UUID.randomUUID();
+            NotificationEntity entity = validEntity(id);
+            when(jpaRepository.findByReadAndType(false, NotificationType.LOW_STOCK)).thenReturn(List.of(entity));
+
+            List<Notification> result = repository.findByReadAndType(false, NotificationType.LOW_STOCK);
+
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getId()).isEqualTo(id);
+        }
+    }
+
     private Notification validNotification() {
         return Notification.builder()
                 .id(UUID.randomUUID())

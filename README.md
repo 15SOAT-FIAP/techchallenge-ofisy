@@ -1,6 +1,6 @@
 # Ofisy 
 
-FIAP 15SOAT15 - Tech Challenge Fase 2 - Grupo 138
+FIAP 15SOAT - Tech Challenge Fase 3 - Grupo 81
 
 Sistema de gestão de oficina automotiva desenvolvido com Spring Boot e DDD.
 
@@ -52,20 +52,20 @@ A combinação dessas tecnologias permite a construção de um backend robusto e
 
 | Dependência                | Descrição                                                                                                                                                                                          | Artefato                                                                                  |
 |----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
-| Spring Web	                | Dependência para criação de APIs RESTful, incluindo o servidor web (Tomcat), mapeamento de rotas e controllers	                                                                                    | `spring-boot-starter-web`                                                                 |
-| Spring Data JPA	           | Dependência para gerenciar a comunicação com o banco de dados. Além de acelerar o desenvolvimento e reduzir o código boilerplate, permite a utilização de objetos ORM dentre outras facilidades    | 	`spring-boot-starter-data-jpa`                                                           |
-| Spring Security	           | Dependência para tratar autenticação e autorização da aplicação                                                                                                                                    | 	`spring-boot-starter-security`                                                           |
-| Spring Security JWT        | Dependência para tratar autenticação e autorização da aplicação. Exigência de utilização de JWT para entrega do projeto em APIs administrativas.                                                   | 	`jjwt-api`, `jjwt-impl`,`jjwt-jackson`                                                   |
-| OpenAPI / Swagger	         | Dependência para documentação e exposição das APIs/rotas criadas para o projeto via Swagger nesta fase 1.	                                                                                         | `springdoc-openapi-starter-webmvc-ui`                                                     |
-| Spring Validation          | 	Dependência para validação de DTOs e beans	                                                                                                                                                       | `spring-boot-starter-validation`                                                          |
-| PostgreSQL	                | Dependência para o banco de dados PostgreSQL                                                                                                                                                       | 	`postgresql`                                                                             |
-| Docker Compose	            | Dependência para permitir utilização de docker compose para aplicação                                                                                                                              | 	`spring-boot-docker-compose`                                                             |
-| Lombok                     | 	Dependência para permitir redução de código boilerplate através de anotações, gerando automaticamente getters, setters, construtores etc.	                                                        | `lombok`                                                                                  |
+| Spring Web	                 | Dependência para criação de APIs RESTful, incluindo o servidor web (Tomcat), mapeamento de rotas e controllers	                                                                                     | `spring-boot-starter-web`                                                                 |
+| Spring Data JPA	            | Dependência para gerenciar a comunicação com o banco de dados. Além de acelerar o desenvolvimento e reduzir o código boilerplate, permite a utilização de objetos ORM dentre outras facilidades    | 	`spring-boot-starter-data-jpa`                                                            |
+| Spring Security	            | Dependência para tratar autenticação e autorização da aplicação                                                                                                                                    | 	`spring-boot-starter-security`                                                            |
+| Spring Security JWT        | Dependência para tratar autenticação e autorização da aplicação. Exigência de utilização de JWT para entrega do projeto em APIs administrativas.                                                   | 	`jjwt-api`, `jjwt-impl`,`jjwt-jackson`                                                    |
+| OpenAPI / Swagger	          | Dependência para documentação e exposição das APIs/rotas criadas para o projeto via Swagger nesta fase 1.	                                                                                          | `springdoc-openapi-starter-webmvc-ui`                                                     |
+| Spring Validation          | 	Dependência para validação de DTOs e beans	                                                                                                                                                         | `spring-boot-starter-validation`                                                          |
+| PostgreSQL	                 | Dependência para o banco de dados PostgreSQL                                                                                                                                                       | 	`postgresql`                                                                              |
+| Docker Compose	             | Dependência para permitir utilização de docker compose para aplicação                                                                                                                              | 	`spring-boot-docker-compose`                                                              |
+| Lombok                     | 	Dependência para permitir redução de código boilerplate através de anotações, gerando automaticamente getters, setters, construtores etc.	                                                          | `lombok`                                                                                  |
 | Spring Boot DevTools       | Dependência para acelerar o ciclo de desenvolvimento local, com reinício automático da aplicação a cada alteração de código                                                                        | `spring-boot-devtools`                                                                    |
-| Spring Actuator            | 	Dependência utilizada para obter endpoints de monitoramento e observabilidade da aplicação, como verificação de saúde (/actuator/health), métricas entre outras informações	                      | `spring-boot-starter-actuator`                                                            |
-| Spring Boot Test           | 	Dependência para escrita de testes automatizados, incluindo suporte a testes unitários e de integração com JUnit e Mockito	                                                                       | `spring-boot-starter-test`                                                                |
+| Spring Actuator            | 	Dependência utilizada para obter endpoints de monitoramento e observabilidade da aplicação, como verificação de saúde (/actuator/health), métricas entre outras informações	                        | `spring-boot-starter-actuator`                                                            |
+| Spring Boot Test           | 	Dependência para escrita de testes automatizados, incluindo suporte a testes unitários e de integração com JUnit e Mockito	                                                                         | `spring-boot-starter-test`                                                                |
 | Spring Boot Webmvc Test    | Dependência que permite testar de forma isolada a camada de Controller (Web), simulando requisições HTTP, validando rotas, parâmetros de entrada e o JSON de retorno sem subir o servidor completo | `spring-boot-webmvc-test`                                                                 |
-| Spring Security Test       | 	Dependência para testes de endpoints protegidos, permitindo simular usuários autenticados e verificar comportamentos de segurança nos testes	                                                     | `spring-security-test`                                                                    |
+| Spring Security Test       | 	Dependência para testes de endpoints protegidos, permitindo simular usuários autenticados e verificar comportamentos de segurança nos testes	                                                       | `spring-security-test`                                                                    |
 | Flyway Core                | Dependência principal do framework de migração de banco de dados, responsável por gerenciar o histórico de versões, executar scripts SQL automaticamente e garantir a integridade do esquema       | `spring-boot-starter-flyway`                                                              |
 | Flyway Database PostgreSQL | Extensão específica do Flyway que adiciona suporte completo às funcionalidades do PostgreSQL, permitindo que o framework se comunique corretamente com o dialeto e driver desse banco              | `flyway-database-postgresql`                                                              |
 | Flyway Test                | Dependência com suporte do Spring Boot ao Flyway em ambiente de testes, utilizada em conjunto com o Testcontainers para garantir que as migrations sejam aplicadas nos testes de integração        | `spring-boot-starter-flyway-test`                                                         |
@@ -108,14 +108,14 @@ A combinação dessas tecnologias permite a construção de um backend robusto e
 
 ---
 
-## 🏛️ Arquitetura e Repositórios da Fase 3 (Tech Challenge)
+## Arquitetura e Repositórios da Fase 3 (Tech Challenge)
 
 Em atendimento às diretrizes da **Fase 3**, o projeto foi estruturado de forma desacoplada em **4 repositórios independentes**, cada um com seu próprio ciclo de entrega e CI/CD automatizado:
 
-1. 🔐 **Serverless Function (Lambda)** — Autenticação de clientes via CPF e geração de JWT token.
-2. ☁️ **[Infraestrutura Kubernetes EKS (Terraform)](https://github.com/15SOAT-FIAP/techchallenge-ofisy-eks-infra)** — Provisionamento da rede (VPC, Subnets, Gateways) e cluster EKS na AWS.
-3. 🗄️ **[Infraestrutura do Banco de Dados RDS (Terraform)](https://github.com/15SOAT-FIAP/techchallenge-ofisy-rds-infra)** — Provisionamento isolado do banco de dados relacional gerenciado AWS RDS PostgreSQL.
-4. 🚀 **[Aplicação Principal executando em Kubernetes](https://github.com/15SOAT-FIAP/techchallenge-ofisy)** *(Este repositório)* — Aplicação Spring Boot, Dockerfile, manifestos Kubernetes (`k8s/`) e pipeline CD no EKS.
+1. **[Serverless Function (Lambda)](https://github.com/15SOAT-FIAP/techchallenge-ofisy-auth)** — Autenticação de clientes via CPF e geração de JWT token, exposta pelo API Gateway junto ao authorizer que protege as rotas da aplicação.
+2. **[Infraestrutura Kubernetes EKS (Terraform)](https://github.com/15SOAT-FIAP/techchallenge-ofisy-eks-infra)** — Provisionamento da rede (VPC, Subnets, Gateways) e cluster EKS na AWS.
+3. **[Infraestrutura do Banco de Dados RDS (Terraform)](https://github.com/15SOAT-FIAP/techchallenge-ofisy-rds-infra)** — Provisionamento isolado do banco de dados relacional gerenciado AWS RDS PostgreSQL.
+4. **[Aplicação Principal executando em Kubernetes](https://github.com/15SOAT-FIAP/techchallenge-ofisy)** *(Este repositório)* — Aplicação Spring Boot, Dockerfile, manifestos Kubernetes (`k8s/`) e pipeline CD no EKS.
 
 ---
 
@@ -239,6 +239,8 @@ docker compose -f compose.db.yaml up -d
 
 ### Arquitetura
 - **[Diagrama de Componentes](docs/COMPONENT-DIAGRAM.md)** - Componentes do backend e como se relacionam (padrão C4)
+- **[Architecture Decision Records (ADRs)](docs/adr/README.md)** - Registro das decisões arquiteturais do projeto, sua motivação e consequências
+- **[Requests for Comments (RFCs)](docs/rfc/README.md)** - Propostas de mudança discutidas pelo time antes de virarem decisão
 - **[Diagrama de Sequência](docs/SEQUENCE-DIAGRAM.md)** - Diagrama de Sequência do fluxo da aplicação Ofisy
 
 ### Deploy e Infraestrutura

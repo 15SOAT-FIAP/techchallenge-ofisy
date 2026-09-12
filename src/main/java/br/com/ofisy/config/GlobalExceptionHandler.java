@@ -29,6 +29,9 @@ import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
 import br.com.ofisy.domain.serviceorder.exceptions.InvalidServiceOrderTransitionException;
 import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
 import br.com.ofisy.domain.user.exceptions.InactiveUserException;
+import net.logstash.logback.argument.StructuredArguments;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -43,6 +46,8 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler({CustomerNotFoundException.class, CustomerCpfCnpjNotFoundException.class})
     public ProblemDetail handleCustomerNotFound(RuntimeException ex) {
@@ -193,6 +198,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidServiceOrderTransitionException.class)
     public ProblemDetail handleInvalidServiceOrderTransition(InvalidServiceOrderTransitionException ex) {
+        log.error("GlobalExceptionHandler.handleInvalidServiceOrderTransition >> {}", ex.getMessage(),
+                StructuredArguments.kv("event", "order_processing_failed"));
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         problem.setTitle("Transição de status inválida");
         return problem;
@@ -200,6 +207,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ServiceOrderNotFoundException.class)
     public ProblemDetail handleServiceOrderNotFound(ServiceOrderNotFoundException ex) {
+        log.error("GlobalExceptionHandler.handleServiceOrderNotFound >> {}", ex.getMessage(),
+                StructuredArguments.kv("event", "order_processing_failed"));
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         problem.setTitle("Ordem de serviço não encontrada");
         return problem;

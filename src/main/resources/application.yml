@@ -12,7 +12,6 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
-    show-sql: true
   docker:
     compose:
       file: compose.db.yaml
@@ -23,11 +22,22 @@ management:
       web:
         exposure:
           include: health
+    datadog:
+      metrics:
+        export:
+          enabled: ${DD_METRICS_ENABLED:false}
+          api-key: ${DD_API_KEY:}
+          uri: ${DD_METRICS_URI:https://api.us5.datadoghq.com}
+          step: 30s
 security:
   public-paths:
     - /api/v1/login
     - /api/v1/service-orders/*/status
-    - /api/v1/notifications
+    - /api/v1/service-orders/quote/*/approve
+    - /api/v1/service-orders/quote/*/reprove
+    - /api/v1/notifications/service-orders
+    - /api/v1/notifications/service-orders/*
+    - /api/v1/notifications/service-orders/*/read
     - /swagger-ui/**
     - /swagger-ui.html
     - /v3/api-docs/**

@@ -2,12 +2,17 @@ package br.com.ofisy.adapters.controllers.notification;
 
 import br.com.ofisy.adapters.controllers.notification.dto.NotificationResponseDTO;
 import br.com.ofisy.adapters.presenters.notification.NotificationPresenter;
-import br.com.ofisy.application.notification.findall.FindAllNotificationsUseCase;
-import br.com.ofisy.application.notification.findbyid.FindNotificationByIdUseCase;
-import br.com.ofisy.application.notification.findunread.FindUnreadNotificationsUseCase;
-import br.com.ofisy.application.notification.markasread.MarkNotificationAsReadUseCase;
+import br.com.ofisy.application.notification.findallserviceorder.FindAllServiceOrderNotificationsUseCase;
+import br.com.ofisy.application.notification.findallstock.FindAllStockNotificationsUseCase;
+import br.com.ofisy.application.notification.findserviceorderbyid.FindServiceOrderNotificationByIdUseCase;
+import br.com.ofisy.application.notification.findstockbyid.FindStockNotificationByIdUseCase;
+import br.com.ofisy.application.notification.findunreadserviceorder.FindUnreadServiceOrderNotificationsUseCase;
+import br.com.ofisy.application.notification.findunreadstock.FindUnreadStockNotificationsUseCase;
+import br.com.ofisy.application.notification.markserviceorderasread.MarkServiceOrderNotificationAsReadUseCase;
+import br.com.ofisy.application.notification.markstockasread.MarkStockNotificationAsReadUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,39 +23,78 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class NotificationController implements NotificationApi {
 
-    private final FindNotificationByIdUseCase findNotificationByIdUseCase;
-    private final FindAllNotificationsUseCase findAllNotificationsUseCase;
-    private final FindUnreadNotificationsUseCase findUnreadNotificationsUseCase;
-    private final MarkNotificationAsReadUseCase markNotificationAsReadUseCase;
+    private final FindStockNotificationByIdUseCase findStockNotificationByIdUseCase;
+    private final FindServiceOrderNotificationByIdUseCase findServiceOrderNotificationByIdUseCase;
+    private final FindAllStockNotificationsUseCase findAllStockNotificationsUseCase;
+    private final FindUnreadStockNotificationsUseCase findUnreadStockNotificationsUseCase;
+    private final FindAllServiceOrderNotificationsUseCase findAllServiceOrderNotificationsUseCase;
+    private final FindUnreadServiceOrderNotificationsUseCase findUnreadServiceOrderNotificationsUseCase;
+    private final MarkStockNotificationAsReadUseCase markStockNotificationAsReadUseCase;
+    private final MarkServiceOrderNotificationAsReadUseCase markServiceOrderNotificationAsReadUseCase;
 
     @Override
-    @GetMapping("/{id}")
-    public ResponseEntity<NotificationResponseDTO> findById(@PathVariable UUID id) {
-        return ResponseEntity.ok(NotificationPresenter.present(findNotificationByIdUseCase.execute(id)));
+    @GetMapping("/stock/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','STOCKMAN')")
+    public ResponseEntity<NotificationResponseDTO> findStockById(@PathVariable UUID id) {
+        return ResponseEntity.ok(NotificationPresenter.present(findStockNotificationByIdUseCase.execute(id)));
     }
 
     @Override
-    @GetMapping
-    public ResponseEntity<List<NotificationResponseDTO>> findAll() {
-        List<NotificationResponseDTO> list = findAllNotificationsUseCase.execute().stream()
+    @GetMapping("/service-orders/{id}")
+    public ResponseEntity<NotificationResponseDTO> findServiceOrderById(@PathVariable UUID id) {
+        return ResponseEntity.ok(NotificationPresenter.present(findServiceOrderNotificationByIdUseCase.execute(id)));
+    }
+
+    @Override
+    @GetMapping("/stock")
+    @PreAuthorize("hasAnyRole('ADMIN','STOCKMAN')")
+    public ResponseEntity<List<NotificationResponseDTO>> findAllStock() {
+        List<NotificationResponseDTO> list = findAllStockNotificationsUseCase.execute().stream()
                 .map(NotificationPresenter::present)
                 .toList();
         return ResponseEntity.ok(list);
     }
 
     @Override
-    @GetMapping("/unread")
-    public ResponseEntity<List<NotificationResponseDTO>> findUnread() {
-        List<NotificationResponseDTO> list = findUnreadNotificationsUseCase.execute().stream()
+    @GetMapping("/stock/unread")
+    @PreAuthorize("hasAnyRole('ADMIN','STOCKMAN')")
+    public ResponseEntity<List<NotificationResponseDTO>> findUnreadStock() {
+        List<NotificationResponseDTO> list = findUnreadStockNotificationsUseCase.execute().stream()
                 .map(NotificationPresenter::present)
                 .toList();
         return ResponseEntity.ok(list);
     }
 
     @Override
-    @PatchMapping("/{id}/read")
-    public ResponseEntity<NotificationResponseDTO> markAsRead(@PathVariable UUID id) {
-        MarkNotificationAsReadUseCase.MarkAsReadCommand cmd = new MarkNotificationAsReadUseCase.MarkAsReadCommand(id);
-        return ResponseEntity.ok(NotificationPresenter.present(markNotificationAsReadUseCase.execute(cmd)));
+    @GetMapping("/service-orders")
+    public ResponseEntity<List<NotificationResponseDTO>> findAllServiceOrders() {
+        List<NotificationResponseDTO> list = findAllServiceOrderNotificationsUseCase.execute().stream()
+                .map(NotificationPresenter::present)
+                .toList();
+        return ResponseEntity.ok(list);
+    }
+
+    @Override
+    @GetMapping("/service-orders/unread")
+    public ResponseEntity<List<NotificationResponseDTO>> findUnreadServiceOrders() {
+        List<NotificationResponseDTO> list = findUnreadServiceOrderNotificationsUseCase.execute().stream()
+                .map(NotificationPresenter::present)
+                .toList();
+        return ResponseEntity.ok(list);
+    }
+
+    @Override
+    @PatchMapping("/stock/{id}/read")
+    @PreAuthorize("hasAnyRole('ADMIN','STOCKMAN')")
+    public ResponseEntity<NotificationResponseDTO> markStockAsRead(@PathVariable UUID id) {
+        MarkStockNotificationAsReadUseCase.MarkAsReadCommand cmd = new MarkStockNotificationAsReadUseCase.MarkAsReadCommand(id);
+        return ResponseEntity.ok(NotificationPresenter.present(markStockNotificationAsReadUseCase.execute(cmd)));
+    }
+
+    @Override
+    @PatchMapping("/service-orders/{id}/read")
+    public ResponseEntity<NotificationResponseDTO> markServiceOrderAsRead(@PathVariable UUID id) {
+        MarkServiceOrderNotificationAsReadUseCase.MarkAsReadCommand cmd = new MarkServiceOrderNotificationAsReadUseCase.MarkAsReadCommand(id);
+        return ResponseEntity.ok(NotificationPresenter.present(markServiceOrderNotificationAsReadUseCase.execute(cmd)));
     }
 }
