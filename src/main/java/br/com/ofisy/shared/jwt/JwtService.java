@@ -19,12 +19,15 @@ import java.util.Date;
 @RequiredArgsConstructor
 public class JwtService implements TokenGenerator {
 
+    private static final String ISSUER = "techchallenge-ofisy-api";
+
     private final JwtProperties jwtProperties;
 
     @Override
     public String generateToken(String email) {
         var now = Instant.now();
         return Jwts.builder()
+                .issuer(ISSUER)
                 .subject(email)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plusMillis(jwtProperties.getExpiration())))
@@ -48,6 +51,7 @@ public class JwtService implements TokenGenerator {
     private Claims extractClaims(String token) {
         return Jwts.parser()
                 .verifyWith(getSecretKey())
+                .requireIssuer(ISSUER)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
