@@ -27,3 +27,5 @@ management:
     health:
       probes:
         enabled: true
+server:
+  forward-headers-strategy: framework
