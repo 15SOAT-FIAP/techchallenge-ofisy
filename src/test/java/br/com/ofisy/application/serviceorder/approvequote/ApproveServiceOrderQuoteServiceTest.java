@@ -2,6 +2,7 @@ package br.com.ofisy.application.serviceorder.approvequote;
 
 import br.com.ofisy.application.quote.approve.ApproveQuoteUseCase;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
+import br.com.ofisy.config.metrics.ServiceOrderMetrics;
 import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.quote.QuoteStatus;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
@@ -34,6 +35,7 @@ class ApproveServiceOrderQuoteServiceTest {
     public static final String BARULHO = "Barulho";
     @Mock private ServiceOrderRepository serviceOrderRepository;
     @Mock private ApproveQuoteUseCase approveQuoteUseCase;
+    @Mock private ServiceOrderMetrics serviceOrderMetrics;
 
     @InjectMocks
     private ApproveServiceOrderQuoteService service;

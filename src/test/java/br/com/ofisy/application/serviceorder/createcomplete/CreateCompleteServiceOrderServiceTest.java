@@ -8,6 +8,7 @@ import br.com.ofisy.application.user.exceptions.EmailNotFoundException;
 import br.com.ofisy.application.user.getidbyemail.GetIdByEmailUseCase;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
 import br.com.ofisy.application.vehicle.identifybyid.IdentifyVehicleByIdUseCase;
+import br.com.ofisy.config.metrics.ServiceOrderMetrics;
 import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.quote.QuoteStatus;
 import br.com.ofisy.domain.customer.CpfCnpj;
@@ -59,6 +60,8 @@ class CreateCompleteServiceOrderServiceTest {
     private GetIdByEmailUseCase getIdByEmailUseCase;
     @Mock
     private CreateQuoteUseCase createQuoteUseCase;
+    @Mock
+    private ServiceOrderMetrics serviceOrderMetrics;
 
     @InjectMocks
     private CreateCompleteServiceOrderService service;

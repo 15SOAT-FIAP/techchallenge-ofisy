@@ -2,6 +2,7 @@ package br.com.ofisy.application.serviceorder.cancel;
 
 import br.com.ofisy.application.serviceorder.cancelpending.CancelPendingExecutionsUseCase;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
+import br.com.ofisy.config.metrics.ServiceOrderMetrics;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import br.com.ofisy.domain.serviceorder.ServiceOrderRepository;
 import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
@@ -36,6 +37,8 @@ class CancelServiceOrderServiceTest {
     private ServiceOrderRepository serviceOrderRepository;
     @Mock
     private CancelPendingExecutionsUseCase cancelPendingExecutionsUseCase;
+    @Mock
+    private ServiceOrderMetrics serviceOrderMetrics;
 
     @InjectMocks
     private CancelServiceOrderService cancelServiceOrderService;

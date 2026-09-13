@@ -2,13 +2,16 @@ package br.com.ofisy.application.serviceorder.submitquoteforapproval;
 
 import br.com.ofisy.application.serviceorder.exceptions.QuoteNotFoundForServiceOrderException;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
+import br.com.ofisy.config.metrics.ServiceOrderMetrics;
 import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.quote.QuoteRepository;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import br.com.ofisy.domain.serviceorder.ServiceOrderRepository;
+import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,11 +21,14 @@ public class SubmitQuoteForApprovalService implements SubmitQuoteForApprovalUseC
 
     private final ServiceOrderRepository serviceOrderRepository;
     private final QuoteRepository quoteRepository;
+    private final ServiceOrderMetrics serviceOrderMetrics;
 
     public SubmitQuoteForApprovalService(ServiceOrderRepository serviceOrderRepository,
-                                         QuoteRepository quoteRepository) {
+                                         QuoteRepository quoteRepository,
+                                         ServiceOrderMetrics serviceOrderMetrics) {
         this.serviceOrderRepository = serviceOrderRepository;
         this.quoteRepository = quoteRepository;
+        this.serviceOrderMetrics = serviceOrderMetrics;
     }
 
     @Override
@@ -35,7 +41,11 @@ public class SubmitQuoteForApprovalService implements SubmitQuoteForApprovalUseC
             throw new QuoteNotFoundForServiceOrderException(serviceOrderId);
         }
 
+        ServiceOrderStatus previousStatus = serviceOrder.getStatus();
+        LocalDateTime enteredFromStatusAt = serviceOrder.getUpdatedAt();
         serviceOrder.sendToApproval();
-        return serviceOrderRepository.save(serviceOrder);
+        ServiceOrder saved = serviceOrderRepository.save(serviceOrder);
+        serviceOrderMetrics.recordTransition(previousStatus, saved.getStatus(), enteredFromStatusAt);
+        return saved;
     }
 }

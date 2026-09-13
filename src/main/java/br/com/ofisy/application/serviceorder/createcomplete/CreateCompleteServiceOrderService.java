@@ -7,6 +7,7 @@ import br.com.ofisy.application.serviceorder.create.CreateServiceOrderUseCase;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
 import br.com.ofisy.application.user.getidbyemail.GetIdByEmailUseCase;
 import br.com.ofisy.application.vehicle.identifybyid.IdentifyVehicleByIdUseCase;
+import br.com.ofisy.config.metrics.ServiceOrderMetrics;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import br.com.ofisy.domain.serviceorder.ServiceOrderRepository;
 import br.com.ofisy.domain.vehicle.Vehicle;
@@ -26,6 +27,7 @@ public class CreateCompleteServiceOrderService implements CreateCompleteServiceO
     private final IdentifyVehicleByIdUseCase identifyVehicleByIdUseCase;
     private final GetIdByEmailUseCase getIdByEmailUseCase;
     private final CreateQuoteUseCase createQuoteUseCase;
+    private final ServiceOrderMetrics serviceOrderMetrics;
 
     @Override
     @Transactional
@@ -42,6 +44,7 @@ public class CreateCompleteServiceOrderService implements CreateCompleteServiceO
         ServiceOrder serviceOrder = ServiceOrder.receive(cmd.vehicleId(), cmd.customerId(), cmd.report(), createdBy);
 
         serviceOrder = serviceOrderRepository.save(serviceOrder);
+        serviceOrderMetrics.recordCreated();
 
         boolean hasItems = hasItems(cmd.stockItems(), cmd.serviceItems());
         if (hasItems) {

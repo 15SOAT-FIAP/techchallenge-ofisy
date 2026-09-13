@@ -3,6 +3,7 @@ package br.com.ofisy.application.serviceorder.submitquoteforapproval;
 import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.QuoteNotFoundForServiceOrderException;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
+import br.com.ofisy.config.metrics.ServiceOrderMetrics;
 import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.quote.QuoteRepository;
 import br.com.ofisy.domain.quote.QuoteStatus;
@@ -38,6 +39,8 @@ class SubmitQuoteForApprovalServiceTest {
     private ServiceOrderRepository serviceOrderRepository;
     @Mock
     private QuoteRepository quoteRepository;
+    @Mock
+    private ServiceOrderMetrics serviceOrderMetrics;
 
     @InjectMocks
     private SubmitQuoteForApprovalService service;

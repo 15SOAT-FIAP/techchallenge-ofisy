@@ -1,6 +1,7 @@
 package br.com.ofisy.application.serviceorder.delivertocustomer;
 
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
+import br.com.ofisy.config.metrics.ServiceOrderMetrics;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import br.com.ofisy.domain.serviceorder.ServiceOrderRepository;
 import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
@@ -29,6 +30,8 @@ class DeliverToCustomerServiceTest {
 
     @Mock
     private ServiceOrderRepository serviceOrderRepository;
+    @Mock
+    private ServiceOrderMetrics serviceOrderMetrics;
 
     @InjectMocks
     private DeliverToCustomerService deliverToCustomerService;
