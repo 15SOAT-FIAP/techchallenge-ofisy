@@ -29,6 +29,7 @@ precisa ser discutida pelo time, o instrumento é uma RFC, em
 | [0011](0011-utilizar-sns-e-sqs-como-mensageria.md)                        | Utilizar SNS e SQS como mensageria                        | Aceito | 2026-10-03 |
 | [0012](0012-coordenar-a-saga-por-coreografia.md)                          | Coordenar a saga por coreografia                          | Aceito | 2026-10-03 |
 | [0013](0013-utilizar-dynamodb-no-ms-notification.md)                      | Utilizar DynamoDB no ms-notification                      | Aceito | 2026-10-03 |
+| [0014](0014-manter-a-infraestrutura-de-bancos-em-um-unico-repositorio.md) | Manter a infraestrutura de bancos em um único repositório | Aceito | 2026-10-03 |
 
 ## Formato
 
