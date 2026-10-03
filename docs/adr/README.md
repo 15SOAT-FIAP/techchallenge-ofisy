@@ -28,6 +28,7 @@ precisa ser discutida pelo time, o instrumento é uma RFC, em
 | [0010](0010-dividir-a-aplicacao-em-microsservicos-por-bounded-context.md) | Dividir a aplicação em microsserviços por bounded context | Aceito | 2026-10-02 |
 | [0011](0011-utilizar-sns-e-sqs-como-mensageria.md)                        | Utilizar SNS e SQS como mensageria                        | Aceito | 2026-10-03 |
 | [0012](0012-coordenar-a-saga-por-coreografia.md)                          | Coordenar a saga por coreografia                          | Aceito | 2026-10-03 |
+| [0013](0013-utilizar-dynamodb-no-ms-notification.md)                      | Utilizar DynamoDB no ms-notification                      | Aceito | 2026-10-03 |
 
 ## Formato
 
