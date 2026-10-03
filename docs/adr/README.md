@@ -26,6 +26,8 @@ precisa ser discutida pelo time, o instrumento é uma RFC, em
 | [0008](0008-testar-integracao-com-testcontainers.md)                      | Testar a integração com Testcontainers                    | Aceito | 2026-09-06 |
 | [0009](0009-registrar-notificacoes-de-forma-sincrona-no-banco.md)         | Registrar notificações de forma síncrona no banco         | Aceito | 2026-09-06 |
 | [0010](0010-dividir-a-aplicacao-em-microsservicos-por-bounded-context.md) | Dividir a aplicação em microsserviços por bounded context | Aceito | 2026-10-02 |
+| [0011](0011-utilizar-sns-e-sqs-como-mensageria.md)                        | Utilizar SNS e SQS como mensageria                        | Aceito | 2026-10-03 |
+| [0012](0012-coordenar-a-saga-por-coreografia.md)                          | Coordenar a saga por coreografia                          | Aceito | 2026-10-03 |
 
 ## Formato
 
