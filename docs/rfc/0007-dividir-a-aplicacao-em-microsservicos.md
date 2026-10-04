@@ -9,9 +9,10 @@ Encerrada - Aprovada
 
 ## Resumo
 
-Extrair do monolito quatro microsserviços, um por bounded context: `ms-billing`,
-`ms-stock`, `ms-execution` e `ms-notification`. O contexto de ordem de serviço fica no
-core. Cada serviço passa a ter banco próprio, e o fluxo da OS vira uma saga por mensageria.
+Extrair do monolito quatro microsserviços, um por bounded context: `ms-ofisy-billing`,
+`ms-ofisy-stock`, `ms-ofisy-execution` e `ms-ofisy-notification`. O contexto de ordem de
+serviço fica no core. Cada serviço passa a ter banco próprio, e o fluxo da OS vira uma saga
+por mensageria.
 
 ## Problema
 
@@ -47,31 +48,32 @@ decidir em qual serviço ela vive e em que ponto do fluxo da OS a cobrança acon
 Dividir a aplicação em cinco serviços, recortados pelos bounded contexts que o código já
 tem. Cada um com repositório, pipeline, banco e ciclo de deploy próprios.
 
-| Serviço           | Responsabilidade                          | Agregados atuais                                                |
-|-------------------|-------------------------------------------|-----------------------------------------------------------------|
-| `core`            | Ciclo de vida da OS e cadastros           | `serviceorder`, `customer`, `vehicle`, `user`, `servicecatalog` |
-| `ms-billing`      | Orçamentos e pagamento via Mercado Pago   | `quote`                                                         |
-| `ms-stock`        | Saldo e movimentação de estoque           | `stock`, `stockmovement`                                        |
-| `ms-execution`    | Execução dos serviços da OS pelo mecânico | `serviceorderexecution`                                         |
-| `ms-notification` | Registro e consulta de notificações       | `notification`                                                  |
+| Serviço                 | Responsabilidade                          | Agregados atuais                                                |
+|-------------------------|-------------------------------------------|-----------------------------------------------------------------|
+| `core`                  | Ciclo de vida da OS e cadastros           | `serviceorder`, `customer`, `vehicle`, `user`, `servicecatalog` |
+| `ms-ofisy-billing`      | Orçamentos e pagamento via Mercado Pago   | `quote`                                                         |
+| `ms-ofisy-stock`        | Saldo e movimentação de estoque           | `stock`, `stockmovement`                                        |
+| `ms-ofisy-execution`    | Execução dos serviços da OS pelo mecânico | `serviceorderexecution`                                         |
+| `ms-ofisy-notification` | Registro e consulta de notificações       | `notification`                                                  |
 
 **Core.** Continua dono da OS e das transições de `ServiceOrderStatus`. Mantém os cadastros
 de cliente, veículo, funcionário e catálogo de serviços, além do login de funcionário em
 `/api/v1/login`.
 
-**`ms-billing`.** Gera, atualiza, aprova e reprova orçamentos, e integra com o Mercado Pago
-para cobrar a OS finalizada. O preço de cada serviço continua sendo copiado do catálogo para
-`QuoteServiceItem.price` no momento da criação, de modo que o orçamento não depende do
+**`ms-ofisy-billing`.** Gera, atualiza, aprova e reprova orçamentos, e integra com o Mercado
+Pago para cobrar a OS finalizada. O preço de cada serviço continua sendo copiado do catálogo
+para `QuoteServiceItem.price` no momento da criação, de modo que o orçamento não depende do
 catálogo depois de criado e a cobrança usa o valor aprovado pelo cliente.
 
-**`ms-stock`.** Mantém o saldo e as movimentações. Os casos de uso `consume` e `release`
-viram as operações de reservar e devolver itens de um orçamento.
+**`ms-ofisy-stock`.** Mantém o saldo e as movimentações. Os casos de uso `consume` e
+`release` viram as operações de reservar e devolver itens de um orçamento.
 
-**`ms-execution`.** Cria as execuções de uma OS a partir do orçamento aprovado e as conduz
-por `ServiceOrderExecutionStatus` até `COMPLETED`, incluindo o tempo médio por serviço.
+**`ms-ofisy-execution`.** Cria as execuções de uma OS a partir do orçamento aprovado e as
+conduz por `ServiceOrderExecutionStatus` até `COMPLETED`, incluindo o tempo médio por
+serviço.
 
-**`ms-notification`.** Registra as notificações a partir dos eventos dos outros serviços,
-substituindo as chamadas diretas aos casos de uso de `notification`.
+**`ms-ofisy-notification`.** Registra as notificações a partir dos eventos dos outros
+serviços, substituindo as chamadas diretas aos casos de uso de `notification`.
 
 **Dados.** Banco por serviço. Nenhum serviço lê tabela de outro. Referências entre serviços
 são apenas por id: o orçamento guarda o `serviceOrderId`, a execução guarda o
@@ -84,28 +86,30 @@ a ordem dos passos e o serviço responsável por cada um, não quem os coordena.
 será orquestrada ou coreografada fica para a RFC que definirá a mensageria.
 
 ```
-core           OS em diagnóstico           -> ms-billing gera o orçamento
-ms-billing     orçamento gerado            -> ms-stock reserva os itens
-ms-stock       itens reservados            -> core move a OS para AWAITING_APPROVAL
-core           orçamento aprovado          -> ms-execution cria as execuções
-ms-execution   execuções concluídas        -> core move a OS para FINISHED
-core           OS finalizada               -> ms-billing gera a cobrança no Mercado Pago
-ms-billing     pagamento confirmado        -> core libera a entrega (DELIVERED)
+core                 OS em diagnóstico           -> ms-ofisy-billing gera o orçamento
+ms-ofisy-billing     orçamento gerado            -> ms-ofisy-stock reserva os itens
+ms-ofisy-stock       itens reservados            -> core move a OS para AWAITING_APPROVAL
+core                 orçamento aprovado          -> ms-ofisy-execution cria as execuções
+ms-ofisy-execution   execuções concluídas        -> core move a OS para FINISHED
+core                 OS finalizada               -> ms-ofisy-billing gera a cobrança no Mercado Pago
+ms-ofisy-billing     pagamento confirmado        -> core libera a entrega (DELIVERED)
 ```
 
 Cada passo tem uma compensação para quando o fluxo para no meio:
 
-- orçamento reprovado: `ms-stock` devolve os itens reservados;
-- OS cancelada antes de finalizar: `ms-stock` devolve os itens e `ms-execution` cancela as
-  execuções pendentes;
-- reserva sem saldo: `ms-billing` marca o orçamento como não atendido e o core é avisado;
+- orçamento reprovado: `ms-ofisy-stock` devolve os itens reservados;
+- OS cancelada antes de finalizar: `ms-ofisy-stock` devolve os itens e `ms-ofisy-execution`
+  cancela as execuções pendentes;
+- reserva sem saldo: `ms-ofisy-billing` marca o orçamento como não atendido e o core é
+  avisado;
 - pagamento recusado ou expirado: a OS permanece em `FINISHED`, com a entrega bloqueada, e o
-  `ms-billing` permite gerar uma nova cobrança. Não há o que devolver, porque o serviço já
-  foi executado.
+  `ms-ofisy-billing` permite gerar uma nova cobrança. Não há o que devolver, porque o
+  serviço já foi executado.
 
 REST síncrono fica restrito à leitura de cadastros do core, em que a resposta é necessária
-para completar a operação: `ms-billing` consulta o preço no catálogo ao montar o orçamento.
-A escolha da tecnologia de mensageria não faz parte desta RFC e terá uma RFC própria.
+para completar a operação: `ms-ofisy-billing` consulta o preço no catálogo ao montar o
+orçamento. A escolha da tecnologia de mensageria não faz parte desta RFC e terá uma RFC
+própria.
 
 **Entrada e autenticação.** O API Gateway continua sendo o único ponto de entrada público e
 passa a rotear para cada serviço. O Lambda Authorizer de clientes do
@@ -119,9 +123,10 @@ emitido pelo core e validado por cada serviço com o mesmo segredo.
 
 - As fronteiras que o ADR-0002 deixou explícitas no código passam a ser físicas: uma
   dependência indevida entre contextos deixa de ser possível por descuido.
-- Cada serviço tem deploy e escala independentes. O `ms-stock` e o `ms-execution`, mais
-  consultados no dia a dia da oficina, escalam sem levar o resto junto.
-- A integração com o Mercado Pago fica isolada no `ms-billing` e no fim do fluxo. Uma
+- Cada serviço tem deploy e escala independentes. O `ms-ofisy-stock` e o
+  `ms-ofisy-execution`, mais consultados no dia a dia da oficina, escalam sem levar o resto
+  junto.
+- A integração com o Mercado Pago fica isolada no `ms-ofisy-billing` e no fim do fluxo. Uma
   indisponibilidade do provedor de pagamento atrasa apenas a entrega, sem impedir abrir,
   diagnosticar, orçar ou executar OS.
 - Cobrar só depois de finalizar evita estorno: uma OS cancelada no meio do caminho nunca
@@ -163,10 +168,10 @@ emitido pelo core e validado por cada serviço com o mesmo segredo.
 - **Recorte mais fino**, com cliente, veículo e catálogo de serviços em serviços próprios.
   São cadastros simples, sem fluxo, lidos por quase todos os outros contextos. Separá-los
   multiplica as chamadas síncronas sem ganho de autonomia.
-- **Catálogo de serviços no `ms-execution`.** O catálogo descreve o que o mecânico executa,
-  e o tempo médio por serviço já é calculado lá. Descartado porque o `ms-billing` precisa do
-  preço para montar o orçamento, o que o faria depender de um serviço que só atua depois da
-  aprovação.
+- **Catálogo de serviços no `ms-ofisy-execution`.** O catálogo descreve o que o mecânico
+  executa, e o tempo médio por serviço já é calculado lá. Descartado porque o
+  `ms-ofisy-billing` precisa do preço para montar o orçamento, o que o faria depender de um
+  serviço que só atua depois da aprovação.
 - **Orçamento e estoque no mesmo serviço.** Mantém atômica a reserva de itens com a criação
   do orçamento. Descartado porque o estoque é usado também fora de orçamentos, pela entrada
   de mercadoria e pela movimentação do almoxarife, e misturaria dois contextos com

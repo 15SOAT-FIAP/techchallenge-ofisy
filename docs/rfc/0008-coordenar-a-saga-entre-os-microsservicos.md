@@ -16,10 +16,10 @@ orquestrador. Os eventos saem de um outbox gravado na mesma transação do negó
 ## Problema
 
 O [ADR-0010](../adr/0010-dividir-a-aplicacao-em-microsservicos-por-bounded-context.md)
-dividiu a aplicação em `core`, `ms-billing`, `ms-stock`, `ms-execution` e
-`ms-notification`, cada um com banco próprio, e definiu que o fluxo da OS é uma saga por
-mensageria. Ficaram em aberto duas decisões: qual tecnologia transporta os eventos e quem
-coordena os passos da saga.
+dividiu a aplicação em `core`, `ms-ofisy-billing`, `ms-ofisy-stock`, `ms-ofisy-execution` e
+`ms-ofisy-notification`, cada um com banco próprio, e definiu que o fluxo da OS é uma saga
+por mensageria. Ficaram em aberto duas decisões: qual tecnologia transporta os eventos e
+quem coordena os passos da saga.
 
 Sem essas respostas, nenhum serviço pode ser extraído. O fluxo descrito na
 [RFC-0007](0007-dividir-a-aplicacao-em-microsservicos.md) vai do orçamento à entrega,
@@ -36,7 +36,7 @@ fica sabendo; se publica e a transação falha, os outros reagem a algo que não
 **Mensageria: SNS com SQS.** Cada serviço que produz eventos publica em um tópico SNS
 próprio, com os eventos do seu contexto. Cada serviço que consome tem uma única fila SQS,
 assinada nos tópicos que lhe interessam, com filter policy pelo tipo do evento para receber
-só os eventos que trata. Cada fila tem a sua dead-letter queue. O `ms-notification` só
+só os eventos que trata. Cada fila tem a sua dead-letter queue. O `ms-ofisy-notification` só
 consome e não tem tópico.
 
 **FIFO.** Tópicos e filas são FIFO. O identificador da OS é o grupo de mensagens, de modo
@@ -52,7 +52,7 @@ grava o evento em uma tabela de outbox do próprio banco, na mesma transação d
 estado. Um publicador agendado lê os registros pendentes, publica no SNS e os marca como
 publicados. Se o serviço cair entre publicar e marcar, o evento é publicado de novo e a
 deduplicação FIFO o descarta. O outbox existe nos serviços que publicam eventos; o
-`ms-notification` só consome e não precisa dele.
+`ms-ofisy-notification` só consome e não precisa dele.
 
 **Envelope.** Todo evento carrega o mesmo envelope, com id do evento, tipo, id da OS, data
 de ocorrência e payload. O tipo é o atributo usado nas filter policies, e o id do evento é o
