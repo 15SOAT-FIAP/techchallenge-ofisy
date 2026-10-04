@@ -9,11 +9,11 @@ Aceito
 ## Contexto
 
 O [ADR-0010](0010-dividir-a-aplicacao-em-microsservicos-por-bounded-context.md) definiu que
-o fluxo da OS é uma saga entre `core`, `ms-billing`, `ms-stock` e `ms-execution`, com
-compensações para orçamento reprovado, OS cancelada, falta de estoque e pagamento recusado,
-e deixou para uma decisão própria quem coordena os passos. A mensageria escolhida no
-[ADR-0011](0011-utilizar-sns-e-sqs-como-mensageria.md) é SNS com SQS, com fan-out por
-tópico.
+o fluxo da OS é uma saga entre `core`, `ms-ofisy-billing`, `ms-ofisy-stock` e
+`ms-ofisy-execution`, com compensações para orçamento reprovado, OS cancelada, falta de
+estoque e pagamento recusado, e deixou para uma decisão própria quem coordena os passos. A
+mensageria escolhida no [ADR-0011](0011-utilizar-sns-e-sqs-como-mensageria.md) é SNS com
+SQS, com fan-out por tópico.
 
 O fluxo é linear, do orçamento à entrega, e tem quatro participantes. O core já é dono de
 `ServiceOrderStatus` e precisa acompanhar cada passo para mantê-lo atualizado.

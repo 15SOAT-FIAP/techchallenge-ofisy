@@ -46,10 +46,11 @@ já tem, cada um com repositório, pipeline, banco e ciclo de deploy próprios:
 
 - **`core`**: ciclo de vida da OS e transições de `ServiceOrderStatus`, cadastros de
   cliente, veículo, funcionário e catálogo de serviços, e o login de funcionário.
-- **`ms-billing`**: orçamentos (`quote`) e a cobrança via Mercado Pago.
-- **`ms-stock`**: saldo e movimentação de estoque (`stock`, `stockmovement`).
-- **`ms-execution`**: execução dos serviços da OS pelo mecânico (`serviceorderexecution`).
-- **`ms-notification`**: registro e consulta de notificações (`notification`).
+- **`ms-ofisy-billing`**: orçamentos (`quote`) e a cobrança via Mercado Pago.
+- **`ms-ofisy-stock`**: saldo e movimentação de estoque (`stock`, `stockmovement`).
+- **`ms-ofisy-execution`**: execução dos serviços da OS pelo mecânico
+  (`serviceorderexecution`).
+- **`ms-ofisy-notification`**: registro e consulta de notificações (`notification`).
 
 Nenhum serviço lê tabela de outro. As referências entre serviços são apenas por id, sem
 chave estrangeira para fora do próprio banco, e cada serviço versiona o próprio schema com

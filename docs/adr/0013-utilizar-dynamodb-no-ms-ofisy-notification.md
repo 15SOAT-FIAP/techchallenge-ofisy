@@ -1,4 +1,4 @@
-# 0013. Utilizar DynamoDB no ms-notification
+# 0013. Utilizar DynamoDB no ms-ofisy-notification
 
 Data: 2026-10-03
 
@@ -13,7 +13,7 @@ A Fase 4 exige que pelo menos um dos microsserviços use um banco NoSQL. O
 serviço um banco próprio, e toda a infraestrutura do projeto está na AWS, como decidido no
 [ADR-0004](0004-utilizar-a-aws-como-provedor-de-nuvem.md).
 
-O `ms-notification` é o serviço em que esse requisito se encaixa com menos atrito:
+O `ms-ofisy-notification` é o serviço em que esse requisito se encaixa com menos atrito:
 
 - Os acessos são simples e conhecidos. Hoje `NotificationRepository` busca por id, por tipo,
   por status de leitura e tipo, e lista tudo. Não há junção nem agregação.
@@ -43,12 +43,13 @@ As opções avaliadas:
   pesada do que o volume da oficina justifica.
 - **NoSQL em outro serviço**, como estoque ou orçamento. Perderia as transações que esses
   contextos precisam e complicaria o outbox.
-- **Manter PostgreSQL no `ms-notification`.** Funcionaria, mas não atende ao requisito da
-  fase.
+- **Manter PostgreSQL no `ms-ofisy-notification`.** Funcionaria, mas não atende ao requisito
+  da fase.
 
 ## Decisão
 
-Vamos usar DynamoDB, em modo de capacidade sob demanda, como banco do `ms-notification`.
+Vamos usar DynamoDB, em modo de capacidade sob demanda, como banco do
+`ms-ofisy-notification`.
 
 A modelagem parte dos padrões de acesso do serviço, com índice secundário para as consultas
 por tipo e por status de leitura. Nomes de tabela, chaves e índices são definidos na

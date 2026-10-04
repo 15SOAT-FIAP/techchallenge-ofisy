@@ -9,10 +9,11 @@ Aceito
 ## Contexto
 
 O [ADR-0010](0010-dividir-a-aplicacao-em-microsservicos-por-bounded-context.md) deu a cada
-microsserviço um banco próprio, e o [ADR-0013](0013-utilizar-dynamodb-no-ms-notification.md)
-colocou o `ms-notification` no DynamoDB. Passam a existir cinco bancos: uma instância RDS
-PostgreSQL para cada um de `core`, `ms-billing`, `ms-stock` e `ms-execution`, e uma tabela
-DynamoDB para o `ms-notification`.
+microsserviço um banco próprio, e o
+[ADR-0013](0013-utilizar-dynamodb-no-ms-ofisy-notification.md) colocou o
+`ms-ofisy-notification` no DynamoDB. Passam a existir cinco bancos: uma instância RDS
+PostgreSQL para cada um de `core`, `ms-ofisy-billing`, `ms-ofisy-stock` e
+`ms-ofisy-execution`, e uma tabela DynamoDB para o `ms-ofisy-notification`.
 
 A infraestrutura do projeto está dividida em repositórios por camada. O
 `techchallenge-ofisy-eks-infra` cuida de rede, cluster, API Gateway e da Lambda de
