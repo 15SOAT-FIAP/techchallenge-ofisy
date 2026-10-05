@@ -22,7 +22,6 @@ import br.com.ofisy.domain.customer.exceptions.CustomerAlreadyActiveException;
 import br.com.ofisy.domain.customer.exceptions.CustomerAlreadyInactiveException;
 import br.com.ofisy.domain.customer.exceptions.InactiveCustomerException;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
-import br.com.ofisy.domain.notification.exceptions.InvalidNotificationMessageException;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteDataException;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteItemException;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
@@ -96,15 +95,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidCpfCnpjException.class)
     public ProblemDetail handleInvalidCpfCnpj(InvalidCpfCnpjException ex) {
         String title = "CPF/CNPJ inválido";
-        countError(HttpStatus.BAD_REQUEST, title, ex);
-        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        problem.setTitle(title);
-        return problem;
-    }
-
-    @ExceptionHandler(InvalidNotificationMessageException.class)
-    public ProblemDetail handleInvalidNotificationMessage(InvalidNotificationMessageException ex) {
-        String title = "Mensagem de notificação inválida";
         countError(HttpStatus.BAD_REQUEST, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         problem.setTitle(title);
@@ -365,3 +355,4 @@ public class GlobalExceptionHandler {
         return problem;
     }
 }
+

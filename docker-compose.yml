@@ -1,0 +1,112 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres-local-db
+    environment:
+      POSTGRES_DB: ofisydb
+      POSTGRES_USER: ofisyuser
+      POSTGRES_PASSWORD: ofisypassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d ofisydb -U ofisyuser" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  localstack:
+    image: localstack/localstack:3
+    container_name: localstack-aws
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=sqs,dynamodb
+      - DEFAULT_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    volumes:
+      - "./localstack-init.sh:/etc/localstack/init/ready.d/init.sh"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  core:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ofisy-core
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - POSTGRES_DB=ofisydb
+      - POSTGRES_USER=ofisyuser
+      - POSTGRES_PASSWORD=ofisypassword
+      - JWT_SECRET=1234567890123456789012345678901234567890123456789012345678901234567890
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/ofisydb
+      - SPRING_CLOUD_AWS_REGION_STATIC=us-east-1
+      - SPRING_CLOUD_AWS_CREDENTIALS_ACCESS_KEY=test
+      - SPRING_CLOUD_AWS_CREDENTIALS_SECRET_KEY=test
+      - SPRING_CLOUD_AWS_SQS_ENDPOINT=http://localstack:4566
+    depends_on:
+      postgres:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+
+  notifications:
+    build:
+      context: ../techchallenge-ofisy-notifications
+      dockerfile: Dockerfile
+    container_name: ofisy-notifications
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - APP_JWT_SECRET=1234567890123456789012345678901234567890123456789012345678901234567890
+      - SPRING_CLOUD_AWS_REGION_STATIC=us-east-1
+      - SPRING_CLOUD_AWS_CREDENTIALS_ACCESS_KEY=test
+      - SPRING_CLOUD_AWS_CREDENTIALS_SECRET_KEY=test
+      - SPRING_CLOUD_AWS_SQS_ENDPOINT=http://localstack:4566
+      - SPRING_CLOUD_AWS_DYNAMODB_ENDPOINT=http://localstack:4566
+    depends_on:
+      localstack:
+        condition: service_healthy
+
+  dynamodb-admin:
+    image: aaronshaf/dynamodb-admin:latest
+    container_name: dynamodb-admin
+    ports:
+      - "8001:8001"
+    environment:
+      - DYNAMO_ENDPOINT=http://localstack:4566
+      - SQS_AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    depends_on:
+      localstack:
+        condition: service_healthy
+
+  sqs-admin:
+    image: pacovk/sqs-admin:latest
+    container_name: sqs-admin
+    ports:
+      - "8002:3999"
+    environment:
+      - SQS_AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - SQS_ENDPOINT_URL=http://localstack:4566
+    depends_on:
+      localstack:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+
+

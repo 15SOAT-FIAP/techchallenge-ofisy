@@ -1,6 +1,6 @@
 package br.com.ofisy.application.stock.consume;
 
-import br.com.ofisy.application.notification.createlowstock.CreateLowStockNotificationUseCase;
+import br.com.ofisy.application.notification.publish.NotificationEventPublisher;
 import br.com.ofisy.application.stock.exceptions.InsufficientStockException;
 import br.com.ofisy.application.stock.exceptions.StockNotFoundException;
 import br.com.ofisy.application.stockmovement.register.RegisterStockMovementUseCase;
@@ -16,14 +16,14 @@ public class ConsumeStockService implements ConsumeStockUseCase {
 
     private final StockRepository stockRepository;
     private final RegisterStockMovementUseCase registerStockMovementUseCase;
-    private final CreateLowStockNotificationUseCase createLowStockNotificationUseCase;
+    private final NotificationEventPublisher notificationEventPublisher;
 
     public ConsumeStockService(StockRepository stockRepository,
                                RegisterStockMovementUseCase registerStockMovementUseCase,
-                               CreateLowStockNotificationUseCase createLowStockNotificationUseCase) {
+                               NotificationEventPublisher notificationEventPublisher) {
         this.stockRepository = stockRepository;
         this.registerStockMovementUseCase = registerStockMovementUseCase;
-        this.createLowStockNotificationUseCase = createLowStockNotificationUseCase;
+        this.notificationEventPublisher = notificationEventPublisher;
     }
 
     @Override
@@ -50,8 +50,8 @@ public class ConsumeStockService implements ConsumeStockUseCase {
         Stock savedStock = stockRepository.save(stock);
 
         if (savedStock.isLowStock()) {
-            createLowStockNotificationUseCase.execute(
-                    new CreateLowStockNotificationUseCase.CreateLowStockCommand(
+            notificationEventPublisher.publishLowStock(
+                    new NotificationEventPublisher.LowStockEvent(
                             savedStock.getId(),
                             savedStock.getProductName(),
                             savedStock.getQuantity(),

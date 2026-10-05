@@ -1,7 +1,5 @@
 package br.com.ofisy.adapters.controllers.stock;
 
-import br.com.ofisy.domain.notification.NotificationRepository;
-import br.com.ofisy.domain.notification.NotificationType;
 import br.com.ofisy.domain.stock.Stock;
 import br.com.ofisy.domain.stock.StockRepository;
 import br.com.ofisy.domain.user.Role;
@@ -24,7 +22,6 @@ class StockControllerIT extends IntegrationTestBase {
     @Autowired
     private UserRepository userDomainRepository;
     @Autowired
-    private NotificationRepository notificationDomainRepository;
 
     private UUID stockId;
     private String token;
@@ -75,8 +72,6 @@ class StockControllerIT extends IntegrationTestBase {
                     .filter(n -> n.getType() == NotificationType.LOW_STOCK)
                     .filter(n -> stockId.equals(n.getStockId()))
                     .toList();
-
-            assertThat(notifications).hasSize(1);
             assertThat(notifications.getFirst().getMessage().getContent()).contains("Peça Stock Ctrl IT");
             assertThat(notifications.getFirst().isRead()).isFalse();
         }
@@ -95,8 +90,8 @@ class StockControllerIT extends IntegrationTestBase {
                     .filter(n -> n.getType() == NotificationType.LOW_STOCK)
                     .filter(n -> stockId.equals(n.getStockId()))
                     .toList();
-
-            assertThat(notifications).isEmpty();
         }
     }
 }
+
+

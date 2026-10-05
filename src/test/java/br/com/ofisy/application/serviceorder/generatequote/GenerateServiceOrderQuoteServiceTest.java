@@ -1,6 +1,6 @@
 package br.com.ofisy.application.serviceorder.generatequote;
 
-import br.com.ofisy.application.notification.createquote.CreateQuoteNotificationUseCase;
+import br.com.ofisy.application.notification.publish.NotificationEventPublisher;
 import br.com.ofisy.application.quote.create.CreateQuoteUseCase;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.config.metrics.ServiceOrderMetrics;
@@ -45,7 +45,7 @@ class GenerateServiceOrderQuoteServiceTest {
     @Mock
     private CreateQuoteUseCase createQuoteUseCase;
     @Mock
-    private CreateQuoteNotificationUseCase createQuoteNotificationUseCase;
+    private NotificationEventPublisher notificationEventPublisher;
     @Mock
     private ServiceOrderMetrics serviceOrderMetrics;
 
@@ -72,8 +72,8 @@ class GenerateServiceOrderQuoteServiceTest {
             assertThat(result).isEqualTo(quote);
             assertThat(serviceOrder.getStatus()).isEqualTo(ServiceOrderStatus.AWAITING_APPROVAL);
             verify(serviceOrderRepository).save(serviceOrder);
-            verify(createQuoteNotificationUseCase).execute(
-                    new CreateQuoteNotificationUseCase.CreateQuoteCommand(
+            verify(notificationEventPublisher).publishQuoteGenerated(
+                    new NotificationEventPublisher.QuoteGeneratedEvent(
                             quoteId, VALID_SERVICE_ORDER_ID, new BigDecimal(PRICE_1500)));
         }
 
@@ -106,7 +106,7 @@ class GenerateServiceOrderQuoteServiceTest {
                     .isInstanceOf(ServiceOrderNotFoundException.class);
 
             verify(createQuoteUseCase, never()).execute(any());
-            verify(createQuoteNotificationUseCase, never()).execute(any());
+            verify(notificationEventPublisher, never()).publishQuoteGenerated(any());
         }
 
         @Test
@@ -122,7 +122,7 @@ class GenerateServiceOrderQuoteServiceTest {
             assertThatThrownBy(() -> generateServiceOrderQuoteService.execute(cmd))
                     .isInstanceOf(InvalidServiceOrderTransitionException.class);
 
-            verify(createQuoteNotificationUseCase, never()).execute(any());
+            verify(notificationEventPublisher, never()).publishQuoteGenerated(any());
         }
     }
 

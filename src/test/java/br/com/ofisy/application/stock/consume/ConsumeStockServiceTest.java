@@ -1,6 +1,5 @@
 package br.com.ofisy.application.stock.consume;
 
-import br.com.ofisy.application.notification.createlowstock.CreateLowStockNotificationUseCase;
 import br.com.ofisy.application.stock.exceptions.InsufficientStockException;
 import br.com.ofisy.application.stockmovement.register.RegisterStockMovementUseCase;
 import br.com.ofisy.domain.stock.Stock;
@@ -32,7 +31,7 @@ class ConsumeStockServiceTest {
     private RegisterStockMovementUseCase registerStockMovementUseCase;
 
     @Mock
-    private CreateLowStockNotificationUseCase createLowStockNotificationUseCase;
+    private br.com.ofisy.application.notification.publish.NotificationEventPublisher notificationEventPublisher;
 
     @InjectMocks
     private ConsumeStockService consumeStockService;
@@ -67,3 +66,4 @@ class ConsumeStockServiceTest {
         verify(stockRepository, never()).save(any(Stock.class));
     }
 }
+

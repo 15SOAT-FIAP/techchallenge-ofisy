@@ -24,11 +24,12 @@ public class JwtService implements TokenGenerator {
     private final JwtProperties jwtProperties;
 
     @Override
-    public String generateToken(String email) {
+    public String generateToken(String email, java.util.Collection<String> roles) {
         var now = Instant.now();
         return Jwts.builder()
                 .issuer(ISSUER)
                 .subject(email)
+                .claim("roles", roles)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plusMillis(jwtProperties.getExpiration())))
                 .signWith(getSecretKey())
@@ -37,6 +38,11 @@ public class JwtService implements TokenGenerator {
 
     public String extractEmail(String token) {
         return extractClaims(token).getSubject();
+    }
+
+    @SuppressWarnings("unchecked")
+    public java.util.List<String> extractRoles(String token) {
+        return extractClaims(token).get("roles", java.util.List.class);
     }
 
     public boolean isValidToken(String token) {

@@ -8,3 +8,4 @@ VALUES (
            true,
            now()
 );
+

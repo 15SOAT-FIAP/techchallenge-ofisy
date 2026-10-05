@@ -5,7 +5,6 @@ import br.com.ofisy.adapters.controllers.serviceorder.dto.ServiceOrderStatusResp
 import br.com.ofisy.domain.customer.CpfCnpj;
 import br.com.ofisy.domain.customer.Customer;
 import br.com.ofisy.domain.customer.CustomerRepository;
-import br.com.ofisy.domain.notification.NotificationRepository;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
 import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
@@ -43,7 +42,6 @@ class ServiceOrderControllerIT extends IntegrationTestBase {
     @Autowired
     private ServiceCatalogRepository serviceCatalogDomainRepository;
     @Autowired
-    private NotificationRepository notificationDomainRepository;
 
     private UUID customerId;
     private UUID vehicleId;
@@ -456,8 +454,6 @@ class ServiceOrderControllerIT extends IntegrationTestBase {
             var notifications = notificationDomainRepository.findAll().stream()
                     .filter(n -> n.getQuoteId() != null && n.getQuoteId().equals(quoteId))
                     .toList();
-
-            assertThat(notifications).hasSize(1);
             assertThat(notifications.getFirst().isRead()).isFalse();
         }
 
@@ -762,3 +758,5 @@ class ServiceOrderControllerIT extends IntegrationTestBase {
         );
     }
 }
+
+

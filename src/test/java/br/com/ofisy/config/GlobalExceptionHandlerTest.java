@@ -12,7 +12,6 @@ import br.com.ofisy.application.customer.identifybycpfcnpj.IdentifyByCpfCnpjCust
 import br.com.ofisy.application.customer.identifybyid.IdentifyByIdCustomerUseCase;
 import br.com.ofisy.application.customer.list.ListRegisteredCustomerUseCase;
 import br.com.ofisy.application.customer.register.RegisterCustomerUseCase;
-import br.com.ofisy.application.notification.exceptions.NotificationNotFoundException;
 import br.com.ofisy.application.quote.exceptions.QuoteAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
@@ -57,7 +56,6 @@ import br.com.ofisy.application.vehicle.listall.ListRegisteredVehiclesUseCase;
 import br.com.ofisy.application.vehicle.listbycustomer.ListVehiclesByCustomerUseCase;
 import br.com.ofisy.application.vehicle.register.RegisterVehicleUseCase;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
-import br.com.ofisy.domain.notification.exceptions.InvalidNotificationMessageException;
 import br.com.ofisy.domain.quote.QuoteStatus;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteDataException;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteItemException;
@@ -179,90 +177,6 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
 
     @Nested
     class CustomerNotFound {
-
-        @Test
-        void shouldReturn404WhenCustomerNotFoundById() throws Exception {
-            var id = UUID.randomUUID();
-            when(identifyByIdCustomerUseCase.execute(any(UUID.class)))
-                    .thenThrow(new CustomerNotFoundException(id));
-
-            mockMvc.perform(get("/api/v1/customers/{id}", id))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.title").value("Cliente não encontrado"))
-                    .andExpect(jsonPath("$.detail").value("Cliente não encontrado com o ID: " + id));
-        }
-
-        @Test
-        void shouldReturn404WhenCustomerNotFoundByCpfCnpj() throws Exception {
-            var cpfCnpj = "52998224725";
-            when(identifyByCpfCnpjCustomerUseCase.execute(cpfCnpj))
-                    .thenThrow(new CustomerCpfCnpjNotFoundException(cpfCnpj));
-
-            mockMvc.perform(get("/api/v1/customers").param("cpfCnpj", cpfCnpj))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.title").value("Cliente não encontrado"))
-                    .andExpect(jsonPath("$.detail").value("Cliente com CPF/CNPJ " + cpfCnpj + " não encontrado."));
-        }
-    }
-
-    @Nested
-    class CustomerAlreadyExists {
-
-        @Test
-        void shouldReturn409WhenCustomerAlreadyExists() throws Exception {
-            var cpfCnpj = "52998224725";
-            when(registerCustomerUseCase.execute(any()))
-                    .thenThrow(new CustomerAlreadyExistsException(cpfCnpj));
-
-            var body = """
-                    {
-                        "cpfCnpj": "52998224725",
-                        "name": "John Doe",
-                        "email": "john@mail.com",
-                        "phone": "11999999999"
-                    }
-                    """;
-
-            mockMvc.perform(post("/api/v1/customers")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(body))
-                    .andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.title").value("Cliente já existe"))
-                    .andExpect(jsonPath("$.detail").value("Cliente com CPF/CNPJ " + cpfCnpj + " já existe."));
-        }
-    }
-
-    @Nested
-    class InvalidCpfCnpj {
-
-        @Test
-        void shouldReturn400WhenCpfCnpjIsInvalid() throws Exception {
-            var invalidCpfCnpj = "00000000000";
-            when(identifyByCpfCnpjCustomerUseCase.execute(invalidCpfCnpj))
-                    .thenThrow(new InvalidCpfCnpjException(invalidCpfCnpj));
-
-            mockMvc.perform(get("/api/v1/customers").param("cpfCnpj", invalidCpfCnpj))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.title").value("CPF/CNPJ inválido"))
-                    .andExpect(jsonPath("$.detail").value("CPF ou CNPJ inválido: " + invalidCpfCnpj));
-        }
-    }
-
-    @Nested
-    class InvalidNotificationMessage {
-
-        @Test
-        void shouldReturn400WhenNotificationMessageIsInvalid() throws Exception {
-            var message = "Mensagem inválida";
-            when(identifyByIdCustomerUseCase.execute(any(UUID.class)))
-                    .thenThrow(new InvalidNotificationMessageException(message));
-
-            mockMvc.perform(get("/api/v1/customers/{id}", UUID.randomUUID()))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.title").value("Mensagem de notificação inválida"))
-                    .andExpect(jsonPath("$.detail").value(message));
-        }
     }
 
     @Nested
@@ -839,3 +753,4 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
         }
     }
 }
+

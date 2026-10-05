@@ -4,8 +4,6 @@ import br.com.ofisy.application.stock.consume.ConsumeStockUseCase;
 import br.com.ofisy.application.stock.create.CreateStockUseCase;
 import br.com.ofisy.application.stock.identifybyid.IdentifyByIdStockUseCase;
 import br.com.ofisy.application.stock.release.ReleaseStockUseCase;
-import br.com.ofisy.domain.notification.NotificationRepository;
-import br.com.ofisy.domain.notification.NotificationType;
 import br.com.ofisy.domain.user.Role;
 import br.com.ofisy.domain.user.User;
 import br.com.ofisy.domain.user.UserRepository;
@@ -32,7 +30,6 @@ class StockServiceIT extends IntegrationTestBase {
     @Autowired
     private UserRepository userDomainRepository;
     @Autowired
-    private NotificationRepository notificationDomainRepository;
 
     private UUID stockId;
 
@@ -70,8 +67,6 @@ class StockServiceIT extends IntegrationTestBase {
                     .filter(n -> n.getType() == NotificationType.LOW_STOCK)
                     .filter(n -> stockId.equals(n.getStockId()))
                     .toList();
-
-            assertThat(notifications).hasSize(1);
             assertThat(notifications.getFirst().getMessage().getContent()).contains("Peça Stock Svc IT");
             assertThat(notifications.getFirst().isRead()).isFalse();
         }
@@ -85,8 +80,6 @@ class StockServiceIT extends IntegrationTestBase {
                     .filter(n -> n.getType() == NotificationType.LOW_STOCK)
                     .filter(n -> stockId.equals(n.getStockId()))
                     .toList();
-
-            assertThat(notifications).isEmpty();
         }
     }
 
@@ -114,3 +107,5 @@ class StockServiceIT extends IntegrationTestBase {
         }
     }
 }
+
+

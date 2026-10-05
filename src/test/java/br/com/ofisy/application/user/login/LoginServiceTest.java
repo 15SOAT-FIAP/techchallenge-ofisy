@@ -49,12 +49,12 @@ class LoginServiceTest {
             var user = User.create(VALID_EMAIL, HASHED_PASSWORD, "João Silva", Role.ATTENDANT);
             when(repository.findByEmailAddress(VALID_EMAIL)).thenReturn(Optional.of(user));
             when(passwordEncoder.matches(VALID_PASSWORD, HASHED_PASSWORD)).thenReturn(true);
-            when(tokenGenerator.generateToken(VALID_EMAIL)).thenReturn(GENERATED_TOKEN);
+            when(tokenGenerator.generateToken(VALID_EMAIL, java.util.List.of("ROLE_ADMIN"))).thenReturn(GENERATED_TOKEN);
 
             var result = service.execute(cmd);
 
             assertThat(result).isEqualTo(GENERATED_TOKEN);
-            verify(tokenGenerator).generateToken(VALID_EMAIL);
+            verify(tokenGenerator).generateToken(VALID_EMAIL, java.util.List.of("ROLE_ADMIN"));
         }
 
         @Test

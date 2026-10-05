@@ -43,7 +43,7 @@ class JwtServiceTest {
     @Test
     @DisplayName("Deve gerar token JWT válido")
     void shouldGenerateValidToken() {
-        String token = jwtService.generateToken(TEST_USER_PRINCIPAL_EMAIL);
+        String token = jwtService.generateToken(TEST_USER_PRINCIPAL_EMAIL, java.util.List.of("ROLE_ADMIN"));
         assertThat(token).isNotNull().isNotEmpty();
     }
 
@@ -51,7 +51,7 @@ class JwtServiceTest {
     @DisplayName("Deve extrair email do token corretamente")
     void shouldExtractEmailFromToken() {
         String email = TEST_USER_PRINCIPAL_EMAIL;
-        String token = jwtService.generateToken(email);
+        String token = jwtService.generateToken(email, java.util.List.of("ROLE_ADMIN"));
 
         String extractedEmail = jwtService.extractEmail(token);
         assertThat(extractedEmail).isEqualTo(email);
@@ -60,7 +60,7 @@ class JwtServiceTest {
     @Test
     @DisplayName("Deve validar token válido")
     void shouldValidateValidToken() {
-        String token = jwtService.generateToken(TEST_USER_PRINCIPAL_EMAIL);
+        String token = jwtService.generateToken(TEST_USER_PRINCIPAL_EMAIL, java.util.List.of("ROLE_ADMIN"));
 
         boolean isValid = jwtService.isValidToken(token);
 
@@ -86,8 +86,8 @@ class JwtServiceTest {
     @Test
     @DisplayName("Deve gerar tokens diferentes para emails diferentes")
     void shouldGenerateDifferentTokensForDifferentEmails() {
-        String token1 = jwtService.generateToken(TEST_USER_PRINCIPAL_EMAIL);
-        String token2 = jwtService.generateToken("maria@ofisy.com");
+        String token1 = jwtService.generateToken(TEST_USER_PRINCIPAL_EMAIL, java.util.List.of("ROLE_ADMIN"));
+        String token2 = jwtService.generateToken("maria@ofisy.com", java.util.List.of("ROLE_ADMIN"));
 
         assertThat(token1).isNotEqualTo(token2);
     }
@@ -96,7 +96,7 @@ class JwtServiceTest {
     @DisplayName("Deve invalidar token expirado")
     void shouldInvalidateExpiredToken() {
         when(jwtProperties.getExpiration()).thenReturn(-1000L);
-        String expiredToken = jwtService.generateToken(TEST_USER_PRINCIPAL_EMAIL);
+        String expiredToken = jwtService.generateToken(TEST_USER_PRINCIPAL_EMAIL, java.util.List.of("ROLE_ADMIN"));
         boolean isValid = jwtService.isValidToken(expiredToken);
         assertThat(isValid).isFalse();
     }

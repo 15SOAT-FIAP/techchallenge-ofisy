@@ -1,0 +1,1038 @@
+diff --git a/.github/workflows/cd.yml b/.github/workflows/cd.yml
+index 70dfbdd1..f25e4393 100644
+--- a/.github/workflows/cd.yml
++++ b/.github/workflows/cd.yml
+@@ -9,7 +9,7 @@ on:
+ 
+ jobs:
+   deploy-to-aws:
+-    name: Deploy Automático na AWS (EKS & RDS)
++    name: Deploy Automático na AWS (Kubernetes EKS)
+     runs-on: ubuntu-latest
+     environment: AWS_ACADEMY
+     if: github.event.workflow_run.conclusion == 'success'
+@@ -37,71 +37,23 @@ jobs:
+           distribution: 'temurin'
+           cache: maven
+ 
+-      # 3. Configurar Terraform
+-      - name: Configurar Terraform
+-        uses: hashicorp/setup-terraform@v3
+-        with:
+-          terraform_wrapper: false
+-
+-      # 4. Criar Bucket S3 (Terraform Bootstrap)
+-      - name: Terraform Bootstrap (S3 Bucket)
++      # 3. Obter o Endereço do Banco de Dados RDS PostgreSQL
++      - name: Obter Endereço do RDS (PostgreSQL)
+         run: |
+-          cd infra/bootstrap
+-          echo 'account_id = "${{ secrets.AWS_ACCOUNT_ID }}"' > terraform.tfvars
+-          terraform init
+-          
+-          # Se o bucket já existir, importa ele para o estado para evitar erro de criação duplicada
+-          aws s3api head-bucket --bucket "ofisy-tfstate-${{ secrets.AWS_ACCOUNT_ID }}" 2>/dev/null && \
+-          terraform import aws_s3_bucket.tfstate ofisy-tfstate-${{ secrets.AWS_ACCOUNT_ID }} || echo "Bucket nao existe, sera criado."
+-          
+-          terraform apply -auto-approve
+-
+-      # 5. Inicializar o Terraform e Executar o Plan
+-      - name: Terraform Plan
+-        run: |
+-          cd infra
+-          
+-          # Busca dinamicamente os nomes das roles que mudam a cada reinício do AWS Academy
+-          EKS_CLUSTER_ROLE=$(aws iam list-roles --query "Roles[?contains(RoleName, 'LabEksClusterRole')].RoleName" --output text)
+-          EKS_NODE_ROLE=$(aws iam list-roles --query "Roles[?contains(RoleName, 'LabEksNodeRole')].RoleName" --output text)
+-          
+-          # Cria o arquivo terraform.tfvars com os dados da AWS Academy
+-          echo 'account_id = "${{ secrets.AWS_ACCOUNT_ID }}"' > terraform.tfvars
+-          echo 'role_name  = "LabRole"' >> terraform.tfvars
+-          echo 'db_password = "${{ secrets.DB_PASSWORD }}"' >> terraform.tfvars
+-          echo "eks_cluster_role = \"$EKS_CLUSTER_ROLE\"" >> terraform.tfvars
+-          echo "eks_node_role = \"$EKS_NODE_ROLE\"" >> terraform.tfvars
+-          
+-          # Cria o arquivo backend.hcl apontando para o bucket do tfstate
+-          echo 'bucket = "ofisy-tfstate-${{ secrets.AWS_ACCOUNT_ID }}"' > backend.hcl
+-          
+-          terraform init -backend-config=backend.hcl
+-          
+-          # Executa o plan e salva o output para o sumário do GitHub Actions (Job Summary)
+-          terraform plan -no-color > plan.txt
+-          cat plan.txt
+-          
+-          echo "### Planejamento de Alterações do Terraform (Plan)" >> $GITHUB_STEP_SUMMARY
+-          echo '```terraform' >> $GITHUB_STEP_SUMMARY
+-          cat plan.txt >> $GITHUB_STEP_SUMMARY
+-          echo '```' >> $GITHUB_STEP_SUMMARY
+-
+-      # 6. Executar o Terraform Apply
+-      - name: Provisionar Infraestrutura (Terraform Apply)
+-        run: |
+-          cd infra
+-          terraform apply -auto-approve
+-          
+-          # Captura o endereço (hostname) do RDS gerado e salva em uma variável de ambiente global
+-          RDS_ENDPOINT=$(terraform output -raw rds_address)
++          RDS_ENDPOINT=$(aws rds describe-db-instances --query "DBInstances[?Engine=='postgres'].Endpoint.Address" --output text | head -n 1)
++          if [ -z "$RDS_ENDPOINT" ] || [ "$RDS_ENDPOINT" == "None" ]; then
++            echo "RDS não retornado dinamicamente. Utilizando secret RDS_HOST se disponível."
++            RDS_ENDPOINT="${{ secrets.RDS_HOST }}"
++          fi
+           echo "RDS_HOST=$RDS_ENDPOINT" >> $GITHUB_ENV
++          echo "RDS Host configurado: $RDS_ENDPOINT"
+ 
+-      # 7. Conectar kubectl no Cluster EKS
++      # 4. Conectar kubectl no Cluster EKS
+       - name: Conectar ao EKS Cluster
+         run: |
+           aws eks update-kubeconfig --region us-east-1 --name ofisy-cluster
+ 
+-      # 8. Garantir que o Metrics Server está instalado (necessário para o HPA calcular CPU/memória)
++      # 5. Garantir que o Metrics Server está instalado (necessário para o HPA calcular CPU/memória)
+       - name: Instalar/Atualizar Metrics Server
+         run: |
+           kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+@@ -113,24 +65,24 @@ jobs:
+ 
+           kubectl rollout status deployment/metrics-server -n kube-system --timeout=120s
+ 
+-      # 9. Autenticar Docker no ECR
++      # 6. Autenticar Docker no ECR
+       - name: Login no Amazon ECR
+         run: |
+           aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
+ 
+-      # 10. Compilar o projeto e gerar o JAR
++      # 7. Compilar o projeto e gerar o JAR
+       - name: Compilar Projeto (Maven)
+         run: |
+           mvn clean package -DskipTests
+           echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+ 
+-      # 11. Buildar e Push da imagem Docker para o ECR da AWS
++      # 8. Buildar e Push da imagem Docker para o ECR da AWS
+       - name: Enviar Imagem para o ECR
+         run: |
+           docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:${{ env.IMAGE_TAG }} .
+           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:${{ env.IMAGE_TAG }}
+ 
+-      # 12. Atualizar placeholders e aplicar no cluster EKS da AWS
++      # 9. Atualizar placeholders e aplicar no cluster EKS da AWS
+       - name: Deploy dos Manifestos no EKS
+         run: |
+           # Codifica as chaves do GitHub Secrets em base64 dinamicamente (sem quebra de linha)
+@@ -183,3 +135,4 @@ jobs:
+           else
+             echo "Não foi possível obter o DNS do Load Balancer a tempo." >> $GITHUB_STEP_SUMMARY
+           fi
++
+diff --git a/.github/workflows/destroy-app.yml b/.github/workflows/destroy-app.yml
+new file mode 100644
+index 00000000..9b8752bf
+--- /dev/null
++++ b/.github/workflows/destroy-app.yml
+@@ -0,0 +1,35 @@
++name: Destruir Aplicação no Kubernetes (EKS)
++
++on:
++  workflow_dispatch:
++
++jobs:
++  destroy-app:
++    name: Remover Manifestos do Kubernetes
++    runs-on: ubuntu-latest
++    environment: AWS_ACADEMY
++
++    steps:
++      - name: Checkout do código
++        uses: actions/checkout@v4
++
++      - name: Configurar Credenciais AWS
++        uses: aws-actions/configure-aws-credentials@v4
++        with:
++          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
++          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
++          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
++          aws-region: us-east-1
++
++      - name: Conectar ao EKS Cluster
++        run: |
++          aws eks update-kubeconfig --region us-east-1 --name ofisy-cluster
++
++      - name: Remover Recursos do EKS
++        run: |
++          kubectl delete -f k8s/hpa.yml --ignore-not-found
++          kubectl delete -f k8s/service.yml --ignore-not-found
++          kubectl delete -f k8s/deployment.yml --ignore-not-found
++          kubectl delete -f k8s/configmap.yml --ignore-not-found
++          kubectl delete -f k8s/secret.yml --ignore-not-found
++          echo "Aplicação desinstalada do Kubernetes com sucesso."
+diff --git a/.github/workflows/destroy.yml b/.github/workflows/destroy.yml
+deleted file mode 100644
+index 9c3dcfc8..00000000
+--- a/.github/workflows/destroy.yml
++++ /dev/null
+@@ -1,61 +0,0 @@
+-name: Destruir Infraestrutura AWS
+-
+-on:
+-  workflow_dispatch:
+-
+-jobs:
+-  destroy-aws:
+-    name: Destruir Infraestrutura na AWS
+-    runs-on: ubuntu-latest
+-    environment: AWS_ACADEMY
+-
+-    steps:
+-      - name: Checkout do código
+-        uses: actions/checkout@v4
+-
+-      # 1. Configurar Credenciais da AWS
+-      - name: Configurar Credenciais AWS
+-        uses: aws-actions/configure-aws-credentials@v4
+-        with:
+-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+-          aws-region: us-east-1
+-
+-      # 2. Configurar Terraform
+-      - name: Configurar Terraform
+-        uses: hashicorp/setup-terraform@v3
+-        with:
+-          terraform_wrapper: false
+-
+-      # 3. Conectar ao EKS e apagar os serviços (para liberar o LoadBalancer e ENIs da AWS)
+-      - name: Limpar Serviços Kubernetes (Liberar ELB/ENIs)
+-        run: |
+-          # Conecta no cluster (ignora erro se o cluster já não existir)
+-          aws eks update-kubeconfig --region us-east-1 --name ofisy-cluster || echo "Cluster EKS nao encontrado ou ja removido."
+-          
+-          # Apaga os serviços K8s para que a AWS destrua o Load Balancer e libere as placas de rede (ENIs)
+-          kubectl delete -f k8s/ --ignore-not-found=true || echo "Trabalho de limpeza do Kubernetes ignorado."
+-          
+-          # Aguarda 30 segundos para a AWS remover fisicamente o ELB e ENIs
+-          sleep 30
+-
+-      # 4. Inicializar e Destruir Recursos do Terraform
+-      - name: Destruir Recursos (Terraform Destroy)
+-        run: |
+-          cd infra
+-          
+-          # Busca dinamicamente os nomes das roles do EKS
+-          EKS_CLUSTER_ROLE=$(aws iam list-roles --query "Roles[?contains(RoleName, 'LabEksClusterRole')].RoleName" --output text)
+-          EKS_NODE_ROLE=$(aws iam list-roles --query "Roles[?contains(RoleName, 'LabEksNodeRole')].RoleName" --output text)
+-          
+-          # Configura os arquivos de variaveis e backend
+-          echo 'account_id = "${{ secrets.AWS_ACCOUNT_ID }}"' > terraform.tfvars
+-          echo 'role_name  = "LabRole"' >> terraform.tfvars
+-          echo 'db_password = "${{ secrets.DB_PASSWORD }}"' >> terraform.tfvars
+-          echo "eks_cluster_role = \"$EKS_CLUSTER_ROLE\"" >> terraform.tfvars
+-          echo "eks_node_role = \"$EKS_NODE_ROLE\"" >> terraform.tfvars
+-          echo 'bucket = "ofisy-tfstate-${{ secrets.AWS_ACCOUNT_ID }}"' > backend.hcl
+-          
+-          terraform init -backend-config=backend.hcl
+-          terraform destroy -auto-approve
+diff --git a/README.md b/README.md
+index ac472f2e..83c8d475 100644
+--- a/README.md
++++ b/README.md
+@@ -102,13 +102,25 @@ A combinação dessas tecnologias permite a construção de um backend robusto e
+ ### CI/CD (GitHub Actions)
+ 
+ - `.github/workflows/ci.yml` — pipeline de Build & Test (CI), executado a cada push/PR;
+-- `.github/workflows/cd.yml` — pipeline de deploy automático na AWS (CD), executado após o sucesso do CI no merge para `master`;
+-- `.github/workflows/destroy.yml` — pipeline manual para destruir a infraestrutura provisionada na AWS;
++- `.github/workflows/cd.yml` — pipeline de deploy automático na AWS EKS (CD), executado após o sucesso do CI no merge para `master`;
++- `.github/workflows/destroy-app.yml` — pipeline manual para desinstalar os recursos da aplicação no Kubernetes (EKS);
+ - `.github/workflows/notify-pr.yml` — pipeline que notifica a criação/atualização de Pull Requests em um canal do Discord.
+ 
+-### Infraestrutura e Testes de Carga/Segurança
++---
++
++## 🏛️ Arquitetura e Repositórios da Fase 3 (Tech Challenge)
++
++Em atendimento às diretrizes da **Fase 3**, o projeto foi estruturado de forma desacoplada em **4 repositórios independentes**, cada um com seu próprio ciclo de entrega e CI/CD automatizado:
++
++1. 🔐 **Serverless Function (Lambda)** — Autenticação de clientes via CPF e geração de JWT token.
++2. ☁️ **[Infraestrutura Kubernetes EKS (Terraform)](https://github.com/15SOAT-FIAP/techchallenge-ofisy-eks-infra)** — Provisionamento da rede (VPC, Subnets, Gateways) e cluster EKS na AWS.
++3. 🗄️ **[Infraestrutura do Banco de Dados RDS (Terraform)](https://github.com/15SOAT-FIAP/techchallenge-ofisy-rds-infra)** — Provisionamento isolado do banco de dados relacional gerenciado AWS RDS PostgreSQL.
++4. 🚀 **[Aplicação Principal executando em Kubernetes](https://github.com/15SOAT-FIAP/techchallenge-ofisy)** *(Este repositório)* — Aplicação Spring Boot, Dockerfile, manifestos Kubernetes (`k8s/`) e pipeline CD no EKS.
++
++---
++
++### Manifestos Kubernetes e Testes
+ 
+-- `infra/` — arquivos Terraform para provisionamento da infraestrutura AWS (EKS, RDS, ECR, redes, etc.);
+ - `k8s/` — manifestos Kubernetes (`deployment`, `service`, `configmap`, `secret`, `hpa`) utilizados para executar a aplicação no cluster EKS;
+ - `k6/` — scripts de teste de carga com [k6](https://k6.io/);
+ - `zap/` — plano de varredura do OWASP ZAP para análise de vulnerabilidades da aplicação.
+diff --git a/infra/backend.hcl.example b/infra/backend.hcl.example
+deleted file mode 100644
+index 68a58484..00000000
+--- a/infra/backend.hcl.example
++++ /dev/null
+@@ -1 +0,0 @@
+-bucket = "ofisy-tfstate-123456789012"
+diff --git a/infra/backend.tf b/infra/backend.tf
+deleted file mode 100644
+index a83bc8f1..00000000
+--- a/infra/backend.tf
++++ /dev/null
+@@ -1,7 +0,0 @@
+-terraform {
+-  backend "s3" {
+-    # Valores fornecidos via: terraform init -backend-config=backend.hcl
+-    key    = "terraform.tfstate"
+-    region = "us-east-1"
+-  }
+-}
+diff --git a/infra/bootstrap/main.tf b/infra/bootstrap/main.tf
+deleted file mode 100644
+index db2d93ab..00000000
+--- a/infra/bootstrap/main.tf
++++ /dev/null
+@@ -1,26 +0,0 @@
+-terraform {
+-  required_providers {
+-    aws = {
+-      source  = "hashicorp/aws"
+-      version = "~> 6.17"
+-    }
+-  }
+-}
+-
+-########################################
+-# LOCALS
+-########################################
+-
+-locals {
+-  project_name = "ofisy"
+-  aws_region   = "us-east-1"
+-  bucket_name  = "${local.project_name}-tfstate-${var.account_id}"
+-}
+-
+-########################################
+-# PROVIDER
+-########################################
+-
+-provider "aws" {
+-  region = local.aws_region
+-}
+diff --git a/infra/bootstrap/s3.tf b/infra/bootstrap/s3.tf
+deleted file mode 100644
+index f09a8d14..00000000
+--- a/infra/bootstrap/s3.tf
++++ /dev/null
+@@ -1,36 +0,0 @@
+-########################################
+-# S3 — REMOTE STATE
+-########################################
+-
+-resource "aws_s3_bucket" "tfstate" {
+-  bucket        = local.bucket_name
+-  force_destroy = false
+-
+-  tags = {
+-    Name = local.bucket_name
+-  }
+-}
+-
+-# Versionamento permite recuperar versões anteriores do tfstate
+-resource "aws_s3_bucket_versioning" "tfstate" {
+-  bucket = aws_s3_bucket.tfstate.id
+-
+-  versioning_configuration {
+-    status = "Enabled"
+-  }
+-}
+-
+-# Bloqueia acesso público ao bucket de estado
+-resource "aws_s3_bucket_public_access_block" "tfstate" {
+-  bucket = aws_s3_bucket.tfstate.id
+-
+-  block_public_acls       = true
+-  block_public_policy     = true
+-  ignore_public_acls      = true
+-  restrict_public_buckets = true
+-}
+-
+-output "bucket_name" {
+-  description = "Nome do bucket S3 para uso no backend.hcl"
+-  value       = aws_s3_bucket.tfstate.bucket
+-}
+diff --git a/infra/bootstrap/terraform.tfvars.example b/infra/bootstrap/terraform.tfvars.example
+deleted file mode 100644
+index 5eb18592..00000000
+--- a/infra/bootstrap/terraform.tfvars.example
++++ /dev/null
+@@ -1 +0,0 @@
+-account_id = "123456789012"
+\ No newline at end of file
+diff --git a/infra/bootstrap/variables.tf b/infra/bootstrap/variables.tf
+deleted file mode 100644
+index 9e4a28d6..00000000
+--- a/infra/bootstrap/variables.tf
++++ /dev/null
+@@ -1,4 +0,0 @@
+-variable "account_id" {
+-  description = "ID da conta AWS"
+-  type        = string
+-}
+diff --git a/infra/ecr.tf b/infra/ecr.tf
+deleted file mode 100644
+index a34c836e..00000000
+--- a/infra/ecr.tf
++++ /dev/null
+@@ -1,17 +0,0 @@
+-########################################
+-# ECR
+-########################################
+-
+-resource "aws_ecr_repository" "main" {
+-  name                 = "${local.project_name}-ecr"
+-  image_tag_mutability = "IMMUTABLE"
+-  force_delete         = true
+-
+-  image_scanning_configuration {
+-    scan_on_push = true
+-  }
+-
+-  tags = {
+-    Name = "${local.project_name}-ecr"
+-  }
+-}
+diff --git a/infra/eks.tf b/infra/eks.tf
+deleted file mode 100644
+index 52a7781a..00000000
+--- a/infra/eks.tf
++++ /dev/null
+@@ -1,113 +0,0 @@
+-########################################
+-# EKS CLUSTER
+-########################################
+-
+-data "aws_iam_role" "eks_cluster" {
+-  name = var.eks_cluster_role
+-}
+-
+-data "aws_iam_role" "eks_node" {
+-  name = var.eks_node_role
+-}
+-
+-data "aws_iam_role" "access" {
+-  name = var.role_name
+-}
+-
+-# Cria o cluster Amazon EKS, configurando VPC, sub-redes, grupo de segurança e logs.
+-resource "aws_eks_cluster" "main" {
+-  name     = "${local.project_name}-cluster"
+-  role_arn = data.aws_iam_role.eks_cluster.arn
+-
+-  access_config {
+-    authentication_mode                         = "API_AND_CONFIG_MAP"
+-    bootstrap_cluster_creator_admin_permissions = true
+-  }
+-
+-  vpc_config {
+-    subnet_ids = [
+-      aws_subnet.public_a.id,
+-      aws_subnet.public_b.id,
+-      aws_subnet.private_a.id,
+-      aws_subnet.private_b.id
+-    ]
+-
+-    security_group_ids      = [aws_security_group.eks.id]
+-    endpoint_private_access = true
+-    endpoint_public_access  = true
+-  }
+-
+-  # Habilita os logs do Control Plane do Kubernetes.
+-  enabled_cluster_log_types = [
+-    "api",
+-    "audit",
+-    "authenticator",
+-    "controllerManager",
+-    "scheduler"
+-  ]
+-
+-  tags = {
+-    Name = "${local.project_name}-cluster"
+-  }
+-}
+-
+-########################################
+-# EKS NODE GROUP
+-########################################
+-
+-# Cria um Node Group gerenciado pelo EKS com configuração de escalabilidade e tipo de instância.
+-resource "aws_eks_node_group" "main" {
+-  cluster_name    = aws_eks_cluster.main.name
+-  node_group_name = "${local.project_name}-node-group"
+-  node_role_arn = data.aws_iam_role.eks_node.arn
+-
+-  subnet_ids = [
+-    aws_subnet.private_a.id,
+-    aws_subnet.private_b.id
+-  ]
+-
+-  version = aws_eks_cluster.main.version
+-
+-  scaling_config {
+-    desired_size = 2
+-    max_size     = 4
+-    min_size     = 1
+-  }
+-
+-  instance_types = ["t3.medium"]
+-
+-  tags = {
+-    Name = "${local.project_name}-node-group"
+-  }
+-}
+-
+-########################################
+-# EKS ACCESS ENTRY
+-########################################
+-
+-# Cria uma entrada de acesso que permite associar uma IAM Role ao cluster EKS.
+-resource "aws_eks_access_entry" "admin" {
+-  cluster_name      = aws_eks_cluster.main.name
+-  principal_arn     = data.aws_iam_role.access.arn
+-  kubernetes_groups = []
+-  type              = "STANDARD"
+-
+-  tags = {
+-    Name = "${local.project_name}-access-entry-admin"
+-  }
+-}
+-
+-########################################
+-# EKS ACCESS POLICY ASSOCIATION
+-########################################
+-
+-# Associa uma política de administrador ao principal IAM para conceder acesso ao cluster.
+-resource "aws_eks_access_policy_association" "admin" {
+-  cluster_name  = aws_eks_cluster.main.name
+-  principal_arn = data.aws_iam_role.access.arn
+-  policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+-
+-  access_scope {
+-    type = "cluster"
+-  }
+-}
+\ No newline at end of file
+diff --git a/infra/main.tf b/infra/main.tf
+deleted file mode 100644
+index b3a54df2..00000000
+--- a/infra/main.tf
++++ /dev/null
+@@ -1,25 +0,0 @@
+-terraform {
+-  required_providers {
+-    aws = {
+-      source  = "hashicorp/aws"
+-      version = "~> 6.17"
+-    }
+-  }
+-}
+-
+-########################################
+-# LOCALS
+-########################################
+-
+-locals {
+-  project_name = "ofisy"
+-  aws_region   = "us-east-1"
+-}
+-
+-########################################
+-# PROVIDER
+-########################################
+-
+-provider "aws" {
+-  region = local.aws_region
+-}
+diff --git a/infra/networks.tf b/infra/networks.tf
+deleted file mode 100644
+index c7958d9a..00000000
+--- a/infra/networks.tf
++++ /dev/null
+@@ -1,179 +0,0 @@
+-########################################
+-# NETWORK — VPC & INTERNET ACCESS
+-########################################
+-
+-resource "aws_vpc" "main" {
+-  cidr_block           = "10.0.0.0/16"
+-  enable_dns_support   = true
+-  enable_dns_hostnames = true
+-
+-  tags = {
+-    Name = "${local.project_name}-vpc"
+-  }
+-}
+-
+-resource "aws_internet_gateway" "main" {
+-  vpc_id = aws_vpc.main.id
+-
+-  tags = {
+-    Name = "${local.project_name}-igw"
+-  }
+-}
+-
+-########################################
+-# PUBLIC SUBNETS
+-########################################
+-
+-# Subnet pública A — AZ us-east-1a
+-# O EKS exige ao menos 2 zonas de disponibilidade distintas
+-resource "aws_subnet" "public_a" {
+-  vpc_id                  = aws_vpc.main.id
+-  cidr_block              = "10.0.1.0/24"
+-  availability_zone       = "${local.aws_region}a"
+-  map_public_ip_on_launch = true
+-
+-  tags = {
+-    Name                     = "${local.project_name}-public-subnet-a"
+-    "kubernetes.io/role/elb" = "1"
+-  }
+-}
+-
+-# Subnet pública B — AZ us-east-1b
+-resource "aws_subnet" "public_b" {
+-  vpc_id                  = aws_vpc.main.id
+-  cidr_block              = "10.0.4.0/24"
+-  availability_zone       = "${local.aws_region}b"
+-  map_public_ip_on_launch = true
+-
+-  tags = {
+-    Name                     = "${local.project_name}-public-subnet-b"
+-    "kubernetes.io/role/elb" = "1"
+-  }
+-}
+-
+-########################################
+-# PRIVATE SUBNETS
+-########################################
+-
+-# Subnet privada A — para o banco de dados e workloads internos
+-resource "aws_subnet" "private_a" {
+-  vpc_id                  = aws_vpc.main.id
+-  cidr_block              = "10.0.2.0/24"
+-  availability_zone       = "${local.aws_region}a"
+-  map_public_ip_on_launch = false
+-
+-  tags = {
+-    Name                              = "${local.project_name}-private-subnet-a"
+-    "kubernetes.io/role/internal-elb" = "1"
+-  }
+-}
+-
+-# Subnet privada B — segunda AZ obrigatória para o DB Subnet Group do RDS
+-resource "aws_subnet" "private_b" {
+-  vpc_id                  = aws_vpc.main.id
+-  cidr_block              = "10.0.3.0/24"
+-  availability_zone       = "${local.aws_region}b"
+-  map_public_ip_on_launch = false
+-
+-  tags = {
+-    Name                              = "${local.project_name}-private-subnet-b"
+-    "kubernetes.io/role/internal-elb" = "1"
+-  }
+-}
+-
+-########################################
+-# PUBLIC ROUTING
+-########################################
+-
+-resource "aws_route_table" "public" {
+-  vpc_id = aws_vpc.main.id
+-
+-  route {
+-    cidr_block = "0.0.0.0/0"
+-    gateway_id = aws_internet_gateway.main.id
+-  }
+-
+-  tags = {
+-    Name = "${local.project_name}-public-rt"
+-  }
+-}
+-
+-resource "aws_route_table_association" "public_a" {
+-  subnet_id      = aws_subnet.public_a.id
+-  route_table_id = aws_route_table.public.id
+-}
+-
+-resource "aws_route_table_association" "public_b" {
+-  subnet_id      = aws_subnet.public_b.id
+-  route_table_id = aws_route_table.public.id
+-}
+-
+-########################################
+-# DB SUBNET GROUP
+-########################################
+-
+-# O RDS exige um subnet group com subnets em pelo menos 2 zonas de disponibilidade distintas
+-resource "aws_db_subnet_group" "main" {
+-  name       = "${local.project_name}-db-subnet-group"
+-  subnet_ids = [aws_subnet.private_a.id, aws_subnet.private_b.id]
+-
+-  tags = {
+-    Name = "${local.project_name}-db-subnet-group"
+-  }
+-}
+-
+-########################################
+-# ELASTIC IP - NAT GATEWAY
+-########################################
+-
+-resource "aws_eip" "nat" {
+-  domain = "vpc"
+-
+-  tags = {
+-    Name = "${local.project_name}-nat-eip"
+-  }
+-}
+-
+-########################################
+-# NAT GATEWAY
+-########################################
+-
+-resource "aws_nat_gateway" "main" {
+-  allocation_id = aws_eip.nat.id
+-  subnet_id     = aws_subnet.public_a.id
+-
+-  tags = {
+-    Name = "${local.project_name}-nat"
+-  }
+-
+-  depends_on = [
+-    aws_internet_gateway.main
+-  ]
+-}
+-
+-########################################
+-# PRIVATE ROUTING
+-########################################
+-
+-resource "aws_route_table" "private" {
+-  vpc_id = aws_vpc.main.id
+-
+-  route {
+-    cidr_block     = "0.0.0.0/0"
+-    nat_gateway_id = aws_nat_gateway.main.id
+-  }
+-
+-  tags = {
+-    Name = "${local.project_name}-private-rt"
+-  }
+-}
+-
+-resource "aws_route_table_association" "private_a" {
+-  subnet_id      = aws_subnet.private_a.id
+-  route_table_id = aws_route_table.private.id
+-}
+-
+-resource "aws_route_table_association" "private_b" {
+-  subnet_id      = aws_subnet.private_b.id
+-  route_table_id = aws_route_table.private.id
+-}
+\ No newline at end of file
+diff --git a/infra/outputs.tf b/infra/outputs.tf
+deleted file mode 100644
+index 22e92ef2..00000000
+--- a/infra/outputs.tf
++++ /dev/null
+@@ -1,77 +0,0 @@
+-########################################
+-# OUTPUTS
+-########################################
+-
+-# Exibe a URL do repositório Amazon ECR.
+-output "ecr_repository_url" {
+-  description = "URL do repositório ECR"
+-  value       = aws_ecr_repository.main.repository_url
+-}
+-
+-# Exibe o endpoint de conexão da instância RDS.
+-output "rds_endpoint" {
+-  description = "Endpoint de conexão do banco de dados RDS"
+-  value       = aws_db_instance.main.endpoint
+-}
+-
+-# Exibe o endereço (hostname) da instância RDS.
+-output "rds_address" {
+-  description = "Endereço do banco de dados RDS (hostname)"
+-  value       = aws_db_instance.main.address
+-}
+-
+-# Exibe a porta de conexão da instância RDS.
+-output "rds_port" {
+-  description = "Porta de conexão do banco de dados RDS"
+-  value       = aws_db_instance.main.port
+-}
+-
+-# Exibe o nome do banco de dados.
+-output "rds_database_name" {
+-  description = "Nome do banco de dados"
+-  value       = aws_db_instance.main.db_name
+-}
+-
+-# Exibe o usuário administrador da instância RDS.
+-output "rds_username" {
+-  description = "Usuário administrativo do banco de dados"
+-  value       = aws_db_instance.main.username
+-  sensitive   = true
+-}
+-
+-# Exibe o nome do cluster Amazon EKS.
+-output "eks_cluster_name" {
+-  description = "Nome do cluster EKS"
+-  value       = aws_eks_cluster.main.name
+-}
+-
+-# Exibe o endpoint da API do cluster Amazon EKS.
+-output "eks_cluster_endpoint" {
+-  description = "Endpoint do API Server do cluster EKS"
+-  value       = aws_eks_cluster.main.endpoint
+-}
+-
+-# Exibe o certificado da Autoridade Certificadora (CA) do cluster EKS.
+-output "eks_cluster_certificate_authority" {
+-  description = "Certificado de autoridade do cluster EKS"
+-  value       = aws_eks_cluster.main.certificate_authority[0].data
+-  sensitive   = true
+-}
+-
+-# Exibe o ID do Security Group do cluster EKS.
+-output "eks_cluster_security_group_id" {
+-  description = "ID do Security Group do cluster EKS"
+-  value       = aws_eks_cluster.main.vpc_config[0].cluster_security_group_id
+-}
+-
+-# Exibe a região da AWS utilizada na infraestrutura.
+-output "aws_region" {
+-  description = "Região AWS utilizada"
+-  value       = local.aws_region
+-}
+-
+-# Exibe o ID da conta AWS utilizada.
+-output "account_id" {
+-  description = "ID da conta AWS"
+-  value       = var.account_id
+-}
+\ No newline at end of file
+diff --git a/infra/rds.tf b/infra/rds.tf
+deleted file mode 100644
+index 688caf88..00000000
+--- a/infra/rds.tf
++++ /dev/null
+@@ -1,38 +0,0 @@
+-########################################
+-# RDS POSTGRESQL DATABASE
+-########################################
+-
+-# Cria uma instância Amazon RDS utilizando o banco de dados PostgreSQL.
+-resource "aws_db_instance" "main" {
+-  allocated_storage      = 20
+-  storage_type           = "gp2"
+-  engine                 = "postgres"
+-  instance_class         = "db.t3.micro"
+-  username               = "ofisy"
+-  password               = var.db_password
+-  db_subnet_group_name   = aws_db_subnet_group.main.name
+-  vpc_security_group_ids = [aws_security_group.rds.id]
+-
+-  # Define o nome do banco de dados.
+-  db_name = "ofisydb"
+-
+-  # Configura a política de backup e a janela de manutenção.
+-  backup_retention_period = 7
+-  backup_window           = "03:00-04:00"
+-  maintenance_window      = "sun:04:00-sun:05:00"
+-
+-  # Configura o snapshot final, a disponibilidade e a segurança da instância.
+-  skip_final_snapshot       = true
+-
+-  multi_az            = false
+-  publicly_accessible = false
+-  storage_encrypted   = true
+-
+-  tags = {
+-    Name = "${local.project_name}-postgres-db"
+-  }
+-
+-  depends_on = [
+-    aws_security_group.rds
+-  ]
+-}
+\ No newline at end of file
+diff --git a/infra/security_groups.tf b/infra/security_groups.tf
+deleted file mode 100644
+index 691a60bf..00000000
+--- a/infra/security_groups.tf
++++ /dev/null
+@@ -1,109 +0,0 @@
+-########################################
+-# SECURITY GROUP - EKS
+-########################################
+-
+-# Cria um Security Group para controlar o tráfego do cluster EKS.
+-resource "aws_security_group" "eks" {
+-  name        = "${local.project_name}-eks-sg"
+-  description = "Security Group para o cluster EKS"
+-  vpc_id      = aws_vpc.main.id
+-
+-  tags = {
+-    Name = "${local.project_name}-eks-sg"
+-  }
+-}
+-
+-# Permite a comunicação entre os recursos associados ao mesmo Security Group.
+-resource "aws_security_group_rule" "eks_self_ingress" {
+-  type              = "ingress"
+-  from_port         = 0
+-  to_port           = 65535
+-  protocol          = "tcp"
+-  self              = true
+-  security_group_id = aws_security_group.eks.id
+-}
+-
+-# Permite conexões SSH para administração da infraestrutura.
+-resource "aws_security_group_rule" "eks_ssh_ingress" {
+-  type              = "ingress"
+-  from_port         = 22
+-  to_port           = 22
+-  protocol          = "tcp"
+-  cidr_blocks       = ["0.0.0.0/0"]
+-  security_group_id = aws_security_group.eks.id
+-}
+-
+-# Permite tráfego HTTP de qualquer origem.
+-resource "aws_security_group_rule" "eks_http_ingress" {
+-  type              = "ingress"
+-  from_port         = 80
+-  to_port           = 80
+-  protocol          = "tcp"
+-  cidr_blocks       = ["0.0.0.0/0"]
+-  security_group_id = aws_security_group.eks.id
+-}
+-
+-# Permite tráfego HTTPS de qualquer origem.
+-resource "aws_security_group_rule" "eks_https_ingress" {
+-  type              = "ingress"
+-  from_port         = 443
+-  to_port           = 443
+-  protocol          = "tcp"
+-  cidr_blocks       = ["0.0.0.0/0"]
+-  security_group_id = aws_security_group.eks.id
+-}
+-
+-# Permite que os recursos do EKS realizem conexões de saída para qualquer destino.
+-resource "aws_security_group_rule" "eks_egress" {
+-  type              = "egress"
+-  from_port         = 0
+-  to_port           = 0
+-  protocol          = "-1"
+-  cidr_blocks       = ["0.0.0.0/0"]
+-  security_group_id = aws_security_group.eks.id
+-}
+-
+-########################################
+-# SECURITY GROUP - RDS
+-########################################
+-
+-# Cria um Security Group para controlar o acesso à instância RDS PostgreSQL.
+-resource "aws_security_group" "rds" {
+-  name        = "${local.project_name}-rds-sg"
+-  description = "Security Group para o banco de dados RDS PostgreSQL"
+-  vpc_id      = aws_vpc.main.id
+-
+-  tags = {
+-    Name = "${local.project_name}-rds-sg"
+-  }
+-}
+-
+-# Permite conexões PostgreSQL provenientes do Security Group do EKS.
+-resource "aws_security_group_rule" "rds_postgres_from_eks" {
+-  type                     = "ingress"
+-  from_port                = 5432
+-  to_port                  = 5432
+-  protocol                 = "tcp"
+-  source_security_group_id = aws_security_group.eks.id
+-  security_group_id        = aws_security_group.rds.id
+-}
+-
+-# Permite conexões PostgreSQL provenientes dos nós do EKS.
+-resource "aws_security_group_rule" "rds_postgres_from_eks_nodes" {
+-  type                     = "ingress"
+-  from_port                = 5432
+-  to_port                  = 5432
+-  protocol                 = "tcp"
+-  source_security_group_id = aws_eks_cluster.main.vpc_config[0].cluster_security_group_id
+-  security_group_id        = aws_security_group.rds.id
+-}
+-
+-# Permite que a instância RDS realize conexões de saída para qualquer destino.
+-resource "aws_security_group_rule" "rds_egress" {
+-  type              = "egress"
+-  from_port         = 0
+-  to_port           = 0
+-  protocol          = "-1"
+-  cidr_blocks       = ["0.0.0.0/0"]
+-  security_group_id = aws_security_group.rds.id
+-}
+\ No newline at end of file
+diff --git a/infra/terraform.tfvars.example b/infra/terraform.tfvars.example
+deleted file mode 100644
+index 8fa663c3..00000000
+--- a/infra/terraform.tfvars.example
++++ /dev/null
+@@ -1,5 +0,0 @@
+-account_id = "131560185906"
+-role_name  = "LabRole"
+-db_password = "SenhaSegura123"
+-eks_cluster_role = "<EKS_CLUSTER_ROLE>"
+-eks_node_role = "<EKS_NODE_ROLE>"
+\ No newline at end of file
+diff --git a/infra/variables.tf b/infra/variables.tf
+deleted file mode 100644
+index a1029334..00000000
+--- a/infra/variables.tf
++++ /dev/null
+@@ -1,32 +0,0 @@
+-variable "account_id" {
+-  description = "ID da conta AWS"
+-  type        = string
+-}
+-
+-variable "role_name" {
+-  description = "Nome da IAM Role com acesso ao cluster EKS (no AWS Academy utilize LabRole)"
+-  type        = string
+-  default     = "LabRole"
+-}
+-
+-variable "db_password" {
+-  description = "Senha do usuário administrativo do banco de dados PostgreSQL"
+-  type        = string
+-  sensitive   = true
+-
+-  validation {
+-    condition     = length(var.db_password) >= 8
+-    error_message = "A senha do banco de dados deve ter no mínimo 8 caracteres."
+-  }
+-}
+-variable "eks_cluster_role" {
+-  description = "Role utilizada pelo EKS Cluster"
+-  type        = string
+-  default     = "c213429a5396203l15812067t1w131560-LabEksClusterRole-Ke9s0hySLUDZ"
+-}
+-
+-variable "eks_node_role" {
+-  description = "Role utilizada pelo EKS Node Group"
+-  type        = string
+-  default     = "c213429a5396203l15812067t1w131560185-LabEksNodeRole-vflF20cKYXce"
+-}

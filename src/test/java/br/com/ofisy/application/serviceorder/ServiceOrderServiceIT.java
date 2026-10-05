@@ -20,8 +20,6 @@ import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
 import br.com.ofisy.domain.customer.CpfCnpj;
 import br.com.ofisy.domain.customer.Customer;
 import br.com.ofisy.domain.customer.CustomerRepository;
-import br.com.ofisy.domain.notification.NotificationRepository;
-import br.com.ofisy.domain.notification.NotificationType;
 import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.quote.QuoteStatus;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteDataException;
@@ -74,7 +72,6 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
     @Autowired private StockRepository stockDomainRepository;
     @Autowired private ServiceCatalogRepository serviceCatalogDomainRepository;
     @Autowired private ServiceOrderExecutionRepository serviceOrderExecutionDomainRepository;
-    @Autowired private NotificationRepository notificationDomainRepository;
 
     private UUID customerId;
     private UUID vehicleId;
@@ -302,11 +299,6 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
             Quote quote = generateServiceOrderQuoteUseCase.execute(
                     new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(
                             serviceOrderId, stockOnlyCommands(1), List.of()));
-
-            assertThat(notificationDomainRepository.findAll().stream()
-                    .filter(n -> n.getType() == NotificationType.QUOTE_GENERATED)
-                    .filter(n -> quote.getId().equals(n.getQuoteId()))
-                    .toList()).hasSize(1);
         }
 
         @Test
@@ -457,3 +449,4 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         return List.of(new CreateQuoteUseCase.ServiceItemCommand(serviceCatalogId));
     }
 }
+
