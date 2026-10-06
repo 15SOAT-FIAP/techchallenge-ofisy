@@ -14,17 +14,22 @@ precisa ser discutida pelo time, o instrumento é uma RFC, em
 
 ## Índice
 
-| ADR                                                                  | Título                                               | Status | Data       |
-|----------------------------------------------------------------------|------------------------------------------------------|--------|------------|
-| [0001](0001-registrar-decisoes-de-arquitetura.md)                    | Registrar decisões de arquitetura                    | Aceito | 2026-09-05 |
-| [0002](0002-adotar-clean-architecture-com-ddd.md)                    | Adotar Clean Architecture com DDD                    | Aceito | 2026-09-06 |
-| [0003](0003-expor-a-aplicacao-por-api-rest.md)                       | Expor a aplicação por API REST                       | Aceito | 2026-09-06 |
-| [0004](0004-utilizar-a-aws-como-provedor-de-nuvem.md)                | Utilizar a AWS como provedor de nuvem                | Aceito | 2026-09-06 |
-| [0005](0005-escalar-a-aplicacao-com-hpa-por-cpu.md)                  | Escalar a aplicação com HPA por CPU                  | Aceito | 2026-09-06 |
-| [0006](0006-separar-a-autenticacao-de-clientes-e-de-funcionarios.md) | Separar a autenticação de clientes e de funcionários | Aceito | 2026-09-06 |
-| [0007](0007-versionar-o-schema-com-flyway.md)                        | Versionar o schema do banco com Flyway               | Aceito | 2026-09-06 |
-| [0008](0008-testar-integracao-com-testcontainers.md)                 | Testar a integração com Testcontainers               | Aceito | 2026-09-06 |
-| [0009](0009-registrar-notificacoes-de-forma-sincrona-no-banco.md)    | Registrar notificações de forma síncrona no banco    | Aceito | 2026-09-06 |
+| ADR                                                                       | Título                                                    | Status | Data       |
+|---------------------------------------------------------------------------|-----------------------------------------------------------|--------|------------|
+| [0001](0001-registrar-decisoes-de-arquitetura.md)                         | Registrar decisões de arquitetura                         | Aceito | 2026-09-05 |
+| [0002](0002-adotar-clean-architecture-com-ddd.md)                         | Adotar Clean Architecture com DDD                         | Aceito | 2026-09-06 |
+| [0003](0003-expor-a-aplicacao-por-api-rest.md)                            | Expor a aplicação por API REST                            | Aceito | 2026-09-06 |
+| [0004](0004-utilizar-a-aws-como-provedor-de-nuvem.md)                     | Utilizar a AWS como provedor de nuvem                     | Aceito | 2026-09-06 |
+| [0005](0005-escalar-a-aplicacao-com-hpa-por-cpu.md)                       | Escalar a aplicação com HPA por CPU                       | Aceito | 2026-09-06 |
+| [0006](0006-separar-a-autenticacao-de-clientes-e-de-funcionarios.md)      | Separar a autenticação de clientes e de funcionários      | Aceito | 2026-09-06 |
+| [0007](0007-versionar-o-schema-com-flyway.md)                             | Versionar o schema do banco com Flyway                    | Aceito | 2026-09-06 |
+| [0008](0008-testar-integracao-com-testcontainers.md)                      | Testar a integração com Testcontainers                    | Aceito | 2026-09-06 |
+| [0009](0009-registrar-notificacoes-de-forma-sincrona-no-banco.md)         | Registrar notificações de forma síncrona no banco         | Aceito | 2026-09-06 |
+| [0010](0010-dividir-a-aplicacao-em-microsservicos-por-bounded-context.md) | Dividir a aplicação em microsserviços por bounded context | Aceito | 2026-10-02 |
+| [0011](0011-utilizar-sns-e-sqs-como-mensageria.md)                        | Utilizar SNS e SQS como mensageria                        | Aceito | 2026-10-03 |
+| [0012](0012-coordenar-a-saga-por-coreografia.md)                          | Coordenar a saga por coreografia                          | Aceito | 2026-10-03 |
+| [0013](0013-utilizar-dynamodb-no-ms-ofisy-notification.md)                | Utilizar DynamoDB no ms-ofisy-notification                | Aceito | 2026-10-03 |
+| [0014](0014-manter-a-infraestrutura-de-bancos-em-um-unico-repositorio.md) | Manter a infraestrutura de bancos em um único repositório | Aceito | 2026-10-03 |
 
 ## Formato
 
