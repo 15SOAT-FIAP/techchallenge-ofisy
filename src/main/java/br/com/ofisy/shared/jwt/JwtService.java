@@ -2,6 +2,7 @@ package br.com.ofisy.shared.jwt;
 
 import br.com.ofisy.application.user.login.TokenGenerator;
 import br.com.ofisy.config.jwt.JwtProperties;
+import br.com.ofisy.domain.user.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -20,15 +21,17 @@ import java.util.Date;
 public class JwtService implements TokenGenerator {
 
     private static final String ISSUER = "techchallenge-ofisy-api";
+    public static final String ROLE_CLAIM = "role";
 
     private final JwtProperties jwtProperties;
 
     @Override
-    public String generateToken(String email) {
+    public String generateToken(String email, Role role) {
         var now = Instant.now();
         return Jwts.builder()
                 .issuer(ISSUER)
                 .subject(email)
+                .claim(ROLE_CLAIM, role.name())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plusMillis(jwtProperties.getExpiration())))
                 .signWith(getSecretKey())
