@@ -32,6 +32,6 @@ public class LoginService implements LoginUseCase {
                 passwordEncoder.matches(command.password(), user.getPassword())
         );
 
-        return tokenGenerator.generateToken(user.getEmail().emailAddress());
+        return tokenGenerator.generateToken(user.getEmail().emailAddress(), user.getRole());
     }
 }
