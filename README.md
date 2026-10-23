@@ -201,6 +201,8 @@ docker compose -f compose.db.yaml up -d
   4. Adicionar o token no campo Bearer Token do componente Authorize do Swagger
   5. Acessar as APIs que possuem autorização para o usuário logado
 
+O token traz o email do usuário no `sub` e a role na claim `role`. Os microsserviços não têm o banco de usuários, então validam o token com o mesmo `JWT_SECRET` e autorizam pela claim `role`.
+
 ### Usuários disponíveis para utilização:
   #### ROLE ADMIN
     - username: admin@ofisy.com
