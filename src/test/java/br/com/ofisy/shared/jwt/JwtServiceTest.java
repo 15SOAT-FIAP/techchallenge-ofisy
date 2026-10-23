@@ -1,6 +1,7 @@
 package br.com.ofisy.shared.jwt;
 
 import br.com.ofisy.config.jwt.JwtProperties;
+import br.com.ofisy.domain.user.Role;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -43,15 +44,30 @@ class JwtServiceTest {
     @Test
     @DisplayName("Deve gerar token JWT válido")
     void shouldGenerateValidToken() {
-        String token = jwtService.generateToken(TEST_USER_PRINCIPAL_EMAIL);
+        String token = jwtService.generateToken(TEST_USER_PRINCIPAL_EMAIL, Role.ATTENDANT);
         assertThat(token).isNotNull().isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("Deve gravar a role do usuário na claim role")
+    void shouldWriteUserRoleInRoleClaim() {
+        String token = jwtService.generateToken(TEST_USER_PRINCIPAL_EMAIL, Role.MECHANIC);
+
+        String role = Jwts.parser()
+                .verifyWith(Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8)))
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get(JwtService.ROLE_CLAIM, String.class);
+
+        assertThat(role).isEqualTo("MECHANIC");
     }
 
     @Test
     @DisplayName("Deve extrair email do token corretamente")
     void shouldExtractEmailFromToken() {
         String email = TEST_USER_PRINCIPAL_EMAIL;
-        String token = jwtService.generateToken(email);
+        String token = jwtService.generateToken(email, Role.ATTENDANT);
 
         String extractedEmail = jwtService.extractEmail(token);
         assertThat(extractedEmail).isEqualTo(email);
@@ -60,7 +76,7 @@ class JwtServiceTest {
     @Test
     @DisplayName("Deve validar token válido")
     void shouldValidateValidToken() {
-        String token = jwtService.generateToken(TEST_USER_PRINCIPAL_EMAIL);
+        String token = jwtService.generateToken(TEST_USER_PRINCIPAL_EMAIL, Role.ATTENDANT);
 
         boolean isValid = jwtService.isValidToken(token);
 
@@ -86,8 +102,8 @@ class JwtServiceTest {
     @Test
     @DisplayName("Deve gerar tokens diferentes para emails diferentes")
     void shouldGenerateDifferentTokensForDifferentEmails() {
-        String token1 = jwtService.generateToken(TEST_USER_PRINCIPAL_EMAIL);
-        String token2 = jwtService.generateToken("maria@ofisy.com");
+        String token1 = jwtService.generateToken(TEST_USER_PRINCIPAL_EMAIL, Role.ATTENDANT);
+        String token2 = jwtService.generateToken("maria@ofisy.com", Role.ATTENDANT);
 
         assertThat(token1).isNotEqualTo(token2);
     }
@@ -96,7 +112,7 @@ class JwtServiceTest {
     @DisplayName("Deve invalidar token expirado")
     void shouldInvalidateExpiredToken() {
         when(jwtProperties.getExpiration()).thenReturn(-1000L);
-        String expiredToken = jwtService.generateToken(TEST_USER_PRINCIPAL_EMAIL);
+        String expiredToken = jwtService.generateToken(TEST_USER_PRINCIPAL_EMAIL, Role.ATTENDANT);
         boolean isValid = jwtService.isValidToken(expiredToken);
         assertThat(isValid).isFalse();
     }
