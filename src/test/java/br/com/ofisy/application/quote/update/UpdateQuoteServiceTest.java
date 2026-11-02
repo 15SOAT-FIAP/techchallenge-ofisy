@@ -36,6 +36,8 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -92,19 +94,19 @@ class UpdateQuoteServiceTest {
         @Test
         void shouldUpdateQuoteWithNewServiceItemsSuccessfully() {
             var quote = pendingQuote();
-            var execution = ServiceOrderExecution.create(SERVICE_CATALOG_ID, SERVICE_ORDER_ID);
             var cmd = new UpdateQuoteUseCase.UpdateQuoteCommand(QUOTE_ID,
                     List.of(), List.of(new CreateQuoteUseCase.ServiceItemCommand(SERVICE_CATALOG_ID)));
 
             when(quoteRepository.findById(QUOTE_ID)).thenReturn(Optional.of(quote));
             when(serviceCatalogRepository.findById(SERVICE_CATALOG_ID))
                     .thenReturn(Optional.of(validServiceCatalog()));
-            when(serviceOrderExecutionRepository.save(any())).thenReturn(execution);
             when(quoteRepository.save(any(Quote.class))).thenAnswer(inv -> inv.getArgument(0));
 
             var result = service.execute(cmd);
 
             assertThat(result.getServiceItems()).hasSize(1);
+            assertThat(result.getServiceItems().getFirst().getServiceCatalogId()).isEqualTo(SERVICE_CATALOG_ID);
+            assertThat(result.getServiceItems().getFirst().getPrice()).isEqualByComparingTo(new BigDecimal(PRICE_150));
             verify(serviceOrderExecutionRepository).save(any(ServiceOrderExecution.class));
         }
 
@@ -294,8 +296,7 @@ class UpdateQuoteServiceTest {
         @Test
         void shouldReuseExistingExecutionWhenServiceCatalogUnchanged() {
             var existingItemId = UUID.randomUUID();
-            var execution = ServiceOrderExecution.create(SERVICE_CATALOG_ID, SERVICE_ORDER_ID);
-            var existingServiceItem = QuoteServiceItem.reconstruct(existingItemId, execution,
+            var existingServiceItem = QuoteServiceItem.reconstruct(existingItemId, SERVICE_CATALOG_ID,
                     new BigDecimal(PRICE_150), LocalDateTime.now(), LocalDateTime.now());
             var quote = quoteWithServiceItems(List.of(existingServiceItem));
             var cmd = new UpdateQuoteUseCase.UpdateQuoteCommand(QUOTE_ID,
@@ -310,13 +311,35 @@ class UpdateQuoteServiceTest {
 
             assertThat(result.getServiceItems()).hasSize(1);
             assertThat(result.getServiceItems().getFirst().getId()).isEqualTo(existingItemId);
+            assertThat(result.getServiceItems().getFirst().getServiceCatalogId()).isEqualTo(SERVICE_CATALOG_ID);
             verify(serviceOrderExecutionRepository, never()).save(any(ServiceOrderExecution.class));
+        }
+
+        @Test
+        void shouldPreserveOriginalPriceWhenServiceCatalogPriceChanges() {
+            var originalPrice = new BigDecimal("120.00");
+            var existingServiceItem = QuoteServiceItem.reconstruct(UUID.randomUUID(), SERVICE_CATALOG_ID,
+                    originalPrice, LocalDateTime.now(), LocalDateTime.now());
+            var quote = quoteWithServiceItems(List.of(existingServiceItem));
+            var cmd = new UpdateQuoteUseCase.UpdateQuoteCommand(QUOTE_ID,
+                    List.of(), List.of(new CreateQuoteUseCase.ServiceItemCommand(SERVICE_CATALOG_ID)));
+
+            when(quoteRepository.findById(QUOTE_ID)).thenReturn(Optional.of(quote));
+            when(serviceCatalogRepository.findById(SERVICE_CATALOG_ID))
+                    .thenReturn(Optional.of(validServiceCatalog()));
+            when(quoteRepository.save(any(Quote.class))).thenAnswer(inv -> inv.getArgument(0));
+
+            var result = service.execute(cmd);
+
+            assertThat(result.getServiceItems().getFirst().getPrice()).isEqualByComparingTo(originalPrice);
+            assertThat(result.getTotalPrice()).isEqualByComparingTo(originalPrice);
         }
 
         @Test
         void shouldCancelExecutionWhenServiceItemIsRemoved() {
             var execution = ServiceOrderExecution.create(SERVICE_CATALOG_ID, SERVICE_ORDER_ID);
-            var removedServiceItem = QuoteServiceItem.reconstruct(UUID.randomUUID(), execution,
+            var otherExecution = ServiceOrderExecution.create(UUID.randomUUID(), SERVICE_ORDER_ID);
+            var removedServiceItem = QuoteServiceItem.reconstruct(UUID.randomUUID(), SERVICE_CATALOG_ID,
                     new BigDecimal(PRICE_150), LocalDateTime.now(), LocalDateTime.now());
 
             var keptStockItem = QuoteStockItem.reconstruct(UUID.randomUUID(), validStock(),
@@ -329,12 +352,36 @@ class UpdateQuoteServiceTest {
 
             when(quoteRepository.findById(QUOTE_ID)).thenReturn(Optional.of(quote));
             when(stockRepository.findById(STOCK_ID)).thenReturn(Optional.of(validStock()));
+            when(serviceOrderExecutionRepository.findByServiceOrderIdAndStatusIn(eq(SERVICE_ORDER_ID),
+                    argThat(statuses -> statuses.size() == 2 && statuses.containsAll(
+                            List.of(ServiceOrderExecutionStatus.PENDING, ServiceOrderExecutionStatus.IN_PROGRESS)))))
+                    .thenReturn(List.of(execution, otherExecution));
             when(quoteRepository.save(any(Quote.class))).thenAnswer(inv -> inv.getArgument(0));
 
             service.execute(cmd);
 
             assertThat(execution.getStatus()).isEqualTo(ServiceOrderExecutionStatus.CANCELLED);
+            assertThat(otherExecution.getStatus()).isEqualTo(ServiceOrderExecutionStatus.PENDING);
             verify(serviceOrderExecutionRepository).save(execution);
+            verify(serviceOrderExecutionRepository, never()).save(otherExecution);
+        }
+
+        @Test
+        void shouldNotLookUpExecutionsWhenNoServiceItemIsRemoved() {
+            var existingServiceItem = QuoteServiceItem.reconstruct(UUID.randomUUID(), SERVICE_CATALOG_ID,
+                    new BigDecimal(PRICE_150), LocalDateTime.now(), LocalDateTime.now());
+            var quote = quoteWithServiceItems(List.of(existingServiceItem));
+            var cmd = new UpdateQuoteUseCase.UpdateQuoteCommand(QUOTE_ID,
+                    List.of(), List.of(new CreateQuoteUseCase.ServiceItemCommand(SERVICE_CATALOG_ID)));
+
+            when(quoteRepository.findById(QUOTE_ID)).thenReturn(Optional.of(quote));
+            when(serviceCatalogRepository.findById(SERVICE_CATALOG_ID))
+                    .thenReturn(Optional.of(validServiceCatalog()));
+            when(quoteRepository.save(any(Quote.class))).thenAnswer(inv -> inv.getArgument(0));
+
+            service.execute(cmd);
+
+            verify(serviceOrderExecutionRepository, never()).findByServiceOrderIdAndStatusIn(any(), any());
         }
     }
 

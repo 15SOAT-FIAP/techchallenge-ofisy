@@ -2,7 +2,6 @@ package br.com.ofisy.adapters.gateways.quote;
 
 import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.quote.QuoteStatus;
-import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionRepository;
 import br.com.ofisy.domain.stock.Stock;
 import br.com.ofisy.domain.stock.StockRepository;
 import org.junit.jupiter.api.Nested;
@@ -27,8 +26,6 @@ class QuoteMapperTest {
     public static final String PRICE_200 = "200.00";
     @Mock
     private StockRepository stockRepository;
-    @Mock
-    private ServiceOrderExecutionRepository executionRepository;
 
     @Nested
     class ToEntity {
@@ -75,7 +72,7 @@ class QuoteMapperTest {
         void shouldMapQuoteFieldsToDomain() {
             var entity = validEntity();
 
-            var quote = QuoteMapper.toDomain(entity, stockRepository, executionRepository);
+            var quote = QuoteMapper.toDomain(entity, stockRepository);
 
             assertThat(quote.getId()).isEqualTo(entity.getId());
             assertThat(quote.getServiceOrderId()).isEqualTo(entity.getServiceOrderId());
@@ -108,7 +105,7 @@ class QuoteMapperTest {
 
             when(stockRepository.findById(stockId)).thenReturn(Optional.of(stock));
 
-            var quote = QuoteMapper.toDomain(entity, stockRepository, executionRepository);
+            var quote = QuoteMapper.toDomain(entity, stockRepository);
 
             assertThat(quote.getStockItems()).hasSize(1);
             assertThat(quote.getStockItems().getFirst().getStock().getId()).isEqualTo(stockId);
@@ -118,7 +115,7 @@ class QuoteMapperTest {
         void shouldPreserveTimestamps() {
             var entity = validEntity();
 
-            var quote = QuoteMapper.toDomain(entity, stockRepository, executionRepository);
+            var quote = QuoteMapper.toDomain(entity, stockRepository);
 
             assertThat(quote.getCreatedAt()).isEqualTo(entity.getCreatedAt());
             assertThat(quote.getUpdatedAt()).isEqualTo(entity.getUpdatedAt());
