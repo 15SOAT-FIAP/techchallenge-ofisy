@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Claude">
   <diagram id="er-ofisy" name="Modelo ER - Banco de Dados Ofisy">
-    <mxGraphModel dx="2712" dy="1508" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2050" pageHeight="1500" math="0" shadow="0">
+    <mxGraphModel dx="1347" dy="1230" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2050" pageHeight="1500" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -232,7 +232,7 @@
         <mxCell id="e2075" parent="e2073" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;fontColor=#222222;strokeColor=#E0E0E0;strokeWidth=1;fillColor=#FAFAFA;portConstraint=eastwest;" value="&lt;i&gt;&lt;u&gt;quote_id&lt;/u&gt;&lt;/i&gt;  &lt;font color=&quot;#888888&quot;&gt;: UUID&lt;/font&gt;  &lt;font color=&quot;#FF851B&quot; style=&quot;font-size:9px&quot;&gt;&lt;b&gt;[FK/UK*]&lt;/b&gt;&lt;/font&gt;" vertex="1">
           <mxGeometry height="22" width="340" y="52" as="geometry" />
         </mxCell>
-        <mxCell id="e2076" parent="e2073" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;fontColor=#222222;strokeColor=#E0E0E0;strokeWidth=1;fillColor=#FAFAFA;portConstraint=eastwest;" value="&lt;i&gt;&lt;u&gt;service_order_executions_id&lt;/u&gt;&lt;/i&gt;  &lt;font color=&quot;#888888&quot;&gt;: UUID&lt;/font&gt;  &lt;font color=&quot;#FF851B&quot; style=&quot;font-size:9px&quot;&gt;&lt;b&gt;[FK/UK*]&lt;/b&gt;&lt;/font&gt;" vertex="1">
+        <mxCell id="e2076" parent="e2073" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;fontColor=#222222;strokeColor=#E0E0E0;strokeWidth=1;fillColor=#FAFAFA;portConstraint=eastwest;" value="&lt;i&gt;&lt;u&gt;service_catalog_id&lt;/u&gt;&lt;/i&gt;&amp;nbsp;&lt;font color=&quot;#888888&quot;&gt;: UUID&lt;/font&gt;  &lt;font color=&quot;#FF851B&quot; style=&quot;font-size: 9px;&quot;&gt;&lt;b&gt;[FK/UK*]&lt;/b&gt;&lt;/font&gt;" vertex="1">
           <mxGeometry height="22" width="340" y="74" as="geometry" />
         </mxCell>
         <mxCell id="e2077" parent="e2073" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;fontColor=#222222;strokeColor=#E0E0E0;strokeWidth=1;fillColor=#FAFAFA;portConstraint=eastwest;" value="price  &lt;font color=&quot;#888888&quot;&gt;: DECIMAL(10,2)&lt;/font&gt;" vertex="1">
@@ -368,8 +368,14 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e2118" edge="1" parent="1" source="e2048" style="html=1;rounded=0;fontSize=9;startArrow=ERone;startFill=0;startSize=14;endArrow=ERzeroToOne;endFill=0;endSize=18;strokeColor=#555555;" target="e2073" value="service_order_executions_id">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="e2118" edge="1" parent="1" source="e2033" style="html=1;rounded=0;fontSize=9;startArrow=ERone;startFill=0;startSize=14;endArrow=ERzeroToMany;endFill=0;endSize=18;strokeColor=#555555;exitX=1;exitY=0.25;exitDx=0;exitDy=0;" target="e2073" value="service_catalog_id">
+          <mxGeometry relative="1" x="-0.1713" as="geometry">
+            <Array as="points">
+              <mxPoint x="1820" y="119.5" />
+              <mxPoint x="1820" y="730" />
+              <mxPoint x="1590" y="730" />
+            </Array>
+          </mxGeometry>
         </mxCell>
         <mxCell id="e2119" edge="1" parent="1" source="e2080" style="html=1;rounded=0;fontSize=9;startArrow=ERone;startFill=0;startSize=14;endArrow=ERzeroToMany;endFill=0;endSize=18;strokeColor=#555555;" target="e2090" value="stock_id">
           <mxGeometry relative="1" as="geometry" />
