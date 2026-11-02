@@ -154,8 +154,8 @@ emitido pelo core e validado por cada serviço com o mesmo segredo.
   observabilidade atual, pensada para um processo só, precisa propagar um identificador de
   correlação pelas mensagens.
 - Os dados do banco único precisam ser migrados para os bancos de cada serviço, e as chaves
-  estrangeiras entre contextos, como de `quote_service_items` para
-  `service_order_executions`, deixam de existir.
+  estrangeiras entre contextos, como de `quote_service_items` para `services_catalog`,
+  deixam de existir.
 - A Lambda de autenticação de clientes continua lendo `customers` direto do banco do core.
   O acoplamento registrado no ADR-0006 permanece, agora com um serviço específico.
 - O segredo compartilhado do JWT passa a ser distribuído para cinco serviços em vez de um,
