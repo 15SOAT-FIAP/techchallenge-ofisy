@@ -53,6 +53,7 @@ A combinação dessas tecnologias permite a construção de um backend robusto e
 | Dependência                | Descrição                                                                                                                                                                                          | Artefato                                                                                  |
 |----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
 | Spring Web	                 | Dependência para criação de APIs RESTful, incluindo o servidor web (Tomcat), mapeamento de rotas e controllers	                                                                                     | `spring-boot-starter-web`                                                                 |
+| Spring Cloud AWS SQS/SNS   | Dependência para a comunicação com os microsserviços: consumo da fila via `@SqsListener` e publicação dos eventos do outbox no tópico SNS                                                          | `spring-cloud-aws-starter-sqs`, `spring-cloud-aws-starter-sns`                            |
 | Spring Data JPA	            | Dependência para gerenciar a comunicação com o banco de dados. Além de acelerar o desenvolvimento e reduzir o código boilerplate, permite a utilização de objetos ORM dentre outras facilidades    | 	`spring-boot-starter-data-jpa`                                                            |
 | Spring Security	            | Dependência para tratar autenticação e autorização da aplicação                                                                                                                                    | 	`spring-boot-starter-security`                                                            |
 | Spring Security JWT        | Dependência para tratar autenticação e autorização da aplicação. Exigência de utilização de JWT para entrega do projeto em APIs administrativas.                                                   | 	`jjwt-api`, `jjwt-impl`,`jjwt-jackson`                                                    |
@@ -69,7 +70,8 @@ A combinação dessas tecnologias permite a construção de um backend robusto e
 | Flyway Core                | Dependência principal do framework de migração de banco de dados, responsável por gerenciar o histórico de versões, executar scripts SQL automaticamente e garantir a integridade do esquema       | `spring-boot-starter-flyway`                                                              |
 | Flyway Database PostgreSQL | Extensão específica do Flyway que adiciona suporte completo às funcionalidades do PostgreSQL, permitindo que o framework se comunique corretamente com o dialeto e driver desse banco              | `flyway-database-postgresql`                                                              |
 | Flyway Test                | Dependência com suporte do Spring Boot ao Flyway em ambiente de testes, utilizada em conjunto com o Testcontainers para garantir que as migrations sejam aplicadas nos testes de integração        | `spring-boot-starter-flyway-test`                                                         |
-| Testcontainers             | Dependência para criação de containers Docker durante os testes de integração, permitindo subir um banco PostgreSQL real de forma isolada e automatizada                                           | `spring-boot-testcontainers`, `testcontainers-postgresql`, `testcontainers-junit-jupiter` |
+| Testcontainers             | Dependência para criação de containers Docker durante os testes de integração, permitindo subir um banco PostgreSQL e um LocalStack (SNS e SQS) reais de forma isolada e automatizada            | `spring-boot-testcontainers`, `testcontainers-postgresql`, `testcontainers-localstack`, `testcontainers-junit-jupiter` |
+| Awaitility                 | Dependência para asserções sobre o processamento assíncrono da fila e do outbox nos testes de integração                                                                                          | `awaitility`                                                                              |
 | REST Assured               | Dependência para testes de integração de APIs REST, permitindo realizar requisições HTTP e validar respostas de forma fluente e legível                                                            | `rest-assured`                                                                            |
 
 ---
@@ -78,19 +80,24 @@ A combinação dessas tecnologias permite a construção de um backend robusto e
 
 ### Aplicação e Build
 
-- `application.yml` — configurações para subir o servidor em ambiente local, sendo banco via Docker e a aplicação na IDE;
-- `application-docker.yml` — configurações para subir o ambiente completo via Docker;
+- `application.yml` — configurações para subir o servidor em ambiente local, sendo banco via Docker e a aplicação na IDE, além da região AWS e dos nomes da fila e do tópico da mensageria;
+- `application-dev.yml` — aponta o SDK da AWS para o LocalStack em `localhost:4566`;
+- `application-docker.yml` — configurações para subir o ambiente completo via Docker, com o SDK da AWS apontando para o LocalStack do compose;
 - `application-k8s.yml` — configurações do perfil `k8s`, utilizado quando a aplicação é executada no cluster Kubernetes (EKS), incluindo conexão com o banco via `POSTGRES_HOST` e habilitação dos probes de saúde do Actuator para liveness/readiness;
 - `pom.xml` — dependências do projeto gerenciadas via Maven.
 
 ### Docker
 
 - `Dockerfile` — instruções para o Docker buildar a aplicação;
-- `compose.yaml` — orquestração dos containers da aplicação e do banco, permitindo subir o ambiente completo em qualquer lugar, por qualquer pessoa. Segue a nomenclatura mais recente para esse tipo de arquivo;
-- `compose.db.yaml` — configurações para subir apenas o container do banco para desenvolvimento local;
+- `compose.yaml` — orquestração dos containers da aplicação, do banco e do LocalStack, permitindo subir o ambiente completo em qualquer lugar, por qualquer pessoa. Segue a nomenclatura mais recente para esse tipo de arquivo;
+- `compose.db.yaml` — configurações para subir apenas os containers do banco e do LocalStack para desenvolvimento local;
 - `compose.sonar.yaml` — configurações para subir apenas o container do SonarQube para análise de qualidade, vulnerabilidades e cobertura de testes da aplicação;
 - `compose.zap.yaml` — configurações para subir apenas o container do OWASP ZAP para análise de vulnerabilidades da aplicação;
 - `.dockerignore` — instruções para que o Docker ignore determinados arquivos e pastas durante o build, reduzindo o tamanho da imagem gerada.
+
+### Mensageria
+
+- `localstack/init/ready.d/01-messaging.sh` — cria a fila, a DLQ, o tópico e a fila de inspeção no LocalStack. É o mesmo script usado nos testes de integração.
 
 ### Git e Ambiente
 
@@ -160,15 +167,15 @@ cp env.example .env
 
 ### Opção 1 — Ambiente completo via Docker
 
-Para efetuar a subida do ambiente completo, com banco e aplicação juntos, rode o seguinte comando:
+Para efetuar a subida do ambiente completo, com banco, LocalStack e aplicação juntos, rode o seguinte comando:
 
 ```bash
 docker compose up --build
 ```
 
-### Opção 2 — Desenvolvimento local (banco no Docker + aplicação na IDE)
+### Opção 2 — Desenvolvimento local (banco e LocalStack no Docker + aplicação na IDE)
 
-**Passo 1:** Suba primeiro o banco via Docker utilzando o comando abaixo:
+**Passo 1:** Suba primeiro o banco e o LocalStack via Docker utilzando o comando abaixo:
 
 ```bash
 docker compose -f compose.db.yaml up -d
@@ -180,7 +187,7 @@ docker compose -f compose.db.yaml up -d
 ./mvnw spring-boot:run
 ```
 
-> A aplicação usará o perfil `dev` por padrão, conectando ao banco em `localhost:5432`.
+> A aplicação usará o perfil `dev` por padrão, conectando ao banco em `localhost:5432` e ao LocalStack (SNS e SQS) em `localhost:4566`. Os dois sobem pelo `compose.db.yaml`.
 
 ---
 
@@ -244,6 +251,7 @@ O token traz o email do usuário no `sub` e a role na claim `role`. Os microsser
 - **[Architecture Decision Records (ADRs)](docs/adr/README.md)** - Registro das decisões arquiteturais do projeto, sua motivação e consequências
 - **[Requests for Comments (RFCs)](docs/rfc/README.md)** - Propostas de mudança discutidas pelo time antes de virarem decisão
 - **[Diagrama de Sequência](docs/SEQUENCE-DIAGRAM.md)** - Diagrama de Sequência do fluxo da aplicação Ofisy
+- **[Mensageria](docs/MESSAGING.md)** - Comunicação com os microsserviços por SNS e SQS: envelope dos eventos, outbox e listener
 - **[Documentação Banco de Dados](docs/DATABASE.md)** - Justificativa formal sobre a escolha do banco de dados, modelo relacional, diagramas ER e explicação dos relacionamentos.
 
 ### Deploy e Infraestrutura
