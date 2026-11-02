@@ -1,0 +1,10 @@
+spring:
+  config:
+    activate:
+      on-profile: dev
+  cloud:
+    aws:
+      endpoint: http://localhost:4566
+      credentials:
+        access-key: test
+        secret-key: test
