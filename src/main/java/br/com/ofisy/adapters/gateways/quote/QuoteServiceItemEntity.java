@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "quote_service_items", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"quote_id", "service_order_executions_id"})
+        @UniqueConstraint(columnNames = {"quote_id", "service_catalog_id"})
 })
 @Getter
 @Builder
@@ -25,8 +25,8 @@ public class QuoteServiceItemEntity {
     @JoinColumn(name = "quote_id", nullable = false)
     private QuoteEntity quote;
 
-    @Column(name = "service_order_executions_id", nullable = false)
-    private UUID serviceOrderExecutionId;
+    @Column(name = "service_catalog_id", nullable = false)
+    private UUID serviceCatalogId;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
@@ -36,8 +36,7 @@ public class QuoteServiceItemEntity {
 
     private LocalDateTime updatedAt;
 
-    void update(UUID serviceOrderExecutionId, BigDecimal price, LocalDateTime updatedAt) {
-        this.serviceOrderExecutionId = serviceOrderExecutionId;
+    void update(BigDecimal price, LocalDateTime updatedAt) {
         this.price = price;
         this.updatedAt = updatedAt;
     }

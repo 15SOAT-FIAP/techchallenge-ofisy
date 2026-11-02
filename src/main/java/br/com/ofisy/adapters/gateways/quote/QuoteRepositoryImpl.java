@@ -5,7 +5,6 @@ import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.quote.QuoteRepository;
 import br.com.ofisy.domain.quote.QuoteServiceItem;
 import br.com.ofisy.domain.quote.QuoteStockItem;
-import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionRepository;
 import br.com.ofisy.domain.stock.StockRepository;
 import org.springframework.stereotype.Repository;
 
@@ -22,21 +21,17 @@ public class QuoteRepositoryImpl implements QuoteRepository {
 
     private final JpaQuoteRepository jpa;
     private final StockRepository stockRepository;
-    private final ServiceOrderExecutionRepository executionRepository;
 
-    public QuoteRepositoryImpl(JpaQuoteRepository jpa,
-                               StockRepository stockRepository,
-                               ServiceOrderExecutionRepository executionRepository) {
+    public QuoteRepositoryImpl(JpaQuoteRepository jpa, StockRepository stockRepository) {
         this.jpa = jpa;
         this.stockRepository = stockRepository;
-        this.executionRepository = executionRepository;
     }
 
     @Override
     public Quote save(Quote quote) {
         if (quote.getId() == null) {
             QuoteEntity entity = QuoteMapper.toEntity(quote);
-            return QuoteMapper.toDomain(jpa.save(entity), stockRepository, executionRepository);
+            return QuoteMapper.toDomain(jpa.save(entity), stockRepository);
         }
         return update(quote);
     }
@@ -44,13 +39,13 @@ public class QuoteRepositoryImpl implements QuoteRepository {
     @Override
     public Optional<Quote> findById(UUID id) {
         return jpa.findById(id)
-                .map(entity -> QuoteMapper.toDomain(entity, stockRepository, executionRepository));
+                .map(entity -> QuoteMapper.toDomain(entity, stockRepository));
     }
 
     @Override
     public List<Quote> findByServiceOrderId(UUID serviceOrderId) {
         return jpa.findByServiceOrderId(serviceOrderId).stream()
-                .map(entity -> QuoteMapper.toDomain(entity, stockRepository, executionRepository))
+                .map(entity -> QuoteMapper.toDomain(entity, stockRepository))
                 .toList();
     }
 
@@ -68,7 +63,7 @@ public class QuoteRepositoryImpl implements QuoteRepository {
         reconcileStockItems(entity, quote);
         reconcileServiceItems(entity, quote);
 
-        return QuoteMapper.toDomain(jpa.save(entity), stockRepository, executionRepository);
+        return QuoteMapper.toDomain(jpa.save(entity), stockRepository);
     }
 
     private void reconcileStockItems(QuoteEntity entity, Quote quote) {
@@ -108,7 +103,7 @@ public class QuoteRepositoryImpl implements QuoteRepository {
                     : null;
 
             if (existing != null) {
-                existing.update(domainItem.getServiceOrderExecution().getId(), domainItem.getPrice(), domainItem.getUpdatedAt());
+                existing.update(domainItem.getPrice(), domainItem.getUpdatedAt());
                 reconciled.add(existing);
             } else {
                 reconciled.add(QuoteServiceItemMapper.toEntity(domainItem, entity));

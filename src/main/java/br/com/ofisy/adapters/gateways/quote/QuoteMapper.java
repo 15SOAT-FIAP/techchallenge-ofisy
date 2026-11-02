@@ -1,7 +1,6 @@
 package br.com.ofisy.adapters.gateways.quote;
 
 import br.com.ofisy.domain.quote.Quote;
-import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionRepository;
 import br.com.ofisy.domain.stock.StockRepository;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -11,9 +10,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class QuoteMapper {
 
-    public static Quote toDomain(QuoteEntity entity,
-                                 StockRepository stockRepository,
-                                 ServiceOrderExecutionRepository executionRepository) {
+    public static Quote toDomain(QuoteEntity entity, StockRepository stockRepository) {
         return Quote.reconstruct(
                 entity.getId(),
                 entity.getServiceOrderId(),
@@ -24,7 +21,7 @@ public class QuoteMapper {
                         .map(item -> QuoteStockItemMapper.toDomain(item, stockRepository))
                         .toList(),
                 entity.getServiceItems().stream()
-                        .map(item -> QuoteServiceItemMapper.toDomain(item, executionRepository))
+                        .map(QuoteServiceItemMapper::toDomain)
                         .toList(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt()
