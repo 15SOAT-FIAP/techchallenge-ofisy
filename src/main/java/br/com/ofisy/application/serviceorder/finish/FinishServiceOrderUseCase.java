@@ -4,5 +4,11 @@ import java.util.UUID;
 
 public interface FinishServiceOrderUseCase {
 
-    void execute(UUID id);
+    void execute(FinishServiceOrderCommand cmd);
+
+    record FinishServiceOrderCommand(
+            UUID eventId,
+            String eventType,
+            UUID serviceOrderId
+    ) {}
 }

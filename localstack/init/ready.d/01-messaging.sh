@@ -13,9 +13,26 @@ DLQ_ARN=$(awslocal sqs get-queue-attributes \
   --attribute-names QueueArn \
   --query Attributes.QueueArn --output text)
 
-awslocal sqs create-queue \
+QUEUE_URL=$(awslocal sqs create-queue \
   --queue-name ofisy-service-order.fifo \
-  --attributes "{\"FifoQueue\":\"true\",\"RedrivePolicy\":\"{\\\"deadLetterTargetArn\\\":\\\"$DLQ_ARN\\\",\\\"maxReceiveCount\\\":\\\"5\\\"}\"}"
+  --attributes "{\"FifoQueue\":\"true\",\"RedrivePolicy\":\"{\\\"deadLetterTargetArn\\\":\\\"$DLQ_ARN\\\",\\\"maxReceiveCount\\\":\\\"5\\\"}\"}" \
+  --query QueueUrl --output text)
+
+QUEUE_ARN=$(awslocal sqs get-queue-attributes \
+  --queue-url "$QUEUE_URL" \
+  --attribute-names QueueArn \
+  --query Attributes.QueueArn --output text)
+
+EXECUTION_TOPIC_ARN=$(awslocal sns create-topic \
+  --name ofisy-execution-events.fifo \
+  --attributes FifoTopic=true \
+  --query TopicArn --output text)
+
+awslocal sns subscribe \
+  --topic-arn "$EXECUTION_TOPIC_ARN" \
+  --protocol sqs \
+  --notification-endpoint "$QUEUE_ARN" \
+  --attributes '{"RawMessageDelivery":"true","FilterPolicyScope":"MessageBody","FilterPolicy":"{\"type\":[\"ExecutionStarted\",\"AllExecutionsCompleted\"]}"}'
 
 SERVICE_ORDER_TOPIC_ARN=$(awslocal sns create-topic \
   --name ofisy-service-order-events.fifo \
