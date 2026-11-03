@@ -35,12 +35,6 @@ public interface ServiceCatalogApi {
     ResponseEntity<ServiceCatalogResponseDTO> getByName(
             @RequestParam String name);
 
-    @Operation(summary = "Obter tempo médio de execução de um serviço - Roles autorizadas: (ADMIN, ATTENDANT, MECHANIC)")
-    @ApiResponse(responseCode = "200", description = "Tempo médio calculado com sucesso")
-    @GetMapping("execution_time_average/{id}")
-    ResponseEntity<Double> getExecutionTimeAverage(
-            @PathVariable UUID id);
-
     @Operation(summary = "Criar um novo serviço - Roles autorizadas: (ADMIN, ATTENDANT, MECHANIC)")
     @ApiResponse(responseCode = "201", description = "Serviço cadastrado com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados para criação de serviço inválidos")

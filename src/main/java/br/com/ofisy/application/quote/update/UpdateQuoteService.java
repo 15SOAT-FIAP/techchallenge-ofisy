@@ -16,9 +16,6 @@ import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
 import br.com.ofisy.domain.quote.QuoteStatus;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
-import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecution;
-import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionRepository;
-import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionStatus;
 import br.com.ofisy.domain.stock.Stock;
 import br.com.ofisy.domain.stock.StockRepository;
 import org.springframework.stereotype.Service;
@@ -42,20 +39,17 @@ public class UpdateQuoteService implements UpdateQuoteUseCase {
     private final QuoteRepository quoteRepository;
     private final StockRepository stockRepository;
     private final ServiceCatalogRepository serviceCatalogRepository;
-    private final ServiceOrderExecutionRepository serviceOrderExecutionRepository;
     private final ConsumeStockUseCase consumeStockUseCase;
     private final ReleaseStockUseCase releaseStockUseCase;
 
     public UpdateQuoteService(QuoteRepository quoteRepository,
                               StockRepository stockRepository,
                               ServiceCatalogRepository serviceCatalogRepository,
-                              ServiceOrderExecutionRepository serviceOrderExecutionRepository,
                               ConsumeStockUseCase consumeStockUseCase,
                               ReleaseStockUseCase releaseStockUseCase) {
         this.quoteRepository = quoteRepository;
         this.stockRepository = stockRepository;
         this.serviceCatalogRepository = serviceCatalogRepository;
-        this.serviceOrderExecutionRepository = serviceOrderExecutionRepository;
         this.consumeStockUseCase = consumeStockUseCase;
         this.releaseStockUseCase = releaseStockUseCase;
     }
@@ -154,34 +148,10 @@ public class UpdateQuoteService implements UpdateQuoteUseCase {
                         existing.getId(), existing.getServiceCatalogId(), existing.getPrice(),
                         existing.getCreatedAt(), LocalDateTime.now()));
             } else {
-                serviceOrderExecutionRepository.save(ServiceOrderExecution.create(command.serviceCatalogId(), quote.getServiceOrderId()));
                 items.add(QuoteServiceItem.create(command.serviceCatalogId(), catalog.getPrice()));
             }
         }
 
-        cancelRemovedExecutions(quote, requestedCatalogIds);
-
         return items;
-    }
-
-    private void cancelRemovedExecutions(Quote quote, Set<UUID> requestedCatalogIds) {
-        Set<UUID> removedCatalogIds = quote.getServiceItems().stream()
-                .map(QuoteServiceItem::getServiceCatalogId)
-                .filter(serviceCatalogId -> !requestedCatalogIds.contains(serviceCatalogId))
-                .collect(Collectors.toSet());
-
-        if (removedCatalogIds.isEmpty()) {
-            return;
-        }
-
-        List<ServiceOrderExecutionStatus> activeStatuses =
-                List.of(ServiceOrderExecutionStatus.PENDING, ServiceOrderExecutionStatus.IN_PROGRESS);
-
-        serviceOrderExecutionRepository.findByServiceOrderIdAndStatusIn(quote.getServiceOrderId(), activeStatuses).stream()
-                .filter(execution -> removedCatalogIds.contains(execution.getServiceCatalogId()))
-                .forEach(execution -> {
-                    execution.cancel();
-                    serviceOrderExecutionRepository.save(execution);
-                });
     }
 }
