@@ -1,5 +1,18 @@
 package br.com.ofisy.integration.messaging;
 
+import br.com.ofisy.domain.customer.CpfCnpj;
+import br.com.ofisy.domain.customer.Customer;
+import br.com.ofisy.domain.customer.CustomerRepository;
+import br.com.ofisy.domain.messaging.ProcessedEventRepository;
+import br.com.ofisy.domain.serviceorder.ServiceOrder;
+import br.com.ofisy.domain.serviceorder.ServiceOrderRepository;
+import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
+import br.com.ofisy.domain.user.Role;
+import br.com.ofisy.domain.user.User;
+import br.com.ofisy.domain.user.UserRepository;
+import br.com.ofisy.domain.vehicle.LicensePlate;
+import br.com.ofisy.domain.vehicle.Vehicle;
+import br.com.ofisy.domain.vehicle.VehicleRepository;
 import br.com.ofisy.integration.IntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +32,21 @@ class ServiceOrderEventsListenerIT extends IntegrationTestBase {
     @Autowired
     private SqsAsyncClient sqsAsyncClient;
 
+    @Autowired
+    private ServiceOrderRepository serviceOrderRepository;
+
+    @Autowired
+    private ProcessedEventRepository processedEventRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private CustomerRepository customerRepository;
+
+    @Autowired
+    private VehicleRepository vehicleRepository;
+
     @Value("${ofisy.messaging.queues.service-order}")
     private String queueName;
 
@@ -35,15 +63,84 @@ class ServiceOrderEventsListenerIT extends IntegrationTestBase {
                   "payload": { "quoteId": "%s" }
                 }
                 """.formatted(eventId, serviceOrderId, UUID.randomUUID());
-        String queueUrl = sqsAsyncClient.getQueueUrl(r -> r.queueName(queueName)).join().queueUrl();
+        String queueUrl = queueUrl();
 
+        send(queueUrl, serviceOrderId, body);
+
+        await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> assertThat(pendingMessages(queueUrl)).isZero());
+        assertThat(processedEventRepository.existsById(eventId)).isFalse();
+    }
+
+    @Test
+    void shouldStartExecutionAndAcknowledgeDuplicatedExecutionStarted() {
+        UUID serviceOrderId = awaitingExecutionServiceOrder();
+        UUID eventId = UUID.randomUUID();
+        String body = envelope(eventId, "ExecutionStarted", serviceOrderId);
+        String queueUrl = queueUrl();
+
+        send(queueUrl, serviceOrderId, body);
+        send(queueUrl, serviceOrderId, body);
+
+        await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> assertThat(pendingMessages(queueUrl)).isZero());
+        assertThat(serviceOrderRepository.findById(serviceOrderId).orElseThrow().getStatus())
+                .isEqualTo(ServiceOrderStatus.IN_PROGRESS);
+        assertThat(processedEventRepository.existsById(eventId)).isTrue();
+    }
+
+    @Test
+    void shouldFinishServiceOrderWhenAllExecutionsCompleted() {
+        UUID serviceOrderId = awaitingExecutionServiceOrder();
+        UUID startedEventId = UUID.randomUUID();
+        UUID completedEventId = UUID.randomUUID();
+        String queueUrl = queueUrl();
+
+        send(queueUrl, serviceOrderId, envelope(startedEventId, "ExecutionStarted", serviceOrderId));
+        send(queueUrl, serviceOrderId, envelope(completedEventId, "AllExecutionsCompleted", serviceOrderId));
+
+        await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> assertThat(pendingMessages(queueUrl)).isZero());
+        ServiceOrder serviceOrder = serviceOrderRepository.findById(serviceOrderId).orElseThrow();
+        assertThat(serviceOrder.getStatus()).isEqualTo(ServiceOrderStatus.FINISHED);
+        assertThat(serviceOrder.getFinishedAt()).isNotNull();
+        assertThat(processedEventRepository.existsById(completedEventId)).isTrue();
+    }
+
+    private UUID awaitingExecutionServiceOrder() {
+        User user = userRepository.save(
+                User.create("mecanico.listener.it@ofisy.com", passwordEncoder.encode("Test@123"), "Mecânico Listener IT", Role.MECHANIC));
+        Customer customer = customerRepository.save(
+                Customer.create(new CpfCnpj("52998224725"), "João Listener IT", "joao.listener.it@ofisy.com", "11992222222"));
+        Vehicle vehicle = vehicleRepository.save(
+                Vehicle.create(customer.getId(), new LicensePlate("LST1T01"), "Civic", "Honda", "Preto", 2022, null));
+
+        ServiceOrder serviceOrder = ServiceOrder.receive(vehicle.getId(), customer.getId(), "Relatório", user.getId());
+        serviceOrder.startDiagnostic();
+        serviceOrder.sendToApproval();
+        serviceOrder.approve();
+        return serviceOrderRepository.save(serviceOrder).getId();
+    }
+
+    private String envelope(UUID eventId, String type, UUID serviceOrderId) {
+        return """
+                {
+                  "eventId": "%s",
+                  "type": "%s",
+                  "serviceOrderId": "%s",
+                  "occurredAt": "2026-10-20T10:00:00Z",
+                  "payload": {}
+                }
+                """.formatted(eventId, type, serviceOrderId);
+    }
+
+    private String queueUrl() {
+        return sqsAsyncClient.getQueueUrl(r -> r.queueName(queueName)).join().queueUrl();
+    }
+
+    private void send(String queueUrl, UUID serviceOrderId, String body) {
         sqsAsyncClient.sendMessage(r -> r
                 .queueUrl(queueUrl)
                 .messageGroupId(serviceOrderId.toString())
                 .messageDeduplicationId(UUID.randomUUID().toString())
                 .messageBody(body)).join();
-
-        await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> assertThat(pendingMessages(queueUrl)).isZero());
     }
 
     private int pendingMessages(String queueUrl) {
