@@ -1,11 +1,11 @@
-<mxfile host="app.diagrams.net" agent="Claude">
+<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36">
   <diagram id="er-ofisy" name="Modelo ER - Banco de Dados Ofisy">
-    <mxGraphModel dx="1347" dy="1230" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2050" pageHeight="1500" math="0" shadow="0">
+    <mxGraphModel dx="3470" dy="3000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2050" pageHeight="1500" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="4ZUY9TDcRtxtkLVyTVgB-13" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
-          <mxGeometry height="1460" width="1810" x="50" y="10" as="geometry" />
+          <mxGeometry height="1460" width="1810" x="70" y="10" as="geometry" />
         </mxCell>
         <mxCell id="e2001" parent="1" style="swimlane;html=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;fillColor=#666666;strokeColor=#666666;fontColor=#ffffff;fontStyle=1;fontSize=13;align=center;swimlaneFillColor=#ffffff;" value="users" vertex="1">
           <mxGeometry height="206" width="340" x="170" y="50" as="geometry" />
@@ -147,33 +147,6 @@
         </mxCell>
         <mxCell id="e2047" parent="e2037" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;fontColor=#222222;strokeColor=#E0E0E0;strokeWidth=1;fillColor=#FAFAFA;portConstraint=eastwest;" value="updated_at  &lt;font color=&quot;#888888&quot;&gt;: TIMESTAMP&lt;/font&gt;" vertex="1">
           <mxGeometry height="22" width="340" y="228" as="geometry" />
-        </mxCell>
-        <mxCell id="e2048" parent="1" style="swimlane;html=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;fillColor=#666666;strokeColor=#666666;fontColor=#ffffff;fontStyle=1;fontSize=13;align=center;swimlaneFillColor=#ffffff;" value="service_order_executions" vertex="1">
-          <mxGeometry height="206" width="340" x="1430" y="452" as="geometry" />
-        </mxCell>
-        <mxCell id="e2049" parent="e2048" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;fontColor=#222222;strokeColor=#E0E0E0;strokeWidth=1;fillColor=#FAFAFA;portConstraint=eastwest;" value="&lt;b&gt;id&lt;/b&gt;  &lt;font color=&quot;#888888&quot;&gt;: UUID&lt;/font&gt;  &lt;font color=&quot;#B10DC9&quot; style=&quot;font-size:9px&quot;&gt;&lt;b&gt;[PK]&lt;/b&gt;&lt;/font&gt;" vertex="1">
-          <mxGeometry height="22" width="340" y="30" as="geometry" />
-        </mxCell>
-        <mxCell id="e2050" parent="e2048" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;fontColor=#222222;strokeColor=#E0E0E0;strokeWidth=1;fillColor=#FAFAFA;portConstraint=eastwest;" value="&lt;i&gt;service_order_id&lt;/i&gt;  &lt;font color=&quot;#888888&quot;&gt;: UUID&lt;/font&gt;  &lt;font color=&quot;#0074D9&quot; style=&quot;font-size:9px&quot;&gt;&lt;b&gt;[FK]&lt;/b&gt;&lt;/font&gt;" vertex="1">
-          <mxGeometry height="22" width="340" y="52" as="geometry" />
-        </mxCell>
-        <mxCell id="e2051" parent="e2048" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;fontColor=#222222;strokeColor=#E0E0E0;strokeWidth=1;fillColor=#FAFAFA;portConstraint=eastwest;" value="&lt;i&gt;service_catalog_id&lt;/i&gt;  &lt;font color=&quot;#888888&quot;&gt;: UUID&lt;/font&gt;  &lt;font color=&quot;#0074D9&quot; style=&quot;font-size:9px&quot;&gt;&lt;b&gt;[FK]&lt;/b&gt;&lt;/font&gt;" vertex="1">
-          <mxGeometry height="22" width="340" y="74" as="geometry" />
-        </mxCell>
-        <mxCell id="e2052" parent="e2048" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;fontColor=#222222;strokeColor=#E0E0E0;strokeWidth=1;fillColor=#FAFAFA;portConstraint=eastwest;" value="status  &lt;font color=&quot;#888888&quot;&gt;: VARCHAR(50)&lt;/font&gt;  &lt;font color=&quot;#85144b&quot; style=&quot;font-size:9px&quot;&gt;&lt;b&gt;[CHECK]&lt;/b&gt;&lt;/font&gt;" vertex="1">
-          <mxGeometry height="22" width="340" y="96" as="geometry" />
-        </mxCell>
-        <mxCell id="e2053" parent="e2048" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;fontColor=#222222;strokeColor=#E0E0E0;strokeWidth=1;fillColor=#FAFAFA;portConstraint=eastwest;" value="started_at  &lt;font color=&quot;#888888&quot;&gt;: TIMESTAMP&lt;/font&gt;" vertex="1">
-          <mxGeometry height="22" width="340" y="118" as="geometry" />
-        </mxCell>
-        <mxCell id="e2054" parent="e2048" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;fontColor=#222222;strokeColor=#E0E0E0;strokeWidth=1;fillColor=#FAFAFA;portConstraint=eastwest;" value="finished_at  &lt;font color=&quot;#888888&quot;&gt;: TIMESTAMP&lt;/font&gt;" vertex="1">
-          <mxGeometry height="22" width="340" y="140" as="geometry" />
-        </mxCell>
-        <mxCell id="e2055" parent="e2048" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;fontColor=#222222;strokeColor=#E0E0E0;strokeWidth=1;fillColor=#FAFAFA;portConstraint=eastwest;" value="created_at  &lt;font color=&quot;#888888&quot;&gt;: TIMESTAMP&lt;/font&gt;" vertex="1">
-          <mxGeometry height="22" width="340" y="162" as="geometry" />
-        </mxCell>
-        <mxCell id="e2056" parent="e2048" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;fontColor=#222222;strokeColor=#E0E0E0;strokeWidth=1;fillColor=#FAFAFA;portConstraint=eastwest;" value="updated_at  &lt;font color=&quot;#888888&quot;&gt;: TIMESTAMP&lt;/font&gt;" vertex="1">
-          <mxGeometry height="22" width="340" y="184" as="geometry" />
         </mxCell>
         <mxCell id="e2057" parent="1" style="swimlane;html=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;fillColor=#666666;strokeColor=#666666;fontColor=#ffffff;fontStyle=1;fontSize=13;align=center;swimlaneFillColor=#ffffff;" value="quotes" vertex="1">
           <mxGeometry height="184" width="340" x="550" y="810" as="geometry" />
@@ -340,12 +313,6 @@
         <mxCell id="e2111" edge="1" parent="1" source="e2001" style="html=1;rounded=0;fontSize=9;startArrow=ERone;startFill=0;startSize=14;endArrow=ERzeroToMany;endFill=0;endSize=18;strokeColor=#555555;" target="e2037" value="created_by">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e2112" edge="1" parent="1" source="e2037" style="html=1;rounded=0;fontSize=9;startArrow=ERone;startFill=0;startSize=14;endArrow=ERzeroToMany;endFill=0;endSize=18;strokeColor=#555555;" target="e2048" value="service_order_id">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e2113" edge="1" parent="1" source="e2030" style="html=1;rounded=0;fontSize=9;startArrow=ERone;startFill=0;startSize=14;endArrow=ERzeroToMany;endFill=0;endSize=18;strokeColor=#555555;" target="e2048" value="service_catalog_id">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
         <mxCell id="e2114" edge="1" parent="1" source="e2037" style="html=1;rounded=0;fontSize=9;startArrow=ERone;startFill=0;startSize=14;endArrow=ERzeroToOne;endFill=0;endSize=18;strokeColor=#555555;" target="e2057" value="service_order_id">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
@@ -368,14 +335,8 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e2118" edge="1" parent="1" source="e2033" style="html=1;rounded=0;fontSize=9;startArrow=ERone;startFill=0;startSize=14;endArrow=ERzeroToMany;endFill=0;endSize=18;strokeColor=#555555;exitX=1;exitY=0.25;exitDx=0;exitDy=0;" target="e2073" value="service_catalog_id">
-          <mxGeometry relative="1" x="-0.1713" as="geometry">
-            <Array as="points">
-              <mxPoint x="1820" y="119.5" />
-              <mxPoint x="1820" y="730" />
-              <mxPoint x="1590" y="730" />
-            </Array>
-          </mxGeometry>
+        <mxCell id="e2118" edge="1" parent="1" source="e2030" style="html=1;rounded=0;fontSize=9;startArrow=ERone;startFill=0;startSize=14;endArrow=ERzeroToMany;endFill=0;endSize=18;strokeColor=#555555;" target="e2073" value="service_catalog_id">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="e2119" edge="1" parent="1" source="e2080" style="html=1;rounded=0;fontSize=9;startArrow=ERone;startFill=0;startSize=14;endArrow=ERzeroToMany;endFill=0;endSize=18;strokeColor=#555555;" target="e2090" value="stock_id">
           <mxGeometry relative="1" as="geometry" />

@@ -26,7 +26,7 @@
             <mxPoint x="690" y="170" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="ctrlFluxo" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1168BD;strokeColor=#0B4884;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;Business Controllers&lt;/b&gt;&lt;div&gt;&lt;i&gt;[Component: Spring MVC]&lt;/i&gt;&lt;br&gt;Customer, Vehicle, ServiceCatalog, User, ServiceOrder (inclui rotas de Quote), Execution,&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));&quot;&gt;Stock, StockMovement e Notification&lt;/span&gt;&lt;/div&gt;" vertex="1">
+        <mxCell id="ctrlFluxo" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1168BD;strokeColor=#0B4884;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;Business Controllers&lt;/b&gt;&lt;div&gt;&lt;i&gt;[Component: Spring MVC]&lt;/i&gt;&lt;br&gt;Customer, Vehicle, ServiceCatalog, User, ServiceOrder (inclui rotas de Quote),&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));&quot;&gt;Stock, StockMovement e Notification&lt;/span&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="110" width="155" x="135" y="235" as="geometry" />
         </mxCell>
         <mxCell id="ctrlLogin" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#707070;strokeColor=#4D4D4D;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;LoginController&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Component: Spring MVC]&lt;/i&gt;&lt;br&gt;POST /api/v1/login: autentica e emite JWT" vertex="1">
@@ -57,7 +57,7 @@
         <mxCell id="laneDomain" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#888888;verticalAlign=top;align=left;spacingLeft=10;spacingTop=6;fontSize=12;fontStyle=1;fontColor=#555555;" value="Domain: DDD&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="150" width="700" x="60" y="840" as="geometry" />
         </mxCell>
-        <mxCell id="domainBox" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1168BD;strokeColor=#0B4884;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;Domain model&lt;/b&gt;&amp;nbsp;&amp;nbsp;&lt;i&gt;[Component: POJO / DDD]&lt;/i&gt;&lt;br&gt;10 agregados · value objects validados (CpfCnpj, LicensePlate, Email, NotificationMessage) · máquinas de estado com transições protegidas (ServiceOrderStatus, QuoteStatus, ServiceOrderExecutionStatus) · exceções de domínio · define as interfaces de repositório" vertex="1">
+        <mxCell id="domainBox" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1168BD;strokeColor=#0B4884;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;Domain model&lt;/b&gt;&amp;nbsp;&amp;nbsp;&lt;i&gt;[Component: POJO / DDD]&lt;/i&gt;&lt;br&gt;9 agregados · value objects validados (CpfCnpj, LicensePlate, Email, NotificationMessage) · máquinas de estado com transições protegidas (ServiceOrderStatus, QuoteStatus) · exceções de domínio · define as interfaces de repositório" vertex="1">
           <mxGeometry height="90" width="670" x="75" y="880" as="geometry" />
         </mxCell>
         <mxCell id="lanePersist" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#888888;verticalAlign=top;align=left;spacingLeft=10;spacingTop=6;fontSize=12;fontStyle=1;fontColor=#555555;" value="Persistência" vertex="1">
