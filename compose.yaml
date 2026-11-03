@@ -16,11 +16,29 @@ services:
       timeout: 5s
       retries: 10
 
+  localstack:
+    image: localstack/localstack:4.13.1
+    container_name: ofisy-localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=sns,sqs
+      - AWS_DEFAULT_REGION=us-east-1
+    volumes:
+      - "./localstack/init/ready.d:/etc/localstack/init/ready.d"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -s localhost:4566/_localstack/init/ready | grep -q '\"completed\": true'" ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
   app:
     build: .
     container_name: ofisy-app
     depends_on:
       postgres:
+        condition: service_healthy
+      localstack:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: docker
