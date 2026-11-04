@@ -12,18 +12,20 @@ A estrutura é a mesma do `ms-ofisy-execution`: mesmo envelope, mesmo outbox e m
 flowchart LR
     app[core] -->|outbox + publisher| topic[(SNS<br/>ofisy-service-order-events.fifo)]
     topic -.->|só local, raw delivery| inspect[(SQS<br/>ofisy-service-order-events-inspect.fifo)]
+    execution[(SNS<br/>ofisy-execution-events.fifo)] -->|filtro por type| queue
     queue[(SQS<br/>ofisy-service-order.fifo)] --> app
     queue -->|após 5 recebimentos| dlq[(SQS<br/>ofisy-service-order-dlq.fifo)]
 ```
 
-| Recurso          | Nome                                      | Observação                                                            |
-|------------------|-------------------------------------------|-----------------------------------------------------------------------|
-| Tópico           | `ofisy-service-order-events.fifo`         | Tópico do core, configurado em `ofisy.messaging.topics.service-order` |
-| Fila             | `ofisy-service-order.fifo`                | Configurada em `ofisy.messaging.queues.service-order`                 |
-| DLQ              | `ofisy-service-order-dlq.fifo`            | `RedrivePolicy` com `maxReceiveCount=5`                               |
-| Fila de inspeção | `ofisy-service-order-events-inspect.fifo` | Só local. Assinada no tópico do core para ver o que foi publicado     |
+| Recurso          | Nome                                      | Observação                                                                                             |
+|------------------|-------------------------------------------|--------------------------------------------------------------------------------------------------------|
+| Tópico           | `ofisy-service-order-events.fifo`         | Tópico do core, configurado em `ofisy.messaging.topics.service-order`                                  |
+| Fila             | `ofisy-service-order.fifo`                | Configurada em `ofisy.messaging.queues.service-order`                                                  |
+| DLQ              | `ofisy-service-order-dlq.fifo`            | `RedrivePolicy` com `maxReceiveCount=5`                                                                |
+| Fila de inspeção | `ofisy-service-order-events-inspect.fifo` | Só local. Assinada no tópico do core para ver o que foi publicado                                      |
+| Tópico assinado  | `ofisy-execution-events.fifo`             | Tópico do `ms-ofisy-execution`. A fila do core recebe só `ExecutionStarted` e `AllExecutionsCompleted` |
 
-Ainda não há assinaturas da fila em tópicos de outros serviços: elas entram junto com o primeiro handler de cada evento.
+A fila do core assina o tópico `ofisy-execution-events.fifo`, do `ms-ofisy-execution`, com `RawMessageDelivery=true` e `FilterPolicy` por `type` no corpo da mensagem (`FilterPolicyScope=MessageBody`), recebendo só `ExecutionStarted` e `AllExecutionsCompleted`. Os eventos de outros serviços entram da mesma forma, junto com o primeiro handler de cada um.
 
 Localmente, tudo é criado pelo `localstack/init/ready.d/01-messaging.sh`, que roda quando o LocalStack sobe (pelo `compose.yaml`, pelo `compose.db.yaml` e nos testes de integração). Com `queue-not-found-strategy: fail`, a aplicação não inicia se a fila não existir.
 
@@ -55,15 +57,26 @@ Todo evento segue o mesmo envelope (`adapters/listeners/dto/EventEnvelope.java`)
 
 ### Eventos consumidos
 
-| Evento | Produtor | Efeito |
-|--------|----------|--------|
-| —      | —        | —      |
+| Evento                   | Produtor             | Handler                         | Efeito                                                                                        |
+|--------------------------|----------------------|---------------------------------|-----------------------------------------------------------------------------------------------|
+| `ExecutionStarted`       | `ms-ofisy-execution` | `ExecutionStartedHandler`       | Move a OS de `AWAITING_EXECUTION` para `IN_PROGRESS`                                          |
+| `AllExecutionsCompleted` | `ms-ofisy-execution` | `AllExecutionsCompletedHandler` | Move a OS de `IN_PROGRESS` para `FINISHED`                                                    |
+
+Os dois eventos têm payload `{}`. O tratamento depende do status em que a OS está quando o evento chega:
+
+- **No status esperado**: aplica a transição e registra o `eventId` em `processed_events`.
+- **Já à frente do evento** (`IN_PROGRESS` ou status final para o `ExecutionStarted`; `FINISHED`, `DELIVERED` ou `CANCELLED` para o `AllExecutionsCompleted`): só registra o evento, que é confirmado sem mudar a OS.
+- **`AllExecutionsCompleted` com a OS ainda em `AWAITING_EXECUTION`** (o `ExecutionStarted` se perdeu, por exemplo na DLQ): aplica as duas transições, `IN_PROGRESS` e `FINISHED`.
+- **Atrás do evento** (antes de `AWAITING_EXECUTION`): a transição é inválida, a exceção impede o ack e a mensagem volta para a fila até a OS alcançar o status ou, depois de 5 recebimentos, ir para a DLQ.
+- **OS inexistente**: a mensagem vai para a DLQ de propósito, porque indica inconsistência entre os serviços.
 
 ### Eventos publicados
 
-| Evento | Quando é publicado | Quem reage |
-|--------|--------------------|------------|
-| —      | —                  | —          |
+| Evento                  | Quando é publicado                             | Quem reage                                                         |
+|-------------------------|------------------------------------------------|--------------------------------------------------------------------|
+| `ServiceOrderCancelled` | Ao cancelar a OS (`CancelServiceOrderService`) | `ms-ofisy-execution` cancela as execuções pendentes e em andamento |
+
+O payload é `{}`.
 
 ---
 
@@ -146,12 +159,12 @@ As entidades de `outbox_events` e `processed_events` sempre inserem no `save` (`
 
 Os testes de integração (`integration/IntegrationTestBase`) sobem um LocalStack via Testcontainers com o mesmo `01-messaging.sh` do compose, então a fila, a DLQ e o tópico são os mesmos do ambiente local. A espera é pelo log `Ready.`, que o LocalStack imprime depois que o init script termina.
 
-| Teste                          | O que cobre                                                                              |
-|--------------------------------|------------------------------------------------------------------------------------------|
-| `OutboxEventPublisherTest`     | Envelope FIFO, ordem, `published_at` e o salto dos eventos da OS que falhou              |
-| `ServiceOrderEventsListenerTest` | Despacho pelo `type`, tipo sem handler, falha do handler e `type` duplicado entre handlers |
-| `OutboxEventPublisherIT`       | Evento gravado no outbox chega na fila de inspeção e fica com `published_at`             |
-| `ServiceOrderEventsListenerIT` | Evento sem handler é confirmado e sai da fila                                            |
+| Teste                            | O que cobre                                                                                                                |
+|----------------------------------|----------------------------------------------------------------------------------------------------------------------------|
+| `OutboxEventPublisherTest`       | Envelope FIFO, ordem, `published_at` e o salto dos eventos da OS que falhou                                                |
+| `ServiceOrderEventsListenerTest` | Despacho pelo `type`, tipo sem handler, falha do handler e `type` duplicado entre handlers                                 |
+| `OutboxEventPublisherIT`         | Evento gravado no outbox chega na fila de inspeção e fica com `published_at`                                               |
+| `ServiceOrderEventsListenerIT`   | Evento sem handler é confirmado, `ExecutionStarted` repetido move a OS uma vez só e `AllExecutionsCompleted` finaliza a OS |
 
 ---
 
@@ -165,14 +178,14 @@ docker exec ofisy-local-localstack awslocal sqs receive-message \
   --queue-url http://localhost:4566/000000000000/ofisy-service-order-events-inspect.fifo \
   --max-number-of-messages 10
 
-# enviar um evento direto para a fila do core
-docker exec ofisy-local-localstack awslocal sqs send-message \
-  --queue-url http://localhost:4566/000000000000/ofisy-service-order.fifo \
-  --message-group-id c3d4e5f6-a7b8-9012-cdef-123456780001 \
+# simular o ms-ofisy-execution publicando no tópico dele (a OS ...780007 do seed está em AWAITING_EXECUTION)
+docker exec ofisy-local-localstack awslocal sns publish \
+  --topic-arn arn:aws:sns:us-east-1:000000000000:ofisy-execution-events.fifo \
+  --message-group-id c3d4e5f6-a7b8-9012-cdef-123456780007 \
   --message-deduplication-id $(uuidgen) \
-  --message-body '{"eventId":"'$(uuidgen)'","type":"ExecutionStarted","serviceOrderId":"c3d4e5f6-a7b8-9012-cdef-123456780001","occurredAt":"2026-10-17T13:00:00Z","payload":{}}'
+  --message '{"eventId":"'$(uuidgen)'","type":"ExecutionStarted","serviceOrderId":"c3d4e5f6-a7b8-9012-cdef-123456780007","occurredAt":"2026-10-17T13:00:00Z","payload":{}}'
 ```
 
-Sem handler para `ExecutionStarted`, o log mostra `ServiceOrderEventsListener.onMessage >> ignoring event ...` e a mensagem sai da fila.
+O log mostra `ExecutionStartedHandler.handle >> event ... handled for service order ...`, a OS vai para `IN_PROGRESS` e o `eventId` aparece em `processed_events`. Um `type` sem handler gera `ServiceOrderEventsListener.onMessage >> ignoring event ...` e a mensagem sai da fila.
 
 > O LocalStack do core e o do `ms-ofisy-execution` usam a porta `4566`, então só um deles pode ficar no ar por vez. Para exercitar a comunicação entre os dois serviços, os dois precisam apontar para o mesmo LocalStack, com os tópicos e as assinaturas de ambos.

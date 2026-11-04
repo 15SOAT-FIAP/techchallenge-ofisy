@@ -6,7 +6,6 @@ import br.com.ofisy.adapters.gateways.messaging.JpaProcessedEventRepository;
 import br.com.ofisy.adapters.gateways.notification.JpaNotificationRepository;
 import br.com.ofisy.adapters.gateways.quote.JpaQuoteRepository;
 import br.com.ofisy.adapters.gateways.servicecatalog.JpaServiceCatalogRepository;
-import br.com.ofisy.adapters.gateways.serviceorderexecution.JpaServiceOrderExecutionRepository;
 import br.com.ofisy.adapters.gateways.stock.JpaStockRepository;
 import br.com.ofisy.adapters.gateways.serviceorder.JpaServiceOrderRepository;
 import br.com.ofisy.adapters.gateways.user.JpaUserRepository;
@@ -76,8 +75,6 @@ public abstract class IntegrationTestBase {
     @Autowired 
     private JpaQuoteRepository quoteRepository;
     @Autowired 
-    private JpaServiceOrderExecutionRepository serviceOrderExecutionRepository;
-    @Autowired 
     private JpaServiceOrderRepository serviceOrderRepository;
     @Autowired 
     private JpaStockMovementRepository stockMovementRepository;
@@ -106,7 +103,6 @@ public abstract class IntegrationTestBase {
     void cleanDatabase() {
         notificationRepository.deleteAll();
         quoteRepository.deleteAll();
-        serviceOrderExecutionRepository.deleteAll();
         serviceOrderRepository.deleteAll();
         stockMovementRepository.deleteAll();
         stockRepository.deleteAll();

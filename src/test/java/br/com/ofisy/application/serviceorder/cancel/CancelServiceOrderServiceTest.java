@@ -1,8 +1,9 @@
 package br.com.ofisy.application.serviceorder.cancel;
 
-import br.com.ofisy.application.serviceorder.cancelpending.CancelPendingExecutionsUseCase;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.config.metrics.ServiceOrderMetrics;
+import br.com.ofisy.domain.messaging.OutboxEvent;
+import br.com.ofisy.domain.messaging.OutboxEventRepository;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import br.com.ofisy.domain.serviceorder.ServiceOrderRepository;
 import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
@@ -10,17 +11,19 @@ import br.com.ofisy.domain.serviceorder.exceptions.InvalidServiceOrderTransition
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -36,9 +39,11 @@ class CancelServiceOrderServiceTest {
     @Mock
     private ServiceOrderRepository serviceOrderRepository;
     @Mock
-    private CancelPendingExecutionsUseCase cancelPendingExecutionsUseCase;
+    private OutboxEventRepository outboxEventRepository;
     @Mock
     private ServiceOrderMetrics serviceOrderMetrics;
+    @Captor
+    private ArgumentCaptor<OutboxEvent> outboxEventCaptor;
 
     @InjectMocks
     private CancelServiceOrderService cancelServiceOrderService;
@@ -75,28 +80,30 @@ class CancelServiceOrderServiceTest {
         }
 
         @Test
-        void shouldCallCancelPendingBeforeCancellingOrder() {
+        void shouldSaveServiceOrderCancelledEventInOutbox() {
             ServiceOrder serviceOrder = serviceOrderAwaitingApproval();
             when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
             when(serviceOrderRepository.save(serviceOrder)).thenAnswer(inv -> inv.getArgument(0));
 
             cancelServiceOrderService.execute(VALID_SERVICE_ORDER_ID);
 
-            verify(cancelPendingExecutionsUseCase).execute(VALID_SERVICE_ORDER_ID);
-            verify(serviceOrderRepository).save(any());
+            verify(outboxEventRepository).save(outboxEventCaptor.capture());
+            OutboxEvent event = outboxEventCaptor.getValue();
+            assertThat(event.getEventType()).isEqualTo(CancelServiceOrderService.SERVICE_ORDER_CANCELLED);
+            assertThat(event.getServiceOrderId()).isEqualTo(VALID_SERVICE_ORDER_ID);
+            assertThat(event.getPayload()).isEqualTo(Map.of());
         }
 
         @Test
-        void shouldNotSaveOrderWhenCancelPendingThrows() {
-            ServiceOrder serviceOrder = serviceOrderAwaitingApproval();
+        void shouldNotSaveEventWhenTransitionIsInvalid() {
+            ServiceOrder serviceOrder = cancelledServiceOrder();
             when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
-            doThrow(new RuntimeException("cancellation failed"))
-                    .when(cancelPendingExecutionsUseCase).execute(VALID_SERVICE_ORDER_ID);
 
             assertThatThrownBy(() -> cancelServiceOrderService.execute(VALID_SERVICE_ORDER_ID))
-                    .isInstanceOf(RuntimeException.class);
+                    .isInstanceOf(InvalidServiceOrderTransitionException.class);
 
             verify(serviceOrderRepository, never()).save(any());
+            verify(outboxEventRepository, never()).save(any());
         }
     }
 

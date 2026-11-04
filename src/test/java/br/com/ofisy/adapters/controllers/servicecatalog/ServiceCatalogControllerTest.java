@@ -6,7 +6,6 @@ import br.com.ofisy.application.servicecatalog.create.CreateServiceCatalogUseCas
 import br.com.ofisy.application.servicecatalog.identifybyid.IdentifyByIdServiceCatalogUseCase;
 import br.com.ofisy.application.servicecatalog.identifybyname.IdentifyByNameServiceCatalogUseCase;
 import br.com.ofisy.application.servicecatalog.list.ListServiceCatalogUseCase;
-import br.com.ofisy.application.serviceorderexecution.getaverageexecutiontime.GetAverageExecutionTimeServiceOrderExecutionUseCase;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,9 +29,6 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ServiceCatalogControllerTest {
-
-	@Mock
-	private GetAverageExecutionTimeServiceOrderExecutionUseCase getAverageExecutionTimeUseCase;
 
 	@Mock
 	private CreateServiceCatalogUseCase createServiceCatalogUseCase;
@@ -99,17 +95,6 @@ class ServiceCatalogControllerTest {
 		ServiceCatalogResponseDTO body = response.getBody();
 		assertNotNull(body);
 		assertEquals(serviceCatalog.getName(), body.name());
-	}
-
-	@Test
-	void getExecutionTimeAverage_shouldReturnDouble() {
-		UUID id = UUID.randomUUID();
-		when(getAverageExecutionTimeUseCase.execute(id)).thenReturn(4.5);
-
-		var response = controller.getExecutionTimeAverage(id);
-
-		assertEquals(HttpStatus.OK, response.getStatusCode());
-		assertEquals(4.5, response.getBody());
 	}
 
 	@Test

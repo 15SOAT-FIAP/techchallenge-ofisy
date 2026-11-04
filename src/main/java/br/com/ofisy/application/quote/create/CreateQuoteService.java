@@ -11,8 +11,6 @@ import br.com.ofisy.domain.quote.QuoteServiceItem;
 import br.com.ofisy.domain.quote.QuoteStockItem;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
-import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecution;
-import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionRepository;
 import br.com.ofisy.domain.stock.Stock;
 import br.com.ofisy.domain.stock.StockRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +26,6 @@ public class CreateQuoteService implements CreateQuoteUseCase {
 
     private final QuoteRepository quoteRepository;
     private final StockRepository stockRepository;
-    private final ServiceOrderExecutionRepository serviceOrderExecutionRepository;
     private final ServiceCatalogRepository serviceCatalogRepository;
     private final ConsumeStockUseCase consumeStockUseCase;
 
@@ -41,7 +37,7 @@ public class CreateQuoteService implements CreateQuoteUseCase {
         }
 
         List<QuoteStockItem> stockItems = buildStockItems(cmd.stockItems() != null ? cmd.stockItems() : List.of());
-        List<QuoteServiceItem> serviceItems = buildServiceItems(cmd.serviceOrderId(), cmd.serviceItems() != null ? cmd.serviceItems() : List.of());
+        List<QuoteServiceItem> serviceItems = buildServiceItems(cmd.serviceItems() != null ? cmd.serviceItems() : List.of());
 
         Quote quote = Quote.create(cmd.serviceOrderId(), stockItems, serviceItems);
         return quoteRepository.save(quote);
@@ -67,7 +63,7 @@ public class CreateQuoteService implements CreateQuoteUseCase {
         return items;
     }
 
-    private List<QuoteServiceItem> buildServiceItems(UUID serviceOrderId, List<ServiceItemCommand> commands) {
+    private List<QuoteServiceItem> buildServiceItems(List<ServiceItemCommand> commands) {
         List<QuoteServiceItem> items = new ArrayList<>();
 
         for (ServiceItemCommand command : commands) {
@@ -80,9 +76,6 @@ public class CreateQuoteService implements CreateQuoteUseCase {
             if (duplicate) {
                 throw new QuoteItemAlreadyExistsException(catalog.getName());
             }
-
-            serviceOrderExecutionRepository.save(
-                    ServiceOrderExecution.create(command.serviceCatalogId(), serviceOrderId));
 
             items.add(QuoteServiceItem.create(command.serviceCatalogId(), catalog.getPrice()));
         }

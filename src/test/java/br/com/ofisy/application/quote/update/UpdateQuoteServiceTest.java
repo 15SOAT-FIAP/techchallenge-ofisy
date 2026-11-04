@@ -15,9 +15,6 @@ import br.com.ofisy.domain.quote.QuoteStockItem;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
-import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecution;
-import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionRepository;
-import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionStatus;
 import br.com.ofisy.domain.stock.Stock;
 import br.com.ofisy.domain.stock.StockRepository;
 import org.junit.jupiter.api.Nested;
@@ -36,8 +33,6 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -59,8 +54,6 @@ class UpdateQuoteServiceTest {
     private StockRepository stockRepository;
     @Mock
     private ServiceCatalogRepository serviceCatalogRepository;
-    @Mock
-    private ServiceOrderExecutionRepository serviceOrderExecutionRepository;
     @Mock
     private ConsumeStockUseCase consumeStockUseCase;
     @Mock
@@ -107,7 +100,6 @@ class UpdateQuoteServiceTest {
             assertThat(result.getServiceItems()).hasSize(1);
             assertThat(result.getServiceItems().getFirst().getServiceCatalogId()).isEqualTo(SERVICE_CATALOG_ID);
             assertThat(result.getServiceItems().getFirst().getPrice()).isEqualByComparingTo(new BigDecimal(PRICE_150));
-            verify(serviceOrderExecutionRepository).save(any(ServiceOrderExecution.class));
         }
 
         @Test
@@ -294,7 +286,7 @@ class UpdateQuoteServiceTest {
     class ServiceItemReconciliation {
 
         @Test
-        void shouldReuseExistingExecutionWhenServiceCatalogUnchanged() {
+        void shouldReuseExistingServiceItemWhenServiceCatalogUnchanged() {
             var existingItemId = UUID.randomUUID();
             var existingServiceItem = QuoteServiceItem.reconstruct(existingItemId, SERVICE_CATALOG_ID,
                     new BigDecimal(PRICE_150), LocalDateTime.now(), LocalDateTime.now());
@@ -312,7 +304,6 @@ class UpdateQuoteServiceTest {
             assertThat(result.getServiceItems()).hasSize(1);
             assertThat(result.getServiceItems().getFirst().getId()).isEqualTo(existingItemId);
             assertThat(result.getServiceItems().getFirst().getServiceCatalogId()).isEqualTo(SERVICE_CATALOG_ID);
-            verify(serviceOrderExecutionRepository, never()).save(any(ServiceOrderExecution.class));
         }
 
         @Test
@@ -336,52 +327,23 @@ class UpdateQuoteServiceTest {
         }
 
         @Test
-        void shouldCancelExecutionWhenServiceItemIsRemoved() {
-            var execution = ServiceOrderExecution.create(SERVICE_CATALOG_ID, SERVICE_ORDER_ID);
-            var otherExecution = ServiceOrderExecution.create(UUID.randomUUID(), SERVICE_ORDER_ID);
+        void shouldRemoveServiceItemNoLongerRequested() {
             var removedServiceItem = QuoteServiceItem.reconstruct(UUID.randomUUID(), SERVICE_CATALOG_ID,
                     new BigDecimal(PRICE_150), LocalDateTime.now(), LocalDateTime.now());
-
             var keptStockItem = QuoteStockItem.reconstruct(UUID.randomUUID(), validStock(),
                     new BigDecimal(PRICE_100), 2, LocalDateTime.now(), LocalDateTime.now());
-
             var quote = quoteWithStockAndServiceItems(List.of(keptStockItem), List.of(removedServiceItem));
-
             var cmd = new UpdateQuoteUseCase.UpdateQuoteCommand(QUOTE_ID,
                     List.of(new CreateQuoteUseCase.StockItemCommand(STOCK_ID, 2)), List.of());
 
             when(quoteRepository.findById(QUOTE_ID)).thenReturn(Optional.of(quote));
             when(stockRepository.findById(STOCK_ID)).thenReturn(Optional.of(validStock()));
-            when(serviceOrderExecutionRepository.findByServiceOrderIdAndStatusIn(eq(SERVICE_ORDER_ID),
-                    argThat(statuses -> statuses.size() == 2 && statuses.containsAll(
-                            List.of(ServiceOrderExecutionStatus.PENDING, ServiceOrderExecutionStatus.IN_PROGRESS)))))
-                    .thenReturn(List.of(execution, otherExecution));
             when(quoteRepository.save(any(Quote.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            service.execute(cmd);
+            var result = service.execute(cmd);
 
-            assertThat(execution.getStatus()).isEqualTo(ServiceOrderExecutionStatus.CANCELLED);
-            assertThat(otherExecution.getStatus()).isEqualTo(ServiceOrderExecutionStatus.PENDING);
-            verify(serviceOrderExecutionRepository).save(execution);
-            verify(serviceOrderExecutionRepository, never()).save(otherExecution);
-        }
-
-        @Test
-        void shouldNotLookUpExecutionsWhenNoServiceItemIsRemoved() {
-            var existingServiceItem = QuoteServiceItem.reconstruct(UUID.randomUUID(), SERVICE_CATALOG_ID,
-                    new BigDecimal(PRICE_150), LocalDateTime.now(), LocalDateTime.now());
-            var quote = quoteWithServiceItems(List.of(existingServiceItem));
-            var cmd = new UpdateQuoteUseCase.UpdateQuoteCommand(QUOTE_ID,
-                    List.of(), List.of(new CreateQuoteUseCase.ServiceItemCommand(SERVICE_CATALOG_ID)));
-
-            when(quoteRepository.findById(QUOTE_ID)).thenReturn(Optional.of(quote));
-            when(serviceCatalogRepository.findById(SERVICE_CATALOG_ID))
-                    .thenReturn(Optional.of(validServiceCatalog()));
-            when(quoteRepository.save(any(Quote.class))).thenAnswer(inv -> inv.getArgument(0));
-
-            service.execute(cmd);
-
-            verify(serviceOrderExecutionRepository, never()).findByServiceOrderIdAndStatusIn(any(), any());
+            assertThat(result.getServiceItems()).isEmpty();
+            assertThat(result.getStockItems()).hasSize(1);
         }
     }
 

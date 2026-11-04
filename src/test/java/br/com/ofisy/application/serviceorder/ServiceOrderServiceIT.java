@@ -31,7 +31,6 @@ import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
 import br.com.ofisy.domain.serviceorder.exceptions.InvalidServiceOrderTransitionException;
-import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionRepository;
 import br.com.ofisy.domain.stock.Stock;
 import br.com.ofisy.domain.stock.StockRepository;
 import br.com.ofisy.domain.user.Role;
@@ -73,7 +72,6 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
     @Autowired private UserRepository userDomainRepository;
     @Autowired private StockRepository stockDomainRepository;
     @Autowired private ServiceCatalogRepository serviceCatalogDomainRepository;
-    @Autowired private ServiceOrderExecutionRepository serviceOrderExecutionDomainRepository;
     @Autowired private NotificationRepository notificationDomainRepository;
 
     private UUID customerId;

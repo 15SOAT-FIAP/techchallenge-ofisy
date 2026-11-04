@@ -10,8 +10,6 @@ import br.com.ofisy.domain.quote.QuoteServiceItem;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteDataException;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
-import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecution;
-import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionRepository;
 import br.com.ofisy.domain.stock.Stock;
 import br.com.ofisy.domain.stock.StockRepository;
 import org.junit.jupiter.api.Nested;
@@ -32,7 +30,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -50,8 +47,6 @@ class CreateQuoteServiceTest {
     private QuoteRepository quoteRepository;
     @Mock
     private StockRepository stockRepository;
-    @Mock
-    private ServiceOrderExecutionRepository serviceOrderExecutionRepository;
     @Mock
     private ServiceCatalogRepository serviceCatalogRepository;
     @Mock
@@ -146,7 +141,6 @@ class CreateQuoteServiceTest {
                     .containsExactly(
                             tuple(SERVICE_CATALOG_ID, new BigDecimal(PRICE_150)),
                             tuple(SERVICE_CATALOG_ID_SECONDARY, new BigDecimal(PRICE_100)));
-            verify(serviceOrderExecutionRepository, times(2)).save(any(ServiceOrderExecution.class));
         }
 
         @Test
@@ -163,7 +157,6 @@ class CreateQuoteServiceTest {
             assertThatThrownBy(() -> service.execute(cmd))
                     .isInstanceOf(QuoteItemAlreadyExistsException.class);
 
-            verify(serviceOrderExecutionRepository, times(1)).save(any(ServiceOrderExecution.class));
             verify(quoteRepository, never()).save(any());
         }
 

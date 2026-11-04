@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Claude">
   <diagram id="seq-ofisy" name="Sequencia - Autenticacao a Finalizacao da OS">
-    <mxGraphModel dx="1356" dy="6546" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1990" pageHeight="5792" math="0" shadow="0">
+    <mxGraphModel dx="1356" dy="6546" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2330" pageHeight="5792" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -79,6 +79,24 @@
             <mxPoint x="1730" y="5732" as="targetPoint" />
           </mxGeometry>
         </mxCell>
+        <mxCell id="hdr_msexecution" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#1168BD;strokeColor=#0B4884;fontColor=#ffffff;fontSize=12;fontStyle=1;" value="ms-ofisy-execution&lt;br&gt;&lt;font style=&quot;font-size:9px&quot; color=&quot;#dbe9fb&quot;&gt;execução dos serviços (Spring Boot)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="70" width="160" x="1880" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="life_msexecution" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;strokeWidth=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1960" y="120" as="sourcePoint" />
+            <mxPoint x="1960" y="5732" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hdr_broker" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#666666;strokeColor=#444444;fontColor=#ffffff;fontSize=12;fontStyle=1;" value="SNS / SQS (AWS)&lt;br&gt;&lt;font style=&quot;font-size:9px&quot; color=&quot;#f5f5f5&quot;&gt;tópicos e filas FIFO&lt;/font&gt;" vertex="1">
+          <mxGeometry height="70" width="160" x="2120" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="life_broker" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;strokeWidth=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="2200" y="120" as="sourcePoint" />
+            <mxPoint x="2200" y="5732" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
         <mxCell id="c1001" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
           <mxGeometry height="316.5" width="12" x="724" y="324" as="geometry" />
         </mxCell>
@@ -104,10 +122,10 @@
           <mxGeometry height="324.5" width="12" x="724" y="3206" as="geometry" />
         </mxCell>
         <mxCell id="c1009" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="202.5" width="12" x="724" y="3632" as="geometry" />
+          <mxGeometry height="168" width="12" x="724" y="3636" as="geometry" />
         </mxCell>
         <mxCell id="c1010" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="426.5" width="12" x="724" y="3894" as="geometry" />
+          <mxGeometry height="132" width="12" x="724" y="3968" as="geometry" />
         </mxCell>
         <mxCell id="c1011" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
           <mxGeometry height="190.5" width="12" x="724" y="4422" as="geometry" />
@@ -155,10 +173,10 @@
           <mxGeometry height="130.5" width="12" x="1464" y="3364" as="geometry" />
         </mxCell>
         <mxCell id="c1026" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="130.5" width="12" x="1464" y="3668" as="geometry" />
+          <mxGeometry height="102" width="12" x="1464" y="3824" as="geometry" />
         </mxCell>
         <mxCell id="c1027" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="354.5" width="12" x="1464" y="3930" as="geometry" />
+          <mxGeometry height="124" width="12" x="1464" y="4208" as="geometry" />
         </mxCell>
         <mxCell id="c1028" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
           <mxGeometry height="118.5" width="12" x="1464" y="4458" as="geometry" />
@@ -197,13 +215,25 @@
           <mxGeometry height="58.5" width="12" x="1724" y="3400" as="geometry" />
         </mxCell>
         <mxCell id="c1040" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="58.5" width="12" x="1724" y="3704" as="geometry" />
+          <mxGeometry height="58" width="12" x="1724" y="3866" as="geometry" />
         </mxCell>
         <mxCell id="c1041" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="58.5" width="12" x="1724" y="3966" as="geometry" />
+          <mxGeometry height="72" width="12" x="1724" y="4256" as="geometry" />
         </mxCell>
         <mxCell id="c1042" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
-          <mxGeometry height="58.5" width="12" x="1724" y="4158" as="geometry" />
+          <mxGeometry height="96" width="12" x="1954" y="3672" as="geometry" />
+        </mxCell>
+        <mxCell id="c1173" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
+          <mxGeometry height="60" width="12" x="1954" y="4004" as="geometry" />
+        </mxCell>
+        <mxCell id="c1174" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
+          <mxGeometry height="24" width="12" x="1954" y="4168" as="geometry" />
+        </mxCell>
+        <mxCell id="c1175" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
+          <mxGeometry height="128" width="12" x="2194" y="3714" as="geometry" />
+        </mxCell>
+        <mxCell id="c1176" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
+          <mxGeometry height="52" width="12" x="2194" y="4174" as="geometry" />
         </mxCell>
         <mxCell id="c1043" parent="1" style="html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#444444;strokeWidth=1;" vertex="1">
           <mxGeometry height="46.5" width="12" x="1724" y="4494" as="geometry" />
@@ -215,37 +245,37 @@
           <mxGeometry height="58.5" width="12" x="1724" y="5434" as="geometry" />
         </mxCell>
         <mxCell id="c1046" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO A · Autenticação do Atendente (login com e-mail/senha)" vertex="1">
-          <mxGeometry height="30" width="1950" x="20" y="280" as="geometry" />
+          <mxGeometry height="30" width="2280" x="20" y="280" as="geometry" />
         </mxCell>
         <mxCell id="c1047" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO B · Abertura da Ordem de Serviço" vertex="1">
-          <mxGeometry height="30" width="1950" x="20" y="666" as="geometry" />
+          <mxGeometry height="30" width="2280" x="20" y="666" as="geometry" />
         </mxCell>
         <mxCell id="c1048" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO C · Diagnóstico do Veículo" vertex="1">
-          <mxGeometry height="30" width="1950" x="20" y="1126" as="geometry" />
+          <mxGeometry height="30" width="2280" x="20" y="1126" as="geometry" />
         </mxCell>
         <mxCell id="c1049" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO D · Geração do Orçamento (peças + serviços)" vertex="1">
-          <mxGeometry height="30" width="1950" x="20" y="1410" as="geometry" />
+          <mxGeometry height="30" width="2280" x="20" y="1410" as="geometry" />
         </mxCell>
         <mxCell id="c1050" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO E · Submissão do Orçamento para Aprovação" vertex="1">
-          <mxGeometry height="30" width="1950" x="20" y="1932" as="geometry" />
+          <mxGeometry height="30" width="2280" x="20" y="1932" as="geometry" />
         </mxCell>
         <mxCell id="c1051" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO F · Autenticação do Cliente (CPF/CNPJ, sem senha)" vertex="1">
-          <mxGeometry height="30" width="1950" x="20" y="2204" as="geometry" />
+          <mxGeometry height="30" width="2280" x="20" y="2204" as="geometry" />
         </mxCell>
         <mxCell id="c1052" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO G · Aprovação ou Reprovação do Orçamento pelo Cliente" vertex="1">
-          <mxGeometry height="30" width="1950" x="20" y="2590" as="geometry" />
+          <mxGeometry height="30" width="2280" x="20" y="2590" as="geometry" />
         </mxCell>
         <mxCell id="c1053" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO H · Execução dos Serviços pelo Mecânico" vertex="1">
-          <mxGeometry height="30" width="1950" x="20" y="3588" as="geometry" />
+          <mxGeometry height="30" width="2280" x="20" y="3588" as="geometry" />
         </mxCell>
         <mxCell id="c1054" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO I · Entrega do Veículo ao Cliente (fim do ciclo da OS)" vertex="1">
-          <mxGeometry height="30" width="1950" x="20" y="4378" as="geometry" />
+          <mxGeometry height="30" width="2280" x="20" y="4378" as="geometry" />
         </mxCell>
         <mxCell id="c1055" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO J · Consulta de Status (protegida pelo Lambda Authorizer)" vertex="1">
-          <mxGeometry height="30" width="1950" x="20" y="4638" as="geometry" />
+          <mxGeometry height="30" width="2280" x="20" y="4638" as="geometry" />
         </mxCell>
         <mxCell id="c1056" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#B3B3B3;fontStyle=1;fontSize=12;fontColor=#333333;align=center;" value="BLOCO K · Notificações do Cliente (protegidas pelo Lambda Authorizer)" vertex="1">
-          <mxGeometry height="30" width="1950" x="20" y="5108" as="geometry" />
+          <mxGeometry height="30" width="2280" x="20" y="5108" as="geometry" />
         </mxCell>
         <mxCell id="c1057" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="POST /api/v1/login&lt;br&gt;{ email, password }">
           <mxGeometry relative="1" as="geometry">
@@ -581,80 +611,92 @@
         </mxCell>
         <mxCell id="c1112" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="encaminha">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="3684.5" as="sourcePoint" />
-            <mxPoint x="1470" y="3684.5" as="targetPoint" />
+            <mxPoint x="730" y="3684" as="sourcePoint" />
+            <mxPoint x="1960" y="3684" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1113" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="UPDATE service_order_executions SET status = IN_PROGRESS, started_at&lt;br&gt;UPDATE service_orders SET status = IN_PROGRESS">
+        <mxCell id="c1113" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="ExecutionStarted (outbox)&lt;br&gt;SNS ofisy-execution-events.fifo">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1470" y="3727.1" as="sourcePoint" />
-            <mxPoint x="1730" y="3727.1" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="c1114" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="ok">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1730" y="3768.5" as="sourcePoint" />
-            <mxPoint x="1470" y="3768.5" as="targetPoint" />
+            <mxPoint x="1960" y="3720" as="sourcePoint" />
+            <mxPoint x="2200" y="3720" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="c1115" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1470" y="3804.5" as="sourcePoint" />
-            <mxPoint x="730" y="3804.5" as="targetPoint" />
+            <mxPoint x="1960" y="3756" as="sourcePoint" />
+            <mxPoint x="730" y="3756" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="c1116" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="3840.5" as="sourcePoint" />
-            <mxPoint x="490" y="3840.5" as="targetPoint" />
+            <mxPoint x="730" y="3792" as="sourcePoint" />
+            <mxPoint x="490" y="3792" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1170" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="ExecutionStarted&lt;br&gt;SQS ofisy-service-order.fifo">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="2200" y="3836" as="sourcePoint" />
+            <mxPoint x="1470" y="3836" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1114" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="UPDATE service_orders SET status = IN_PROGRESS&lt;br&gt;INSERT INTO processed_events">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1470" y="3878" as="sourcePoint" />
+            <mxPoint x="1730" y="3878" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1171" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="ok">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1730" y="3914" as="sourcePoint" />
+            <mxPoint x="1470" y="3914" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="c1117" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /api/v1/service_order_executions/{id}/complete">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="490" y="3910.5" as="sourcePoint" />
-            <mxPoint x="730" y="3910.5" as="targetPoint" />
+          <mxGeometry relative="1" y="12" as="geometry">
+            <mxPoint x="490" y="3980" as="sourcePoint" />
+            <mxPoint x="730" y="3980" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="c1118" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="encaminha">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="3946.5" as="sourcePoint" />
-            <mxPoint x="1470" y="3946.5" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="c1119" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="UPDATE service_order_executions&lt;br&gt;SET status = COMPLETED, finished_at">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1470" y="3989.1" as="sourcePoint" />
-            <mxPoint x="1730" y="3989.1" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="c1120" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="ok">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1730" y="4030.5" as="sourcePoint" />
-            <mxPoint x="1470" y="4030.5" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="c1121" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="UPDATE service_orders&lt;br&gt;SET status = FINISHED, finished_at = now()">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1470" y="4181.1" as="sourcePoint" />
-            <mxPoint x="1730" y="4181.1" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="c1122" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="ok">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1730" y="4222.5" as="sourcePoint" />
-            <mxPoint x="1470" y="4222.5" as="targetPoint" />
+            <mxPoint x="730" y="4016" as="sourcePoint" />
+            <mxPoint x="1960" y="4016" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="c1123" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK { execução }">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1470" y="4290.5" as="sourcePoint" />
-            <mxPoint x="730" y="4290.5" as="targetPoint" />
+            <mxPoint x="1960" y="4052" as="sourcePoint" />
+            <mxPoint x="730" y="4052" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="c1124" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="200 OK">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="730" y="4326.5" as="sourcePoint" />
-            <mxPoint x="490" y="4326.5" as="targetPoint" />
+            <mxPoint x="730" y="4088" as="sourcePoint" />
+            <mxPoint x="490" y="4088" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1119" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="AllExecutionsCompleted (outbox)&lt;br&gt;SNS ofisy-execution-events.fifo">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1960" y="4180" as="sourcePoint" />
+            <mxPoint x="2200" y="4180" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1172" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="AllExecutionsCompleted&lt;br&gt;SQS ofisy-service-order.fifo">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="2200" y="4220" as="sourcePoint" />
+            <mxPoint x="1470" y="4220" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1121" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="UPDATE service_orders&lt;br&gt;SET status = FINISHED, finished_at = now()&lt;br&gt;INSERT INTO processed_events">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1470" y="4268" as="sourcePoint" />
+            <mxPoint x="1730" y="4268" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1122" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="ok">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1730" y="4320" as="sourcePoint" />
+            <mxPoint x="1470" y="4320" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="c1125" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="PATCH /api/v1/service-orders/{id}/deliver">
@@ -801,7 +843,7 @@
         <mxCell id="c1150" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="O Mecânico autentica-se pelo mesmo fluxo&lt;br&gt;de login do Bloco A, recebendo um token&lt;br&gt;com a role MECHANIC" vertex="1">
           <mxGeometry height="74" width="280" x="512" y="1038" as="geometry" />
         </mxCell>
-        <mxCell id="c1151" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="Cria 1 ServiceOrderExecution (PENDING)&lt;br&gt;por serviço do orçamento&lt;br&gt;Soma os itens em total_price" vertex="1">
+        <mxCell id="c1151" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="Soma os itens em total_price&lt;br&gt;O preço de cada serviço é copiado&lt;br&gt;do catálogo para o item do orçamento" vertex="1">
           <mxGeometry height="74" width="280" x="1492" y="1688" as="geometry" />
         </mxCell>
         <mxCell id="c1152" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="Valida formato do CPF/CNPJ&lt;br&gt;Confere existência e active = true&lt;br&gt;Gera JWT HS256 (sub = customerId,&lt;br&gt;iss = techchallenge-ofisy-auth)" vertex="1">
@@ -813,8 +855,8 @@
         <mxCell id="c1154" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="Se isAuthorized = false, a API Gateway&lt;br&gt;responde 401 direto ao Cliente,&amp;nbsp; a&lt;br&gt;chamada nem chega até a Ofisy API" vertex="1">
           <mxGeometry height="74" width="280" x="752" y="2900" as="geometry" />
         </mxCell>
-        <mxCell id="c1155" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="Verifica se todas as execuções da OS&lt;br&gt;já estão com status = COMPLETED" vertex="1">
-          <mxGeometry height="60" width="280" x="1492" y="4050" as="geometry" />
+        <mxCell id="c1155" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="Na conclusão, verifica se todas as&lt;br&gt;execuções da OS terminaram e, na&lt;br&gt;última, grava AllExecutionsCompleted" vertex="1">
+          <mxGeometry height="60" width="205" x="1978" y="3990" as="geometry" />
         </mxCell>
         <mxCell id="c1156" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="A rota continua marcada como pública&lt;br&gt;dentro do Spring (security.public-paths),&lt;br&gt;mas a proteção do cliente hoje acontece&lt;br&gt;na borda: API Gateway + Lambda Authorizer" vertex="1">
           <mxGeometry height="88" width="280" x="752" y="4826" as="geometry" />
@@ -841,16 +883,22 @@
           <mxGeometry height="18" width="360" x="48" y="3182" as="geometry" />
         </mxCell>
         <mxCell id="c1165" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#8C8C8C;verticalAlign=top;align=left;strokeWidth=1;dashed=0;" vertex="1">
-          <mxGeometry height="136" width="360" x="1420" y="4124" as="geometry" />
+          <mxGeometry height="215" width="860" x="1420" y="4135" as="geometry" />
         </mxCell>
-        <mxCell id="c1166" parent="1" style="shape=note2;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;fontStyle=1;align=left;spacingLeft=4;size=8;" value="opt  [todas as execuções concluídas]" vertex="1">
-          <mxGeometry height="22" width="350" x="1420" y="4124" as="geometry" />
+        <mxCell id="c1166" parent="1" style="shape=note2;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;fontStyle=1;align=left;spacingLeft=4;size=8;" value="opt  [última execução da OS concluída]" vertex="1">
+          <mxGeometry height="22" width="350" x="1420" y="4135" as="geometry" />
         </mxCell>
         <mxCell id="c1167" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#8C8C8C;verticalAlign=top;align=left;strokeWidth=1;dashed=0;" vertex="1">
-          <mxGeometry height="504" width="1340" x="440" y="3860" as="geometry" />
+          <mxGeometry height="180" width="1780" x="440" y="3940" as="geometry" />
         </mxCell>
-        <mxCell id="c1168" parent="1" style="shape=note2;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;fontStyle=1;align=left;spacingLeft=4;size=8;" value="loop  [repete para cada ServiceOrderExecution da OS]" vertex="1">
-          <mxGeometry height="22" width="360" x="440" y="3860" as="geometry" />
+        <mxCell id="c1168" parent="1" style="shape=note2;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;fontStyle=1;align=left;spacingLeft=4;size=8;" value="loop  [repete para cada execução da OS no ms-ofisy-execution]" vertex="1">
+          <mxGeometry height="22" width="360" x="440" y="3940" as="geometry" />
+        </mxCell>
+        <mxCell id="c1177" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="Só na primeira execução&lt;br&gt;iniciada da OS" vertex="1">
+          <mxGeometry height="40" width="150" x="1978" y="3636" as="geometry" />
+        </mxCell>
+        <mxCell id="c1178" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="Idempotente pelo eventId&lt;br&gt;(processed_events)" vertex="1">
+          <mxGeometry height="40" width="150" x="1500" y="3780" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
