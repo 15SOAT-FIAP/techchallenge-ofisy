@@ -76,16 +76,15 @@ public class CreateQuoteService implements CreateQuoteUseCase {
                             String.valueOf(command.serviceCatalogId())));
 
             boolean duplicate = items.stream()
-                    .anyMatch(i -> i.getServiceOrderExecution().getServiceCatalogId()
-                            .equals(command.serviceCatalogId()));
+                    .anyMatch(i -> i.getServiceCatalogId().equals(command.serviceCatalogId()));
             if (duplicate) {
                 throw new QuoteItemAlreadyExistsException(catalog.getName());
             }
 
-            ServiceOrderExecution execution = serviceOrderExecutionRepository.save(
+            serviceOrderExecutionRepository.save(
                     ServiceOrderExecution.create(command.serviceCatalogId(), serviceOrderId));
 
-            items.add(QuoteServiceItem.create(execution, catalog.getPrice()));
+            items.add(QuoteServiceItem.create(command.serviceCatalogId(), catalog.getPrice()));
         }
 
         return items;

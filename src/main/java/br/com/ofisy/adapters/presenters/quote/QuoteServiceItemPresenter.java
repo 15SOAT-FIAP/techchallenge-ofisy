@@ -11,7 +11,7 @@ public class QuoteServiceItemPresenter {
     public static QuoteServiceItemResponseDTO present(QuoteServiceItem item) {
         return new QuoteServiceItemResponseDTO(
                 item.getId(),
-                item.getServiceOrderExecution().getId(),
+                item.getServiceCatalogId(),
                 item.getPrice(),
                 item.getCreatedAt()
         );

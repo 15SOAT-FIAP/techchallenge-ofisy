@@ -134,7 +134,7 @@ public class UpdateQuoteService implements UpdateQuoteUseCase {
     private List<QuoteServiceItem> buildServiceItems(Quote quote,
                                                      List<CreateQuoteUseCase.ServiceItemCommand> commands) {
         Map<UUID, QuoteServiceItem> existingByServiceCatalogId = quote.getServiceItems().stream()
-                .collect(Collectors.toMap(quoteServiceItem -> quoteServiceItem.getServiceOrderExecution().getServiceCatalogId(), Function.identity()));
+                .collect(Collectors.toMap(QuoteServiceItem::getServiceCatalogId, Function.identity()));
 
         List<QuoteServiceItem> items = new ArrayList<>();
         Set<UUID> requestedCatalogIds = new HashSet<>();
@@ -151,11 +151,11 @@ public class UpdateQuoteService implements UpdateQuoteUseCase {
             QuoteServiceItem existing = existingByServiceCatalogId.get(command.serviceCatalogId());
             if (existing != null) {
                 items.add(QuoteServiceItem.reconstruct(
-                        existing.getId(), existing.getServiceOrderExecution(), existing.getPrice(),
+                        existing.getId(), existing.getServiceCatalogId(), existing.getPrice(),
                         existing.getCreatedAt(), LocalDateTime.now()));
             } else {
-                ServiceOrderExecution execution = serviceOrderExecutionRepository.save(ServiceOrderExecution.create(command.serviceCatalogId(), quote.getServiceOrderId()));
-                items.add(QuoteServiceItem.create(execution, catalog.getPrice()));
+                serviceOrderExecutionRepository.save(ServiceOrderExecution.create(command.serviceCatalogId(), quote.getServiceOrderId()));
+                items.add(QuoteServiceItem.create(command.serviceCatalogId(), catalog.getPrice()));
             }
         }
 
@@ -165,17 +165,23 @@ public class UpdateQuoteService implements UpdateQuoteUseCase {
     }
 
     private void cancelRemovedExecutions(Quote quote, Set<UUID> requestedCatalogIds) {
-        for (QuoteServiceItem item : quote.getServiceItems()) {
-            ServiceOrderExecution execution = item.getServiceOrderExecution();
+        Set<UUID> removedCatalogIds = quote.getServiceItems().stream()
+                .map(QuoteServiceItem::getServiceCatalogId)
+                .filter(serviceCatalogId -> !requestedCatalogIds.contains(serviceCatalogId))
+                .collect(Collectors.toSet());
 
-            boolean stillRequested = requestedCatalogIds.contains(execution.getServiceCatalogId());
-            boolean cancellable = execution.getStatus() != ServiceOrderExecutionStatus.CANCELLED
-                    && execution.getStatus() != ServiceOrderExecutionStatus.COMPLETED;
-
-            if (!stillRequested && cancellable) {
-                execution.cancel();
-                serviceOrderExecutionRepository.save(execution);
-            }
+        if (removedCatalogIds.isEmpty()) {
+            return;
         }
+
+        List<ServiceOrderExecutionStatus> activeStatuses =
+                List.of(ServiceOrderExecutionStatus.PENDING, ServiceOrderExecutionStatus.IN_PROGRESS);
+
+        serviceOrderExecutionRepository.findByServiceOrderIdAndStatusIn(quote.getServiceOrderId(), activeStatuses).stream()
+                .filter(execution -> removedCatalogIds.contains(execution.getServiceCatalogId()))
+                .forEach(execution -> {
+                    execution.cancel();
+                    serviceOrderExecutionRepository.save(execution);
+                });
     }
 }

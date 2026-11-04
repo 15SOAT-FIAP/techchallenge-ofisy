@@ -2,7 +2,6 @@ package br.com.ofisy.domain.quote;
 
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteDataException;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
-import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecution;
 import br.com.ofisy.domain.stock.Stock;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -172,8 +171,7 @@ class QuoteTest {
 
 
     private QuoteServiceItem validServiceItem() {
-        ServiceOrderExecution execution = mockServiceOrderExecution();
-        return QuoteServiceItem.create(execution, new BigDecimal(PRICE_150));
+        return QuoteServiceItem.create(UUID.randomUUID(), new BigDecimal(PRICE_150));
     }
 
     private QuoteStockItem validStockItem() {
@@ -183,10 +181,6 @@ class QuoteTest {
 
     private Stock mockStock(BigDecimal unitPrice) {
         return Stock.create("Filtro de óleo", "Filtro", 10, unitPrice, "Filtros", 2);
-    }
-
-    private ServiceOrderExecution mockServiceOrderExecution() {
-        return ServiceOrderExecution.create(UUID.randomUUID(), UUID.randomUUID());
     }
 
 }

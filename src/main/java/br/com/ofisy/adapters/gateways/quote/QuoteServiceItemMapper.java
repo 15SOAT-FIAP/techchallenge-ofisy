@@ -1,23 +1,16 @@
 package br.com.ofisy.adapters.gateways.quote;
 
-import br.com.ofisy.application.serviceorderexecution.exceptions.ServiceOrderExecutionNotFoundException;
 import br.com.ofisy.domain.quote.QuoteServiceItem;
-import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecution;
-import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionRepository;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class QuoteServiceItemMapper {
 
-    public static QuoteServiceItem toDomain(QuoteServiceItemEntity entity,
-                                            ServiceOrderExecutionRepository executionRepository) {
-        ServiceOrderExecution execution = executionRepository.findById(entity.getServiceOrderExecutionId())
-                .orElseThrow(() -> new ServiceOrderExecutionNotFoundException(entity.getServiceOrderExecutionId()));
-
+    public static QuoteServiceItem toDomain(QuoteServiceItemEntity entity) {
         return QuoteServiceItem.reconstruct(
                 entity.getId(),
-                execution,
+                entity.getServiceCatalogId(),
                 entity.getPrice(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt()
@@ -28,7 +21,7 @@ public class QuoteServiceItemMapper {
         return QuoteServiceItemEntity.builder()
                 .id(item.getId())
                 .quote(quoteEntity)
-                .serviceOrderExecutionId(item.getServiceOrderExecution().getId())
+                .serviceCatalogId(item.getServiceCatalogId())
                 .price(item.getPrice())
                 .createdAt(item.getCreatedAt())
                 .updatedAt(item.getUpdatedAt())

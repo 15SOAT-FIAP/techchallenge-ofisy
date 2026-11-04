@@ -5,9 +5,6 @@ import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.quote.QuoteServiceItem;
 import br.com.ofisy.domain.quote.QuoteStatus;
 import br.com.ofisy.domain.quote.QuoteStockItem;
-import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecution;
-import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionRepository;
-import br.com.ofisy.domain.serviceorderexecution.ServiceOrderExecutionStatus;
 import br.com.ofisy.domain.stock.Stock;
 import br.com.ofisy.domain.stock.StockRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -42,7 +39,6 @@ class QuoteRepositoryImplTest {
 
     @Mock private JpaQuoteRepository jpaQuoteRepository;
     @Mock private StockRepository stockRepository;
-    @Mock private ServiceOrderExecutionRepository executionRepository;
 
     @InjectMocks
     private QuoteRepositoryImpl repository;
@@ -200,19 +196,17 @@ class QuoteRepositoryImplTest {
             var quoteId = UUID.randomUUID();
             var serviceOrderId = UUID.randomUUID();
             var existingItemId = UUID.randomUUID();
-            var executionId = UUID.randomUUID();
+            var serviceCatalogId = UUID.randomUUID();
 
             var existingEntity = validEntity(quoteId, serviceOrderId);
-            existingEntity.getServiceItems().add(serviceItemEntity(existingItemId, executionId, existingEntity));
+            existingEntity.getServiceItems().add(serviceItemEntity(existingItemId, serviceCatalogId, existingEntity));
 
-            var execution = validExecution(executionId, serviceOrderId);
-            var domainServiceItem = QuoteServiceItem.reconstruct(existingItemId, execution,
+            var domainServiceItem = QuoteServiceItem.reconstruct(existingItemId, serviceCatalogId,
                     new BigDecimal(PRICE_150), LocalDateTime.now(), LocalDateTime.now());
             var quote = quoteWithServiceItems(quoteId, serviceOrderId, List.of(domainServiceItem));
 
             when(jpaQuoteRepository.findById(quoteId)).thenReturn(Optional.of(existingEntity));
             when(jpaQuoteRepository.save(any(QuoteEntity.class))).thenReturn(existingEntity);
-            when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
 
             repository.save(quote);
 
@@ -226,25 +220,19 @@ class QuoteRepositoryImplTest {
             var quoteId = UUID.randomUUID();
             var serviceOrderId = UUID.randomUUID();
             var existingItemId = UUID.randomUUID();
-            var executionId = UUID.randomUUID();
-            var newExecutionId = UUID.randomUUID();
+            var serviceCatalogId = UUID.randomUUID();
 
             var existingEntity = validEntity(quoteId, serviceOrderId);
-            existingEntity.getServiceItems().add(serviceItemEntity(existingItemId, executionId, existingEntity));
+            existingEntity.getServiceItems().add(serviceItemEntity(existingItemId, serviceCatalogId, existingEntity));
 
-            var existingExecution = validExecution(executionId, serviceOrderId);
-            var unchangedItem = QuoteServiceItem.reconstruct(existingItemId, existingExecution,
+            var unchangedItem = QuoteServiceItem.reconstruct(existingItemId, serviceCatalogId,
                     new BigDecimal(PRICE_150), LocalDateTime.now(), LocalDateTime.now());
-
-            var newExecution = validExecution(newExecutionId, serviceOrderId);
-            var newItem = QuoteServiceItem.create(newExecution, new BigDecimal(PRICE_150));
+            var newItem = QuoteServiceItem.create(UUID.randomUUID(), new BigDecimal(PRICE_150));
 
             var quote = quoteWithServiceItems(quoteId, serviceOrderId, List.of(unchangedItem, newItem));
 
             when(jpaQuoteRepository.findById(quoteId)).thenReturn(Optional.of(existingEntity));
             when(jpaQuoteRepository.save(any(QuoteEntity.class))).thenReturn(existingEntity);
-            when(executionRepository.findById(executionId)).thenReturn(Optional.of(existingExecution));
-            when(executionRepository.findById(newExecutionId)).thenReturn(Optional.of(newExecution));
 
             repository.save(quote);
 
@@ -260,22 +248,19 @@ class QuoteRepositoryImplTest {
             var serviceOrderId = UUID.randomUUID();
             var keptItemId = UUID.randomUUID();
             var removedItemId = UUID.randomUUID();
-            var keptExecutionId = UUID.randomUUID();
-            var removedExecutionId = UUID.randomUUID();
+            var keptServiceCatalogId = UUID.randomUUID();
 
             var existingEntity = validEntity(quoteId, serviceOrderId);
-            existingEntity.getServiceItems().add(serviceItemEntity(keptItemId, keptExecutionId, existingEntity));
-            existingEntity.getServiceItems().add(serviceItemEntity(removedItemId, removedExecutionId, existingEntity));
+            existingEntity.getServiceItems().add(serviceItemEntity(keptItemId, keptServiceCatalogId, existingEntity));
+            existingEntity.getServiceItems().add(serviceItemEntity(removedItemId, UUID.randomUUID(), existingEntity));
 
-            var keptExecution = validExecution(keptExecutionId, serviceOrderId);
-            var keptItem = QuoteServiceItem.reconstruct(keptItemId, keptExecution,
+            var keptItem = QuoteServiceItem.reconstruct(keptItemId, keptServiceCatalogId,
                     new BigDecimal(PRICE_150), LocalDateTime.now(), LocalDateTime.now());
 
             var quote = quoteWithServiceItems(quoteId, serviceOrderId, List.of(keptItem));
 
             when(jpaQuoteRepository.findById(quoteId)).thenReturn(Optional.of(existingEntity));
             when(jpaQuoteRepository.save(any(QuoteEntity.class))).thenReturn(existingEntity);
-            when(executionRepository.findById(keptExecutionId)).thenReturn(Optional.of(keptExecution));
 
             repository.save(quote);
 
@@ -403,11 +388,6 @@ class QuoteRepositoryImplTest {
                 LocalDateTime.now(), LocalDateTime.now());
     }
 
-    private ServiceOrderExecution validExecution(UUID id, UUID serviceOrderId) {
-        return ServiceOrderExecution.reconstruct(id, UUID.randomUUID(), serviceOrderId,
-                ServiceOrderExecutionStatus.PENDING, LocalDateTime.now(), LocalDateTime.now(), null, null);
-    }
-
     private QuoteEntity validEntity(UUID id, UUID serviceOrderId) {
         return QuoteEntity.builder()
                 .id(id)
@@ -433,11 +413,11 @@ class QuoteRepositoryImplTest {
                 .build();
     }
 
-    private QuoteServiceItemEntity serviceItemEntity(UUID id, UUID executionId, QuoteEntity quoteEntity) {
+    private QuoteServiceItemEntity serviceItemEntity(UUID id, UUID serviceCatalogId, QuoteEntity quoteEntity) {
         return QuoteServiceItemEntity.builder()
                 .id(id)
                 .quote(quoteEntity)
-                .serviceOrderExecutionId(executionId)
+                .serviceCatalogId(serviceCatalogId)
                 .price(new BigDecimal(PRICE_150))
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())

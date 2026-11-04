@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public record QuoteServiceItemResponseDTO(
         UUID id,
-        UUID serviceOrderExecutionId,
+        UUID serviceCatalogId,
         BigDecimal price,
         LocalDateTime createdAt
 ) {}
