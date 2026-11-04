@@ -347,11 +347,11 @@ psql -h $ENDPOINT -U admin -d ofisydb -c "SELECT version();"
 
 ```bash
 # Informações do cluster
-aws eks describe-cluster --name ofisy-cluster \
+aws eks describe-cluster --name ms-ofisy-core-cluster \
   --query "cluster.{Name:name,Version:version,Status:status,Endpoint:endpoint,Logging:logging.clusterLogging[*].types}"
 
 # Atualizar kubeconfig para usar kubectl
-aws eks update-kubeconfig --region us-east-1 --name ofisy-cluster
+aws eks update-kubeconfig --region us-east-1 --name ms-ofisy-core-cluster
 
 # Verificar acesso ao cluster
 kubectl cluster-info
@@ -368,7 +368,7 @@ kubectl get pods -A
 
 ```bash
 # Informações do node group
-aws eks describe-nodegroup --cluster-name ofisy-cluster --nodegroup-name ofisy-node-group \
+aws eks describe-nodegroup --cluster-name ms-ofisy-core-cluster --nodegroup-name ms-ofisy-core-node-group \
   --query "nodegroup.{Name:nodegroupName,Status:status,InstanceTypes:instanceTypes,DesiredSize:scalingConfig.desiredSize,MinSize:scalingConfig.minSize,MaxSize:scalingConfig.maxSize}"
 
 # Detailed node information via kubectl
@@ -397,8 +397,8 @@ aws iam list-attached-role-policies --role-name ofisy-eks-node-group-role
 
 ```bash
 echo "=== TERRAFORM OUTPUTS ===" && terraform output && \
-echo -e "\n=== EKS CLUSTER ===" && aws eks describe-cluster --name ofisy-cluster --query "cluster.{Name:name,Status:status,Version:version}" && \
+echo -e "\n=== EKS CLUSTER ===" && aws eks describe-cluster --name ms-ofisy-core-cluster --query "cluster.{Name:name,Status:status,Version:version}" && \
 echo -e "\n=== EKS NODES ===" && kubectl get nodes && \
-echo -e "\n=== RDS DATABASE ===" && aws rds describe-db-instances --db-instance-identifier ofisy-postgres-db --query "DBInstances[0].{Endpoint:Endpoint.Address,Status:DBInstanceStatus,Engine:Engine}" && \
+echo -e "\n=== RDS DATABASE ===" && aws rds describe-db-instances --db-instance-identifier ms-ofisy-core-db --query "DBInstances[0].{Endpoint:Endpoint.Address,Status:DBInstanceStatus,Engine:Engine}" && \
 echo -e "\n=== SECURITY GROUPS ===" && aws ec2 describe-security-groups --filters "Name=tag:Name,Values=ofisy-*" --query "SecurityGroups[*].{Name:GroupName,ID:GroupId}"
 ```

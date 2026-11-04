@@ -97,7 +97,7 @@ $env:AWS_SESSION_TOKEN="SEU_TOKEN"
 
 1.  Conecte o `kubectl` ao cluster EKS criado:
     ```powershell
-    aws eks update-kubeconfig --region us-east-1 --name ofisy-cluster
+    aws eks update-kubeconfig --region us-east-1 --name ms-ofisy-core-cluster
     ```
 2.  Insira o endpoint do banco RDS (retornado pelo Terraform como `rds_address`) no campo `POSTGRES_HOST` de `k8s/configmap.yml`.
 3.  Autentique o Docker no ECR, compile a aplicação e faça o push:
@@ -105,8 +105,8 @@ $env:AWS_SESSION_TOKEN="SEU_TOKEN"
     aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com
     .\mvnw.cmd clean package -DskipTests
     docker build -t ofisy-app:latest .
-    docker tag ofisy-app:latest <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest
-    docker push <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:latest
+    docker tag ofisy-app:latest <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/ms-ofisy-core-ecr:latest
+    docker push <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/ms-ofisy-core-ecr:latest
     ```
 4.  Crie os secrets e aplique os manifestos no cluster:
     ```powershell
