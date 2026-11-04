@@ -52,7 +52,7 @@ jobs:
       # 3. Conectar kubectl no Cluster EKS
       - name: Conectar ao EKS Cluster
         run: |
-          aws eks update-kubeconfig --region us-east-1 --name ofisy-cluster
+          aws eks update-kubeconfig --region us-east-1 --name ms-ofisy-core-cluster
 
       # 4. Garantir que o Metrics Server está instalado (necessário para o HPA calcular CPU/memória)
       - name: Instalar/Atualizar Metrics Server
@@ -89,8 +89,8 @@ jobs:
           echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
           # Garantir que a IMAGE_TAG está disponível no env do step
           IMAGE_TAG=$(git rev-parse --short HEAD)
-          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:$IMAGE_TAG .
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:$IMAGE_TAG
+          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ms-ofisy-core-ecr:$IMAGE_TAG .
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ms-ofisy-core-ecr:$IMAGE_TAG
 
       # 8. Atualizar placeholders e aplicar no cluster EKS da AWS
       - name: Deploy dos Manifestos no EKS
@@ -120,7 +120,7 @@ jobs:
           sed -i "s|<IMAGE_TAG>|${{ env.IMAGE_TAG }}|g" k8s/configmap.yml
 
           # Injeta a imagem do ECR no Deployment
-          sed -i "s|<ECR_REPOSITORY_URL>:<IMAGE_TAG>|${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ofisy-ecr:${{ env.IMAGE_TAG }}|g" k8s/deployment.yml
+          sed -i "s|<ECR_REPOSITORY_URL>:<IMAGE_TAG>|${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ms-ofisy-core-ecr:${{ env.IMAGE_TAG }}|g" k8s/deployment.yml
           
           # Aplica os recursos no cluster EKS
           kubectl apply -f k8s/secret.yml
