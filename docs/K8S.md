@@ -33,7 +33,7 @@ O banco saiu do cluster. PostgreSQL agora roda no RDS criado pelo Terraform, e o
 ### 1. Apontar o kubectl para o cluster
 
 ```bash
-aws eks update-kubeconfig --region us-east-1 --name ofisy-cluster
+aws eks update-kubeconfig --region us-east-1 --name ms-ofisy-core-cluster
 kubectl get nodes
 ```
 

@@ -4,6 +4,7 @@ metadata:
   name: ofisy-config
 data:
   POSTGRES_HOST: "<RDS_ADDRESS>"
+  POSTGRES_DB: "ms_ofisy_core_db"
   SPRING_PROFILES_ACTIVE: "k8s"
   DD_SERVICE: "ofisy-api"
   DD_ENV: "production"
