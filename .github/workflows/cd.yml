@@ -40,7 +40,7 @@ jobs:
       # 2. Obter o Endereço do Banco de Dados RDS PostgreSQL
       - name: Obter Endereço do RDS (PostgreSQL)
         run: |
-          RDS_ENDPOINT=$(aws rds describe-db-instances --db-instance-identifier ofisy-postgres-db --query "DBInstances[0].Endpoint.Address" --output text)
+          RDS_ENDPOINT=$(aws rds describe-db-instances --db-instance-identifier ms-ofisy-core-db --query "DBInstances[0].Endpoint.Address" --output text)
           if [ -z "$RDS_ENDPOINT" ] || [ "$RDS_ENDPOINT" == "None" ]; then
             echo "RDS não retornado dinamicamente. Utilizando secret RDS_HOST se disponível."
             RDS_ENDPOINT="${{ secrets.RDS_HOST }}"
@@ -104,7 +104,7 @@ jobs:
           echo "::add-mask::$DD_KEY"
 
           # Codifica as chaves do GitHub Secrets em base64 dinamicamente (sem quebra de linha)
-          BASE64_USER=$(echo -n "ofisy" | base64 -w 0)
+          BASE64_USER=$(echo -n "admin_db" | base64 -w 0)
           BASE64_PASS=$(echo -n "$DB_PASS" | base64 -w 0)
           BASE64_JWT=$(echo -n "$JWT_SEC" | base64 -w 0)
           BASE64_DD_KEY=$(echo -n "$DD_KEY" | base64 -w 0)
