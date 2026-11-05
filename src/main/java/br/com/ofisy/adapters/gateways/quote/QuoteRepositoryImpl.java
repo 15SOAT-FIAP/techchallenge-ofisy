@@ -5,7 +5,6 @@ import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.quote.QuoteRepository;
 import br.com.ofisy.domain.quote.QuoteServiceItem;
 import br.com.ofisy.domain.quote.QuoteStockItem;
-import br.com.ofisy.domain.stock.StockRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -20,18 +19,16 @@ import java.util.stream.Collectors;
 public class QuoteRepositoryImpl implements QuoteRepository {
 
     private final JpaQuoteRepository jpa;
-    private final StockRepository stockRepository;
 
-    public QuoteRepositoryImpl(JpaQuoteRepository jpa, StockRepository stockRepository) {
+    public QuoteRepositoryImpl(JpaQuoteRepository jpa) {
         this.jpa = jpa;
-        this.stockRepository = stockRepository;
     }
 
     @Override
     public Quote save(Quote quote) {
         if (quote.getId() == null) {
             QuoteEntity entity = QuoteMapper.toEntity(quote);
-            return QuoteMapper.toDomain(jpa.save(entity), stockRepository);
+            return QuoteMapper.toDomain(jpa.save(entity));
         }
         return update(quote);
     }
@@ -39,13 +36,13 @@ public class QuoteRepositoryImpl implements QuoteRepository {
     @Override
     public Optional<Quote> findById(UUID id) {
         return jpa.findById(id)
-                .map(entity -> QuoteMapper.toDomain(entity, stockRepository));
+                .map(QuoteMapper::toDomain);
     }
 
     @Override
     public List<Quote> findByServiceOrderId(UUID serviceOrderId) {
         return jpa.findByServiceOrderId(serviceOrderId).stream()
-                .map(entity -> QuoteMapper.toDomain(entity, stockRepository))
+                .map(QuoteMapper::toDomain)
                 .toList();
     }
 
@@ -63,7 +60,7 @@ public class QuoteRepositoryImpl implements QuoteRepository {
         reconcileStockItems(entity, quote);
         reconcileServiceItems(entity, quote);
 
-        return QuoteMapper.toDomain(jpa.save(entity), stockRepository);
+        return QuoteMapper.toDomain(jpa.save(entity));
     }
 
     private void reconcileStockItems(QuoteEntity entity, Quote quote) {
@@ -79,7 +76,7 @@ public class QuoteRepositoryImpl implements QuoteRepository {
                     : null;
 
             if (existing != null) {
-                existing.update(domainItem.getStock().getId(), domainItem.getUnitPrice(), domainItem.getQuantity(), domainItem.getUpdatedAt());
+                existing.update(domainItem.getStockId(), domainItem.getProductName(), domainItem.getUnitPrice(), domainItem.getQuantity(), domainItem.getUpdatedAt());
                 reconciled.add(existing);
             } else {
                 reconciled.add(QuoteStockItemMapper.toEntity(domainItem, entity));

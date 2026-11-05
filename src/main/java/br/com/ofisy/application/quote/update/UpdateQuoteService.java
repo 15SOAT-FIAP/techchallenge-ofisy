@@ -78,7 +78,7 @@ public class UpdateQuoteService implements UpdateQuoteUseCase {
 
     private List<QuoteStockItem> buildStockItems(Quote quote, List<CreateQuoteUseCase.StockItemCommand> commands) {
         Map<UUID, QuoteStockItem> existingByStockId = quote.getStockItems().stream()
-                .collect(Collectors.toMap(quoteStockItem -> quoteStockItem.getStock().getId(), Function.identity()));
+                .collect(Collectors.toMap(QuoteStockItem::getStockId, Function.identity()));
 
         List<QuoteStockItem> items = new ArrayList<>();
         Set<UUID> requestedStockIds = new HashSet<>();
@@ -102,12 +102,14 @@ public class UpdateQuoteService implements UpdateQuoteUseCase {
                 }
 
                 items.add(QuoteStockItem.reconstruct(
-                        existing.getId(), stock, existing.getUnitPrice(), command.quantity(),
+                        existing.getId(), existing.getStockId(), existing.getProductName(),
+                        existing.getUnitPrice(), command.quantity(),
                         existing.getCreatedAt(), LocalDateTime.now()));
             } else {
                 consumeStockUseCase.execute(
                         new ConsumeStockUseCase.ConsumeStockCommand(command.stockId(), command.quantity()));
-                items.add(QuoteStockItem.create(stock, command.quantity()));
+                items.add(QuoteStockItem.create(
+                        stock.getId(), stock.getProductName(), stock.getUnitPrice(), command.quantity()));
             }
         }
 
@@ -118,7 +120,7 @@ public class UpdateQuoteService implements UpdateQuoteUseCase {
 
     private void releaseRemovedStockItems(Quote quote, Set<UUID> requestedStockIds) {
         for (QuoteStockItem item : quote.getStockItems()) {
-            UUID stockId = item.getStock().getId();
+            UUID stockId = item.getStockId();
             if (!requestedStockIds.contains(stockId)) {
                 releaseStockUseCase.execute(new ReleaseStockUseCase.ReleaseStockCommand(stockId, item.getQuantity()));
             }
