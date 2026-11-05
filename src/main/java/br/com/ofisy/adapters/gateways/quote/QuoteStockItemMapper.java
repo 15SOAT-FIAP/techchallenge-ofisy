@@ -1,22 +1,17 @@
 package br.com.ofisy.adapters.gateways.quote;
 
-import br.com.ofisy.application.stock.exceptions.StockNotFoundException;
 import br.com.ofisy.domain.quote.QuoteStockItem;
-import br.com.ofisy.domain.stock.Stock;
-import br.com.ofisy.domain.stock.StockRepository;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class QuoteStockItemMapper {
 
-    public static QuoteStockItem toDomain(QuoteStockItemEntity entity, StockRepository stockRepository) {
-        Stock stock = stockRepository.findById(entity.getStockId())
-                .orElseThrow(() -> new StockNotFoundException(entity.getStockId()));
-
+    public static QuoteStockItem toDomain(QuoteStockItemEntity entity) {
         return QuoteStockItem.reconstruct(
                 entity.getId(),
-                stock,
+                entity.getStockId(),
+                entity.getProductName(),
                 entity.getUnitPrice(),
                 entity.getQuantity(),
                 entity.getCreatedAt(),
@@ -28,7 +23,8 @@ public class QuoteStockItemMapper {
         return QuoteStockItemEntity.builder()
                 .id(item.getId())
                 .quote(quoteEntity)
-                .stockId(item.getStock().getId())
+                .stockId(item.getStockId())
+                .productName(item.getProductName())
                 .unitPrice(item.getUnitPrice())
                 .quantity(item.getQuantity())
                 .createdAt(item.getCreatedAt())

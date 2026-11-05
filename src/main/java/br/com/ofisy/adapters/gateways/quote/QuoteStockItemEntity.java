@@ -28,6 +28,9 @@ public class QuoteStockItemEntity {
     @Column(name = "stock_id", nullable = false)
     private UUID stockId;
 
+    @Column(name = "product_name", nullable = false)
+    private String productName;
+
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal unitPrice;
 
@@ -39,8 +42,9 @@ public class QuoteStockItemEntity {
 
     private LocalDateTime updatedAt;
 
-    void update(UUID stockId, BigDecimal unitPrice, Integer quantity, LocalDateTime updatedAt) {
+    void update(UUID stockId, String productName, BigDecimal unitPrice, Integer quantity, LocalDateTime updatedAt) {
         this.stockId = stockId;
+        this.productName = productName;
         this.unitPrice = unitPrice;
         this.quantity = quantity;
         this.updatedAt = updatedAt;

@@ -2,12 +2,10 @@ package br.com.ofisy.adapters.presenters.quote;
 
 import br.com.ofisy.adapters.controllers.quote.dto.QuoteStockItemResponseDTO;
 import br.com.ofisy.domain.quote.QuoteStockItem;
-import br.com.ofisy.domain.stock.Stock;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,8 +22,7 @@ class QuoteStockItemPresenterTest {
         @Test
         void shouldMapAllFieldsCorrectly() {
             UUID stockId = UUID.randomUUID();
-            Stock stock = validStock(stockId);
-            QuoteStockItem item = QuoteStockItem.create(stock, 3);
+            QuoteStockItem item = validItem(stockId, 3);
 
             QuoteStockItemResponseDTO dto = QuoteStockItemPresenter.present(item);
 
@@ -37,8 +34,7 @@ class QuoteStockItemPresenterTest {
 
         @Test
         void shouldCalculateSubtotalCorrectly() {
-            Stock stock = validStock(UUID.randomUUID());
-            QuoteStockItem item = QuoteStockItem.create(stock, 4);
+            QuoteStockItem item = validItem(UUID.randomUUID(), 4);
 
             QuoteStockItemResponseDTO dto = QuoteStockItemPresenter.present(item);
 
@@ -47,8 +43,7 @@ class QuoteStockItemPresenterTest {
 
         @Test
         void shouldSetCreatedAtFromItem() {
-            Stock stock = validStock(UUID.randomUUID());
-            QuoteStockItem item = QuoteStockItem.create(stock, 1);
+            QuoteStockItem item = validItem(UUID.randomUUID(), 1);
 
             QuoteStockItemResponseDTO dto = QuoteStockItemPresenter.present(item);
 
@@ -56,9 +51,7 @@ class QuoteStockItemPresenterTest {
         }
     }
 
-    private Stock validStock(UUID id) {
-        return Stock.reconstruct(id, FILTRO_DE_OLEO, "Filtro",
-                10, new BigDecimal(PRICE_100), "Filtros", 2,
-                LocalDateTime.now(), LocalDateTime.now());
+    private QuoteStockItem validItem(UUID stockId, int quantity) {
+        return QuoteStockItem.create(stockId, FILTRO_DE_OLEO, new BigDecimal(PRICE_100), quantity);
     }
 }

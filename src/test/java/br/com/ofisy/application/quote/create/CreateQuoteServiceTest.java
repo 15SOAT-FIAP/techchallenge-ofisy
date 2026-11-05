@@ -73,6 +73,9 @@ class CreateQuoteServiceTest {
             assertThat(result).isNotNull();
             assertThat(result.getServiceOrderId()).isEqualTo(SERVICE_ORDER_ID);
             assertThat(result.getStockItems()).hasSize(1);
+            assertThat(result.getStockItems().getFirst().getStockId()).isEqualTo(STOCK_ID);
+            assertThat(result.getStockItems().getFirst().getProductName()).isEqualTo(stock.getProductName());
+            assertThat(result.getStockItems().getFirst().getUnitPrice()).isEqualByComparingTo(stock.getUnitPrice());
             verify(consumeStockUseCase).execute(new ConsumeStockUseCase.ConsumeStockCommand(STOCK_ID, 2));
             verify(quoteRepository).save(any(Quote.class));
         }

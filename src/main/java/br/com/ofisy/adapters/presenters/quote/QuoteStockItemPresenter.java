@@ -13,8 +13,8 @@ public class QuoteStockItemPresenter {
     public static QuoteStockItemResponseDTO present(QuoteStockItem item) {
         return new QuoteStockItemResponseDTO(
                 item.getId(),
-                item.getStock().getId(),
-                item.getStock().getProductName(),
+                item.getStockId(),
+                item.getProductName(),
                 item.getUnitPrice(),
                 item.getQuantity(),
                 item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())),
