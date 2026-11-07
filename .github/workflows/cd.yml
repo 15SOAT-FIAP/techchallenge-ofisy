@@ -7,6 +7,13 @@ on:
         description: "Branch, tag ou commit a ser implantado"
         required: false
         default: master
+  workflow_call:
+    inputs:
+      ref:
+        description: "Branch, tag ou commit a ser implantado"
+        required: false
+        type: string
+        default: master
 
 env:
   JAVA_VERSION: "21"
@@ -19,13 +26,14 @@ jobs:
     environment: AWS_ACADEMY
 
     concurrency:
-      group: deploy-aws
+      group: deploy-ms-ofisy-core
       cancel-in-progress: false
 
     steps:
       - name: Checkout do código
         uses: actions/checkout@v7
         with:
+          repository: 15SOAT-FIAP/techchallenge-ofisy
           ref: ${{ inputs.ref }}
 
       # 1. Configurar Credenciais da AWS a partir dos Secrets do GitHub
@@ -40,11 +48,21 @@ jobs:
       # 2. Obter o Endereço do Banco de Dados RDS PostgreSQL
       - name: Obter Endereço do RDS (PostgreSQL)
         run: |
-          RDS_ENDPOINT=$(aws rds describe-db-instances --db-instance-identifier ms-ofisy-core-db --query "DBInstances[0].Endpoint.Address" --output text)
-          if [ -z "$RDS_ENDPOINT" ] || [ "$RDS_ENDPOINT" == "None" ]; then
-            echo "RDS não retornado dinamicamente. Utilizando secret RDS_HOST se disponível."
-            RDS_ENDPOINT="${{ secrets.RDS_HOST }}"
+          if ! RDS_STATUS=$(aws rds describe-db-instances --db-instance-identifier ms-ofisy-core-db --query "DBInstances[0].DBInstanceStatus" --output text 2> rds-error.txt); then
+            if grep -q DBInstanceNotFound rds-error.txt; then
+              echo "::error::RDS ms-ofisy-core-db não encontrado. Provisione o banco pelo techchallenge-ofisy-db-infra."
+            else
+              cat rds-error.txt
+            fi
+            exit 1
           fi
+          if [ "$RDS_STATUS" == "stopped" ] || [ "$RDS_STATUS" == "stopping" ]; then
+            echo "::error::RDS ms-ofisy-core-db está $RDS_STATUS. Inicie o banco antes do deploy."
+            exit 1
+          fi
+
+          aws rds wait db-instance-available --db-instance-identifier ms-ofisy-core-db
+          RDS_ENDPOINT=$(aws rds describe-db-instances --db-instance-identifier ms-ofisy-core-db --query "DBInstances[0].Endpoint.Address" --output text)
           echo "RDS_HOST=$RDS_ENDPOINT" >> $GITHUB_ENV
           echo "::add-mask::$RDS_ENDPOINT"
           echo "RDS Host configurado com sucesso."
