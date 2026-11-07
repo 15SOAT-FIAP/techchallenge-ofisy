@@ -3,16 +3,12 @@ package br.com.ofisy.application.quote.create;
 import br.com.ofisy.application.quote.exceptions.QuoteAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
 import br.com.ofisy.application.servicecatalog.exceptions.ServiceCatalogNotFoundException;
-import br.com.ofisy.application.stock.consume.ConsumeStockUseCase;
-import br.com.ofisy.application.stock.exceptions.StockNotFoundException;
 import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.quote.QuoteRepository;
 import br.com.ofisy.domain.quote.QuoteServiceItem;
 import br.com.ofisy.domain.quote.QuoteStockItem;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
-import br.com.ofisy.domain.stock.Stock;
-import br.com.ofisy.domain.stock.StockRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,9 +21,7 @@ import java.util.List;
 public class CreateQuoteService implements CreateQuoteUseCase {
 
     private final QuoteRepository quoteRepository;
-    private final StockRepository stockRepository;
     private final ServiceCatalogRepository serviceCatalogRepository;
-    private final ConsumeStockUseCase consumeStockUseCase;
 
     @Override
     @Transactional
@@ -47,18 +41,14 @@ public class CreateQuoteService implements CreateQuoteUseCase {
         List<QuoteStockItem> items = new ArrayList<>();
 
         for (StockItemCommand command : commands) {
-            Stock stock = stockRepository.findById(command.stockId())
-                    .orElseThrow(() -> new StockNotFoundException(command.stockId()));
-
             boolean duplicate = items.stream()
                     .anyMatch(i -> i.getStockId().equals(command.stockId()));
             if (duplicate) {
-                throw new QuoteItemAlreadyExistsException(stock.getProductName());
+                throw new QuoteItemAlreadyExistsException(command.productName());
             }
 
-            consumeStockUseCase.execute(new ConsumeStockUseCase.ConsumeStockCommand(command.stockId(), command.quantity()));
             items.add(QuoteStockItem.create(
-                    stock.getId(), stock.getProductName(), stock.getUnitPrice(), command.quantity()));
+                    command.stockId(), command.productName(), command.unitPrice(), command.quantity()));
         }
 
         return items;
