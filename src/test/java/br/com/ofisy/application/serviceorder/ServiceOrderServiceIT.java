@@ -24,6 +24,7 @@ import br.com.ofisy.domain.notification.NotificationRepository;
 import br.com.ofisy.domain.notification.NotificationType;
 import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.quote.QuoteStatus;
+import br.com.ofisy.domain.quote.QuoteStockItem;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteDataException;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
@@ -31,8 +32,6 @@ import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
 import br.com.ofisy.domain.serviceorder.exceptions.InvalidServiceOrderTransitionException;
-import br.com.ofisy.domain.stock.Stock;
-import br.com.ofisy.domain.stock.StockRepository;
 import br.com.ofisy.domain.user.Role;
 import br.com.ofisy.domain.user.User;
 import br.com.ofisy.domain.user.UserRepository;
@@ -53,6 +52,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 
 class ServiceOrderServiceIT extends IntegrationTestBase {
 
@@ -70,14 +70,13 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
     @Autowired private CustomerRepository customerDomainRepository;
     @Autowired private VehicleRepository vehicleDomainRepository;
     @Autowired private UserRepository userDomainRepository;
-    @Autowired private StockRepository stockDomainRepository;
     @Autowired private ServiceCatalogRepository serviceCatalogDomainRepository;
     @Autowired private NotificationRepository notificationDomainRepository;
 
     private UUID customerId;
     private UUID vehicleId;
-    private UUID stockId;
-    private UUID stockId2;
+    private final UUID stockId = UUID.randomUUID();
+    private final UUID stockId2 = UUID.randomUUID();
     private UUID serviceCatalogId;
     private String userEmail;
 
@@ -94,14 +93,6 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         Vehicle vehicle = vehicleDomainRepository.save(
                 Vehicle.create(customerId, new LicensePlate("SVC1T01"), "Civic", "Honda", "Preto", 2022, null));
         vehicleId = vehicle.getId();
-
-        Stock stock1 = stockDomainRepository.save(
-                Stock.create("Peça Svc IT 1", "Peça 1 para testes de service", 10, new BigDecimal("100.00"), "Testes", 2));
-        stockId = stock1.getId();
-
-        Stock stock2 = stockDomainRepository.save(
-                Stock.create("Peça Svc IT 2", "Peça 2 para testes de service", 10, new BigDecimal("200.00"), "Testes", 2));
-        stockId2 = stock2.getId();
 
         ServiceCatalog serviceCatalog = serviceCatalogDomainRepository.save(
                 ServiceCatalog.create("Serviço Svc IT", "Serviço para testes de service", new BigDecimal("200.00")));
@@ -285,7 +276,7 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
             Quote quote = generateServiceOrderQuoteUseCase.execute(
                     new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(
                             serviceOrderId,
-                            List.of(new CreateQuoteUseCase.StockItemCommand(stockId, 2)),
+                            List.of(stockItem(stockId, 2)),
                             serviceItemCommands()));
 
             assertThat(quote.getStockItems()).hasSize(1);
@@ -335,8 +326,8 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         void shouldThrowExceptionWhenDuplicateStockItem() {
             UUID serviceOrderId = createAndStartDiagnostic();
             var stockItems = List.of(
-                    new CreateQuoteUseCase.StockItemCommand(stockId, 1),
-                    new CreateQuoteUseCase.StockItemCommand(stockId, 2));
+                    stockItem(stockId, 1),
+                    stockItem(stockId, 2));
 
             assertThatThrownBy(() -> generateServiceOrderQuoteUseCase.execute(
                     new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(
@@ -345,18 +336,21 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         }
 
         @Test
-        @DisplayName("Deve consumir estoque ao gerar orçamento")
-        void shouldConsumeStockWhenGeneratingQuote() {
+        @DisplayName("Deve guardar nome e preço enviados no item de estoque")
+        void shouldKeepProductNameAndUnitPriceFromCommand() {
             UUID serviceOrderId = createAndStartDiagnostic();
-            int before1 = stockRepository.findById(stockId).orElseThrow().getQuantity();
-            int before2 = stockRepository.findById(stockId2).orElseThrow().getQuantity();
 
-            generateServiceOrderQuoteUseCase.execute(
+            Quote quote = generateServiceOrderQuoteUseCase.execute(
                     new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(
                             serviceOrderId, stockOnlyCommands(2), List.of()));
 
-            assertThat(stockRepository.findById(stockId).orElseThrow().getQuantity()).isEqualTo(before1 - 2);
-            assertThat(stockRepository.findById(stockId2).orElseThrow().getQuantity()).isEqualTo(before2 - 2);
+            assertThat(quote.getStockItems())
+                    .extracting(QuoteStockItem::getStockId, QuoteStockItem::getProductName,
+                            item -> item.getUnitPrice().stripTrailingZeros())
+                    .containsExactlyInAnyOrder(
+                            tuple(stockId, "Peça Svc IT 1", new BigDecimal("100.00").stripTrailingZeros()),
+                            tuple(stockId2, "Peça Svc IT 2", new BigDecimal("200.00").stripTrailingZeros()));
+            assertThat(quote.getTotalPrice()).isEqualByComparingTo(new BigDecimal("600.00"));
         }
 
         @Test
@@ -446,9 +440,13 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
     }
 
     private List<CreateQuoteUseCase.StockItemCommand> stockOnlyCommands(int quantity) {
-        return List.of(
-                new CreateQuoteUseCase.StockItemCommand(stockId, quantity),
-                new CreateQuoteUseCase.StockItemCommand(stockId2, quantity));
+        return List.of(stockItem(stockId, quantity), stockItem(stockId2, quantity));
+    }
+
+    private CreateQuoteUseCase.StockItemCommand stockItem(UUID id, int quantity) {
+        return id.equals(stockId)
+                ? new CreateQuoteUseCase.StockItemCommand(id, "Peça Svc IT 1", new BigDecimal("100.00"), quantity)
+                : new CreateQuoteUseCase.StockItemCommand(id, "Peça Svc IT 2", new BigDecimal("200.00"), quantity);
     }
 
     private List<CreateQuoteUseCase.ServiceItemCommand> serviceItemCommands() {

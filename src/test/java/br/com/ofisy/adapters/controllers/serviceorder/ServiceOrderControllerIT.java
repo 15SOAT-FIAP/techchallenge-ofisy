@@ -9,8 +9,6 @@ import br.com.ofisy.domain.notification.NotificationRepository;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
 import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
-import br.com.ofisy.domain.stock.Stock;
-import br.com.ofisy.domain.stock.StockRepository;
 import br.com.ofisy.domain.user.Role;
 import br.com.ofisy.domain.user.User;
 import br.com.ofisy.domain.user.UserRepository;
@@ -39,16 +37,14 @@ class ServiceOrderControllerIT extends IntegrationTestBase {
     @Autowired
     private UserRepository userDomainRepository;
     @Autowired
-    private StockRepository stockDomainRepository;
-    @Autowired
     private ServiceCatalogRepository serviceCatalogDomainRepository;
     @Autowired
     private NotificationRepository notificationDomainRepository;
 
     private UUID customerId;
     private UUID vehicleId;
-    private UUID stockId;
-    private UUID stockId2;
+    private final UUID stockId = UUID.randomUUID();
+    private final UUID stockId2 = UUID.randomUUID();
     private UUID serviceCatalogId;
     private String token;
 
@@ -69,16 +65,6 @@ class ServiceOrderControllerIT extends IntegrationTestBase {
                 Vehicle.create(customerId, new LicensePlate("CTR1T01"), "Civic", "Honda", "Preto", 2022, null)
         );
         vehicleId = vehicle.getId();
-
-        Stock stock1 = stockDomainRepository.save(
-                Stock.create("Peça Ctrl IT 1", "Peça 1 para testes de controller", 10, new BigDecimal("100.00"), "Testes", 2)
-        );
-        stockId = stock1.getId();
-
-        Stock stock2 = stockDomainRepository.save(
-                Stock.create("Peça Ctrl IT 2", "Peça 2 para testes de controller", 10, new BigDecimal("200.00"), "Testes", 2)
-        );
-        stockId2 = stock2.getId();
 
         ServiceCatalog serviceCatalog = serviceCatalogDomainRepository.save(
                 ServiceCatalog.create("Serviço Ctrl IT", "Serviço para testes de controller", new BigDecimal("200.00"))
@@ -167,7 +153,7 @@ class ServiceOrderControllerIT extends IntegrationTestBase {
                             "vehicleId", vehicleId,
                             "customerId", customerId,
                             "report", "Relatório completo",
-                            "stockItems", List.of(Map.of("stockId", stockId, "quantity", 1)),
+                            "stockItems", List.of(stockItem1(1)),
                             "serviceItems", List.of(Map.of("serviceCatalogId", serviceCatalogId))
                     ))
                     .when()
@@ -189,7 +175,7 @@ class ServiceOrderControllerIT extends IntegrationTestBase {
                             "vehicleId", vehicleId,
                             "customerId", customerId,
                             "report", "Relatório",
-                            "stockItems", List.of(Map.of("stockId", stockId, "quantity", 1)),
+                            "stockItems", List.of(stockItem1(1)),
                             "serviceItems", List.of()
                     ))
                     .when()
@@ -210,10 +196,8 @@ class ServiceOrderControllerIT extends IntegrationTestBase {
         }
 
         @Test
-        @DisplayName("Deve consumir estoque ao criar OS completa")
-        void shouldConsumeStockWhenCreatingComplete() {
-            int before = stockRepository.findById(stockId).orElseThrow().getQuantity();
-
+        @DisplayName("Deve retornar 400 quando o item de estoque não traz nome e preço")
+        void shouldReturn400WhenStockItemHasNoProductNameOrUnitPrice() {
             RestAssured.given()
                     .header("Authorization", "Bearer " + token)
                     .contentType(ContentType.JSON)
@@ -227,9 +211,7 @@ class ServiceOrderControllerIT extends IntegrationTestBase {
                     .when()
                     .post("/api/v1/service-orders/create-complete")
                     .then()
-                    .statusCode(201);
-
-            assertThat(stockRepository.findById(stockId).orElseThrow().getQuantity()).isEqualTo(before - 2);
+                    .statusCode(400);
         }
     }
 
@@ -432,6 +414,9 @@ class ServiceOrderControllerIT extends IntegrationTestBase {
                     .extract().jsonPath();
 
             assertThat(quote.getList("stockItems")).hasSize(1);
+            assertThat(quote.getString("stockItems[0].productName")).isEqualTo("Peça Ctrl IT 1");
+            assertThat(new BigDecimal(quote.getString("stockItems[0].unitPrice")))
+                    .isEqualByComparingTo(new BigDecimal("100.00"));
             assertThat(quote.getList("serviceItems")).hasSize(1);
             assertThat(new BigDecimal(quote.getString("totalPrice")))
                     .isEqualByComparingTo(new BigDecimal("400.00"));
@@ -510,8 +495,8 @@ class ServiceOrderControllerIT extends IntegrationTestBase {
                     .body(Map.of(
                             "serviceOrderId", serviceOrderId,
                             "stockItems", List.of(
-                                    Map.of("stockId", stockId, "quantity", 1),
-                                    Map.of("stockId", stockId, "quantity", 2)
+                                    stockItem1(1),
+                                    stockItem1(2)
                             ),
                             "serviceItems", List.of()
                     ))
@@ -621,8 +606,8 @@ class ServiceOrderControllerIT extends IntegrationTestBase {
                     .contentType(ContentType.JSON)
                     .body(Map.of(
                             "stockItems", List.of(
-                                    Map.of("stockId", stockId, "quantity", 3),
-                                    Map.of("stockId", stockId2, "quantity", 1)
+                                    stockItem1(3),
+                                    stockItem2(1)
                             ),
                             "serviceItems", List.of()
                     ))
@@ -648,7 +633,7 @@ class ServiceOrderControllerIT extends IntegrationTestBase {
                     .header("Authorization", "Bearer " + token)
                     .contentType(ContentType.JSON)
                     .body(Map.of(
-                            "stockItems", List.of(Map.of("stockId", stockId, "quantity", 1)),
+                            "stockItems", List.of(stockItem1(1)),
                             "serviceItems", List.of()
                     ))
                     .when()
@@ -664,7 +649,7 @@ class ServiceOrderControllerIT extends IntegrationTestBase {
                     .header("Authorization", "Bearer " + token)
                     .contentType(ContentType.JSON)
                     .body(Map.of(
-                            "stockItems", List.of(Map.of("stockId", stockId, "quantity", 1)),
+                            "stockItems", List.of(stockItem1(1)),
                             "serviceItems", List.of()
                     ))
                     .when()
@@ -748,16 +733,26 @@ class ServiceOrderControllerIT extends IntegrationTestBase {
     private Map<String, Object> stockOnlyQuoteBody(int quantity) {
         return Map.of(
                 "stockItems", List.of(
-                        Map.of("stockId", stockId, "quantity", quantity),
-                        Map.of("stockId", stockId2, "quantity", quantity)
+                        stockItem1(quantity),
+                        stockItem2(quantity)
                 ),
                 "serviceItems", List.of()
         );
     }
 
+    private Map<String, Object> stockItem1(int quantity) {
+        return Map.of("stockId", stockId, "productName", "Peça Ctrl IT 1",
+                "unitPrice", new BigDecimal("100.00"), "quantity", quantity);
+    }
+
+    private Map<String, Object> stockItem2(int quantity) {
+        return Map.of("stockId", stockId2, "productName", "Peça Ctrl IT 2",
+                "unitPrice", new BigDecimal("200.00"), "quantity", quantity);
+    }
+
     private Map<String, Object> fullQuoteBody(int quantity) {
         return Map.of(
-                "stockItems", List.of(Map.of("stockId", stockId, "quantity", quantity)),
+                "stockItems", List.of(stockItem1(quantity)),
                 "serviceItems", List.of(Map.of("serviceCatalogId", serviceCatalogId))
         );
     }
