@@ -14,9 +14,7 @@ Os testes de integração usam **Testcontainers** para subir um container Postgr
 |-------------------------------------------------------------|--------------------------|------------------|
 | `application/serviceorder/ServiceOrderServiceIT.java`       | Service (injeção direta) | Ordem de Serviço |
 | `application/quote/QuoteServiceIT.java`                     | Service (injeção direta) | Orçamento        |
-| `application/stock/StockServiceIT.java`                     | Service (injeção direta) | Estoque          |
 | `interfaces/api/serviceorder/ServiceOrderControllerIT.java` | HTTP via REST-assured    | Ordem de Serviço |
-| `interfaces/api/stock/StockControllerIT.java`               | HTTP via REST-assured    | Estoque          |
 
 > Os testes de orçamento (`findById`, `findByServiceOrderId`) ficam na camada de serviço pois não há endpoints GET de orçamento no controller.
 

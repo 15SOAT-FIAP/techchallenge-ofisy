@@ -22,7 +22,7 @@ criptografado em repouso, em subnets privadas, sem acesso público, provisionado
 
 ### 1.2 Justificativa formal
 
-O domínio do Ofisy (clientes, veículos, ordens de serviço, orçamentos, estoque) é
+O domínio do Ofisy (clientes, veículos, ordens de serviço, orçamentos) é
 fortemente relacional: as entidades têm cardinalidade bem definida, integridade referencial
 obrigatória (uma ordem de serviço *não existe* sem um veículo e um cliente válidos) e regras de
 consistência transacional (um orçamento só pode ser aprovado se existir uma OS associada).
@@ -64,9 +64,11 @@ A ordem de provisionamento entre repositórios (rede → auth Lambda no ECR → 
 
 ## 2. Ajustes no modelo relacional
 
-O schema evoluiu de forma incremental e versionada (Flyway, `V1` a `V29`), começando pelo domínio
-de estoque e chegando a um modelo completo de ordens de serviço e orçamentos. Os
-principais ajustes de modelagem, e as razões por trás deles, estão descritos abaixo.
+O schema evoluiu de forma incremental e versionada (Flyway, `V1` a `V29`) até um modelo completo
+de ordens de serviço e orçamentos. As migrations de execução (`V13`, `V17`) e de estoque (`V1`,
+`V7`, `V8`) foram removidas quando esses domínios saíram para o `ms-ofisy-execution` e o
+`ms-ofisy-stock`. Os principais ajustes de modelagem, e as razões por trás deles, estão descritos
+abaixo.
 
 ### 2.1 Chaves primárias como UUID
 
@@ -89,7 +91,7 @@ Já as referências entre agregados diferentes (`vehicle_id`, `customer_id`, `cr
 mapeamento `@ManyToOne`/navegação de objeto, a integridade é garantida só pela `FOREIGN KEY` do
 schema.
 
-- **Motivo:** reduz o acoplamento entre bounded contexts (Customer, Vehicle, ServiceOrder, Stock,
+- **Motivo:** reduz o acoplamento entre bounded contexts (Customer, Vehicle, ServiceOrder,
   Quote etc. evoluem de forma independente no código), evita *lazy loading* acidental entre
   agregados e mantém a responsabilidade de integridade referencial explicitamente no banco.
 
@@ -146,14 +148,13 @@ Convenções usadas no diagrama:
 | Linha tracejada vermelha   | Coluna de referência opcional (nullable) e, no caso de `notifications.quote_id`, sem FK declarada   |
 | Notação nas pontas         | Cardinalidade "pé de galinha" (crow's foot): um traço = "1", garfo = "N", círculo = "0..1" opcional |
 
-As 11 tabelas de negócio do schema estão organizadas em 5 grupos visuais no diagrama. As tabelas de
+As 9 tabelas de negócio do schema estão organizadas em 4 grupos visuais no diagrama. As tabelas de
 mensageria (`outbox_events` e `processed_events`, criadas em `V28` e `V29`) ficam fora do diagrama e
 estão descritas no [guia de mensageria](MESSAGING.md).
 
 - **Cadastro**: `users`, `customers`, `vehicles`
 - **Fluxo da Ordem de Serviço**: `service_orders`, `services_catalog`
 - **Orçamento**: `quotes`, `quote_stock_items`, `quote_service_items`
-- **Estoque**: `stocks`, `stock_movements`
 - **Notificações**: `notifications`
 ---
 
@@ -168,11 +169,10 @@ estão descritas no [guia de mensageria](MESSAGING.md).
 | 5  | `service_orders` → `quotes`                | 1 : 0..1 (hoje)   | Uma OS possui no máximo um orçamento (`quotes.service_order_id UNIQUE`): `CreateQuoteService` bloqueia um segundo orçamento para a mesma OS (`QuoteAlreadyExistsException`).                                   |
 | 6  | `quotes` → `quote_stock_items`             | 1 : N             | Itens de peças/estoque incluídos no orçamento, com nome, preço e quantidade "congelados" no momento da cotação (mesmo que o cadastro do estoque mude depois). |
 | 7  | `quotes` → `quote_service_items`           | 1 : N             | Itens de serviço incluídos no orçamento, com o preço "congelado" no momento da cotação (mesmo que o preço do catálogo mude depois).                                                                            |
-| 8  | `stocks` → `quote_stock_items`             | 1 : N (sem FK)    | Uma peça do estoque pode aparecer em vários orçamentos ao longo do tempo; a criação do item já consome (reserva) a quantidade do estoque (`ConsumeStockUseCase`). O `stock_id` é só uma referência lógica, porque o estoque está saindo para o `ms-ofisy-stock`. |
+| 8  | `ms-ofisy-stock` → `quote_stock_items`     | 1 : N (sem FK)    | Uma peça do `ms-ofisy-stock` pode aparecer em vários orçamentos, no máximo uma vez por orçamento (par único `quote_id + stock_id`). O `stock_id` é só uma referência lógica: o nome e o preço chegam na requisição do orçamento e ficam guardados no item, e o core não baixa nem devolve estoque. |
 | 9  | `services_catalog` → `quote_service_items` | 1 : N             | Um serviço do catálogo pode aparecer em vários orçamentos, mas no máximo uma vez por orçamento (par único `quote_id + service_catalog_id`).                                                                    |
-| 10 | `stocks` → `stock_movements`               | 1 : N             | Toda entrada/saída de estoque gera um registro imutável de movimentação, com quantidade anterior e nova.                                                                                                       |
-| 11 | `stocks` → `notifications`                 | 0..1 : N          | Notificação de estoque baixo (`type = LOW_STOCK`) referencia opcionalmente o item de estoque que a originou; `stock_id` é nullable desde `V14` para permitir notificações de outros tipos sem essa referência. |
-| 12 | `quotes` → `notifications`                 | 0..1 : N (sem FK) | Notificação de orçamento pendente de aprovação (`type = QUOTE`) referencia opcionalmente o orçamento.                                                                                                          |
+| 10 | `ms-ofisy-stock` → `notifications`         | 0..1 : N (sem FK) | Notificação de estoque baixo (`type = LOW_STOCK`) referencia opcionalmente a peça que a originou; `stock_id` é nullable desde `V14` para permitir notificações de outros tipos sem essa referência.            |
+| 11 | `quotes` → `notifications`                 | 0..1 : N (sem FK) | Notificação de orçamento pendente de aprovação (`type = QUOTE`) referencia opcionalmente o orçamento.                                                                                                          |
 
 ---
 
