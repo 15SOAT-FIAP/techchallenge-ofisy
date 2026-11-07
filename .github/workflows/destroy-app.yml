@@ -2,6 +2,7 @@ name: Destruir Aplicação no Kubernetes (EKS)
 
 on:
   workflow_dispatch:
+  workflow_call:
 
 jobs:
   destroy-app:
@@ -12,6 +13,8 @@ jobs:
     steps:
       - name: Checkout do código
         uses: actions/checkout@v7
+        with:
+          repository: 15SOAT-FIAP/techchallenge-ofisy
 
       - name: Configurar Credenciais AWS
         uses: aws-actions/configure-aws-credentials@v6
@@ -21,12 +24,19 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
 
-      - name: Conectar ao EKS Cluster
-        run: |
-          aws eks update-kubeconfig --region us-east-1 --name ms-ofisy-core-cluster
-
       - name: Remover Recursos do EKS
         run: |
+          if ! aws eks describe-cluster --name ms-ofisy-core-cluster --region us-east-1 > /dev/null 2> eks-error.txt; then
+            if grep -q ResourceNotFoundException eks-error.txt; then
+              echo "Cluster ms-ofisy-core-cluster não existe, nada a remover."
+              exit 0
+            fi
+            cat eks-error.txt
+            exit 1
+          fi
+
+          aws eks update-kubeconfig --region us-east-1 --name ms-ofisy-core-cluster
+
           kubectl delete -f k8s/hpa.yml --ignore-not-found
           kubectl delete -f k8s/service.yml --ignore-not-found
           kubectl delete -f k8s/deployment.yml --ignore-not-found
