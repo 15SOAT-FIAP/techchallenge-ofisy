@@ -397,13 +397,13 @@
             <mxPoint x="1470" y="1518.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1077" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="valida stocks / services_catalog&lt;br&gt;e reserva quantidade (consumeStock)">
+        <mxCell id="c1077" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="valida services_catalog">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="1470" y="1595.1" as="sourcePoint" />
             <mxPoint x="1730" y="1595.1" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1078" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="preço unitário / disponibilidade">
+        <mxCell id="c1078" edge="1" parent="1" style="html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;fontStyle=2;labelBackgroundColor=#ffffff;fontColor=#555555;" value="preço do serviço">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="1730" y="1636.5" as="sourcePoint" />
             <mxPoint x="1470" y="1636.5" as="targetPoint" />
@@ -843,7 +843,7 @@
         <mxCell id="c1150" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="O Mecânico autentica-se pelo mesmo fluxo&lt;br&gt;de login do Bloco A, recebendo um token&lt;br&gt;com a role MECHANIC" vertex="1">
           <mxGeometry height="74" width="280" x="512" y="1038" as="geometry" />
         </mxCell>
-        <mxCell id="c1151" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="Soma os itens em total_price&lt;br&gt;O preço de cada serviço é copiado&lt;br&gt;do catálogo para o item do orçamento" vertex="1">
+        <mxCell id="c1151" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="Soma os itens em total_price&lt;br&gt;O preço de cada serviço é copiado&lt;br&gt;do catálogo para o item do orçamento&lt;br&gt;O nome e o preço das peças vêm na requisição" vertex="1">
           <mxGeometry height="74" width="280" x="1492" y="1688" as="geometry" />
         </mxCell>
         <mxCell id="c1152" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FFF2CC;strokeColor=#D6B656;size=14;fontSize=10;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;" value="Valida formato do CPF/CNPJ&lt;br&gt;Confere existência e active = true&lt;br&gt;Gera JWT HS256 (sub = customerId,&lt;br&gt;iss = techchallenge-ofisy-auth)" vertex="1">
@@ -870,7 +870,7 @@
         <mxCell id="c1161" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#8C8C8C;verticalAlign=top;align=left;strokeWidth=1;dashed=0;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" vertex="1">
           <mxGeometry height="940" width="1740" x="40" y="2634" as="geometry" />
         </mxCell>
-        <mxCell id="c1160" parent="1" style="shape=note2;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;fontStyle=1;align=left;spacingLeft=4;size=8;" value="loop  [para cada item de estoque / serviço do orçamento]" vertex="1">
+        <mxCell id="c1160" parent="1" style="shape=note2;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=10;fontStyle=1;align=left;spacingLeft=4;size=8;" value="loop  [para cada serviço do orçamento]" vertex="1">
           <mxGeometry height="22" width="350" x="1420" y="1538" as="geometry" />
         </mxCell>
         <mxCell id="c1163" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;strokeColor=#8C8C8C;">
