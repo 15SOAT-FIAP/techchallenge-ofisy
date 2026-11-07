@@ -109,8 +109,8 @@ A combinação dessas tecnologias permite a construção de um backend robusto e
 ### CI/CD (GitHub Actions)
 
 - `.github/workflows/ci.yml` — pipeline de Build & Test (CI), executado a cada push/PR;
-- `.github/workflows/cd.yml` — pipeline de deploy automático na AWS EKS (CD), executado após o sucesso do CI no merge para `master`;
-- `.github/workflows/destroy-app.yml` — pipeline manual para desinstalar os recursos da aplicação no Kubernetes (EKS);
+- `.github/workflows/cd.yml` — pipeline de deploy na AWS EKS (CD), disparado manualmente (`workflow_dispatch`) ou chamado pelo [`ofisy-platform`](https://github.com/15SOAT-FIAP/ofisy-platform) ao subir o ambiente (`workflow_call`);
+- `.github/workflows/destroy-app.yml` — pipeline para desinstalar os recursos da aplicação no Kubernetes (EKS), disparado manualmente ou chamado pelo `ofisy-platform` ao destruir o ambiente. Não falha se o cluster já não existir;
 - `.github/workflows/notify-pr.yml` — pipeline que notifica a criação/atualização de Pull Requests em um canal do Discord.
 
 ---
