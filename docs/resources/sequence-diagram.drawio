@@ -409,7 +409,7 @@
             <mxPoint x="1470" y="1636.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="c1079" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="INSERT quotes (PENDING), quote_stock_items,&lt;br&gt;quote_service_items, service_order_executions">
+        <mxCell id="c1079" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;dashed=0;strokeColor=#1A1A1A;fontSize=10;labelBackgroundColor=#ffffff;fontColor=#1A1A1A;" value="INSERT quotes (PENDING), quote_stock_items,&lt;br&gt;quote_service_items">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="1470" y="1799.1" as="sourcePoint" />
             <mxPoint x="1730" y="1799.1" as="targetPoint" />
