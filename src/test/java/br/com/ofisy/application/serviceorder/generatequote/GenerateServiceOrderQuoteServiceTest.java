@@ -80,7 +80,7 @@ class GenerateServiceOrderQuoteServiceTest {
         @Test
         void shouldPassCommandFieldsToCreateQuoteUseCase() {
             ServiceOrder serviceOrder = inDiagnosticServiceOrder();
-            List<CreateQuoteUseCase.StockItemCommand> stockItems = List.of(new CreateQuoteUseCase.StockItemCommand(UUID.randomUUID(), 2));
+            List<CreateQuoteUseCase.StockItemCommand> stockItems = List.of(new CreateQuoteUseCase.StockItemCommand(UUID.randomUUID(), "Filtro de óleo", new BigDecimal("25.00"), 2));
             GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand cmd = new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(
                     VALID_SERVICE_ORDER_ID, stockItems, List.of());
             Quote quote = validQuote(UUID.randomUUID());

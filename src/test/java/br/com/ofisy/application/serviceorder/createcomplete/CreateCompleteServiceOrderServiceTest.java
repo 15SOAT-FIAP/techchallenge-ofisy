@@ -71,7 +71,7 @@ class CreateCompleteServiceOrderServiceTest {
 
         @Test
         void shouldCreateCompleteServiceOrderWithStockItemsSuccessfully() {
-            List<CreateQuoteUseCase.StockItemCommand> stockItems = List.of(new CreateQuoteUseCase.StockItemCommand(VALID_STOCK_ID, 2));
+            List<CreateQuoteUseCase.StockItemCommand> stockItems = List.of(new CreateQuoteUseCase.StockItemCommand(VALID_STOCK_ID, "Filtro de óleo", new BigDecimal("25.00"), 2));
             CreateCompleteServiceOrderUseCase.CreateCompleteServiceOrderCommand cmd = validCommand(stockItems, List.of());
             ServiceOrder savedOrder = ServiceOrder.receive(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, VALID_REPORT, VALID_USER_ID);
 
@@ -109,7 +109,7 @@ class CreateCompleteServiceOrderServiceTest {
 
         @Test
         void shouldTransitionThroughAllStatesWhenItemsProvided() {
-            List<CreateQuoteUseCase.StockItemCommand> stockItems = List.of(new CreateQuoteUseCase.StockItemCommand(VALID_STOCK_ID, 1));
+            List<CreateQuoteUseCase.StockItemCommand> stockItems = List.of(new CreateQuoteUseCase.StockItemCommand(VALID_STOCK_ID, "Filtro de óleo", new BigDecimal("25.00"), 1));
             CreateCompleteServiceOrderUseCase.CreateCompleteServiceOrderCommand cmd = validCommand(stockItems, List.of());
             ServiceOrder savedOrder = ServiceOrder.receive(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, VALID_REPORT, VALID_USER_ID);
 

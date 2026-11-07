@@ -661,7 +661,7 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
 
             var body = """
                 {
-                    "stockItems": [{ "stockId": "%s", "quantity": 1 }],
+                    "stockItems": [{ "stockId": "%s", "productName": "Filtro de óleo", "unitPrice": 25.00, "quantity": 1 }],
                     "serviceItems": []
                 }
                 """.formatted(UUID.randomUUID());
@@ -688,7 +688,7 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
 
             var body = """
                 {
-                    "stockItems": [{ "stockId": "%s", "quantity": 1 }],
+                    "stockItems": [{ "stockId": "%s", "productName": "Filtro de óleo", "unitPrice": 25.00, "quantity": 1 }],
                     "serviceItems": []
                 }
                 """.formatted(UUID.randomUUID());
@@ -742,7 +742,7 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
 
             var body = """
                 {
-                    "stockItems": [{ "stockId": "%s", "quantity": 1 }],
+                    "stockItems": [{ "stockId": "%s", "productName": "Filtro de óleo", "unitPrice": 25.00, "quantity": 1 }],
                     "serviceItems": []
                 }
                 """.formatted(UUID.randomUUID());
@@ -770,7 +770,7 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
 
             var body = """
                 {
-                    "stockItems": [{ "stockId": "%s", "quantity": 1 }],
+                    "stockItems": [{ "stockId": "%s", "productName": "Filtro de óleo", "unitPrice": 25.00, "quantity": 1 }],
                     "serviceItems": []
                 }
                 """.formatted(stockId);
@@ -825,7 +825,7 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
 
             var body = """
                 {
-                    "stockItems": [{ "stockId": "%s", "quantity": 1 }],
+                    "stockItems": [{ "stockId": "%s", "productName": "Filtro de óleo", "unitPrice": 25.00, "quantity": 1 }],
                     "serviceItems": []
                 }
                 """.formatted(UUID.randomUUID());
