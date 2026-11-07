@@ -24,9 +24,6 @@ import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundExce
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
 import br.com.ofisy.application.serviceorder.submitquoteforapproval.SubmitQuoteForApprovalUseCase;
 import br.com.ofisy.application.quote.update.UpdateQuoteUseCase;
-import br.com.ofisy.application.stock.exceptions.InsufficientStockException;
-import br.com.ofisy.application.stock.exceptions.StockNotFoundException;
-import br.com.ofisy.application.stock.release.ReleaseStockUseCase;
 import br.com.ofisy.application.user.activateuser.ActivateUserUseCase;
 import br.com.ofisy.application.user.createuser.CreateUserUseCase;
 import br.com.ofisy.application.user.deactivateuser.DeactivateUserUseCase;
@@ -753,62 +750,6 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
                             .content(body))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.title").value("Item do orçamento inválido"));
-        }
-    }
-
-    @Nested
-    class StockNotFound {
-
-        @Test
-        @WithMockUser(roles = "MECHANIC")
-        @DisplayName("Deve retornar 404 quando estoque não encontrado")
-        void shouldReturn404WhenStockNotFound() throws Exception {
-            var serviceOrderId = UUID.randomUUID();
-            var stockId = UUID.randomUUID();
-            when(generateServiceOrderQuoteUseCase.execute(any()))
-                    .thenThrow(new StockNotFoundException(stockId));
-
-            var body = """
-                {
-                    "stockItems": [{ "stockId": "%s", "productName": "Filtro de óleo", "unitPrice": 25.00, "quantity": 1 }],
-                    "serviceItems": []
-                }
-                """.formatted(stockId);
-
-            mockMvc.perform(post("/api/v1/service-orders/{id}/quote", serviceOrderId)
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(body))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.title").value("Estoque não encontrado"));
-        }
-    }
-
-    @Nested
-    class InsufficientStock {
-
-        @Test
-        @WithMockUser(roles = "MECHANIC")
-        @DisplayName("Deve retornar 409 quando estoque é insuficiente")
-        void shouldReturn409WhenStockIsInsufficient() throws Exception {
-            var serviceOrderId = UUID.randomUUID();
-            var stockId = UUID.randomUUID();
-            when(generateServiceOrderQuoteUseCase.execute(any()))
-                    .thenThrow(new InsufficientStockException(stockId));
-
-            var body = """
-                {
-                    "stockItems": [{ "stockId": "%s", "quantity": 999 }],
-                    "serviceItems": []
-                }
-                """.formatted(stockId);
-
-            mockMvc.perform(post("/api/v1/service-orders/{id}/quote", serviceOrderId)
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(body))
-                    .andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.title").value("Estoque insuficiente"));
         }
     }
 

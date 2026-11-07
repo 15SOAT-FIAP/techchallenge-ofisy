@@ -6,10 +6,8 @@ import br.com.ofisy.adapters.gateways.messaging.JpaProcessedEventRepository;
 import br.com.ofisy.adapters.gateways.notification.JpaNotificationRepository;
 import br.com.ofisy.adapters.gateways.quote.JpaQuoteRepository;
 import br.com.ofisy.adapters.gateways.servicecatalog.JpaServiceCatalogRepository;
-import br.com.ofisy.adapters.gateways.stock.JpaStockRepository;
 import br.com.ofisy.adapters.gateways.serviceorder.JpaServiceOrderRepository;
 import br.com.ofisy.adapters.gateways.user.JpaUserRepository;
-import br.com.ofisy.adapters.gateways.stockmovement.JpaStockMovementRepository;
 import br.com.ofisy.adapters.gateways.vehicle.JpaVehicleRepository;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -77,10 +75,6 @@ public abstract class IntegrationTestBase {
     @Autowired 
     private JpaServiceOrderRepository serviceOrderRepository;
     @Autowired 
-    private JpaStockMovementRepository stockMovementRepository;
-    @Autowired
-    protected JpaStockRepository stockRepository;
-    @Autowired 
     private JpaServiceCatalogRepository serviceCatalogRepository;
     @Autowired 
     private JpaVehicleRepository vehicleRepository;
@@ -104,8 +98,6 @@ public abstract class IntegrationTestBase {
         notificationRepository.deleteAll();
         quoteRepository.deleteAll();
         serviceOrderRepository.deleteAll();
-        stockMovementRepository.deleteAll();
-        stockRepository.deleteAll();
         serviceCatalogRepository.deleteAll();
         vehicleRepository.deleteAll();
         customerRepository.deleteAll();
