@@ -210,6 +210,8 @@ docker compose -f compose.db.yaml up -d
 
 O token traz o email do usuário no `sub` e a role na claim `role`. Os microsserviços não têm o banco de usuários, então validam o token com o mesmo `JWT_SECRET` e autorizam pela claim `role`.
 
+As rotas de estoque (`/api/v1/stocks`) e de movimentações (`/api/v1/stock-movements`) não ficam mais neste repositório: elas são servidas pelo [ms-ofisy-stock](https://github.com/15SOAT-FIAP/ms-ofisy-stock). O usuário STOCKMAN continua sendo criado aqui e usa o mesmo token para acessar essas rotas no microsserviço.
+
 ### Usuários disponíveis para utilização:
   #### ROLE ADMIN
     - username: admin@ofisy.com

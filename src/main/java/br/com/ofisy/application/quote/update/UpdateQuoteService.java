@@ -4,9 +4,6 @@ import br.com.ofisy.application.quote.create.CreateQuoteUseCase;
 import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
 import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
 import br.com.ofisy.application.servicecatalog.exceptions.ServiceCatalogNotFoundException;
-import br.com.ofisy.application.stock.consume.ConsumeStockUseCase;
-import br.com.ofisy.application.stock.exceptions.StockNotFoundException;
-import br.com.ofisy.application.stock.release.ReleaseStockUseCase;
 import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.quote.QuoteRepository;
 import br.com.ofisy.domain.quote.QuoteServiceItem;
@@ -16,8 +13,6 @@ import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
 import br.com.ofisy.domain.quote.QuoteStatus;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
-import br.com.ofisy.domain.stock.Stock;
-import br.com.ofisy.domain.stock.StockRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,21 +32,12 @@ public class UpdateQuoteService implements UpdateQuoteUseCase {
 
     public static final String ACTION_EDIT = "editar";
     private final QuoteRepository quoteRepository;
-    private final StockRepository stockRepository;
     private final ServiceCatalogRepository serviceCatalogRepository;
-    private final ConsumeStockUseCase consumeStockUseCase;
-    private final ReleaseStockUseCase releaseStockUseCase;
 
     public UpdateQuoteService(QuoteRepository quoteRepository,
-                              StockRepository stockRepository,
-                              ServiceCatalogRepository serviceCatalogRepository,
-                              ConsumeStockUseCase consumeStockUseCase,
-                              ReleaseStockUseCase releaseStockUseCase) {
+                              ServiceCatalogRepository serviceCatalogRepository) {
         this.quoteRepository = quoteRepository;
-        this.stockRepository = stockRepository;
         this.serviceCatalogRepository = serviceCatalogRepository;
-        this.consumeStockUseCase = consumeStockUseCase;
-        this.releaseStockUseCase = releaseStockUseCase;
     }
 
     @Override
@@ -84,47 +70,24 @@ public class UpdateQuoteService implements UpdateQuoteUseCase {
         Set<UUID> requestedStockIds = new HashSet<>();
 
         for (CreateQuoteUseCase.StockItemCommand command : commands) {
-            Stock stock = stockRepository.findById(command.stockId()).orElseThrow(() -> new StockNotFoundException(command.stockId()));
-
             boolean duplicate = !requestedStockIds.add(command.stockId());
             if (duplicate) {
-                throw new QuoteItemAlreadyExistsException(stock.getProductName());
+                throw new QuoteItemAlreadyExistsException(command.productName());
             }
 
             QuoteStockItem existing = existingByStockId.get(command.stockId());
-
             if (existing != null) {
-                int delta = command.quantity() - existing.getQuantity();
-                if (delta > 0) {
-                    consumeStockUseCase.execute(new ConsumeStockUseCase.ConsumeStockCommand(command.stockId(), delta));
-                } else if (delta < 0) {
-                    releaseStockUseCase.execute(new ReleaseStockUseCase.ReleaseStockCommand(command.stockId(), -delta));
-                }
-
                 items.add(QuoteStockItem.reconstruct(
-                        existing.getId(), existing.getStockId(), existing.getProductName(),
-                        existing.getUnitPrice(), command.quantity(),
+                        existing.getId(), existing.getStockId(), command.productName(),
+                        command.unitPrice(), command.quantity(),
                         existing.getCreatedAt(), LocalDateTime.now()));
             } else {
-                consumeStockUseCase.execute(
-                        new ConsumeStockUseCase.ConsumeStockCommand(command.stockId(), command.quantity()));
                 items.add(QuoteStockItem.create(
-                        stock.getId(), stock.getProductName(), stock.getUnitPrice(), command.quantity()));
+                        command.stockId(), command.productName(), command.unitPrice(), command.quantity()));
             }
         }
-
-        releaseRemovedStockItems(quote, requestedStockIds);
 
         return items;
-    }
-
-    private void releaseRemovedStockItems(Quote quote, Set<UUID> requestedStockIds) {
-        for (QuoteStockItem item : quote.getStockItems()) {
-            UUID stockId = item.getStockId();
-            if (!requestedStockIds.contains(stockId)) {
-                releaseStockUseCase.execute(new ReleaseStockUseCase.ReleaseStockCommand(stockId, item.getQuantity()));
-            }
-        }
     }
 
     private List<QuoteServiceItem> buildServiceItems(Quote quote,

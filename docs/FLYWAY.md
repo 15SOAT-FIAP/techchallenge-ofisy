@@ -30,8 +30,8 @@ src/main/resources/db/migration
 
 No projeto já existem estes exemplos:
 
-- `V1__create_stocks_table.sql`
 - `V2__create_notifications_table.sql`
+- `V3__create_customers_table.sql`
 
 ---
 
@@ -46,7 +46,7 @@ V<numero_da_versao>__<descricao_da_migration>.sql
 Exemplos:
 
 - `V3__add_customer_table.sql`
-- `V4__create_indexes_for_stocks.sql`
+- `V4__create_indexes_for_vehicles.sql`
 
 ### Regras importantes
 

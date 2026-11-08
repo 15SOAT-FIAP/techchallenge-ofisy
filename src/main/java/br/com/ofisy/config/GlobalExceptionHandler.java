@@ -11,8 +11,6 @@ import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.QuoteNotFoundForServiceOrderException;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
-import br.com.ofisy.application.stock.exceptions.InsufficientStockException;
-import br.com.ofisy.application.stock.exceptions.StockNotFoundException;
 import br.com.ofisy.application.user.exceptions.EmailNotFoundException;
 import br.com.ofisy.application.user.exceptions.UserNotFoundException;
 import br.com.ofisy.application.vehicle.exceptions.VehicleAlreadyExistsException;
@@ -334,24 +332,6 @@ public class GlobalExceptionHandler {
         String title = "Item do orçamento inválido";
         countError(HttpStatus.BAD_REQUEST, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        problem.setTitle(title);
-        return problem;
-    }
-
-    @ExceptionHandler(StockNotFoundException.class)
-    public ProblemDetail handleStockNotFound(StockNotFoundException ex) {
-        String title = "Estoque não encontrado";
-        countError(HttpStatus.NOT_FOUND, title, ex);
-        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        problem.setTitle(title);
-        return problem;
-    }
-
-    @ExceptionHandler(InsufficientStockException.class)
-    public ProblemDetail handleInsufficientStock(InsufficientStockException ex) {
-        String title = "Estoque insuficiente";
-        countError(HttpStatus.CONFLICT, title, ex);
-        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         problem.setTitle(title);
         return problem;
     }

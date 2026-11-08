@@ -850,7 +850,7 @@ class ServiceOrderControllerTest {
                     "vehicleId": "%s",
                     "customerId": "%s",
                     "report": "Barulho na suspensão",
-                    "stockItems": [{ "stockId": "%s", "quantity": 2 }],
+                    "stockItems": [{ "stockId": "%s", "productName": "Filtro de óleo", "unitPrice": 25.00, "quantity": 2 }],
                     "serviceItems": []
                 }
                 """.formatted(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, UUID.randomUUID());
@@ -875,7 +875,7 @@ class ServiceOrderControllerTest {
     private String quoteBody() {
         return """
                 {
-                    "stockItems": [{ "stockId": "%s", "quantity": 2 }],
+                    "stockItems": [{ "stockId": "%s", "productName": "Filtro de óleo", "unitPrice": 25.00, "quantity": 2 }],
                     "serviceItems": []
                 }
                 """.formatted(UUID.randomUUID());

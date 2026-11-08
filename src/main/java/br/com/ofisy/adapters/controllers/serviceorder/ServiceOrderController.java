@@ -202,7 +202,8 @@ public class ServiceOrderController implements ServiceOrderApi {
             return List.of();
         }
         return stockItems.stream()
-                .map(stockItem -> new CreateQuoteUseCase.StockItemCommand(stockItem.stockId(), stockItem.quantity()))
+                .map(stockItem -> new CreateQuoteUseCase.StockItemCommand(
+                        stockItem.stockId(), stockItem.productName(), stockItem.unitPrice(), stockItem.quantity()))
                 .toList();
     }
 

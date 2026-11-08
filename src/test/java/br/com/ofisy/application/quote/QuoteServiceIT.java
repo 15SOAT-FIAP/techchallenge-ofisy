@@ -12,8 +12,6 @@ import br.com.ofisy.domain.customer.Customer;
 import br.com.ofisy.domain.customer.CustomerRepository;
 import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
-import br.com.ofisy.domain.stock.Stock;
-import br.com.ofisy.domain.stock.StockRepository;
 import br.com.ofisy.domain.user.Role;
 import br.com.ofisy.domain.user.User;
 import br.com.ofisy.domain.user.UserRepository;
@@ -53,12 +51,9 @@ class QuoteServiceIT extends IntegrationTestBase {
     private VehicleRepository vehicleDomainRepository;
     @Autowired
     private UserRepository userDomainRepository;
-    @Autowired
-    private StockRepository stockDomainRepository;
-
     private UUID customerId;
     private UUID vehicleId;
-    private UUID stockId;
+    private final UUID stockId = UUID.randomUUID();
     private String userEmail;
 
     @BeforeEach
@@ -74,10 +69,6 @@ class QuoteServiceIT extends IntegrationTestBase {
         Vehicle vehicle = vehicleDomainRepository.save(
                 Vehicle.create(customerId, new LicensePlate("QTE1T01"), "Uno", "Fiat", "Branco", 2020, null));
         vehicleId = vehicle.getId();
-
-        Stock stock = stockDomainRepository.save(
-                Stock.create("Peça Quote IT", "Peça para testes de quote service", 10, new BigDecimal("150.00"), "Testes", 2));
-        stockId = stock.getId();
     }
 
     @Nested
@@ -137,7 +128,8 @@ class QuoteServiceIT extends IntegrationTestBase {
         return generateServiceOrderQuoteUseCase.execute(
                 new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(
                         serviceOrder.getId(),
-                        List.of(new CreateQuoteUseCase.StockItemCommand(stockId, 1)),
+                        List.of(new CreateQuoteUseCase.StockItemCommand(
+                                stockId, "Peça Quote IT", new BigDecimal("150.00"), 1)),
                         List.of()));
     }
 }
