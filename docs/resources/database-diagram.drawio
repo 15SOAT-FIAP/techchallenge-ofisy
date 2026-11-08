@@ -173,7 +173,7 @@
           <mxGeometry height="22" width="340" y="162" as="geometry" />
         </mxCell>
         <mxCell id="e2065" parent="1" style="swimlane;html=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;fillColor=#666666;strokeColor=#666666;fontColor=#ffffff;fontStyle=1;fontSize=13;align=center;swimlaneFillColor=#ffffff;" value="quote_stock_items" vertex="1">
-          <mxGeometry height="184" width="340" x="930" y="810" as="geometry" />
+          <mxGeometry height="206" width="340" x="930" y="810" as="geometry" />
         </mxCell>
         <mxCell id="e2066" parent="e2065" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;fontColor=#222222;strokeColor=#E0E0E0;strokeWidth=1;fillColor=#FAFAFA;portConstraint=eastwest;" value="&lt;b&gt;id&lt;/b&gt;  &lt;font color=&quot;#888888&quot;&gt;: UUID&lt;/font&gt;  &lt;font color=&quot;#B10DC9&quot; style=&quot;font-size:9px&quot;&gt;&lt;b&gt;[PK]&lt;/b&gt;&lt;/font&gt;" vertex="1">
           <mxGeometry height="22" width="340" y="30" as="geometry" />
@@ -181,20 +181,23 @@
         <mxCell id="e2067" parent="e2065" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;fontColor=#222222;strokeColor=#E0E0E0;strokeWidth=1;fillColor=#FAFAFA;portConstraint=eastwest;" value="&lt;i&gt;&lt;u&gt;quote_id&lt;/u&gt;&lt;/i&gt;  &lt;font color=&quot;#888888&quot;&gt;: UUID&lt;/font&gt;  &lt;font color=&quot;#FF851B&quot; style=&quot;font-size:9px&quot;&gt;&lt;b&gt;[FK/UK*]&lt;/b&gt;&lt;/font&gt;" vertex="1">
           <mxGeometry height="22" width="340" y="52" as="geometry" />
         </mxCell>
-        <mxCell id="e2068" parent="e2065" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;fontColor=#222222;strokeColor=#E0E0E0;strokeWidth=1;fillColor=#FAFAFA;portConstraint=eastwest;" value="&lt;i&gt;&lt;u&gt;stock_id&lt;/u&gt;&lt;/i&gt;  &lt;font color=&quot;#888888&quot;&gt;: UUID&lt;/font&gt;  &lt;font color=&quot;#FF851B&quot; style=&quot;font-size:9px&quot;&gt;&lt;b&gt;[FK/UK*]&lt;/b&gt;&lt;/font&gt;" vertex="1">
+        <mxCell id="e2068" parent="e2065" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;fontColor=#222222;strokeColor=#E0E0E0;strokeWidth=1;fillColor=#FAFAFA;portConstraint=eastwest;" value="stock_id  &lt;font color=&quot;#888888&quot;&gt;: UUID&lt;/font&gt;  &lt;font color=&quot;#FF851B&quot; style=&quot;font-size:9px&quot;&gt;&lt;b&gt;[UK*]&lt;/b&gt;&lt;/font&gt;" vertex="1">
           <mxGeometry height="22" width="340" y="74" as="geometry" />
         </mxCell>
-        <mxCell id="e2069" parent="e2065" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;fontColor=#222222;strokeColor=#E0E0E0;strokeWidth=1;fillColor=#FAFAFA;portConstraint=eastwest;" value="unit_price  &lt;font color=&quot;#888888&quot;&gt;: DECIMAL(10,2)&lt;/font&gt;" vertex="1">
+        <mxCell id="e2065a" parent="e2065" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;fontColor=#222222;strokeColor=#E0E0E0;strokeWidth=1;fillColor=#FAFAFA;portConstraint=eastwest;" value="product_name  &lt;font color=&quot;#888888&quot;&gt;: VARCHAR(255)&lt;/font&gt;" vertex="1">
           <mxGeometry height="22" width="340" y="96" as="geometry" />
         </mxCell>
-        <mxCell id="e2070" parent="e2065" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;fontColor=#222222;strokeColor=#E0E0E0;strokeWidth=1;fillColor=#FAFAFA;portConstraint=eastwest;" value="quantity  &lt;font color=&quot;#888888&quot;&gt;: INTEGER&lt;/font&gt;" vertex="1">
+        <mxCell id="e2069" parent="e2065" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;fontColor=#222222;strokeColor=#E0E0E0;strokeWidth=1;fillColor=#FAFAFA;portConstraint=eastwest;" value="unit_price  &lt;font color=&quot;#888888&quot;&gt;: DECIMAL(10,2)&lt;/font&gt;" vertex="1">
           <mxGeometry height="22" width="340" y="118" as="geometry" />
         </mxCell>
-        <mxCell id="e2071" parent="e2065" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;fontColor=#222222;strokeColor=#E0E0E0;strokeWidth=1;fillColor=#FAFAFA;portConstraint=eastwest;" value="created_at  &lt;font color=&quot;#888888&quot;&gt;: TIMESTAMP&lt;/font&gt;" vertex="1">
+        <mxCell id="e2070" parent="e2065" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;fontColor=#222222;strokeColor=#E0E0E0;strokeWidth=1;fillColor=#FAFAFA;portConstraint=eastwest;" value="quantity  &lt;font color=&quot;#888888&quot;&gt;: INTEGER&lt;/font&gt;" vertex="1">
           <mxGeometry height="22" width="340" y="140" as="geometry" />
         </mxCell>
-        <mxCell id="e2072" parent="e2065" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;fontColor=#222222;strokeColor=#E0E0E0;strokeWidth=1;fillColor=#FAFAFA;portConstraint=eastwest;" value="updated_at  &lt;font color=&quot;#888888&quot;&gt;: TIMESTAMP&lt;/font&gt;" vertex="1">
+        <mxCell id="e2071" parent="e2065" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;fontColor=#222222;strokeColor=#E0E0E0;strokeWidth=1;fillColor=#FAFAFA;portConstraint=eastwest;" value="created_at  &lt;font color=&quot;#888888&quot;&gt;: TIMESTAMP&lt;/font&gt;" vertex="1">
           <mxGeometry height="22" width="340" y="162" as="geometry" />
+        </mxCell>
+        <mxCell id="e2072" parent="e2065" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;fontColor=#222222;strokeColor=#E0E0E0;strokeWidth=1;fillColor=#FAFAFA;portConstraint=eastwest;" value="updated_at  &lt;font color=&quot;#888888&quot;&gt;: TIMESTAMP&lt;/font&gt;" vertex="1">
+          <mxGeometry height="22" width="340" y="184" as="geometry" />
         </mxCell>
         <mxCell id="e2073" parent="1" style="swimlane;html=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;fillColor=#666666;strokeColor=#666666;fontColor=#ffffff;fontStyle=1;fontSize=13;align=center;swimlaneFillColor=#ffffff;" value="quote_service_items" vertex="1">
           <mxGeometry height="162" width="340" x="1420" y="810" as="geometry" />
@@ -324,14 +327,6 @@
             <Array as="points">
               <mxPoint x="720" y="1050" />
               <mxPoint x="1590" y="1050" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="e2117" edge="1" parent="1" source="e2080" style="html=1;rounded=0;fontSize=9;startArrow=ERone;startFill=0;startSize=14;endArrow=ERzeroToMany;endFill=0;endSize=18;strokeColor=#555555;" target="e2065" value="stock_id">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="340" y="1070" />
-              <mxPoint x="1100" y="1070" />
             </Array>
           </mxGeometry>
         </mxCell>

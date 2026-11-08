@@ -1,7 +1,6 @@
 package br.com.ofisy.adapters.gateways.quote;
 
 import br.com.ofisy.domain.quote.Quote;
-import br.com.ofisy.domain.stock.StockRepository;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -10,7 +9,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class QuoteMapper {
 
-    public static Quote toDomain(QuoteEntity entity, StockRepository stockRepository) {
+    public static Quote toDomain(QuoteEntity entity) {
         return Quote.reconstruct(
                 entity.getId(),
                 entity.getServiceOrderId(),
@@ -18,7 +17,7 @@ public class QuoteMapper {
                 entity.getTotalPrice(),
                 entity.getQuoteRefusalReason(),
                 entity.getStockItems().stream()
-                        .map(item -> QuoteStockItemMapper.toDomain(item, stockRepository))
+                        .map(QuoteStockItemMapper::toDomain)
                         .toList(),
                 entity.getServiceItems().stream()
                         .map(QuoteServiceItemMapper::toDomain)

@@ -51,13 +51,14 @@ public class CreateQuoteService implements CreateQuoteUseCase {
                     .orElseThrow(() -> new StockNotFoundException(command.stockId()));
 
             boolean duplicate = items.stream()
-                    .anyMatch(i -> i.getStock().getId().equals(command.stockId()));
+                    .anyMatch(i -> i.getStockId().equals(command.stockId()));
             if (duplicate) {
                 throw new QuoteItemAlreadyExistsException(stock.getProductName());
             }
 
             consumeStockUseCase.execute(new ConsumeStockUseCase.ConsumeStockCommand(command.stockId(), command.quantity()));
-            items.add(QuoteStockItem.create(stock, command.quantity()));
+            items.add(QuoteStockItem.create(
+                    stock.getId(), stock.getProductName(), stock.getUnitPrice(), command.quantity()));
         }
 
         return items;

@@ -76,9 +76,10 @@ serviço.
 serviços, substituindo as chamadas diretas aos casos de uso de `notification`.
 
 **Dados.** Banco por serviço. Nenhum serviço lê tabela de outro. Referências entre serviços
-são apenas por id: o orçamento guarda o `serviceOrderId`, a execução guarda o
-`serviceCatalogId`, e nenhum deles tem chave estrangeira para fora do próprio banco. Cada
-serviço versiona o próprio schema com Flyway, como no
+são apenas por id: o orçamento guarda o `serviceOrderId` e o `stockId` de cada peça, com o
+nome e o preço copiados no item, a execução guarda o `serviceCatalogId`, e nenhum deles tem
+chave estrangeira para fora do próprio banco. Cada serviço versiona o próprio schema com
+Flyway, como no
 [ADR-0007](../adr/0007-versionar-o-schema-com-flyway.md).
 
 **Comunicação.** O fluxo da OS passa a ser uma saga por mensageria. O diagrama abaixo mostra

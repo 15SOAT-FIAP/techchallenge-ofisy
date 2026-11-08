@@ -79,6 +79,8 @@ class UpdateQuoteServiceTest {
 
             assertThat(result.getStockItems()).hasSize(1);
             assertThat(result.getStockItems().get(0).getQuantity()).isEqualTo(3);
+            assertThat(result.getStockItems().get(0).getStockId()).isEqualTo(STOCK_ID);
+            assertThat(result.getStockItems().get(0).getProductName()).isEqualTo("Filtro de óleo");
             verify(consumeStockUseCase).execute(
                     new ConsumeStockUseCase.ConsumeStockCommand(STOCK_ID, 3));
             verify(quoteRepository).save(quote);
@@ -187,7 +189,7 @@ class UpdateQuoteServiceTest {
 
         @Test
         void shouldConsumeOnlyDeltaWhenQuantityIncreases() {
-            var existingItem = QuoteStockItem.reconstruct(UUID.randomUUID(), validStock(),
+            var existingItem = QuoteStockItem.reconstruct(UUID.randomUUID(), STOCK_ID, "Filtro de óleo",
                     new BigDecimal(PRICE_100), 1, LocalDateTime.now(), LocalDateTime.now());
             var quote = quoteWithStockItems(List.of(existingItem));
             var cmd = new UpdateQuoteUseCase.UpdateQuoteCommand(QUOTE_ID,
@@ -205,7 +207,7 @@ class UpdateQuoteServiceTest {
 
         @Test
         void shouldReleaseOnlyDeltaWhenQuantityDecreases() {
-            var existingItem = QuoteStockItem.reconstruct(UUID.randomUUID(), validStock(),
+            var existingItem = QuoteStockItem.reconstruct(UUID.randomUUID(), STOCK_ID, "Filtro de óleo",
                     new BigDecimal(PRICE_100), 3, LocalDateTime.now(), LocalDateTime.now());
             var quote = quoteWithStockItems(List.of(existingItem));
             var cmd = new UpdateQuoteUseCase.UpdateQuoteCommand(QUOTE_ID,
@@ -223,7 +225,7 @@ class UpdateQuoteServiceTest {
 
         @Test
         void shouldNotTriggerStockMovementWhenQuantityUnchanged() {
-            var existingItem = QuoteStockItem.reconstruct(UUID.randomUUID(), validStock(),
+            var existingItem = QuoteStockItem.reconstruct(UUID.randomUUID(), STOCK_ID, "Filtro de óleo",
                     new BigDecimal(PRICE_100), 2, LocalDateTime.now(), LocalDateTime.now());
             var quote = quoteWithStockItems(List.of(existingItem));
             var cmd = new UpdateQuoteUseCase.UpdateQuoteCommand(QUOTE_ID,
@@ -241,9 +243,9 @@ class UpdateQuoteServiceTest {
 
         @Test
         void shouldReleaseFullQuantityWhenStockItemIsRemoved() {
-            var keptItem = QuoteStockItem.reconstruct(UUID.randomUUID(), validStock(),
+            var keptItem = QuoteStockItem.reconstruct(UUID.randomUUID(), STOCK_ID, "Filtro de óleo",
                     new BigDecimal(PRICE_100), 2, LocalDateTime.now(), LocalDateTime.now());
-            var removedItem = QuoteStockItem.reconstruct(UUID.randomUUID(), validStockSecondary(),
+            var removedItem = QuoteStockItem.reconstruct(UUID.randomUUID(), STOCK_ID_SECONDARY, "Vela de ignição",
                     new BigDecimal(PRICE_100), 4, LocalDateTime.now(), LocalDateTime.now());
             var quote = quoteWithStockItems(List.of(keptItem, removedItem));
 
@@ -264,7 +266,7 @@ class UpdateQuoteServiceTest {
         @Test
         void shouldPreserveStockItemIdWhenQuantityChanges() {
             var existingId = UUID.randomUUID();
-            var existingItem = QuoteStockItem.reconstruct(existingId, validStock(),
+            var existingItem = QuoteStockItem.reconstruct(existingId, STOCK_ID, "Filtro de óleo",
                     new BigDecimal(PRICE_100), 1, LocalDateTime.now(), LocalDateTime.now());
             var quote = quoteWithStockItems(List.of(existingItem));
             var cmd = new UpdateQuoteUseCase.UpdateQuoteCommand(QUOTE_ID,
@@ -279,6 +281,8 @@ class UpdateQuoteServiceTest {
             assertThat(result.getStockItems()).hasSize(1);
             assertThat(result.getStockItems().getFirst().getId()).isEqualTo(existingId);
             assertThat(result.getStockItems().getFirst().getQuantity()).isEqualTo(5);
+            assertThat(result.getStockItems().getFirst().getStockId()).isEqualTo(STOCK_ID);
+            assertThat(result.getStockItems().getFirst().getProductName()).isEqualTo("Filtro de óleo");
         }
     }
 
@@ -330,7 +334,7 @@ class UpdateQuoteServiceTest {
         void shouldRemoveServiceItemNoLongerRequested() {
             var removedServiceItem = QuoteServiceItem.reconstruct(UUID.randomUUID(), SERVICE_CATALOG_ID,
                     new BigDecimal(PRICE_150), LocalDateTime.now(), LocalDateTime.now());
-            var keptStockItem = QuoteStockItem.reconstruct(UUID.randomUUID(), validStock(),
+            var keptStockItem = QuoteStockItem.reconstruct(UUID.randomUUID(), STOCK_ID, "Filtro de óleo",
                     new BigDecimal(PRICE_100), 2, LocalDateTime.now(), LocalDateTime.now());
             var quote = quoteWithStockAndServiceItems(List.of(keptStockItem), List.of(removedServiceItem));
             var cmd = new UpdateQuoteUseCase.UpdateQuoteCommand(QUOTE_ID,

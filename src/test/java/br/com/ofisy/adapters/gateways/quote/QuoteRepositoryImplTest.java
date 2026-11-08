@@ -5,8 +5,6 @@ import br.com.ofisy.domain.quote.Quote;
 import br.com.ofisy.domain.quote.QuoteServiceItem;
 import br.com.ofisy.domain.quote.QuoteStatus;
 import br.com.ofisy.domain.quote.QuoteStockItem;
-import br.com.ofisy.domain.stock.Stock;
-import br.com.ofisy.domain.stock.StockRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -36,9 +34,9 @@ class QuoteRepositoryImplTest {
     private static final UUID STOCK_ID_2 = UUID.randomUUID();
     private static final String PRICE_100 = "100.00";
     private static final String PRICE_150 = "150.00";
+    private static final String FILTRO_DE_OLEO = "Filtro de óleo";
 
     @Mock private JpaQuoteRepository jpaQuoteRepository;
-    @Mock private StockRepository stockRepository;
 
     @InjectMocks
     private QuoteRepositoryImpl repository;
@@ -122,13 +120,12 @@ class QuoteRepositoryImplTest {
             var existingEntity = validEntity(quoteId, serviceOrderId);
             existingEntity.getStockItems().add(stockItemEntity(existingItemId, STOCK_ID, 1, existingEntity));
 
-            var domainStockItem = QuoteStockItem.reconstruct(existingItemId, validStock(STOCK_ID),
+            var domainStockItem = QuoteStockItem.reconstruct(existingItemId, STOCK_ID, FILTRO_DE_OLEO,
                     new BigDecimal(PRICE_100), 5, LocalDateTime.now(), LocalDateTime.now());
             var quote = quoteWithStockItems(quoteId, serviceOrderId, List.of(domainStockItem));
 
             when(jpaQuoteRepository.findById(quoteId)).thenReturn(Optional.of(existingEntity));
             when(jpaQuoteRepository.save(any(QuoteEntity.class))).thenReturn(existingEntity);
-            when(stockRepository.findById(STOCK_ID)).thenReturn(Optional.of(validStock(STOCK_ID)));
 
             repository.save(quote);
 
@@ -147,15 +144,13 @@ class QuoteRepositoryImplTest {
             var existingEntity = validEntity(quoteId, serviceOrderId);
             existingEntity.getStockItems().add(stockItemEntity(existingItemId, STOCK_ID, 1, existingEntity));
 
-            var unchangedItem = QuoteStockItem.reconstruct(existingItemId, validStock(STOCK_ID),
+            var unchangedItem = QuoteStockItem.reconstruct(existingItemId, STOCK_ID, FILTRO_DE_OLEO,
                     new BigDecimal(PRICE_100), 1, LocalDateTime.now(), LocalDateTime.now());
-            var newItem = QuoteStockItem.create(validStock(STOCK_ID_2), 2);
+            var newItem = QuoteStockItem.create(STOCK_ID_2, FILTRO_DE_OLEO, new BigDecimal(PRICE_100), 2);
             var quote = quoteWithStockItems(quoteId, serviceOrderId, List.of(unchangedItem, newItem));
 
             when(jpaQuoteRepository.findById(quoteId)).thenReturn(Optional.of(existingEntity));
             when(jpaQuoteRepository.save(any(QuoteEntity.class))).thenReturn(existingEntity);
-            when(stockRepository.findById(STOCK_ID)).thenReturn(Optional.of(validStock(STOCK_ID)));
-            when(stockRepository.findById(STOCK_ID_2)).thenReturn(Optional.of(validStock(STOCK_ID_2)));
 
             repository.save(quote);
 
@@ -176,13 +171,12 @@ class QuoteRepositoryImplTest {
             existingEntity.getStockItems().add(stockItemEntity(keptItemId, STOCK_ID, 1, existingEntity));
             existingEntity.getStockItems().add(stockItemEntity(removedItemId, STOCK_ID_2, 2, existingEntity));
 
-            var keptItem = QuoteStockItem.reconstruct(keptItemId, validStock(STOCK_ID),
+            var keptItem = QuoteStockItem.reconstruct(keptItemId, STOCK_ID, FILTRO_DE_OLEO,
                     new BigDecimal(PRICE_100), 1, LocalDateTime.now(), LocalDateTime.now());
             var quote = quoteWithStockItems(quoteId, serviceOrderId, List.of(keptItem));
 
             when(jpaQuoteRepository.findById(quoteId)).thenReturn(Optional.of(existingEntity));
             when(jpaQuoteRepository.save(any(QuoteEntity.class))).thenReturn(existingEntity);
-            when(stockRepository.findById(STOCK_ID)).thenReturn(Optional.of(validStock(STOCK_ID)));
 
             repository.save(quote);
 
@@ -382,12 +376,6 @@ class QuoteRepositoryImplTest {
                 LocalDateTime.now(), LocalDateTime.now());
     }
 
-    private Stock validStock(UUID stockId) {
-        return Stock.reconstruct(stockId, "Filtro de óleo", "Filtro",
-                10, new BigDecimal(PRICE_100), "Filtros", 2,
-                LocalDateTime.now(), LocalDateTime.now());
-    }
-
     private QuoteEntity validEntity(UUID id, UUID serviceOrderId) {
         return QuoteEntity.builder()
                 .id(id)
@@ -406,6 +394,7 @@ class QuoteRepositoryImplTest {
                 .id(id)
                 .quote(quoteEntity)
                 .stockId(stockId)
+                .productName(FILTRO_DE_OLEO)
                 .unitPrice(new BigDecimal(PRICE_100))
                 .quantity(quantity)
                 .createdAt(LocalDateTime.now())
