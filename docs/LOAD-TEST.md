@@ -6,17 +6,18 @@ Script de teste de carga em `k6/script.js`, usado para validar que a API se mant
 
 - [k6](https://k6.io/docs/get-started/installation/) instalado
 - API rodando localmente (IntelliJ ou `docker compose up -d`)
+- ID de uma ordem de serviço existente
 
 ## Executando
 
 ```bash
-k6 run k6/script.js
+k6 run -e SERVICE_ORDER_ID="ID_DA_ORDEM" k6/script.js
 ```
 
 ## O que o script faz
 
-- Sobe a carga em 5 estágios, de 20 até 150 VUs, ao longo de 2 minutos.
-- Requisições `GET /api/v1/notifications` em loop, com 1s de intervalo, foi definido esse endpoint por não precisar de autenticação.
+- Sobe a carga em quatro estágios, com pico de 200 VUs.
+- Consulta a rota pública `GET /api/v1/service-orders/{id}/status` em loop, com intervalo de 1 segundo. O endereço padrão é `http://localhost:8080`. Use `-e CORE_BASE_URL=<url>` para alterar o endereço.
 - Valida status 200 em cada resposta.
 - Threshold: taxa de falha (`http_req_failed`) deve ficar abaixo de 5%.
 

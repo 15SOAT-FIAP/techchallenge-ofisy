@@ -3,7 +3,6 @@ package br.com.ofisy.integration;
 import br.com.ofisy.adapters.gateways.customer.JpaCustomerRepository;
 import br.com.ofisy.adapters.gateways.messaging.JpaOutboxEventRepository;
 import br.com.ofisy.adapters.gateways.messaging.JpaProcessedEventRepository;
-import br.com.ofisy.adapters.gateways.notification.JpaNotificationRepository;
 import br.com.ofisy.adapters.gateways.quote.JpaQuoteRepository;
 import br.com.ofisy.adapters.gateways.servicecatalog.JpaServiceCatalogRepository;
 import br.com.ofisy.adapters.gateways.serviceorder.JpaServiceOrderRepository;
@@ -68,8 +67,6 @@ public abstract class IntegrationTestBase {
     @Autowired
     protected PasswordEncoder passwordEncoder;
 
-    @Autowired private 
-    JpaNotificationRepository notificationRepository;
     @Autowired 
     private JpaQuoteRepository quoteRepository;
     @Autowired 
@@ -95,7 +92,6 @@ public abstract class IntegrationTestBase {
 
     @AfterEach
     void cleanDatabase() {
-        notificationRepository.deleteAll();
         quoteRepository.deleteAll();
         serviceOrderRepository.deleteAll();
         serviceCatalogRepository.deleteAll();

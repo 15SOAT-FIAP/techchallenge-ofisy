@@ -3,7 +3,6 @@ package br.com.ofisy.config;
 import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsException;
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
-import br.com.ofisy.application.notification.exceptions.NotificationNotFoundException;
 import br.com.ofisy.application.quote.exceptions.QuoteAlreadyExistsException;
 import br.com.ofisy.application.servicecatalog.exceptions.ServiceCatalogNotFoundException;
 import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
@@ -20,7 +19,6 @@ import br.com.ofisy.domain.customer.exceptions.CustomerAlreadyActiveException;
 import br.com.ofisy.domain.customer.exceptions.CustomerAlreadyInactiveException;
 import br.com.ofisy.domain.customer.exceptions.InactiveCustomerException;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
-import br.com.ofisy.domain.notification.exceptions.InvalidNotificationMessageException;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteDataException;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteItemException;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
@@ -94,15 +92,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidCpfCnpjException.class)
     public ProblemDetail handleInvalidCpfCnpj(InvalidCpfCnpjException ex) {
         String title = "CPF/CNPJ inválido";
-        countError(HttpStatus.BAD_REQUEST, title, ex);
-        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        problem.setTitle(title);
-        return problem;
-    }
-
-    @ExceptionHandler(InvalidNotificationMessageException.class)
-    public ProblemDetail handleInvalidNotificationMessage(InvalidNotificationMessageException ex) {
-        String title = "Mensagem de notificação inválida";
         countError(HttpStatus.BAD_REQUEST, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         problem.setTitle(title);
@@ -229,15 +218,6 @@ public class GlobalExceptionHandler {
         String title = "Usuário não autorizado";
         countError(HttpStatus.UNAUTHORIZED, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
-        problem.setTitle(title);
-        return problem;
-    }
-
-    @ExceptionHandler(NotificationNotFoundException.class)
-    public ProblemDetail handleNotificationNotFound(NotificationNotFoundException ex) {
-        String title = "Notificação não encontrada";
-        countError(HttpStatus.NOT_FOUND, title, ex);
-        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         problem.setTitle(title);
         return problem;
     }

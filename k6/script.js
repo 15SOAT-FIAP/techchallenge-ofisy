@@ -1,6 +1,12 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 
+const baseUrl = __ENV.CORE_BASE_URL || 'http://localhost:8080';
+const serviceOrderId = __ENV.SERVICE_ORDER_ID;
+if (!serviceOrderId) {
+    throw new Error('Defina SERVICE_ORDER_ID com o ID de uma ordem de serviço existente.');
+}
+
 export const options = {
     stages: [
         { duration: '10s', target: 100 }, // Sobe rapido para 100 usuários
@@ -14,7 +20,7 @@ export const options = {
 };
 
 export default function () {
-    const res = http.get('http://localhost:8080/api/v1/notifications');
+    const res = http.get(`${baseUrl}/api/v1/service-orders/${serviceOrderId}/status`);
     check(res, { 'status is 200': (r) => r.status === 200 });
     sleep(1);
 }

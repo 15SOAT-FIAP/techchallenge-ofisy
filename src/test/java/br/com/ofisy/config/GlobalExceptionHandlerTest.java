@@ -12,7 +12,6 @@ import br.com.ofisy.application.customer.identifybycpfcnpj.IdentifyByCpfCnpjCust
 import br.com.ofisy.application.customer.identifybyid.IdentifyByIdCustomerUseCase;
 import br.com.ofisy.application.customer.list.ListRegisteredCustomerUseCase;
 import br.com.ofisy.application.customer.register.RegisterCustomerUseCase;
-import br.com.ofisy.application.notification.exceptions.NotificationNotFoundException;
 import br.com.ofisy.application.quote.exceptions.QuoteAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
 import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
@@ -54,7 +53,6 @@ import br.com.ofisy.application.vehicle.listall.ListRegisteredVehiclesUseCase;
 import br.com.ofisy.application.vehicle.listbycustomer.ListVehiclesByCustomerUseCase;
 import br.com.ofisy.application.vehicle.register.RegisterVehicleUseCase;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
-import br.com.ofisy.domain.notification.exceptions.InvalidNotificationMessageException;
 import br.com.ofisy.domain.quote.QuoteStatus;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteDataException;
 import br.com.ofisy.domain.quote.exceptions.InvalidQuoteItemException;
@@ -243,22 +241,6 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.title").value("CPF/CNPJ inválido"))
                     .andExpect(jsonPath("$.detail").value("CPF ou CNPJ inválido: " + invalidCpfCnpj));
-        }
-    }
-
-    @Nested
-    class InvalidNotificationMessage {
-
-        @Test
-        void shouldReturn400WhenNotificationMessageIsInvalid() throws Exception {
-            var message = "Mensagem inválida";
-            when(identifyByIdCustomerUseCase.execute(any(UUID.class)))
-                    .thenThrow(new InvalidNotificationMessageException(message));
-
-            mockMvc.perform(get("/api/v1/customers/{id}", UUID.randomUUID()))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.title").value("Mensagem de notificação inválida"))
-                    .andExpect(jsonPath("$.detail").value(message));
         }
     }
 
