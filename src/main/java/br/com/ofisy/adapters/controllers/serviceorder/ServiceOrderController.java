@@ -144,6 +144,14 @@ public class ServiceOrderController implements ServiceOrderApi {
         return ResponseEntity.ok(ServiceOrderStatusPresenter.present(getServiceOrderStatusUseCase.execute(id)));
     }
 
+    @Override
+    @GetMapping("/{id}/customer")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ServiceOrderCustomerResponseDTO> getCustomerById(@PathVariable UUID id) {
+        var order = getServiceOrderStatusUseCase.execute(id);
+        return ResponseEntity.ok(new ServiceOrderCustomerResponseDTO(order.getCustomerId()));
+    }
+
     @PatchMapping("/{id}/start-diagnostic")
     @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT', 'MECHANIC')")
     public ResponseEntity<ServiceOrderResponseDTO> startDiagnosticServiceOrder(@PathVariable UUID id) {
