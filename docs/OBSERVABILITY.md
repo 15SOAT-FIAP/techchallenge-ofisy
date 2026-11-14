@@ -14,6 +14,7 @@ A aplicação envia métricas, logs e traces para o Datadog. Toda a cobertura ve
 | Logs estruturados (JSON) com correlação       | `logback-spring.xml` gera JSON via `logstash-logback-encoder`; `DD_LOGS_INJECTION=true` faz o `dd-java-agent` injetar `dd.trace_id`/`dd.span_id` no MDC, correlacionando log ↔ trace. |
 | Falhas no processamento de ordem de serviço   | `GlobalExceptionHandler` loga `ERROR` com o campo estruturado `event: order_processing_failed` para `InvalidServiceOrderTransitionException` e `ServiceOrderNotFoundException` — base para um Log-Based Metric/Monitor no Datadog. |
 | Erros e falhas (geral)                        | Métrica automática `http.server.requests` do Micrometer (tags `status`, `exception`, `outcome`).                                                          |
+| Rastreamento dos fluxos distribuídos          | O contexto do trace é salvo com cada evento do outbox e restaurado na publicação, e o listener continua o trace recebido na mensagem, então o fluxo da OS segue no mesmo trace entre o core e os outros microsserviços ([MESSAGING.md](MESSAGING.md#rastreamento-distribuído-pelo-outbox)). |
 
 ---
 
@@ -28,6 +29,7 @@ A aplicação envia métricas, logs e traces para o Datadog. Toda a cobertura ve
 
 1. A conta Datadog deste projeto está no site **`us5.datadoghq.com`** (não o padrão `datadoghq.com`/US1) — já refletido no default de `uri` em `application.yml` (`DD_METRICS_URI`). A instalação do Agent (site do Helm chart) é responsabilidade do repo de infraestrutura.
 2. `DD_API_KEY` é um **Organization Secret** do GitHub (org `15SOAT-FIAP`), usado pelo `ofisy-secret` do Kubernetes (injetado via `cd.yml`).
+3. `DD_TRACE_OTEL_ENABLED=true` no `k8s/configmap.yml` conecta a API do OpenTelemetry ao `dd-java-agent`. É ela que o outbox usa para capturar e restaurar o contexto do trace.
 
 ---
 
