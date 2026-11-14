@@ -142,10 +142,10 @@ class ServiceOrderEventsListenerIT extends IntegrationTestBase {
     }
 
     @Test
-    void shouldCancelServiceOrderAndPublishServiceOrderCancelledWhenQuoteReproved() {
+    void shouldCancelServiceOrderAndPublishServiceOrderCancelledWhenStockRefunded() {
         UUID serviceOrderId = awaitingApprovalServiceOrder();
         UUID eventId = UUID.randomUUID();
-        String body = envelope(eventId, "QuoteReproved", serviceOrderId);
+        String body = envelope(eventId, "StockRefunded", serviceOrderId);
         String queueUrl = queueUrl();
 
         send(queueUrl, serviceOrderId, body);
