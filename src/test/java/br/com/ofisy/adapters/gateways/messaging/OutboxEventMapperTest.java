@@ -17,7 +17,9 @@ class OutboxEventMapperTest {
         OutboxEvent outboxEvent = OutboxEvent.create("ServiceOrderCancelled", UUID.randomUUID(), Map.of());
         String payloadJson = "{\"quoteId\":\"%s\"}".formatted(UUID.randomUUID());
 
-        OutboxEventEntity response = OutboxEventMapper.toEntity(outboxEvent, payloadJson);
+        String traceContextJson = "{\"traceparent\":\"00-6af793d30000000025cb7731d653ab37-6d0c2e20f86d8721-01\"}";
+
+        OutboxEventEntity response = OutboxEventMapper.toEntity(outboxEvent, payloadJson, traceContextJson);
 
         assertNotNull(response);
         assertEquals(outboxEvent.getEventId(), response.getId());
@@ -25,6 +27,7 @@ class OutboxEventMapperTest {
         assertEquals(outboxEvent.getServiceOrderId(), response.getServiceOrderId());
         assertEquals(payloadJson, response.getPayload());
         assertEquals(outboxEvent.getOccurredAt(), response.getOccurredAt());
+        assertEquals(traceContextJson, response.getTraceContext());
         assertNull(response.getPublishedAt());
         assertTrue(response.isNew());
     }
