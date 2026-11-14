@@ -3,6 +3,8 @@ package br.com.ofisy.application.serviceorder.finish;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.finish.FinishServiceOrderUseCase.FinishServiceOrderCommand;
 import br.com.ofisy.config.metrics.ServiceOrderMetrics;
+import br.com.ofisy.domain.messaging.OutboxEvent;
+import br.com.ofisy.domain.messaging.OutboxEventRepository;
 import br.com.ofisy.domain.messaging.ProcessedEvent;
 import br.com.ofisy.domain.messaging.ProcessedEventRepository;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
@@ -46,9 +48,13 @@ class FinishServiceOrderServiceTest {
     @Mock
     private ProcessedEventRepository processedEventRepository;
     @Mock
+    private OutboxEventRepository outboxEventRepository;
+    @Mock
     private ServiceOrderMetrics serviceOrderMetrics;
     @Captor
     private ArgumentCaptor<ProcessedEvent> processedEventCaptor;
+    @Captor
+    private ArgumentCaptor<OutboxEvent> outboxEventCaptor;
 
     @InjectMocks
     private FinishServiceOrderService finishServiceOrderService;
@@ -69,6 +75,20 @@ class FinishServiceOrderServiceTest {
             verify(serviceOrderRepository).save(serviceOrder);
             verify(serviceOrderMetrics).recordTransition(
                     eq(ServiceOrderStatus.IN_PROGRESS), eq(ServiceOrderStatus.FINISHED), any());
+        }
+
+        @Test
+        void shouldPublishServiceOrderFinishedWhenOrderIsFinished() {
+            ServiceOrder serviceOrder = inProgressServiceOrder();
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
+            when(serviceOrderRepository.save(serviceOrder)).thenAnswer(inv -> inv.getArgument(0));
+
+            finishServiceOrderService.execute(COMMAND);
+
+            verify(outboxEventRepository).save(outboxEventCaptor.capture());
+            OutboxEvent published = outboxEventCaptor.getValue();
+            assertThat(published.getEventType()).isEqualTo("ServiceOrderFinished");
+            assertThat(published.getServiceOrderId()).isEqualTo(VALID_SERVICE_ORDER_ID);
         }
 
         @Test
@@ -121,6 +141,7 @@ class FinishServiceOrderServiceTest {
             verify(serviceOrderRepository, never()).findById(any());
             verify(serviceOrderRepository, never()).save(any());
             verify(processedEventRepository, never()).save(any());
+            verify(outboxEventRepository, never()).save(any());
             verify(serviceOrderMetrics, never()).recordTransition(any(), any(), any());
         }
 
@@ -133,6 +154,7 @@ class FinishServiceOrderServiceTest {
 
             assertThat(serviceOrder.getStatus()).isEqualTo(ServiceOrderStatus.CANCELLED);
             verify(serviceOrderRepository, never()).save(any());
+            verify(outboxEventRepository, never()).save(any());
             verify(processedEventRepository).save(any(ProcessedEvent.class));
             verify(serviceOrderMetrics, never()).recordTransition(any(), any(), any());
         }

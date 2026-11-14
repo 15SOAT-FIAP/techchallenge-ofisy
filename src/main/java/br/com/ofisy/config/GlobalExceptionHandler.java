@@ -3,11 +3,7 @@ package br.com.ofisy.config;
 import br.com.ofisy.application.customer.exceptions.CustomerAlreadyExistsException;
 import br.com.ofisy.application.customer.exceptions.CustomerCpfCnpjNotFoundException;
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
-import br.com.ofisy.application.quote.exceptions.QuoteAlreadyExistsException;
 import br.com.ofisy.application.servicecatalog.exceptions.ServiceCatalogNotFoundException;
-import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
-import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
-import br.com.ofisy.application.serviceorder.exceptions.QuoteNotFoundForServiceOrderException;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
 import br.com.ofisy.application.user.exceptions.EmailNotFoundException;
@@ -19,9 +15,6 @@ import br.com.ofisy.domain.customer.exceptions.CustomerAlreadyActiveException;
 import br.com.ofisy.domain.customer.exceptions.CustomerAlreadyInactiveException;
 import br.com.ofisy.domain.customer.exceptions.InactiveCustomerException;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
-import br.com.ofisy.domain.quote.exceptions.InvalidQuoteDataException;
-import br.com.ofisy.domain.quote.exceptions.InvalidQuoteItemException;
-import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
 import br.com.ofisy.domain.serviceorder.exceptions.InvalidServiceOrderTransitionException;
 import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
 import br.com.ofisy.domain.user.exceptions.InactiveUserException;
@@ -258,69 +251,6 @@ public class GlobalExceptionHandler {
         String title = "Serviço não encontrado no catalogo";
         countError(HttpStatus.NOT_FOUND, title, ex);
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        problem.setTitle(title);
-        return problem;
-    }
-
-    @ExceptionHandler(QuoteNotFoundException.class)
-    public ProblemDetail handleQuoteNotFound(QuoteNotFoundException ex) {
-        String title = "Orçamento não encontrado";
-        countError(HttpStatus.NOT_FOUND, title, ex);
-        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        problem.setTitle(title);
-        return problem;
-    }
-
-    @ExceptionHandler(QuoteNotFoundForServiceOrderException.class)
-    public ProblemDetail handleQuoteNotFoundForServiceOrder(QuoteNotFoundForServiceOrderException ex) {
-        String title = "Orçamento não encontrado para ordem de serviço informada";
-        countError(HttpStatus.NOT_FOUND, title, ex);
-        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        problem.setTitle(title);
-        return problem;
-    }
-
-    @ExceptionHandler(InvalidQuoteStatusException.class)
-    public ProblemDetail handleInvalidQuoteStatus(InvalidQuoteStatusException ex) {
-        String title = "Status do orçamento inválido";
-        countError(HttpStatus.CONFLICT, title, ex);
-        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        problem.setTitle(title);
-        return problem;
-    }
-
-    @ExceptionHandler(QuoteItemAlreadyExistsException.class)
-    public ProblemDetail handleQuoteItemAlreadyExists(QuoteItemAlreadyExistsException ex) {
-        String title = "Item já existe no orçamento";
-        countError(HttpStatus.CONFLICT, title, ex);
-        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        problem.setTitle(title);
-        return problem;
-    }
-
-    @ExceptionHandler(InvalidQuoteDataException.class)
-    public ProblemDetail handleInvalidQuoteData(InvalidQuoteDataException ex) {
-        String title = "Dados do orçamento inválidos";
-        countError(HttpStatus.BAD_REQUEST, title, ex);
-        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        problem.setTitle(title);
-        return problem;
-    }
-
-    @ExceptionHandler(InvalidQuoteItemException.class)
-    public ProblemDetail handleInvalidQuoteItem(InvalidQuoteItemException ex) {
-        String title = "Item do orçamento inválido";
-        countError(HttpStatus.BAD_REQUEST, title, ex);
-        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        problem.setTitle(title);
-        return problem;
-    }
-
-    @ExceptionHandler(QuoteAlreadyExistsException.class)
-    public ProblemDetail handleQuoteAlreadyExists(QuoteAlreadyExistsException ex) {
-        String title = "Orçamento já existe para a ordem de serviço";
-        countError(HttpStatus.CONFLICT, title, ex);
-        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         problem.setTitle(title);
         return problem;
     }

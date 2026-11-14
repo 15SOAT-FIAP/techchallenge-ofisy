@@ -13,6 +13,8 @@ flowchart LR
     app[core] -->|outbox + publisher| topic[(SNS<br/>ofisy-service-order-events.fifo)]
     topic -.->|só local, raw delivery| inspect[(SQS<br/>ofisy-service-order-events-inspect.fifo)]
     execution[(SNS<br/>ofisy-execution-events.fifo)] -->|filtro por type| queue
+    billing[(SNS<br/>ofisy-billing-events.fifo)] -->|filtro por type| queue
+    stock[(SNS<br/>ofisy-stock-events.fifo)] -->|filtro por type| queue
     queue[(SQS<br/>ofisy-service-order.fifo)] --> app
     queue -->|após 5 recebimentos| dlq[(SQS<br/>ofisy-service-order-dlq.fifo)]
 ```
@@ -24,8 +26,10 @@ flowchart LR
 | DLQ              | `ofisy-service-order-dlq.fifo`            | `RedrivePolicy` com `maxReceiveCount=5`                                                                |
 | Fila de inspeção | `ofisy-service-order-events-inspect.fifo` | Só local. Assinada no tópico do core para ver o que foi publicado                                      |
 | Tópico assinado  | `ofisy-execution-events.fifo`             | Tópico do `ms-ofisy-execution`. A fila do core recebe só `ExecutionStarted` e `AllExecutionsCompleted` |
+| Tópico assinado  | `ofisy-billing-events.fifo`               | Tópico do `ms-ofisy-billing`. A fila do core recebe só `QuoteSentForApproval`, `QuoteApproved` e `QuoteCancelled` |
+| Tópico assinado  | `ofisy-stock-events.fifo`                 | Tópico do `ms-ofisy-stock`. A fila do core recebe só `StockRefunded` |
 
-A fila do core assina o tópico `ofisy-execution-events.fifo`, do `ms-ofisy-execution`, com `RawMessageDelivery=true` e `FilterPolicy` por `type` no corpo da mensagem (`FilterPolicyScope=MessageBody`), recebendo só `ExecutionStarted` e `AllExecutionsCompleted`. Os eventos de outros serviços entram da mesma forma, junto com o primeiro handler de cada um.
+A fila do core assina os tópicos `ofisy-execution-events.fifo`, do `ms-ofisy-execution`, `ofisy-billing-events.fifo`, do `ms-ofisy-billing`, e `ofisy-stock-events.fifo`, do `ms-ofisy-stock`, com `RawMessageDelivery=true` e `FilterPolicy` por `type` no corpo da mensagem (`FilterPolicyScope=MessageBody`), recebendo só os tipos que têm handler. Os eventos de outros serviços entram da mesma forma, junto com o primeiro handler de cada um.
 
 Localmente, tudo é criado pelo `localstack/init/ready.d/01-messaging.sh`, que roda quando o LocalStack sobe (pelo `compose.yaml`, pelo `compose.db.yaml` e nos testes de integração). Com `queue-not-found-strategy: fail`, a aplicação não inicia se a fila não existir.
 
@@ -60,13 +64,19 @@ Todo evento segue o mesmo envelope (`adapters/listeners/dto/EventEnvelope.java`)
 | Evento                   | Produtor             | Handler                         | Efeito                                                                                        |
 |--------------------------|----------------------|---------------------------------|-----------------------------------------------------------------------------------------------|
 | `ExecutionStarted`       | `ms-ofisy-execution` | `ExecutionStartedHandler`       | Move a OS de `AWAITING_EXECUTION` para `IN_PROGRESS`                                          |
-| `AllExecutionsCompleted` | `ms-ofisy-execution` | `AllExecutionsCompletedHandler` | Move a OS de `IN_PROGRESS` para `FINISHED`                                                    |
+| `AllExecutionsCompleted` | `ms-ofisy-execution` | `AllExecutionsCompletedHandler` | Move a OS de `IN_PROGRESS` para `FINISHED` e publica `ServiceOrderFinished`                   |
+| `QuoteSentForApproval`   | `ms-ofisy-billing`   | `QuoteSentForApprovalHandler`   | Move a OS de `IN_DIAGNOSTIC` para `AWAITING_APPROVAL`                                         |
+| `QuoteApproved`          | `ms-ofisy-billing`   | `QuoteApprovedHandler`          | Move a OS de `AWAITING_APPROVAL` para `AWAITING_EXECUTION`                                    |
+| `QuoteCancelled`         | `ms-ofisy-billing`   | `QuoteCancelledHandler`         | Cancela a OS e publica `ServiceOrderCancelled`                                                |
+| `StockRefunded`          | `ms-ofisy-stock`     | `StockRefundedHandler`          | Cancela a OS e publica `ServiceOrderCancelled`                                                |
 
-Os dois eventos têm payload `{}`. O tratamento depende do status em que a OS está quando o evento chega:
+O core só usa o `serviceOrderId` do envelope, então o payload dos eventos é ignorado. O tratamento depende do status em que a OS está quando o evento chega:
 
 - **No status esperado**: aplica a transição e registra o `eventId` em `processed_events`.
 - **Já à frente do evento** (`IN_PROGRESS` ou status final para o `ExecutionStarted`; `FINISHED`, `DELIVERED` ou `CANCELLED` para o `AllExecutionsCompleted`): só registra o evento, que é confirmado sem mudar a OS.
 - **`AllExecutionsCompleted` com a OS ainda em `AWAITING_EXECUTION`** (o `ExecutionStarted` se perdeu, por exemplo na DLQ): aplica as duas transições, `IN_PROGRESS` e `FINISHED`.
+- **Eventos do orçamento**: seguem a mesma regra. `QuoteSentForApproval` só registra o evento quando a OS já está em `AWAITING_APPROVAL` ou à frente (um orçamento editado volta a ser enviado para aprovação, então o evento pode chegar mais de uma vez por OS). `QuoteApproved` só registra quando a OS já está em `AWAITING_EXECUTION` ou à frente. `QuoteCancelled` e `StockRefunded` só registram quando a OS já está em `FINISHED`, `DELIVERED` ou `CANCELLED`.
+- **Reprovação do orçamento**: o core não ouve o `QuoteReproved`. O estoque devolve os itens e publica o `StockRefunded`, e é ele que leva o core a cancelar a OS. O `StockRefunded` também chega depois de um cancelamento feito no próprio core (pelo caminho `ServiceOrderCancelled` → `AllExecutionsCancelled`), e aí a OS já está `CANCELLED` e o evento só é registrado.
 - **Atrás do evento** (antes de `AWAITING_EXECUTION`): a transição é inválida, a exceção impede o ack e a mensagem volta para a fila até a OS alcançar o status ou, depois de 5 recebimentos, ir para a DLQ.
 - **OS inexistente**: a mensagem vai para a DLQ de propósito, porque indica inconsistência entre os serviços.
 
@@ -74,9 +84,10 @@ Os dois eventos têm payload `{}`. O tratamento depende do status em que a OS es
 
 | Evento                  | Quando é publicado                             | Quem reage                                                         |
 |-------------------------|------------------------------------------------|--------------------------------------------------------------------|
-| `ServiceOrderCancelled` | Ao cancelar a OS (`CancelServiceOrderService`) | `ms-ofisy-execution` cancela as execuções pendentes e em andamento |
+| `ServiceOrderCancelled` | Ao cancelar a OS (`CancelServiceOrderService`) ou quando o estoque devolve os itens de um orçamento reprovado ou o orçamento é cancelado (`CancelServiceOrderByQuoteService`) | `ms-ofisy-execution` cancela as execuções pendentes e em andamento |
+| `ServiceOrderFinished`  | Ao finalizar a OS (`FinishServiceOrderService`) | `ms-ofisy-billing` cria a cobrança no Mercado Pago |
 
-O payload é `{}`.
+O payload dos dois é `{}`. Quando a OS é cancelada pelo `StockRefunded`, os itens já voltaram ao estoque, e o `ServiceOrderCancelled` publicado pelo core leva a um novo `AllExecutionsCancelled` e a um novo `StockRefunded`, que chega com a OS já cancelada. As compensações do estoque são idempotentes, como prevê a [RFC-0008](rfc/0008-coordenar-a-saga-entre-os-microsservicos.md).
 
 ---
 
@@ -183,7 +194,7 @@ Os testes de integração (`integration/IntegrationTestBase`) sobem um LocalStac
 | `MessageTraceContextReaderTest`  | Leitura do atributo `_datadog` como `SdkBytes`, texto ou bytes, e atributo ausente ou ilegível                             |
 | `ServiceOrderEventsListenerTest` | Despacho pelo `type`, tipo sem handler, falha do handler, `type` duplicado entre handlers e consumo dentro do trace da mensagem |
 | `OutboxEventPublisherIT`         | Evento gravado no outbox chega na fila de inspeção e fica com `published_at`                                               |
-| `ServiceOrderEventsListenerIT`   | Evento sem handler é confirmado, `ExecutionStarted` repetido move a OS uma vez só e `AllExecutionsCompleted` finaliza a OS |
+| `ServiceOrderEventsListenerIT`   | Evento sem handler é confirmado, `ExecutionStarted` repetido move a OS uma vez só, `AllExecutionsCompleted` finaliza a OS e publica `ServiceOrderFinished`, e os eventos do orçamento levam a OS a `AWAITING_APPROVAL`, `AWAITING_EXECUTION` ou `CANCELLED` |
 
 ---
 

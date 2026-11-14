@@ -1,32 +1,18 @@
 package br.com.ofisy.application.serviceorder;
 
 import br.com.ofisy.application.customer.exceptions.CustomerNotFoundException;
-import br.com.ofisy.application.quote.create.CreateQuoteUseCase;
-import br.com.ofisy.application.quote.exceptions.QuoteAlreadyExistsException;
-import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
-import br.com.ofisy.application.quote.findbyserviceorderid.FindQuoteByServiceOrderIdUseCase;
-import br.com.ofisy.application.serviceorder.approvequote.ApproveServiceOrderQuoteUseCase;
 import br.com.ofisy.application.serviceorder.cancel.CancelServiceOrderUseCase;
 import br.com.ofisy.application.serviceorder.create.CreateServiceOrderUseCase;
 import br.com.ofisy.application.serviceorder.delivertocustomer.DeliverToCustomerUseCase;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
-import br.com.ofisy.application.serviceorder.generatequote.GenerateServiceOrderQuoteUseCase;
 import br.com.ofisy.application.serviceorder.getstatus.GetServiceOrderStatusUseCase;
 import br.com.ofisy.application.serviceorder.listreceived.ListReceivedServiceOrdersUseCase;
-import br.com.ofisy.application.serviceorder.reprovequote.ReproveServiceOrderQuoteUseCase;
 import br.com.ofisy.application.serviceorder.startdiagnostic.StartDiagnosticUseCase;
 import br.com.ofisy.application.vehicle.exceptions.VehicleNotFoundException;
 import br.com.ofisy.domain.customer.CpfCnpj;
 import br.com.ofisy.domain.customer.Customer;
 import br.com.ofisy.domain.customer.CustomerRepository;
-import br.com.ofisy.domain.quote.Quote;
-import br.com.ofisy.domain.quote.QuoteStatus;
-import br.com.ofisy.domain.quote.QuoteStockItem;
-import br.com.ofisy.domain.quote.exceptions.InvalidQuoteDataException;
-import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
-import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
-import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
 import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
 import br.com.ofisy.domain.serviceorder.exceptions.InvalidServiceOrderTransitionException;
@@ -44,13 +30,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 
-import java.math.BigDecimal;
-import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.tuple;
 
 class ServiceOrderServiceIT extends IntegrationTestBase {
 
@@ -60,21 +43,13 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
     @Autowired private DeliverToCustomerUseCase deliverToCustomerUseCase;
     @Autowired private GetServiceOrderStatusUseCase getServiceOrderStatusUseCase;
     @Autowired private ListReceivedServiceOrdersUseCase listReceivedServiceOrdersUseCase;
-    @Autowired private ApproveServiceOrderQuoteUseCase approveServiceOrderQuoteUseCase;
-    @Autowired private ReproveServiceOrderQuoteUseCase reproveServiceOrderQuoteUseCase;
-    @Autowired private GenerateServiceOrderQuoteUseCase generateServiceOrderQuoteUseCase;
-    @Autowired private FindQuoteByServiceOrderIdUseCase findQuoteByServiceOrderIdUseCase;
 
     @Autowired private CustomerRepository customerDomainRepository;
     @Autowired private VehicleRepository vehicleDomainRepository;
     @Autowired private UserRepository userDomainRepository;
-    @Autowired private ServiceCatalogRepository serviceCatalogDomainRepository;
 
     private UUID customerId;
     private UUID vehicleId;
-    private final UUID stockId = UUID.randomUUID();
-    private final UUID stockId2 = UUID.randomUUID();
-    private UUID serviceCatalogId;
     private String userEmail;
 
     @BeforeEach
@@ -90,10 +65,6 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         Vehicle vehicle = vehicleDomainRepository.save(
                 Vehicle.create(customerId, new LicensePlate("SVC1T01"), "Civic", "Honda", "Preto", 2022, null));
         vehicleId = vehicle.getId();
-
-        ServiceCatalog serviceCatalog = serviceCatalogDomainRepository.save(
-                ServiceCatalog.create("Serviço Svc IT", "Serviço para testes de service", new BigDecimal("200.00")));
-        serviceCatalogId = serviceCatalog.getId();
     }
 
     @Nested
@@ -248,191 +219,8 @@ class ServiceOrderServiceIT extends IntegrationTestBase {
         }
     }
 
-    @Nested
-    @DisplayName("generateQuote")
-    class GenerateQuote {
-
-        @Test
-        @DisplayName("Deve gerar orçamento e mudar status para AWAITING_APPROVAL")
-        void shouldGenerateQuoteAndChangeStatus() {
-            UUID serviceOrderId = createAndStartDiagnostic();
-
-            generateServiceOrderQuoteUseCase.execute(
-                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(
-                            serviceOrderId, stockOnlyCommands(2), List.of()));
-
-            assertThat(getServiceOrderStatusUseCase.execute(serviceOrderId).getStatus())
-                    .isEqualTo(ServiceOrderStatus.AWAITING_APPROVAL);
-        }
-
-        @Test
-        @DisplayName("Deve calcular total corretamente com peças e serviços")
-        void shouldCalculateTotalCorrectly() {
-            UUID serviceOrderId = createAndStartDiagnostic();
-
-            Quote quote = generateServiceOrderQuoteUseCase.execute(
-                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(
-                            serviceOrderId,
-                            List.of(stockItem(stockId, 2)),
-                            serviceItemCommands()));
-
-            assertThat(quote.getStockItems()).hasSize(1);
-            assertThat(quote.getServiceItems()).hasSize(1);
-            assertThat(quote.getTotalPrice()).isEqualByComparingTo(new BigDecimal("400.00"));
-        }
-
-        @Test
-        @DisplayName("Deve lançar exceção quando ambas as listas estão vazias")
-        void shouldThrowExceptionWhenBothListsAreEmpty() {
-            UUID serviceOrderId = createAndStartDiagnostic();
-
-            assertThatThrownBy(() -> generateServiceOrderQuoteUseCase.execute(
-                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(
-                            serviceOrderId, List.of(), List.of())))
-                    .isInstanceOf(InvalidQuoteDataException.class);
-        }
-
-        @Test
-        @DisplayName("Deve lançar exceção ao gerar orçamento duplicado")
-        void shouldThrowExceptionWhenQuoteAlreadyExists() {
-            UUID serviceOrderId = createAndStartDiagnostic();
-            var cmd = new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(
-                    serviceOrderId, stockOnlyCommands(1), List.of());
-            generateServiceOrderQuoteUseCase.execute(cmd);
-
-            assertThatThrownBy(() -> generateServiceOrderQuoteUseCase.execute(cmd))
-                    .isInstanceOf(QuoteAlreadyExistsException.class);
-        }
-
-        @Test
-        @DisplayName("Deve lançar exceção ao gerar orçamento com item de estoque duplicado")
-        void shouldThrowExceptionWhenDuplicateStockItem() {
-            UUID serviceOrderId = createAndStartDiagnostic();
-            var stockItems = List.of(
-                    stockItem(stockId, 1),
-                    stockItem(stockId, 2));
-
-            assertThatThrownBy(() -> generateServiceOrderQuoteUseCase.execute(
-                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(
-                            serviceOrderId, stockItems, List.of())))
-                    .isInstanceOf(QuoteItemAlreadyExistsException.class);
-        }
-
-        @Test
-        @DisplayName("Deve guardar nome e preço enviados no item de estoque")
-        void shouldKeepProductNameAndUnitPriceFromCommand() {
-            UUID serviceOrderId = createAndStartDiagnostic();
-
-            Quote quote = generateServiceOrderQuoteUseCase.execute(
-                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(
-                            serviceOrderId, stockOnlyCommands(2), List.of()));
-
-            assertThat(quote.getStockItems())
-                    .extracting(QuoteStockItem::getStockId, QuoteStockItem::getProductName,
-                            item -> item.getUnitPrice().stripTrailingZeros())
-                    .containsExactlyInAnyOrder(
-                            tuple(stockId, "Peça Svc IT 1", new BigDecimal("100.00").stripTrailingZeros()),
-                            tuple(stockId2, "Peça Svc IT 2", new BigDecimal("200.00").stripTrailingZeros()));
-            assertThat(quote.getTotalPrice()).isEqualByComparingTo(new BigDecimal("600.00"));
-        }
-
-        @Test
-        @DisplayName("Deve lançar exceção ao gerar orçamento de OS não encontrada")
-        void shouldThrowExceptionWhenServiceOrderNotFound() {
-            assertThatThrownBy(() -> generateServiceOrderQuoteUseCase.execute(
-                    new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(
-                            UUID.randomUUID(), stockOnlyCommands(1), List.of())))
-                    .isInstanceOf(ServiceOrderNotFoundException.class);
-        }
-    }
-
-    @Nested
-    @DisplayName("approveQuote")
-    class ApproveQuote {
-
-        @Test
-        @DisplayName("Deve aprovar orçamento pendente")
-        void shouldApproveQuote() {
-            Quote quote = createAndGenerateQuote();
-
-            Quote response = approveServiceOrderQuoteUseCase.execute(quote.getId());
-
-            assertThat(response.getStatus()).isEqualTo(QuoteStatus.APPROVED);
-            assertThat(response.getUpdatedAt()).isNotNull();
-        }
-
-        @Test
-        @DisplayName("Deve lançar exceção ao aprovar orçamento não pendente")
-        void shouldThrowExceptionWhenApprovingNonPendingQuote() {
-            Quote quote = createAndGenerateQuote();
-            approveServiceOrderQuoteUseCase.execute(quote.getId());
-            UUID quoteId = quote.getId();
-
-            assertThatThrownBy(() -> approveServiceOrderQuoteUseCase.execute(quoteId))
-                    .isInstanceOf(InvalidQuoteStatusException.class);
-        }
-    }
-
-    @Nested
-    @DisplayName("reproveQuote")
-    class ReproveQuote {
-
-        @Test
-        @DisplayName("Deve reprovar orçamento pendente com motivo")
-        void shouldReproveQuoteWithReason() {
-            Quote quote = createAndGenerateQuote();
-
-            Quote response = reproveServiceOrderQuoteUseCase.execute(
-                    new ReproveServiceOrderQuoteUseCase.ReproveServiceOrderQuoteCommand(
-                            quote.getId(), "Outra oficina passou um orçamento mais em conta"));
-
-            assertThat(response.getStatus()).isEqualTo(QuoteStatus.REPROVED);
-            assertThat(response.getQuoteRefusalReason())
-                    .isEqualTo("Outra oficina passou um orçamento mais em conta");
-        }
-
-        @Test
-        @DisplayName("Deve lançar exceção ao reprovar orçamento não pendente")
-        void shouldThrowExceptionWhenReprovingNonPendingQuote() {
-            Quote quote = createAndGenerateQuote();
-            approveServiceOrderQuoteUseCase.execute(quote.getId());
-            UUID quoteId = quote.getId();
-
-            assertThatThrownBy(() -> reproveServiceOrderQuoteUseCase.execute(
-                    new ReproveServiceOrderQuoteUseCase.ReproveServiceOrderQuoteCommand(quoteId, "Motivo")))
-                    .isInstanceOf(InvalidQuoteStatusException.class);
-        }
-    }
-
     private CreateServiceOrderUseCase.CreateServiceOrderCommand validCommand() {
         return new CreateServiceOrderUseCase.CreateServiceOrderCommand(
                 vehicleId, customerId, "Relatório de teste da OS", userEmail);
-    }
-
-    private UUID createAndStartDiagnostic() {
-        ServiceOrder created = createServiceOrderUseCase.execute(validCommand());
-        startDiagnosticUseCase.execute(created.getId());
-        return created.getId();
-    }
-
-    private Quote createAndGenerateQuote() {
-        UUID serviceOrderId = createAndStartDiagnostic();
-        return generateServiceOrderQuoteUseCase.execute(
-                new GenerateServiceOrderQuoteUseCase.GenerateQuoteCommand(
-                        serviceOrderId, stockOnlyCommands(1), List.of()));
-    }
-
-    private List<CreateQuoteUseCase.StockItemCommand> stockOnlyCommands(int quantity) {
-        return List.of(stockItem(stockId, quantity), stockItem(stockId2, quantity));
-    }
-
-    private CreateQuoteUseCase.StockItemCommand stockItem(UUID id, int quantity) {
-        return id.equals(stockId)
-                ? new CreateQuoteUseCase.StockItemCommand(id, "Peça Svc IT 1", new BigDecimal("100.00"), quantity)
-                : new CreateQuoteUseCase.StockItemCommand(id, "Peça Svc IT 2", new BigDecimal("200.00"), quantity);
-    }
-
-    private List<CreateQuoteUseCase.ServiceItemCommand> serviceItemCommands() {
-        return List.of(new CreateQuoteUseCase.ServiceItemCommand(serviceCatalogId));
     }
 }

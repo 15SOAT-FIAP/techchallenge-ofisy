@@ -1,6 +1,6 @@
 # Ofisy 
 
-FIAP 15SOAT - Tech Challenge Fase 3 - Grupo 81
+FIAP 15SOAT - Tech Challenge Fase 3 - Grupo 87
 
 Sistema de gestão de oficina automotiva desenvolvido com Spring Boot e DDD.
 
@@ -211,6 +211,8 @@ docker compose -f compose.db.yaml up -d
 O token traz o email do usuário no `sub` e a role na claim `role`. Os microsserviços não têm o banco de usuários, então validam o token com o mesmo `JWT_SECRET` e autorizam pela claim `role`.
 
 As rotas de estoque (`/api/v1/stocks`) e de movimentações (`/api/v1/stock-movements`) não ficam mais neste repositório: elas são servidas pelo [ms-ofisy-stock](https://github.com/15SOAT-FIAP/ms-ofisy-stock). O usuário STOCKMAN continua sendo criado aqui e usa o mesmo token para acessar essas rotas no microsserviço.
+
+As rotas de orçamento (`/api/v1/quotes`) e de cobrança (`/api/v1/payments`) não ficam mais neste repositório: elas são servidas pelo [ms-ofisy-billing](https://github.com/15SOAT-FIAP/ms-ofisy-billing). O core continua dono do status da OS e o atualiza ao receber `QuoteSentForApproval`, `QuoteApproved`, `QuoteReproved` e `QuoteCancelled` do Billing. Quando a OS é finalizada, publica `ServiceOrderFinished`, que dispara a cobrança. A autenticação de funcionários continua usando o JWT emitido pelo Core.
 
 As rotas de notificações (`/api/v1/notifications`) são servidas pelo [ms-ofisy-notification](https://github.com/15SOAT-FIAP/ms-ofisy-notification). O microsserviço cria o aviso de orçamento ao receber `QuoteSentForApproval` do Billing. A autenticação de funcionários continua usando o JWT emitido pelo Core.
 

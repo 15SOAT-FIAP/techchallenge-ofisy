@@ -12,31 +12,24 @@ import br.com.ofisy.application.customer.identifybycpfcnpj.IdentifyByCpfCnpjCust
 import br.com.ofisy.application.customer.identifybyid.IdentifyByIdCustomerUseCase;
 import br.com.ofisy.application.customer.list.ListRegisteredCustomerUseCase;
 import br.com.ofisy.application.customer.register.RegisterCustomerUseCase;
-import br.com.ofisy.application.quote.exceptions.QuoteAlreadyExistsException;
-import br.com.ofisy.application.quote.exceptions.QuoteItemAlreadyExistsException;
-import br.com.ofisy.application.quote.exceptions.QuoteNotFoundException;
-import br.com.ofisy.application.quote.findbyserviceorderid.FindQuoteByServiceOrderIdUseCase;
+import br.com.ofisy.application.servicecatalog.create.CreateServiceCatalogUseCase;
 import br.com.ofisy.application.servicecatalog.exceptions.ServiceCatalogNotFoundException;
-import br.com.ofisy.application.serviceorder.createcomplete.CreateCompleteServiceOrderUseCase;
-import br.com.ofisy.application.serviceorder.exceptions.QuoteNotFoundForServiceOrderException;
+import br.com.ofisy.application.servicecatalog.identifybyid.IdentifyByIdServiceCatalogUseCase;
+import br.com.ofisy.application.servicecatalog.identifybyname.IdentifyByNameServiceCatalogUseCase;
+import br.com.ofisy.application.servicecatalog.list.ListServiceCatalogUseCase;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.application.serviceorder.exceptions.VehicleNotOwnedByCustomerException;
-import br.com.ofisy.application.serviceorder.submitquoteforapproval.SubmitQuoteForApprovalUseCase;
-import br.com.ofisy.application.quote.update.UpdateQuoteUseCase;
 import br.com.ofisy.application.user.activateuser.ActivateUserUseCase;
 import br.com.ofisy.application.user.createuser.CreateUserUseCase;
 import br.com.ofisy.application.user.deactivateuser.DeactivateUserUseCase;
 import br.com.ofisy.application.user.exceptions.EmailNotFoundException;
-import br.com.ofisy.application.serviceorder.approvequote.ApproveServiceOrderQuoteUseCase;
 import br.com.ofisy.application.serviceorder.cancel.CancelServiceOrderUseCase;
 import br.com.ofisy.application.serviceorder.create.CreateServiceOrderUseCase;
 import br.com.ofisy.application.serviceorder.delivertocustomer.DeliverToCustomerUseCase;
-import br.com.ofisy.application.serviceorder.generatequote.GenerateServiceOrderQuoteUseCase;
 import br.com.ofisy.application.serviceorder.getstatus.GetServiceOrderStatusUseCase;
 import br.com.ofisy.application.serviceorder.listactive.ListActiveServiceOrdersUseCase;
 import br.com.ofisy.application.serviceorder.listfinished.ListFinishedServiceOrdersUseCase;
 import br.com.ofisy.application.serviceorder.listreceived.ListReceivedServiceOrdersUseCase;
-import br.com.ofisy.application.serviceorder.reprovequote.ReproveServiceOrderQuoteUseCase;
 import br.com.ofisy.application.serviceorder.startdiagnostic.StartDiagnosticUseCase;
 import br.com.ofisy.application.user.exceptions.UserNotFoundException;
 import br.com.ofisy.application.user.findbyid.FindUserByIdUseCase;
@@ -53,15 +46,12 @@ import br.com.ofisy.application.vehicle.listall.ListRegisteredVehiclesUseCase;
 import br.com.ofisy.application.vehicle.listbycustomer.ListVehiclesByCustomerUseCase;
 import br.com.ofisy.application.vehicle.register.RegisterVehicleUseCase;
 import br.com.ofisy.domain.customer.exceptions.InvalidCpfCnpjException;
-import br.com.ofisy.domain.quote.QuoteStatus;
-import br.com.ofisy.domain.quote.exceptions.InvalidQuoteDataException;
-import br.com.ofisy.domain.quote.exceptions.InvalidQuoteItemException;
-import br.com.ofisy.domain.quote.exceptions.InvalidQuoteStatusException;
 import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
 import br.com.ofisy.domain.serviceorder.exceptions.InvalidServiceOrderTransitionException;
 import br.com.ofisy.domain.user.Role;
 import br.com.ofisy.domain.user.exceptions.EmailAlreadyExistsException;
 import br.com.ofisy.adapters.controllers.customer.CustomerController;
+import br.com.ofisy.adapters.controllers.servicecatalog.ServiceCatalogController;
 import br.com.ofisy.adapters.controllers.serviceorder.ServiceOrderController;
 import br.com.ofisy.domain.user.exceptions.InactiveUserException;
 import br.com.ofisy.interfaces.api.ControllerTestBase;
@@ -89,7 +79,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest({CustomerController.class, UserController.class, LoginController.class, VehicleController.class, ServiceOrderController.class})
+@WebMvcTest({CustomerController.class, UserController.class, LoginController.class, VehicleController.class, ServiceOrderController.class, ServiceCatalogController.class})
 @WithMockUser
 class GlobalExceptionHandlerTest extends ControllerTestBase {
 
@@ -113,8 +103,6 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
     @MockitoBean
     private CreateServiceOrderUseCase createServiceOrderUseCase;
     @MockitoBean
-    private CreateCompleteServiceOrderUseCase createCompleteServiceOrderUseCase;
-    @MockitoBean
     private CancelServiceOrderUseCase cancelServiceOrderUseCase;
     @MockitoBean
     private ListReceivedServiceOrdersUseCase listReceivedServiceOrdersUseCase;
@@ -128,18 +116,15 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
     private DeliverToCustomerUseCase deliverToCustomerUseCase;
     @MockitoBean
     private GetServiceOrderStatusUseCase getServiceOrderStatusUseCase;
+
     @MockitoBean
-    private GenerateServiceOrderQuoteUseCase generateServiceOrderQuoteUseCase;
+    private CreateServiceCatalogUseCase createServiceCatalogUseCase;
     @MockitoBean
-    private ApproveServiceOrderQuoteUseCase approveServiceOrderQuoteUseCase;
+    private ListServiceCatalogUseCase listServiceCatalogUseCase;
     @MockitoBean
-    private ReproveServiceOrderQuoteUseCase reproveServiceOrderQuoteUseCase;
+    private IdentifyByIdServiceCatalogUseCase identifyByIdServiceCatalogUseCase;
     @MockitoBean
-    private UpdateQuoteUseCase updateQuoteUseCase;
-    @MockitoBean
-    private SubmitQuoteForApprovalUseCase submitQuoteForApprovalUseCase;
-    @MockitoBean
-    private FindQuoteByServiceOrderIdUseCase findQuoteByServiceOrderIdUseCase;
+    private IdentifyByNameServiceCatalogUseCase identifyByNameServiceCatalogUseCase;
 
     @MockitoBean
     private AuthenticationManager authenticationManager;
@@ -571,194 +556,13 @@ class GlobalExceptionHandlerTest extends ControllerTestBase {
         @WithMockUser(roles = "MECHANIC")
         @DisplayName("Deve retornar 404 quando serviço não encontrado no catálogo")
         void shouldReturn404WhenServiceCatalogNotFound() throws Exception {
-            var serviceOrderId = UUID.randomUUID();
             var serviceCatalogId = UUID.randomUUID();
-            when(generateServiceOrderQuoteUseCase.execute(any()))
-                    .thenThrow(new ServiceCatalogNotFoundException(serviceCatalogId.toString()));
+            when(identifyByIdServiceCatalogUseCase.execute(serviceCatalogId))
+                    .thenThrow(ServiceCatalogNotFoundException.ofId(serviceCatalogId.toString()));
 
-            var body = """
-                {
-                    "stockItems": [],
-                    "serviceItems": [{ "serviceCatalogId": "%s" }]
-                }
-                """.formatted(serviceCatalogId);
-
-            mockMvc.perform(post("/api/v1/service-orders/{id}/quote", serviceOrderId)
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(body))
+            mockMvc.perform(get("/api/v1/services-catalog/{id}", serviceCatalogId))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.title").value("Serviço não encontrado no catalogo"));
-        }
-    }
-
-    @Nested
-    class QuoteNotFound {
-
-        @Test
-        @DisplayName("Deve retornar 404 quando orçamento não encontrado")
-        void shouldReturn404WhenQuoteNotFound() throws Exception {
-            var quoteId = UUID.randomUUID();
-            when(approveServiceOrderQuoteUseCase.execute(quoteId))
-                    .thenThrow(new QuoteNotFoundException(quoteId));
-
-            mockMvc.perform(patch("/api/v1/service-orders/quote/{id}/approve", quoteId)
-                            .with(csrf()))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.title").value("Orçamento não encontrado"));
-        }
-    }
-
-    @Nested
-    class QuoteNotFoundForServiceOrder {
-
-        @Test
-        @WithMockUser(roles = "MECHANIC")
-        @DisplayName("Deve retornar 404 quando orçamento não encontrado para a ordem de serviço")
-        void shouldReturn404WhenQuoteNotFoundForServiceOrder() throws Exception {
-            var serviceOrderId = UUID.randomUUID();
-            when(submitQuoteForApprovalUseCase.execute(serviceOrderId))
-                    .thenThrow(new QuoteNotFoundForServiceOrderException(serviceOrderId));
-
-            mockMvc.perform(patch("/api/v1/service-orders/{id}/submit-for-approval", serviceOrderId)
-                            .with(csrf()))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.title").value("Orçamento não encontrado para ordem de serviço informada"));
-        }
-    }
-
-    @Nested
-    class InvalidQuoteStatus {
-
-        @Test
-        @WithMockUser(roles = "MECHANIC")
-        @DisplayName("Deve retornar 409 quando status do orçamento é inválido para a ação")
-        void shouldReturn409WhenQuoteStatusIsInvalid() throws Exception {
-            var quoteId = UUID.randomUUID();
-            when(updateQuoteUseCase.execute(any()))
-                    .thenThrow(new InvalidQuoteStatusException("editar", QuoteStatus.APPROVED));
-
-            var body = """
-                {
-                    "stockItems": [{ "stockId": "%s", "productName": "Filtro de óleo", "unitPrice": 25.00, "quantity": 1 }],
-                    "serviceItems": []
-                }
-                """.formatted(UUID.randomUUID());
-
-            mockMvc.perform(patch("/api/v1/service-orders/quote/{id}/update", quoteId)
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(body))
-                    .andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.title").value("Status do orçamento inválido"));
-        }
-    }
-
-    @Nested
-    class QuoteItemAlreadyExists {
-
-        @Test
-        @WithMockUser(roles = "MECHANIC")
-        @DisplayName("Deve retornar 409 quando item já existe no orçamento")
-        void shouldReturn409WhenQuoteItemAlreadyExists() throws Exception {
-            var serviceOrderId = UUID.randomUUID();
-            when(generateServiceOrderQuoteUseCase.execute(any()))
-                    .thenThrow(new QuoteItemAlreadyExistsException("Filtro de óleo"));
-
-            var body = """
-                {
-                    "stockItems": [{ "stockId": "%s", "productName": "Filtro de óleo", "unitPrice": 25.00, "quantity": 1 }],
-                    "serviceItems": []
-                }
-                """.formatted(UUID.randomUUID());
-
-            mockMvc.perform(post("/api/v1/service-orders/{id}/quote", serviceOrderId)
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(body))
-                    .andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.title").value("Item já existe no orçamento"));
-        }
-    }
-
-    @Nested
-    class InvalidQuoteData {
-
-        @Test
-        @WithMockUser(roles = "MECHANIC")
-        @DisplayName("Deve retornar 400 quando dados do orçamento são inválidos")
-        void shouldReturn400WhenQuoteDataIsInvalid() throws Exception {
-            var serviceOrderId = UUID.randomUUID();
-            when(generateServiceOrderQuoteUseCase.execute(any()))
-                    .thenThrow(new InvalidQuoteDataException(UUID.randomUUID()));
-
-            var body = """
-                {
-                    "stockItems": [],
-                    "serviceItems": []
-                }
-                """;
-
-            mockMvc.perform(post("/api/v1/service-orders/{id}/quote", serviceOrderId)
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(body))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.title").value("Dados do orçamento inválidos"));
-        }
-    }
-
-    @Nested
-    class InvalidQuoteItem {
-
-        @Test
-        @WithMockUser(roles = "MECHANIC")
-        @DisplayName("Deve retornar 400 quando item do orçamento é inválido")
-        void shouldReturn400WhenQuoteItemIsInvalid() throws Exception {
-            var serviceOrderId = UUID.randomUUID();
-            when(generateServiceOrderQuoteUseCase.execute(any()))
-                    .thenThrow(new InvalidQuoteItemException("Quantidade do item deve ser maior que zero!"));
-
-            var body = """
-                {
-                    "stockItems": [{ "stockId": "%s", "productName": "Filtro de óleo", "unitPrice": 25.00, "quantity": 1 }],
-                    "serviceItems": []
-                }
-                """.formatted(UUID.randomUUID());
-
-            mockMvc.perform(post("/api/v1/service-orders/{id}/quote", serviceOrderId)
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(body))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.title").value("Item do orçamento inválido"));
-        }
-    }
-
-    @Nested
-    class QuoteAlreadyExists {
-
-        @Test
-        @WithMockUser(roles = "MECHANIC")
-        @DisplayName("Deve retornar 409 quando já existe orçamento para a ordem de serviço")
-        void shouldReturn409WhenQuoteAlreadyExists() throws Exception {
-            var serviceOrderId = UUID.randomUUID();
-            when(generateServiceOrderQuoteUseCase.execute(any()))
-                    .thenThrow(new QuoteAlreadyExistsException(serviceOrderId));
-
-            var body = """
-                {
-                    "stockItems": [{ "stockId": "%s", "productName": "Filtro de óleo", "unitPrice": 25.00, "quantity": 1 }],
-                    "serviceItems": []
-                }
-                """.formatted(UUID.randomUUID());
-
-            mockMvc.perform(post("/api/v1/service-orders/{id}/quote", serviceOrderId)
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(body))
-                    .andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.title").value("Orçamento já existe para a ordem de serviço"));
         }
     }
 }
