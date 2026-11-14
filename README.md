@@ -212,6 +212,8 @@ O token traz o email do usuário no `sub` e a role na claim `role`. Os microsser
 
 As rotas de estoque (`/api/v1/stocks`) e de movimentações (`/api/v1/stock-movements`) não ficam mais neste repositório: elas são servidas pelo [ms-ofisy-stock](https://github.com/15SOAT-FIAP/ms-ofisy-stock). O usuário STOCKMAN continua sendo criado aqui e usa o mesmo token para acessar essas rotas no microsserviço.
 
+As rotas de notificações (`/api/v1/notifications`) são servidas pelo [ms-ofisy-notification](https://github.com/15SOAT-FIAP/ms-ofisy-notification). O microsserviço cria o aviso de orçamento ao receber `QuoteSentForApproval` do Billing. A autenticação de funcionários continua usando o JWT emitido pelo Core.
+
 ### Usuários disponíveis para utilização:
   #### ROLE ADMIN
     - username: admin@ofisy.com

@@ -5,7 +5,6 @@ import br.com.ofisy.adapters.controllers.serviceorder.dto.ServiceOrderStatusResp
 import br.com.ofisy.domain.customer.CpfCnpj;
 import br.com.ofisy.domain.customer.Customer;
 import br.com.ofisy.domain.customer.CustomerRepository;
-import br.com.ofisy.domain.notification.NotificationRepository;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
 import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
 import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
@@ -38,8 +37,6 @@ class ServiceOrderControllerIT extends IntegrationTestBase {
     private UserRepository userDomainRepository;
     @Autowired
     private ServiceCatalogRepository serviceCatalogDomainRepository;
-    @Autowired
-    private NotificationRepository notificationDomainRepository;
 
     private UUID customerId;
     private UUID vehicleId;
@@ -420,30 +417,6 @@ class ServiceOrderControllerIT extends IntegrationTestBase {
             assertThat(quote.getList("serviceItems")).hasSize(1);
             assertThat(new BigDecimal(quote.getString("totalPrice")))
                     .isEqualByComparingTo(new BigDecimal("400.00"));
-        }
-
-        @Test
-        @DisplayName("Deve criar notificação ao gerar orçamento")
-        void shouldCreateNotificationWhenGeneratingQuote() {
-            var serviceOrderId = createAndStartDiagnostic();
-
-            var quoteId = RestAssured.given()
-                    .header("Authorization", "Bearer " + token)
-                    .contentType(ContentType.JSON)
-                    .body(stockOnlyQuoteBody(1))
-                    .when()
-                    .post("/api/v1/service-orders/{id}/quote", serviceOrderId)
-                    .then()
-                    .statusCode(201)
-                    .extract()
-                    .jsonPath().getUUID("id");
-
-            var notifications = notificationDomainRepository.findAll().stream()
-                    .filter(n -> n.getQuoteId() != null && n.getQuoteId().equals(quoteId))
-                    .toList();
-
-            assertThat(notifications).hasSize(1);
-            assertThat(notifications.getFirst().isRead()).isFalse();
         }
 
         @Test
