@@ -34,6 +34,17 @@ awslocal sns subscribe \
   --notification-endpoint "$QUEUE_ARN" \
   --attributes '{"RawMessageDelivery":"true","FilterPolicyScope":"MessageBody","FilterPolicy":"{\"type\":[\"ExecutionStarted\",\"AllExecutionsCompleted\"]}"}'
 
+BILLING_TOPIC_ARN=$(awslocal sns create-topic \
+  --name ofisy-billing-events.fifo \
+  --attributes FifoTopic=true \
+  --query TopicArn --output text)
+
+awslocal sns subscribe \
+  --topic-arn "$BILLING_TOPIC_ARN" \
+  --protocol sqs \
+  --notification-endpoint "$QUEUE_ARN" \
+  --attributes '{"RawMessageDelivery":"true","FilterPolicyScope":"MessageBody","FilterPolicy":"{\"type\":[\"QuoteSentForApproval\",\"QuoteApproved\",\"QuoteReproved\",\"QuoteCancelled\"]}"}'
+
 SERVICE_ORDER_TOPIC_ARN=$(awslocal sns create-topic \
   --name ofisy-service-order-events.fifo \
   --attributes FifoTopic=true \

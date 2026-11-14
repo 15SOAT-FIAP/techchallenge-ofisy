@@ -1,5 +1,7 @@
 package br.com.ofisy.integration.messaging;
 
+import br.com.ofisy.adapters.gateways.messaging.JpaOutboxEventRepository;
+import br.com.ofisy.adapters.gateways.messaging.OutboxEventEntity;
 import br.com.ofisy.domain.customer.CpfCnpj;
 import br.com.ofisy.domain.customer.Customer;
 import br.com.ofisy.domain.customer.CustomerRepository;
@@ -21,6 +23,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -37,6 +40,9 @@ class ServiceOrderEventsListenerIT extends IntegrationTestBase {
 
     @Autowired
     private ProcessedEventRepository processedEventRepository;
+
+    @Autowired
+    private JpaOutboxEventRepository outboxEventRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -102,9 +108,92 @@ class ServiceOrderEventsListenerIT extends IntegrationTestBase {
         assertThat(serviceOrder.getStatus()).isEqualTo(ServiceOrderStatus.FINISHED);
         assertThat(serviceOrder.getFinishedAt()).isNotNull();
         assertThat(processedEventRepository.existsById(completedEventId)).isTrue();
+        assertThat(outboxEventsOf(serviceOrderId, "ServiceOrderFinished")).hasSize(1);
+    }
+
+    @Test
+    void shouldMoveServiceOrderToAwaitingApprovalWhenQuoteSentForApprovalIsDeliveredTwice() {
+        UUID serviceOrderId = inDiagnosticServiceOrder();
+        UUID eventId = UUID.randomUUID();
+        String body = envelope(eventId, "QuoteSentForApproval", serviceOrderId);
+        String queueUrl = queueUrl();
+
+        send(queueUrl, serviceOrderId, body);
+        send(queueUrl, serviceOrderId, body);
+
+        await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> assertThat(pendingMessages(queueUrl)).isZero());
+        assertThat(serviceOrderRepository.findById(serviceOrderId).orElseThrow().getStatus())
+                .isEqualTo(ServiceOrderStatus.AWAITING_APPROVAL);
+        assertThat(processedEventRepository.existsById(eventId)).isTrue();
+    }
+
+    @Test
+    void shouldMoveServiceOrderToAwaitingExecutionWhenQuoteApproved() {
+        UUID serviceOrderId = awaitingApprovalServiceOrder();
+        UUID eventId = UUID.randomUUID();
+        String queueUrl = queueUrl();
+
+        send(queueUrl, serviceOrderId, envelope(eventId, "QuoteApproved", serviceOrderId));
+
+        await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> assertThat(pendingMessages(queueUrl)).isZero());
+        assertThat(serviceOrderRepository.findById(serviceOrderId).orElseThrow().getStatus())
+                .isEqualTo(ServiceOrderStatus.AWAITING_EXECUTION);
+        assertThat(processedEventRepository.existsById(eventId)).isTrue();
+    }
+
+    @Test
+    void shouldCancelServiceOrderAndPublishServiceOrderCancelledWhenQuoteReproved() {
+        UUID serviceOrderId = awaitingApprovalServiceOrder();
+        UUID eventId = UUID.randomUUID();
+        String body = envelope(eventId, "QuoteReproved", serviceOrderId);
+        String queueUrl = queueUrl();
+
+        send(queueUrl, serviceOrderId, body);
+        send(queueUrl, serviceOrderId, body);
+
+        await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> assertThat(pendingMessages(queueUrl)).isZero());
+        assertThat(serviceOrderRepository.findById(serviceOrderId).orElseThrow().getStatus())
+                .isEqualTo(ServiceOrderStatus.CANCELLED);
+        assertThat(processedEventRepository.existsById(eventId)).isTrue();
+        assertThat(outboxEventsOf(serviceOrderId, "ServiceOrderCancelled")).hasSize(1);
+    }
+
+    @Test
+    void shouldCancelServiceOrderWhenQuoteCancelled() {
+        UUID serviceOrderId = inDiagnosticServiceOrder();
+        UUID eventId = UUID.randomUUID();
+        String queueUrl = queueUrl();
+
+        send(queueUrl, serviceOrderId, envelope(eventId, "QuoteCancelled", serviceOrderId));
+
+        await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> assertThat(pendingMessages(queueUrl)).isZero());
+        assertThat(serviceOrderRepository.findById(serviceOrderId).orElseThrow().getStatus())
+                .isEqualTo(ServiceOrderStatus.CANCELLED);
+        assertThat(outboxEventsOf(serviceOrderId, "ServiceOrderCancelled")).hasSize(1);
+    }
+
+    private UUID inDiagnosticServiceOrder() {
+        ServiceOrder serviceOrder = newServiceOrder();
+        serviceOrder.startDiagnostic();
+        return serviceOrderRepository.save(serviceOrder).getId();
+    }
+
+    private UUID awaitingApprovalServiceOrder() {
+        ServiceOrder serviceOrder = newServiceOrder();
+        serviceOrder.startDiagnostic();
+        serviceOrder.sendToApproval();
+        return serviceOrderRepository.save(serviceOrder).getId();
     }
 
     private UUID awaitingExecutionServiceOrder() {
+        ServiceOrder serviceOrder = newServiceOrder();
+        serviceOrder.startDiagnostic();
+        serviceOrder.sendToApproval();
+        serviceOrder.approve();
+        return serviceOrderRepository.save(serviceOrder).getId();
+    }
+
+    private ServiceOrder newServiceOrder() {
         User user = userRepository.save(
                 User.create("mecanico.listener.it@ofisy.com", passwordEncoder.encode("Test@123"), "Mecânico Listener IT", Role.MECHANIC));
         Customer customer = customerRepository.save(
@@ -112,11 +201,14 @@ class ServiceOrderEventsListenerIT extends IntegrationTestBase {
         Vehicle vehicle = vehicleRepository.save(
                 Vehicle.create(customer.getId(), new LicensePlate("LST1T01"), "Civic", "Honda", "Preto", 2022, null));
 
-        ServiceOrder serviceOrder = ServiceOrder.receive(vehicle.getId(), customer.getId(), "Relatório", user.getId());
-        serviceOrder.startDiagnostic();
-        serviceOrder.sendToApproval();
-        serviceOrder.approve();
-        return serviceOrderRepository.save(serviceOrder).getId();
+        return ServiceOrder.receive(vehicle.getId(), customer.getId(), "Relatório", user.getId());
+    }
+
+    private List<OutboxEventEntity> outboxEventsOf(UUID serviceOrderId, String eventType) {
+        return outboxEventRepository.findAll().stream()
+                .filter(event -> event.getServiceOrderId().equals(serviceOrderId))
+                .filter(event -> event.getEventType().equals(eventType))
+                .toList();
     }
 
     private String envelope(UUID eventId, String type, UUID serviceOrderId) {

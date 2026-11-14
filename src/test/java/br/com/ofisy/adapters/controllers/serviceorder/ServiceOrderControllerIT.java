@@ -5,8 +5,6 @@ import br.com.ofisy.adapters.controllers.serviceorder.dto.ServiceOrderStatusResp
 import br.com.ofisy.domain.customer.CpfCnpj;
 import br.com.ofisy.domain.customer.Customer;
 import br.com.ofisy.domain.customer.CustomerRepository;
-import br.com.ofisy.domain.servicecatalog.ServiceCatalog;
-import br.com.ofisy.domain.servicecatalog.ServiceCatalogRepository;
 import br.com.ofisy.domain.serviceorder.ServiceOrderStatus;
 import br.com.ofisy.domain.user.Role;
 import br.com.ofisy.domain.user.User;
@@ -20,8 +18,6 @@ import io.restassured.http.ContentType;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.math.BigDecimal;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -35,14 +31,9 @@ class ServiceOrderControllerIT extends IntegrationTestBase {
     private VehicleRepository vehicleDomainRepository;
     @Autowired
     private UserRepository userDomainRepository;
-    @Autowired
-    private ServiceCatalogRepository serviceCatalogDomainRepository;
 
     private UUID customerId;
     private UUID vehicleId;
-    private final UUID stockId = UUID.randomUUID();
-    private final UUID stockId2 = UUID.randomUUID();
-    private UUID serviceCatalogId;
     private String token;
 
     @BeforeEach
@@ -62,11 +53,6 @@ class ServiceOrderControllerIT extends IntegrationTestBase {
                 Vehicle.create(customerId, new LicensePlate("CTR1T01"), "Civic", "Honda", "Preto", 2022, null)
         );
         vehicleId = vehicle.getId();
-
-        ServiceCatalog serviceCatalog = serviceCatalogDomainRepository.save(
-                ServiceCatalog.create("Serviço Ctrl IT", "Serviço para testes de controller", new BigDecimal("200.00"))
-        );
-        serviceCatalogId = serviceCatalog.getId();
     }
 
     @Nested
@@ -133,82 +119,6 @@ class ServiceOrderControllerIT extends IntegrationTestBase {
                     .post("/api/v1/service-orders")
                     .then()
                     .statusCode(404);
-        }
-    }
-
-    @Nested
-    @DisplayName("POST /api/v1/service-orders/create-complete")
-    class CreateComplete {
-
-        @Test
-        @DisplayName("Deve criar OS com itens e retornar serviceOrderId")
-        void shouldCreateCompleteServiceOrderAndReturnId() {
-            var response = RestAssured.given()
-                    .header("Authorization", "Bearer " + token)
-                    .contentType(ContentType.JSON)
-                    .body(Map.of(
-                            "vehicleId", vehicleId,
-                            "customerId", customerId,
-                            "report", "Relatório completo",
-                            "stockItems", List.of(stockItem1(1)),
-                            "serviceItems", List.of(Map.of("serviceCatalogId", serviceCatalogId))
-                    ))
-                    .when()
-                    .post("/api/v1/service-orders/create-complete")
-                    .then()
-                    .statusCode(201)
-                    .extract().as(ServiceOrderResponseDTO.class);
-
-            assertThat(response.id()).isNotNull();
-        }
-
-        @Test
-        @DisplayName("Deve criar OS com itens e ir para RECEIVED")
-        void shouldCreateCompleteAndGoToAwaitingApproval() {
-            var response = RestAssured.given()
-                    .header("Authorization", "Bearer " + token)
-                    .contentType(ContentType.JSON)
-                    .body(Map.of(
-                            "vehicleId", vehicleId,
-                            "customerId", customerId,
-                            "report", "Relatório",
-                            "stockItems", List.of(stockItem1(1)),
-                            "serviceItems", List.of()
-                    ))
-                    .when()
-                    .post("/api/v1/service-orders/create-complete")
-                    .then()
-                    .statusCode(201)
-                    .extract().as(ServiceOrderResponseDTO.class);
-
-            var status = RestAssured.given()
-                    .header("Authorization", "Bearer " + token)
-                    .when()
-                    .get("/api/v1/service-orders/{id}/status", response.id())
-                    .then()
-                    .statusCode(200)
-                    .extract().as(ServiceOrderStatusResponseDTO.class);
-
-            assertThat(status.status()).isEqualTo(ServiceOrderStatus.RECEIVED);
-        }
-
-        @Test
-        @DisplayName("Deve retornar 400 quando o item de estoque não traz nome e preço")
-        void shouldReturn400WhenStockItemHasNoProductNameOrUnitPrice() {
-            RestAssured.given()
-                    .header("Authorization", "Bearer " + token)
-                    .contentType(ContentType.JSON)
-                    .body(Map.of(
-                            "vehicleId", vehicleId,
-                            "customerId", customerId,
-                            "report", "Relatório",
-                            "stockItems", List.of(Map.of("stockId", stockId, "quantity", 2)),
-                            "serviceItems", List.of()
-                    ))
-                    .when()
-                    .post("/api/v1/service-orders/create-complete")
-                    .then()
-                    .statusCode(400);
         }
     }
 
@@ -366,310 +276,6 @@ class ServiceOrderControllerIT extends IntegrationTestBase {
         }
     }
 
-    @Nested
-    @DisplayName("POST /api/v1/service-orders/{id}/quote")
-    class GenerateQuote {
-
-        @Test
-        @DisplayName("Deve gerar orçamento e mudar status para AWAITING_APPROVAL")
-        void shouldGenerateQuoteAndChangeStatus() {
-            var serviceOrderId = createAndStartDiagnostic();
-
-            RestAssured.given()
-                    .header("Authorization", "Bearer " + token)
-                    .contentType(ContentType.JSON)
-                    .body(fullQuoteBody(2))
-                    .when()
-                    .post("/api/v1/service-orders/{id}/quote", serviceOrderId)
-                    .then()
-                    .statusCode(201);
-
-            var status = RestAssured.given()
-                    .header("Authorization", "Bearer " + token)
-                    .when()
-                    .get("/api/v1/service-orders/{id}/status", serviceOrderId)
-                    .then()
-                    .statusCode(200)
-                    .extract().as(ServiceOrderStatusResponseDTO.class);
-
-            assertThat(status.status()).isEqualTo(ServiceOrderStatus.AWAITING_APPROVAL);
-        }
-
-        @Test
-        @DisplayName("Deve gerar orçamento com total calculado corretamente")
-        void shouldGenerateQuoteWithCorrectTotal() {
-            var serviceOrderId = createAndStartDiagnostic();
-
-            var quote = RestAssured.given()
-                    .header("Authorization", "Bearer " + token)
-                    .contentType(ContentType.JSON)
-                    .body(fullQuoteBody(2))
-                    .when()
-                    .post("/api/v1/service-orders/{id}/quote", serviceOrderId)
-                    .then()
-                    .statusCode(201)
-                    .extract().jsonPath();
-
-            assertThat(quote.getList("stockItems")).hasSize(1);
-            assertThat(quote.getString("stockItems[0].productName")).isEqualTo("Peça Ctrl IT 1");
-            assertThat(new BigDecimal(quote.getString("stockItems[0].unitPrice")))
-                    .isEqualByComparingTo(new BigDecimal("100.00"));
-            assertThat(quote.getList("serviceItems")).hasSize(1);
-            assertThat(new BigDecimal(quote.getString("totalPrice")))
-                    .isEqualByComparingTo(new BigDecimal("400.00"));
-        }
-
-        @Test
-        @DisplayName("Deve retornar 400 quando ambas as listas estão vazias")
-        void shouldReturn400WhenBothListsAreEmpty() {
-            var serviceOrderId = createAndStartDiagnostic();
-
-            RestAssured.given()
-                    .header("Authorization", "Bearer " + token)
-                    .contentType(ContentType.JSON)
-                    .body(Map.of("stockItems", List.of(), "serviceItems", List.of()))
-                    .when()
-                    .post("/api/v1/service-orders/{id}/quote", serviceOrderId)
-                    .then()
-                    .statusCode(400);
-        }
-
-        @Test
-        @DisplayName("Deve retornar 409 ao gerar orçamento duplicado")
-        void shouldReturn409WhenQuoteAlreadyExists() {
-            UUID serviceOrderId = createAndStartDiagnostic();
-            var body = stockOnlyQuoteBody(1);
-
-            RestAssured.given()
-                    .header("Authorization", "Bearer " + token)
-                    .contentType(ContentType.JSON)
-                    .body(body)
-                    .when()
-                    .post("/api/v1/service-orders/{id}/quote", serviceOrderId);
-
-            RestAssured.given()
-                    .header("Authorization", "Bearer " + token)
-                    .contentType(ContentType.JSON)
-                    .body(body)
-                    .when()
-                    .post("/api/v1/service-orders/{id}/quote", serviceOrderId)
-                    .then()
-                    .statusCode(409);
-        }
-
-        @Test
-        @DisplayName("Deve retornar 409 ao gerar orçamento com item de estoque duplicado")
-        void shouldReturn409WhenDuplicateStockItem() {
-            var serviceOrderId = createAndStartDiagnostic();
-
-            RestAssured.given()
-                    .header("Authorization", "Bearer " + token)
-                    .contentType(ContentType.JSON)
-                    .body(Map.of(
-                            "serviceOrderId", serviceOrderId,
-                            "stockItems", List.of(
-                                    stockItem1(1),
-                                    stockItem1(2)
-                            ),
-                            "serviceItems", List.of()
-                    ))
-                    .when()
-                    .post("/api/v1/service-orders/{id}/quote", UUID.randomUUID())
-                    .then()
-                    .statusCode(404);
-        }
-    }
-
-    @Nested
-    @DisplayName("PATCH /api/v1/service-orders/quote/{id}/approve")
-    class ApproveQuote {
-
-        @Test
-        @DisplayName("Deve aprovar orçamento pendente")
-        void shouldApproveQuote() {
-            var serviceOrderId = createAndStartDiagnostic();
-            var quoteId = generateStockOnlyQuote(serviceOrderId, 1);
-
-            var response = RestAssured.given()
-                    .header("Authorization", "Bearer " + token)
-                    .when()
-                    .patch("/api/v1/service-orders/quote/{id}/approve", quoteId)
-                    .then()
-                    .statusCode(200)
-                    .extract().jsonPath();
-
-            assertThat(response.getString("status")).isEqualTo("APPROVED");
-            assertThat(response.getString("updatedAt")).isNotNull();
-        }
-
-        @Test
-        @DisplayName("Deve retornar 409 ao aprovar orçamento não pendente")
-        void shouldReturn409WhenApprovingNonPendingQuote() {
-            var serviceOrderId = createAndStartDiagnostic();
-            var quoteId = generateStockOnlyQuote(serviceOrderId, 1);
-
-            RestAssured.given().header("Authorization", "Bearer " + token)
-                    .when().patch("/api/v1/service-orders/quote/{id}/approve", quoteId);
-
-            RestAssured.given()
-                    .header("Authorization", "Bearer " + token)
-                    .when()
-                    .patch("/api/v1/service-orders/quote/{id}/approve", quoteId)
-                    .then()
-                    .statusCode(409);
-        }
-    }
-
-    @Nested
-    @DisplayName("PATCH /api/v1/service-orders/quote/{id}/reprove")
-    class ReproveQuote {
-
-        @Test
-        @DisplayName("Deve reprovar orçamento pendente com motivo")
-        void shouldReproveQuoteWithReason() {
-            var serviceOrderId = createAndStartDiagnostic();
-            var quoteId = generateStockOnlyQuote(serviceOrderId, 1);
-
-            var response = RestAssured.given()
-                    .header("Authorization", "Bearer " + token)
-                    .contentType(ContentType.JSON)
-                    .body(Map.of("reason", "Outra oficina passou um orçamento mais em conta"))
-                    .when()
-                    .patch("/api/v1/service-orders/quote/{id}/reprove", quoteId)
-                    .then()
-                    .statusCode(200)
-                    .extract().jsonPath();
-
-            assertThat(response.getString("status")).isEqualTo("REPROVED");
-            assertThat(response.getString("quoteRefusalReason")).isEqualTo("Outra oficina passou um orçamento mais em conta");
-        }
-
-        @Test
-        @DisplayName("Deve retornar 409 ao reprovar orçamento não pendente")
-        void shouldReturn409WhenReprovingNonPendingQuote() {
-            var serviceOrderId = createAndStartDiagnostic();
-            var quoteId = generateStockOnlyQuote(serviceOrderId, 1);
-
-            RestAssured.given().header("Authorization", "Bearer " + token)
-                    .when().patch("/api/v1/service-orders/quote/{id}/approve", quoteId);
-
-            RestAssured.given()
-                    .header("Authorization", "Bearer " + token)
-                    .contentType(ContentType.JSON)
-                    .body(Map.of("reason", "Valor alto demais"))
-                    .when()
-                    .patch("/api/v1/service-orders/quote/{id}/reprove", quoteId)
-                    .then()
-                    .statusCode(409);
-        }
-    }
-
-    @Nested
-    @DisplayName("PATCH /api/v1/service-orders/quote/{id}/update")
-    class UpdateQuote {
-
-        @Test
-        @DisplayName("Deve atualizar orçamento pendente com sucesso")
-        void shouldUpdatePendingQuote() {
-            var serviceOrderId = createAndStartDiagnostic();
-            var quoteId = generateStockOnlyQuote(serviceOrderId, 1);
-
-            var response = RestAssured.given()
-                    .header("Authorization", "Bearer " + token)
-                    .contentType(ContentType.JSON)
-                    .body(Map.of(
-                            "stockItems", List.of(
-                                    stockItem1(3),
-                                    stockItem2(1)
-                            ),
-                            "serviceItems", List.of()
-                    ))
-                    .when()
-                    .patch("/api/v1/service-orders/quote/{id}/update", quoteId)
-                    .then()
-                    .statusCode(200)
-                    .extract().jsonPath();
-
-            assertThat(response.getList("stockItems")).hasSize(2);
-        }
-
-        @Test
-        @DisplayName("Deve retornar 409 ao atualizar orçamento não pendente")
-        void shouldReturn409WhenQuoteIsNotPending() {
-            var serviceOrderId = createAndStartDiagnostic();
-            var quoteId = generateStockOnlyQuote(serviceOrderId, 1);
-
-            RestAssured.given().header("Authorization", "Bearer " + token)
-                    .when().patch("/api/v1/service-orders/quote/{id}/approve", quoteId);
-
-            RestAssured.given()
-                    .header("Authorization", "Bearer " + token)
-                    .contentType(ContentType.JSON)
-                    .body(Map.of(
-                            "stockItems", List.of(stockItem1(1)),
-                            "serviceItems", List.of()
-                    ))
-                    .when()
-                    .patch("/api/v1/service-orders/quote/{id}/update", quoteId)
-                    .then()
-                    .statusCode(409);
-        }
-
-        @Test
-        @DisplayName("Deve retornar 404 ao atualizar orçamento inexistente")
-        void shouldReturn404WhenQuoteNotFound() {
-            RestAssured.given()
-                    .header("Authorization", "Bearer " + token)
-                    .contentType(ContentType.JSON)
-                    .body(Map.of(
-                            "stockItems", List.of(stockItem1(1)),
-                            "serviceItems", List.of()
-                    ))
-                    .when()
-                    .patch("/api/v1/service-orders/quote/{id}/update", UUID.randomUUID())
-                    .then()
-                    .statusCode(404);
-        }
-    }
-
-    @Nested
-    @DisplayName("GET /api/v1/service-orders/{id}/quotes")
-    class ListQuotesByServiceOrder {
-
-        @Test
-        @DisplayName("Deve listar orçamentos da OS")
-        void shouldListQuotesForServiceOrder() {
-            var serviceOrderId = createAndStartDiagnostic();
-            generateStockOnlyQuote(serviceOrderId, 1);
-
-            var quotes = RestAssured.given()
-                    .header("Authorization", "Bearer " + token)
-                    .when()
-                    .get("/api/v1/service-orders/{id}/quotes", serviceOrderId)
-                    .then()
-                    .statusCode(200)
-                    .extract().jsonPath().getList("");
-
-            assertThat(quotes).hasSize(1);
-        }
-
-        @Test
-        @DisplayName("Deve retornar lista vazia quando a OS não possui orçamentos")
-        void shouldReturnEmptyListWhenNoQuotes() {
-            var serviceOrderId = createServiceOrder();
-
-            var quotes = RestAssured.given()
-                    .header("Authorization", "Bearer " + token)
-                    .when()
-                    .get("/api/v1/service-orders/{id}/quotes", serviceOrderId)
-                    .then()
-                    .statusCode(200)
-                    .extract().jsonPath().getList("");
-
-            assertThat(quotes).isEmpty();
-        }
-    }
-
     private UUID createServiceOrder() {
         return RestAssured.given()
                 .header("Authorization", "Bearer " + token)
@@ -680,53 +286,5 @@ class ServiceOrderControllerIT extends IntegrationTestBase {
                 .then()
                 .statusCode(201)
                 .extract().jsonPath().getUUID("id");
-    }
-
-    private UUID createAndStartDiagnostic() {
-        var serviceOrderId = createServiceOrder();
-        RestAssured.given()
-                .header("Authorization", "Bearer " + token)
-                .when()
-                .patch("/api/v1/service-orders/{id}/start-diagnostic", serviceOrderId);
-        return serviceOrderId;
-    }
-
-    private UUID generateStockOnlyQuote(UUID serviceOrderId, int quantity) {
-        return RestAssured.given()
-                .header("Authorization", "Bearer " + token)
-                .contentType(ContentType.JSON)
-                .body(stockOnlyQuoteBody(quantity))
-                .when()
-                .post("/api/v1/service-orders/{id}/quote", serviceOrderId)
-                .then()
-                .statusCode(201)
-                .extract().jsonPath().getUUID("id");
-    }
-
-    private Map<String, Object> stockOnlyQuoteBody(int quantity) {
-        return Map.of(
-                "stockItems", List.of(
-                        stockItem1(quantity),
-                        stockItem2(quantity)
-                ),
-                "serviceItems", List.of()
-        );
-    }
-
-    private Map<String, Object> stockItem1(int quantity) {
-        return Map.of("stockId", stockId, "productName", "Peça Ctrl IT 1",
-                "unitPrice", new BigDecimal("100.00"), "quantity", quantity);
-    }
-
-    private Map<String, Object> stockItem2(int quantity) {
-        return Map.of("stockId", stockId2, "productName", "Peça Ctrl IT 2",
-                "unitPrice", new BigDecimal("200.00"), "quantity", quantity);
-    }
-
-    private Map<String, Object> fullQuoteBody(int quantity) {
-        return Map.of(
-                "stockItems", List.of(stockItem1(quantity)),
-                "serviceItems", List.of(Map.of("serviceCatalogId", serviceCatalogId))
-        );
     }
 }
