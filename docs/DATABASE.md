@@ -149,7 +149,7 @@ Convenções usadas no diagrama:
 | Notação nas pontas         | Cardinalidade "pé de galinha" (crow's foot): um traço = "1", garfo = "N", círculo = "0..1" opcional |
 
 As 9 tabelas de negócio do schema estão organizadas em 4 grupos visuais no diagrama. As tabelas de
-mensageria (`outbox_events` e `processed_events`, criadas em `V28` e `V29`) ficam fora do diagrama e
+mensageria (`outbox_events` e `processed_events`, criadas em `V28` e `V29`, com a coluna `trace_context` do outbox adicionada em `V30`) ficam fora do diagrama e
 estão descritas no [guia de mensageria](MESSAGING.md).
 
 - **Cadastro**: `users`, `customers`, `vehicles`
