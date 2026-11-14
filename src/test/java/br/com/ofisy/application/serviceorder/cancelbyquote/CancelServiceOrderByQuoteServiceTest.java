@@ -38,7 +38,7 @@ class CancelServiceOrderByQuoteServiceTest {
     private static final UUID VALID_USER_ID = UUID.randomUUID();
     private static final UUID VALID_SERVICE_ORDER_ID = UUID.randomUUID();
     private static final UUID EVENT_ID = UUID.randomUUID();
-    private static final String EVENT_TYPE = "QuoteReproved";
+    private static final String EVENT_TYPE = "StockRefunded";
     private static final CancelServiceOrderByQuoteCommand COMMAND =
             new CancelServiceOrderByQuoteCommand(EVENT_ID, EVENT_TYPE, VALID_SERVICE_ORDER_ID);
 
