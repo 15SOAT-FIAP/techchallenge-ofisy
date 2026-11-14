@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class QuoteReprovedHandlerTest {
+class StockRefundedHandlerTest {
 
     private static final UUID EVENT_ID = UUID.randomUUID();
     private static final UUID SERVICE_ORDER_ID = UUID.randomUUID();
@@ -32,11 +32,11 @@ class QuoteReprovedHandlerTest {
     private ArgumentCaptor<CancelServiceOrderByQuoteCommand> commandCaptor;
 
     @InjectMocks
-    private QuoteReprovedHandler handler;
+    private StockRefundedHandler handler;
 
     @Test
-    void shouldHandleQuoteReprovedType() {
-        assertThat(handler.type()).isEqualTo("QuoteReproved");
+    void shouldHandleStockRefundedType() {
+        assertThat(handler.type()).isEqualTo("StockRefunded");
     }
 
     @Nested
@@ -44,7 +44,7 @@ class QuoteReprovedHandlerTest {
 
         @Test
         void shouldMapEnvelopeToCancelServiceOrderByQuoteCommand() {
-            EventEnvelope envelope = new EventEnvelope(EVENT_ID, QuoteReprovedHandler.TYPE, SERVICE_ORDER_ID,
+            EventEnvelope envelope = new EventEnvelope(EVENT_ID, StockRefundedHandler.TYPE, SERVICE_ORDER_ID,
                     Instant.parse("2026-11-12T10:00:00Z"), JsonMapper.builder().build().readTree("{}"));
 
             handler.handle(envelope);
@@ -52,7 +52,7 @@ class QuoteReprovedHandlerTest {
             verify(cancelServiceOrderByQuoteUseCase).execute(commandCaptor.capture());
             CancelServiceOrderByQuoteCommand command = commandCaptor.getValue();
             assertThat(command.eventId()).isEqualTo(EVENT_ID);
-            assertThat(command.eventType()).isEqualTo(QuoteReprovedHandler.TYPE);
+            assertThat(command.eventType()).isEqualTo(StockRefundedHandler.TYPE);
             assertThat(command.serviceOrderId()).isEqualTo(SERVICE_ORDER_ID);
         }
     }
