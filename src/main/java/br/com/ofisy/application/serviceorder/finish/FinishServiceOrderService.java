@@ -2,6 +2,8 @@ package br.com.ofisy.application.serviceorder.finish;
 
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.config.metrics.ServiceOrderMetrics;
+import br.com.ofisy.domain.messaging.OutboxEvent;
+import br.com.ofisy.domain.messaging.OutboxEventRepository;
 import br.com.ofisy.domain.messaging.ProcessedEvent;
 import br.com.ofisy.domain.messaging.ProcessedEventRepository;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
@@ -12,12 +14,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
 @Service
 @RequiredArgsConstructor
 public class FinishServiceOrderService implements FinishServiceOrderUseCase {
+
+    public static final String SERVICE_ORDER_FINISHED = "ServiceOrderFinished";
 
     private static final Set<ServiceOrderStatus> ALREADY_FINISHED = Set.of(
             ServiceOrderStatus.FINISHED,
@@ -26,6 +31,7 @@ public class FinishServiceOrderService implements FinishServiceOrderUseCase {
 
     private final ServiceOrderRepository serviceOrderRepository;
     private final ProcessedEventRepository processedEventRepository;
+    private final OutboxEventRepository outboxEventRepository;
     private final ServiceOrderMetrics serviceOrderMetrics;
 
     @Override
@@ -42,6 +48,7 @@ public class FinishServiceOrderService implements FinishServiceOrderUseCase {
                 serviceOrder = transition(serviceOrder, ServiceOrder::startExecution);
             }
             transition(serviceOrder, ServiceOrder::finish);
+            outboxEventRepository.save(OutboxEvent.create(SERVICE_ORDER_FINISHED, cmd.serviceOrderId(), Map.of()));
         }
 
         processedEventRepository.save(ProcessedEvent.create(cmd.eventId(), cmd.eventType()));
