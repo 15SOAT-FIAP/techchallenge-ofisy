@@ -263,6 +263,7 @@ As rotas de notificações (`/api/v1/notifications`) são servidas pelo [ms-ofis
 - **[Infraestrutura AWS com Terraform](docs/INFRASTRUCTURE.md)** - Recursos AWS provisionados, arquitetura de rede e passo a passo para inicializar, validar e aplicar a infraestrutura
 - **[Kubernetes no EKS](docs/K8S.md)** - Manual para publicar e operar a aplicação no cluster EKS provisionado via Terraform
 - **[Diagrama de Infraestrutura e CI/CD](docs/INFRA-CICD-DIAGRAM.md)** - Infraestrutura AWS e como é o fluxo de CI/CD para deploy da aplicação
+- **[Observabilidade com Datadog](docs/OBSERVABILITY.md)** - Instrumentação da aplicação (traces, logs correlacionados e métricas), rastreamento distribuído entre os microsserviços, dashboards e monitors
 
 ### Qualidade e Testes
 - **[Guia de Testes](docs/TESTING.md)** - Instruções para executar análises de cobertura de testes e segurança
