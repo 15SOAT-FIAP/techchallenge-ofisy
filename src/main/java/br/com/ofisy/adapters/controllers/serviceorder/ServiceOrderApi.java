@@ -46,6 +46,10 @@ public interface ServiceOrderApi {
     @ApiResponse(responseCode = "404", description = "Ordem de serviço não encontrada")
     ResponseEntity<ServiceOrderStatusResponseDTO> getStatusById(UUID id);
 
+    @Operation(summary = "Consultar o cliente associado a uma ordem de serviço - Role autorizada: ADMIN")
+    @ApiResponse(responseCode = "404", description = "Ordem de serviço não encontrada")
+    ResponseEntity<ServiceOrderCustomerResponseDTO> getCustomerById(UUID id);
+
     @Operation(summary = "Iniciar diagnóstico de uma ordem de serviço - Roles autorizadas: (ADMIN, ATTENDANT, MECHANIC)")
     @ApiResponse(responseCode = "200", description = "Diagnóstico iniciado com sucesso")
     @ApiResponse(responseCode = "404", description = "Ordem de serviço não encontrada")
