@@ -42,6 +42,10 @@ public class OutboxEventEntity implements Persistable<UUID> {
 
     private Instant publishedAt;
 
+    // Contexto do trace da requisição que gerou o evento, restaurado pelo publisher para o fluxo seguir no mesmo trace
+    @JdbcTypeCode(SqlTypes.JSON)
+    private String traceContext;
+
     @Override
     public UUID getId() {
         return eventId;
