@@ -142,7 +142,7 @@ class ServiceOrderEventsListenerIT extends IntegrationTestBase {
     }
 
     @Test
-    void shouldCancelServiceOrderAndPublishServiceOrderCancelledWhenStockRefunded() {
+    void shouldCancelServiceOrderWithoutPublishingServiceOrderCancelledWhenStockRefunded() {
         UUID serviceOrderId = awaitingApprovalServiceOrder();
         UUID eventId = UUID.randomUUID();
         String body = envelope(eventId, "StockRefunded", serviceOrderId);
@@ -155,7 +155,7 @@ class ServiceOrderEventsListenerIT extends IntegrationTestBase {
         assertThat(serviceOrderRepository.findById(serviceOrderId).orElseThrow().getStatus())
                 .isEqualTo(ServiceOrderStatus.CANCELLED);
         assertThat(processedEventRepository.existsById(eventId)).isTrue();
-        assertThat(outboxEventsOf(serviceOrderId, "ServiceOrderCancelled")).hasSize(1);
+        assertThat(outboxEventsOf(serviceOrderId, "ServiceOrderCancelled")).isEmpty();
     }
 
     @Test
@@ -169,7 +169,7 @@ class ServiceOrderEventsListenerIT extends IntegrationTestBase {
         await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> assertThat(pendingMessages(queueUrl)).isZero());
         assertThat(serviceOrderRepository.findById(serviceOrderId).orElseThrow().getStatus())
                 .isEqualTo(ServiceOrderStatus.CANCELLED);
-        assertThat(outboxEventsOf(serviceOrderId, "ServiceOrderCancelled")).hasSize(1);
+        assertThat(outboxEventsOf(serviceOrderId, "ServiceOrderCancelled")).isEmpty();
     }
 
     @Test
