@@ -253,7 +253,7 @@ As rotas de notificações (`/api/v1/notifications`) são servidas pelo [ms-ofis
 ## Documentação Adicional
 
 ### Arquitetura
-- **[Diagrama de Componentes](docs/COMPONENT-DIAGRAM.md)** - Componentes do backend e como se relacionam (padrão C4)
+- **[Diagrama de Componentes](docs/COMPONENT-DIAGRAM.md)** - Componentes do backend do core e como se relacionam (padrão C4)
 - **[Architecture Decision Records (ADRs)](docs/adr/README.md)** - Registro das decisões arquiteturais do projeto, sua motivação e consequências
 - **[Requests for Comments (RFCs)](docs/rfc/README.md)** - Propostas de mudança discutidas pelo time antes de virarem decisão
 - **[Diagrama de Sequência](docs/SEQUENCE-DIAGRAM.md)** - Diagrama de Sequência do fluxo da aplicação Ofisy
