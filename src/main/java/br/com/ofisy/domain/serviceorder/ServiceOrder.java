@@ -70,6 +70,10 @@ public class ServiceOrder {
         transitionTo(ServiceOrderStatus.FINISHED);
     }
 
+    public void confirmPayment() {
+        transitionTo(ServiceOrderStatus.PAID);
+    }
+
     public void deliver() {
         transitionTo(ServiceOrderStatus.DELIVERED);
     }

@@ -21,6 +21,7 @@ public class StartServiceOrderExecutionService implements StartServiceOrderExecu
     private static final Set<ServiceOrderStatus> ALREADY_STARTED = Set.of(
             ServiceOrderStatus.IN_PROGRESS,
             ServiceOrderStatus.FINISHED,
+            ServiceOrderStatus.PAID,
             ServiceOrderStatus.DELIVERED,
             ServiceOrderStatus.CANCELLED);
 

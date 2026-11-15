@@ -43,7 +43,7 @@ awslocal sns subscribe \
   --topic-arn "$BILLING_TOPIC_ARN" \
   --protocol sqs \
   --notification-endpoint "$QUEUE_ARN" \
-  --attributes '{"RawMessageDelivery":"true","FilterPolicyScope":"MessageBody","FilterPolicy":"{\"type\":[\"QuoteSentForApproval\",\"QuoteApproved\",\"QuoteCancelled\"]}"}'
+  --attributes '{"RawMessageDelivery":"true","FilterPolicyScope":"MessageBody","FilterPolicy":"{\"type\":[\"QuoteSentForApproval\",\"QuoteApproved\",\"QuoteCancelled\",\"PaymentConfirmed\"]}"}'
 
 STOCK_TOPIC_ARN=$(awslocal sns create-topic \
   --name ofisy-stock-events.fifo \

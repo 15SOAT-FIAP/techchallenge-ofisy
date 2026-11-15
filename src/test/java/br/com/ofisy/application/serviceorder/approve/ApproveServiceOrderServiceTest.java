@@ -121,6 +121,18 @@ class ApproveServiceOrderServiceTest {
         }
 
         @Test
+        void shouldOnlyRegisterEventWhenOrderIsAlreadyPaid() {
+            ServiceOrder serviceOrder = paidServiceOrder();
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
+
+            approveServiceOrderService.execute(COMMAND);
+
+            assertThat(serviceOrder.getStatus()).isEqualTo(ServiceOrderStatus.PAID);
+            verify(serviceOrderRepository, never()).save(any());
+            verify(processedEventRepository).save(any(ProcessedEvent.class));
+        }
+
+        @Test
         void shouldOnlyRegisterEventWhenOrderIsCancelled() {
             ServiceOrder serviceOrder = cancelledServiceOrder();
             when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
@@ -187,6 +199,12 @@ class ApproveServiceOrderServiceTest {
     private ServiceOrder finishedServiceOrder() {
         ServiceOrder order = inProgressServiceOrder();
         order.finish();
+        return order;
+    }
+
+    private ServiceOrder paidServiceOrder() {
+        ServiceOrder order = finishedServiceOrder();
+        order.confirmPayment();
         return order;
     }
 

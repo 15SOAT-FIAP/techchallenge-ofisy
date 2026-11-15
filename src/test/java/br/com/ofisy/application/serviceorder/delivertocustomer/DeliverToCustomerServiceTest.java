@@ -41,7 +41,7 @@ class DeliverToCustomerServiceTest {
 
         @Test
         void shouldDeliverServiceOrderSuccessfully() {
-            ServiceOrder serviceOrder = finishedServiceOrder();
+            ServiceOrder serviceOrder = paidServiceOrder();
             when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
             when(serviceOrderRepository.save(serviceOrder)).thenAnswer(inv -> inv.getArgument(0));
 
@@ -59,8 +59,17 @@ class DeliverToCustomerServiceTest {
         }
 
         @Test
-        void shouldThrowInvalidTransitionWhenOrderIsNotFinished() {
+        void shouldThrowInvalidTransitionWhenOrderIsNotPaid() {
             ServiceOrder serviceOrder = cancelledServiceOrder();
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
+
+            assertThatThrownBy(() -> deliverToCustomerService.execute(VALID_SERVICE_ORDER_ID))
+                    .isInstanceOf(InvalidServiceOrderTransitionException.class);
+        }
+
+        @Test
+        void shouldThrowInvalidTransitionWhenOrderIsFinishedButNotPaid() {
+            ServiceOrder serviceOrder = finishedServiceOrder();
             when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
 
             assertThatThrownBy(() -> deliverToCustomerService.execute(VALID_SERVICE_ORDER_ID))
@@ -75,6 +84,12 @@ class DeliverToCustomerServiceTest {
         order.approve();
         order.startExecution();
         order.finish();
+        return order;
+    }
+
+    private ServiceOrder paidServiceOrder() {
+        ServiceOrder order = finishedServiceOrder();
+        order.confirmPayment();
         return order;
     }
 

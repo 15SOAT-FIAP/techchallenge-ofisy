@@ -157,8 +157,17 @@ class ServiceOrderTest {
         }
 
         @Test
-        void finishedToDelivered() {
+        void finishedToPaid() {
             var order = orderIn(ServiceOrderStatus.FINISHED);
+
+            order.confirmPayment();
+
+            assertThat(order.getStatus()).isEqualTo(ServiceOrderStatus.PAID);
+        }
+
+        @Test
+        void paidToDelivered() {
+            var order = orderIn(ServiceOrderStatus.PAID);
 
             order.deliver();
 
@@ -267,12 +276,25 @@ class ServiceOrderTest {
         }
 
         @Test
-        void cannotDeliverOutsideFinished() {
+        void cannotConfirmPaymentOutsideFinished() {
+            assertRejected(ServiceOrderStatus.RECEIVED, ServiceOrder::confirmPayment);
+            assertRejected(ServiceOrderStatus.IN_DIAGNOSTIC, ServiceOrder::confirmPayment);
+            assertRejected(ServiceOrderStatus.AWAITING_APPROVAL, ServiceOrder::confirmPayment);
+            assertRejected(ServiceOrderStatus.AWAITING_EXECUTION, ServiceOrder::confirmPayment);
+            assertRejected(ServiceOrderStatus.IN_PROGRESS, ServiceOrder::confirmPayment);
+            assertRejected(ServiceOrderStatus.PAID, ServiceOrder::confirmPayment);
+            assertRejected(ServiceOrderStatus.DELIVERED, ServiceOrder::confirmPayment);
+            assertRejected(ServiceOrderStatus.CANCELLED, ServiceOrder::confirmPayment);
+        }
+
+        @Test
+        void cannotDeliverOutsidePaid() {
             assertRejected(ServiceOrderStatus.RECEIVED, ServiceOrder::deliver);
             assertRejected(ServiceOrderStatus.IN_DIAGNOSTIC, ServiceOrder::deliver);
             assertRejected(ServiceOrderStatus.AWAITING_APPROVAL, ServiceOrder::deliver);
             assertRejected(ServiceOrderStatus.AWAITING_EXECUTION, ServiceOrder::deliver);
             assertRejected(ServiceOrderStatus.IN_PROGRESS, ServiceOrder::deliver);
+            assertRejected(ServiceOrderStatus.FINISHED, ServiceOrder::deliver);
             assertRejected(ServiceOrderStatus.DELIVERED, ServiceOrder::deliver);
             assertRejected(ServiceOrderStatus.CANCELLED, ServiceOrder::deliver);
         }
@@ -280,6 +302,7 @@ class ServiceOrderTest {
         @Test
         void cannotCancelTerminalStates() {
             assertRejected(ServiceOrderStatus.FINISHED, ServiceOrder::cancel);
+            assertRejected(ServiceOrderStatus.PAID, ServiceOrder::cancel);
             assertRejected(ServiceOrderStatus.DELIVERED, ServiceOrder::cancel);
             assertRejected(ServiceOrderStatus.CANCELLED, ServiceOrder::cancel);
         }
@@ -324,12 +347,21 @@ class ServiceOrderTest {
                 order.startExecution();
                 order.finish();
             }
+            case PAID -> {
+                order.startDiagnostic();
+                order.sendToApproval();
+                order.approve();
+                order.startExecution();
+                order.finish();
+                order.confirmPayment();
+            }
             case DELIVERED -> {
                 order.startDiagnostic();
                 order.sendToApproval();
                 order.approve();
                 order.startExecution();
                 order.finish();
+                order.confirmPayment();
                 order.deliver();
             }
             case CANCELLED -> order.cancel();
