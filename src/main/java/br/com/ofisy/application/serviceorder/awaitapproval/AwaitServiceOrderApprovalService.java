@@ -23,6 +23,7 @@ public class AwaitServiceOrderApprovalService implements AwaitServiceOrderApprov
             ServiceOrderStatus.AWAITING_EXECUTION,
             ServiceOrderStatus.IN_PROGRESS,
             ServiceOrderStatus.FINISHED,
+            ServiceOrderStatus.PAID,
             ServiceOrderStatus.DELIVERED,
             ServiceOrderStatus.CANCELLED);
 
