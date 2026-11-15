@@ -9,15 +9,21 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Set;
+
 @Service
 @RequiredArgsConstructor
 public class ListFinishedServiceOrdersService implements ListFinishedServiceOrdersUseCase {
+
+    private static final Set<ServiceOrderStatus> FINISHED_STATUSES = Set.of(
+            ServiceOrderStatus.FINISHED,
+            ServiceOrderStatus.PAID);
 
     private final ServiceOrderRepository serviceOrderRepository;
 
     @Override
     @Transactional(readOnly = true)
     public Page<ServiceOrder> execute(Pageable pageable) {
-        return serviceOrderRepository.findByStatus(ServiceOrderStatus.FINISHED, pageable);
+        return serviceOrderRepository.findByStatusIn(FINISHED_STATUSES, pageable);
     }
 }

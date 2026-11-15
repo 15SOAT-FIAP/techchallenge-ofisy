@@ -9,6 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -32,6 +33,11 @@ public class ServiceOrderRepositoryImpl implements ServiceOrderRepository {
     @Override
     public Page<ServiceOrder> findByStatus(ServiceOrderStatus serviceOrderStatus, Pageable pageable) {
         return jpa.findByStatus(serviceOrderStatus, pageable).map(ServiceOrderMapper::toDomain);
+    }
+
+    @Override
+    public Page<ServiceOrder> findByStatusIn(Collection<ServiceOrderStatus> serviceOrderStatuses, Pageable pageable) {
+        return jpa.findByStatusIn(serviceOrderStatuses, pageable).map(ServiceOrderMapper::toDomain);
     }
 
     @Override
