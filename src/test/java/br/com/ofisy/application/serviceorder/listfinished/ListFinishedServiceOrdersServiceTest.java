@@ -15,11 +15,14 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -40,23 +43,22 @@ class ListFinishedServiceOrdersServiceTest {
     class Execute {
 
         @Test
-        void shouldReturnPageOfFinishedServiceOrders() {
+        void shouldReturnPageOfFinishedAndPaidServiceOrders() {
             Pageable pageable = PageRequest.of(0, 10);
-            ServiceOrder serviceOrder = finishedServiceOrder();
-            Page<ServiceOrder> page = new PageImpl<>(List.of(serviceOrder), pageable, 1);
-            when(serviceOrderRepository.findByStatus(ServiceOrderStatus.FINISHED, pageable)).thenReturn(page);
+            Page<ServiceOrder> page = new PageImpl<>(List.of(finishedServiceOrder(), paidServiceOrder()), pageable, 2);
+            when(serviceOrderRepository.findByStatusIn(anyCollection(), eq(pageable))).thenReturn(page);
 
             Page<ServiceOrder> result = listFinishedServiceOrdersService.execute(pageable);
 
-            assertThat(result.getTotalElements()).isEqualTo(1);
-            assertThat(result.getContent()).hasSize(1);
-            assertThat(result.getContent().getFirst().getStatus()).isEqualTo(ServiceOrderStatus.FINISHED);
+            assertThat(result.getTotalElements()).isEqualTo(2);
+            assertThat(result.getContent()).extracting(ServiceOrder::getStatus)
+                    .containsExactly(ServiceOrderStatus.FINISHED, ServiceOrderStatus.PAID);
         }
 
         @Test
         void shouldReturnEmptyPageWhenNoFinishedServiceOrders() {
             Pageable pageable = PageRequest.of(0, 10);
-            when(serviceOrderRepository.findByStatus(ServiceOrderStatus.FINISHED, pageable))
+            when(serviceOrderRepository.findByStatusIn(anyCollection(), eq(pageable)))
                     .thenReturn(Page.empty(pageable));
 
             Page<ServiceOrder> result = listFinishedServiceOrdersService.execute(pageable);
@@ -66,16 +68,18 @@ class ListFinishedServiceOrdersServiceTest {
         }
 
         @Test
-        void shouldQueryRepositoryWithFinishedStatusAndProvidedPageable() {
+        @SuppressWarnings("unchecked")
+        void shouldQueryRepositoryWithFinishedAndPaidStatusesAndProvidedPageable() {
             Pageable pageable = PageRequest.of(2, 5);
-            when(serviceOrderRepository.findByStatus(any(), any())).thenReturn(Page.empty(pageable));
+            when(serviceOrderRepository.findByStatusIn(anyCollection(), any())).thenReturn(Page.empty(pageable));
 
             listFinishedServiceOrdersService.execute(pageable);
 
-            ArgumentCaptor<ServiceOrderStatus> statusCaptor = ArgumentCaptor.forClass(ServiceOrderStatus.class);
+            ArgumentCaptor<Collection<ServiceOrderStatus>> statusesCaptor = ArgumentCaptor.forClass(Collection.class);
             ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
-            verify(serviceOrderRepository).findByStatus(statusCaptor.capture(), pageableCaptor.capture());
-            assertThat(statusCaptor.getValue()).isEqualTo(ServiceOrderStatus.FINISHED);
+            verify(serviceOrderRepository).findByStatusIn(statusesCaptor.capture(), pageableCaptor.capture());
+            assertThat(statusesCaptor.getValue())
+                    .containsExactlyInAnyOrder(ServiceOrderStatus.FINISHED, ServiceOrderStatus.PAID);
             assertThat(pageableCaptor.getValue()).isEqualTo(pageable);
         }
     }
@@ -87,6 +91,12 @@ class ListFinishedServiceOrdersServiceTest {
         order.approve();
         order.startExecution();
         order.finish();
+        return order;
+    }
+
+    private ServiceOrder paidServiceOrder() {
+        ServiceOrder order = finishedServiceOrder();
+        order.confirmPayment();
         return order;
     }
 }
