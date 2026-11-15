@@ -51,7 +51,7 @@ class ListActiveServiceOrdersServiceTest {
             assertThat(result.getTotalElements()).isEqualTo(1);
             assertThat(result.getContent()).hasSize(1);
             assertThat(result.getContent().getFirst().getStatus()).isNotIn(
-                    ServiceOrderStatus.FINISHED, ServiceOrderStatus.DELIVERED, ServiceOrderStatus.CANCELLED);
+                    ServiceOrderStatus.FINISHED, ServiceOrderStatus.PAID, ServiceOrderStatus.DELIVERED, ServiceOrderStatus.CANCELLED);
         }
 
         @Test

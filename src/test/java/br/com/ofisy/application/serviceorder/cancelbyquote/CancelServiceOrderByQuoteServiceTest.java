@@ -142,6 +142,20 @@ class CancelServiceOrderByQuoteServiceTest {
         }
 
         @Test
+        void shouldOnlyRegisterEventWhenOrderIsAlreadyPaid() {
+            ServiceOrder serviceOrder = paidServiceOrder();
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
+
+            cancelServiceOrderByQuoteService.execute(COMMAND);
+
+            assertThat(serviceOrder.getStatus()).isEqualTo(ServiceOrderStatus.PAID);
+            verify(serviceOrderRepository, never()).save(any());
+            verify(outboxEventRepository, never()).save(any());
+            verify(processedEventRepository).save(any(ProcessedEvent.class));
+            verify(serviceOrderMetrics, never()).recordTransition(any(), any(), any());
+        }
+
+        @Test
         void shouldThrowServiceOrderNotFoundExceptionWhenOrderDoesNotExist() {
             when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.empty());
 
@@ -185,6 +199,12 @@ class CancelServiceOrderByQuoteServiceTest {
     private ServiceOrder finishedServiceOrder() {
         ServiceOrder order = inProgressServiceOrder();
         order.finish();
+        return order;
+    }
+
+    private ServiceOrder paidServiceOrder() {
+        ServiceOrder order = finishedServiceOrder();
+        order.confirmPayment();
         return order;
     }
 

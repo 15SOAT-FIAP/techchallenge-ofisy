@@ -160,6 +160,20 @@ class FinishServiceOrderServiceTest {
         }
 
         @Test
+        void shouldOnlyRegisterEventWhenOrderIsAlreadyPaid() {
+            ServiceOrder serviceOrder = paidServiceOrder();
+            when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
+
+            finishServiceOrderService.execute(COMMAND);
+
+            assertThat(serviceOrder.getStatus()).isEqualTo(ServiceOrderStatus.PAID);
+            verify(serviceOrderRepository, never()).save(any());
+            verify(outboxEventRepository, never()).save(any());
+            verify(processedEventRepository).save(any(ProcessedEvent.class));
+            verify(serviceOrderMetrics, never()).recordTransition(any(), any(), any());
+        }
+
+        @Test
         void shouldThrowServiceOrderNotFoundExceptionWhenOrderDoesNotExist() {
             when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.empty());
 
@@ -187,6 +201,13 @@ class FinishServiceOrderServiceTest {
     private ServiceOrder inProgressServiceOrder() {
         ServiceOrder order = awaitingExecutionServiceOrder();
         order.startExecution();
+        return order;
+    }
+
+    private ServiceOrder paidServiceOrder() {
+        ServiceOrder order = inProgressServiceOrder();
+        order.finish();
+        order.confirmPayment();
         return order;
     }
 
