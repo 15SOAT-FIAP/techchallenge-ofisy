@@ -1,4 +1,4 @@
-# Ofisy 
+# Ofisy
 
 FIAP 15SOAT - Tech Challenge Fase 3 - Grupo 87
 
@@ -198,15 +198,15 @@ docker compose -f compose.db.yaml up -d
 
 ### Login
 - Para realizar o login seguir os seguintes passos:
-  1. Acessar a API de Login: http://localhost:8080/swagger-ui/index.html#/Autentica%C3%A7%C3%A3o%20via%20JWT%20Token%20para%20APIs%20administrativas
-  2. Utilizar os usuários abaixo de acordo com a ROLE disponível, sendo:
+    1. Acessar a API de Login: http://localhost:8080/swagger-ui/index.html#/Autentica%C3%A7%C3%A3o%20via%20JWT%20Token%20para%20APIs%20administrativas
+    2. Utilizar os usuários abaixo de acordo com a ROLE disponível, sendo:
         - ADMIN - Usuário administrador
         - ATTENDANT - Usuário atendente
         - MECHANIC - Usuário mecânico
         - STOCKMAN - Usuário almoxarife
-  3. Receber o JWT token no login
-  4. Adicionar o token no campo Bearer Token do componente Authorize do Swagger
-  5. Acessar as APIs que possuem autorização para o usuário logado
+    3. Receber o JWT token no login
+    4. Adicionar o token no campo Bearer Token do componente Authorize do Swagger
+    5. Acessar as APIs que possuem autorização para o usuário logado
 
 O token traz o email do usuário no `sub` e a role na claim `role`. Os microsserviços não têm o banco de usuários, então validam o token com o mesmo `JWT_SECRET` e autorizam pela claim `role`.
 
@@ -217,7 +217,7 @@ As rotas de orçamento (`/api/v1/quotes`) e de cobrança (`/api/v1/payments`) n�
 As rotas de notificações (`/api/v1/notifications`) são servidas pelo [ms-ofisy-notification](https://github.com/15SOAT-FIAP/ms-ofisy-notification). O microsserviço cria o aviso de orçamento ao receber `QuoteSentForApproval` do Billing. A autenticação de funcionários continua usando o JWT emitido pelo Core.
 
 ### Usuários disponíveis para utilização:
-  #### ROLE ADMIN
+#### ROLE ADMIN
     - username: admin@ofisy.com
     - senha: Admin@1234
 #### ROLE ATTENDANT
@@ -265,7 +265,7 @@ As rotas de notificações (`/api/v1/notifications`) são servidas pelo [ms-ofis
 - **[Guia de Deploy](docs/DEPLOY.md)** - Instruções completas para execução local (Docker Compose) e deploy em nuvem AWS (CI/CD ou CLI)
 - **[Infraestrutura AWS com Terraform](docs/INFRASTRUCTURE.md)** - Recursos AWS provisionados, arquitetura de rede e passo a passo para inicializar, validar e aplicar a infraestrutura
 - **[Kubernetes no EKS](docs/K8S.md)** - Manual para publicar e operar a aplicação no cluster EKS provisionado via Terraform
-- **[Diagrama de Infraestrutura e CI/CD](docs/INFRA-CICD-DIAGRAM.md)** - Infraestrutura AWS e como é o fluxo de CI/CD para deploy da aplicação
+- **[Diagrama de Infraestrutura e CI/CD](docs/INFRA-CICD-DIAGRAM.md)** - Infraestrutura AWS dos cinco serviços e o fluxo de CI/CD orquestrado pelo ofisy-platform
 - **[Observabilidade com Datadog](docs/OBSERVABILITY.md)** - Instrumentação da aplicação (traces, logs correlacionados e métricas), rastreamento distribuído entre os microsserviços, dashboards e monitors
 
 ### Qualidade e Testes
