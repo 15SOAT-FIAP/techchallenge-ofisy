@@ -142,10 +142,10 @@ class ServiceOrderEventsListenerIT extends IntegrationTestBase {
     }
 
     @Test
-    void shouldCancelServiceOrderAndPublishServiceOrderCancelledWhenQuoteReproved() {
+    void shouldCancelServiceOrderAndPublishServiceOrderCancelledWhenStockRefunded() {
         UUID serviceOrderId = awaitingApprovalServiceOrder();
         UUID eventId = UUID.randomUUID();
-        String body = envelope(eventId, "QuoteReproved", serviceOrderId);
+        String body = envelope(eventId, "StockRefunded", serviceOrderId);
         String queueUrl = queueUrl();
 
         send(queueUrl, serviceOrderId, body);
@@ -172,6 +172,30 @@ class ServiceOrderEventsListenerIT extends IntegrationTestBase {
         assertThat(outboxEventsOf(serviceOrderId, "ServiceOrderCancelled")).hasSize(1);
     }
 
+    @Test
+    void shouldMoveServiceOrderToPaidWhenPaymentConfirmedIsDeliveredTwice() {
+        UUID serviceOrderId = finishedServiceOrder();
+        UUID eventId = UUID.randomUUID();
+        String body = """
+                {
+                  "eventId": "%s",
+                  "type": "PaymentConfirmed",
+                  "serviceOrderId": "%s",
+                  "occurredAt": "2026-11-02T15:10:00.123456Z",
+                  "payload": { "paymentId": "%s", "amount": 250.00 }
+                }
+                """.formatted(eventId, serviceOrderId, UUID.randomUUID());
+        String queueUrl = queueUrl();
+
+        send(queueUrl, serviceOrderId, body);
+        send(queueUrl, serviceOrderId, body);
+
+        await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> assertThat(pendingMessages(queueUrl)).isZero());
+        assertThat(serviceOrderRepository.findById(serviceOrderId).orElseThrow().getStatus())
+                .isEqualTo(ServiceOrderStatus.PAID);
+        assertThat(processedEventRepository.existsById(eventId)).isTrue();
+    }
+
     private UUID inDiagnosticServiceOrder() {
         ServiceOrder serviceOrder = newServiceOrder();
         serviceOrder.startDiagnostic();
@@ -190,6 +214,16 @@ class ServiceOrderEventsListenerIT extends IntegrationTestBase {
         serviceOrder.startDiagnostic();
         serviceOrder.sendToApproval();
         serviceOrder.approve();
+        return serviceOrderRepository.save(serviceOrder).getId();
+    }
+
+    private UUID finishedServiceOrder() {
+        ServiceOrder serviceOrder = newServiceOrder();
+        serviceOrder.startDiagnostic();
+        serviceOrder.sendToApproval();
+        serviceOrder.approve();
+        serviceOrder.startExecution();
+        serviceOrder.finish();
         return serviceOrderRepository.save(serviceOrder).getId();
     }
 

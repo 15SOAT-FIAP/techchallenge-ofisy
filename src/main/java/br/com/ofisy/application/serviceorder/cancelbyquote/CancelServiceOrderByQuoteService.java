@@ -24,6 +24,7 @@ public class CancelServiceOrderByQuoteService implements CancelServiceOrderByQuo
 
     private static final Set<ServiceOrderStatus> ALREADY_CLOSED = Set.of(
             ServiceOrderStatus.FINISHED,
+            ServiceOrderStatus.PAID,
             ServiceOrderStatus.DELIVERED,
             ServiceOrderStatus.CANCELLED);
 

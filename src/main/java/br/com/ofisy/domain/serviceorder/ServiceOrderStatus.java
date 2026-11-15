@@ -12,6 +12,7 @@ public enum ServiceOrderStatus {
     AWAITING_EXECUTION(2),
     IN_PROGRESS(1),
     FINISHED(0),
+    PAID(0),
     DELIVERED(0),
     CANCELLED(0);
 
@@ -31,7 +32,8 @@ public enum ServiceOrderStatus {
         ALLOWED.put(AWAITING_APPROVAL, Set.of(AWAITING_EXECUTION, CANCELLED));
         ALLOWED.put(AWAITING_EXECUTION, Set.of(IN_PROGRESS, CANCELLED));
         ALLOWED.put(IN_PROGRESS, Set.of(FINISHED, CANCELLED));
-        ALLOWED.put(FINISHED, Set.of(DELIVERED));
+        ALLOWED.put(FINISHED, Set.of(PAID));
+        ALLOWED.put(PAID, Set.of(DELIVERED));
         ALLOWED.put(DELIVERED, Set.of());
         ALLOWED.put(CANCELLED, Set.of());
     }

@@ -26,6 +26,7 @@ public class FinishServiceOrderService implements FinishServiceOrderUseCase {
 
     private static final Set<ServiceOrderStatus> ALREADY_FINISHED = Set.of(
             ServiceOrderStatus.FINISHED,
+            ServiceOrderStatus.PAID,
             ServiceOrderStatus.DELIVERED,
             ServiceOrderStatus.CANCELLED);
 

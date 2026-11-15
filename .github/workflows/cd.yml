@@ -21,7 +21,7 @@ env:
 
 jobs:
   deploy-to-aws:
-    name: Deploy Manual na AWS (Kubernetes EKS)
+    name: Deploy Core
     runs-on: ubuntu-latest
     environment: AWS_ACADEMY
 
@@ -107,6 +107,16 @@ jobs:
           echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
           # Garantir que a IMAGE_TAG está disponível no env do step
           IMAGE_TAG=$(git rev-parse --short HEAD)
+
+          if aws ecr describe-images --repository-name ms-ofisy-core-ecr --image-ids imageTag="$IMAGE_TAG" > /dev/null 2> ecr-error.txt; then
+            echo "Imagem $IMAGE_TAG já existe no ECR (tags imutáveis). Reaproveitando sem novo build."
+            exit 0
+          fi
+          if ! grep -q ImageNotFoundException ecr-error.txt; then
+            cat ecr-error.txt
+            exit 1
+          fi
+
           docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ms-ofisy-core-ecr:$IMAGE_TAG .
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/ms-ofisy-core-ecr:$IMAGE_TAG
 

@@ -144,6 +144,39 @@ class ServiceOrderRepositoryImplTest {
         }
     }
 
+    @Nested
+    class FindByStatusIn {
+
+        @Test
+        void shouldReturnPageOfDomainServiceOrdersMappedFromEntities() {
+            var pageable = PageRequest.of(0, 10);
+            var statuses = List.of(ServiceOrderStatus.FINISHED, ServiceOrderStatus.PAID);
+            var entity = validEntity();
+            var page = new PageImpl<>(List.of(entity), pageable, 1);
+            when(jpa.findByStatusIn(statuses, pageable)).thenReturn(page);
+
+            var result = repository.findByStatusIn(statuses, pageable);
+
+            assertThat(result.getTotalElements()).isEqualTo(1);
+            assertThat(result.getContent().get(0).getId()).isEqualTo(entity.getId());
+            assertThat(result.getContent().get(0).getStatus()).isEqualTo(entity.getStatus());
+            verify(jpa).findByStatusIn(statuses, pageable);
+        }
+
+        @Test
+        void shouldReturnEmptyPageWhenNoServiceOrdersMatchStatuses() {
+            var pageable = PageRequest.of(0, 10);
+            var statuses = List.of(ServiceOrderStatus.FINISHED, ServiceOrderStatus.PAID);
+            var emptyPage = new PageImpl<ServiceOrderEntity>(List.of(), pageable, 0);
+            when(jpa.findByStatusIn(statuses, pageable)).thenReturn(emptyPage);
+
+            var result = repository.findByStatusIn(statuses, pageable);
+
+            assertThat(result.getContent()).isEmpty();
+            assertThat(result.getTotalElements()).isZero();
+        }
+    }
+
     private ServiceOrder validServiceOrder() {
         return ServiceOrder.receive(VALID_VEHICLE_ID, VALID_CUSTOMER_ID, VALID_REPORT, VALID_CREATED_BY);
     }

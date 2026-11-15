@@ -6,7 +6,7 @@ on:
 
 jobs:
   destroy-app:
-    name: Remover Manifestos do Kubernetes
+    name: Remover Core
     runs-on: ubuntu-latest
     environment: AWS_ACADEMY
 

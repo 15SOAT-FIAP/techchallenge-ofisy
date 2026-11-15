@@ -22,6 +22,7 @@ public class ApproveServiceOrderService implements ApproveServiceOrderUseCase {
             ServiceOrderStatus.AWAITING_EXECUTION,
             ServiceOrderStatus.IN_PROGRESS,
             ServiceOrderStatus.FINISHED,
+            ServiceOrderStatus.PAID,
             ServiceOrderStatus.DELIVERED,
             ServiceOrderStatus.CANCELLED);
 

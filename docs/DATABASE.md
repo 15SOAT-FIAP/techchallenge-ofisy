@@ -110,7 +110,7 @@ de registros.
 ```sql
 -- V11
 CHECK (status IN ('RECEIVED','IN_DIAGNOSTIC','AWAITING_APPROVAL','AWAITING_EXECUTION',
-                   'IN_PROGRESS','FINISHED','DELIVERED','CANCELLED'))
+                   'IN_PROGRESS','FINISHED','PAID','DELIVERED','CANCELLED'))
 ```
 
 - **Motivo:** a transição de estados de `ServiceOrder` já é validada no

@@ -1,4 +1,4 @@
-# Ofisy 
+# Ofisy
 
 FIAP 15SOAT - Tech Challenge Fase 3 - Grupo 87
 
@@ -198,26 +198,26 @@ docker compose -f compose.db.yaml up -d
 
 ### Login
 - Para realizar o login seguir os seguintes passos:
-  1. Acessar a API de Login: http://localhost:8080/swagger-ui/index.html#/Autentica%C3%A7%C3%A3o%20via%20JWT%20Token%20para%20APIs%20administrativas
-  2. Utilizar os usuários abaixo de acordo com a ROLE disponível, sendo:
+    1. Acessar a API de Login: http://localhost:8080/swagger-ui/index.html#/Autentica%C3%A7%C3%A3o%20via%20JWT%20Token%20para%20APIs%20administrativas
+    2. Utilizar os usuários abaixo de acordo com a ROLE disponível, sendo:
         - ADMIN - Usuário administrador
         - ATTENDANT - Usuário atendente
         - MECHANIC - Usuário mecânico
         - STOCKMAN - Usuário almoxarife
-  3. Receber o JWT token no login
-  4. Adicionar o token no campo Bearer Token do componente Authorize do Swagger
-  5. Acessar as APIs que possuem autorização para o usuário logado
+    3. Receber o JWT token no login
+    4. Adicionar o token no campo Bearer Token do componente Authorize do Swagger
+    5. Acessar as APIs que possuem autorização para o usuário logado
 
 O token traz o email do usuário no `sub` e a role na claim `role`. Os microsserviços não têm o banco de usuários, então validam o token com o mesmo `JWT_SECRET` e autorizam pela claim `role`.
 
 As rotas de estoque (`/api/v1/stocks`) e de movimentações (`/api/v1/stock-movements`) não ficam mais neste repositório: elas são servidas pelo [ms-ofisy-stock](https://github.com/15SOAT-FIAP/ms-ofisy-stock). O usuário STOCKMAN continua sendo criado aqui e usa o mesmo token para acessar essas rotas no microsserviço.
 
-As rotas de orçamento (`/api/v1/quotes`) e de cobrança (`/api/v1/payments`) não ficam mais neste repositório: elas são servidas pelo [ms-ofisy-billing](https://github.com/15SOAT-FIAP/ms-ofisy-billing). O core continua dono do status da OS e o atualiza ao receber `QuoteSentForApproval`, `QuoteApproved`, `QuoteReproved` e `QuoteCancelled` do Billing. Quando a OS é finalizada, publica `ServiceOrderFinished`, que dispara a cobrança. A autenticação de funcionários continua usando o JWT emitido pelo Core.
+As rotas de orçamento (`/api/v1/quotes`) e de cobrança (`/api/v1/payments`) não ficam mais neste repositório: elas são servidas pelo [ms-ofisy-billing](https://github.com/15SOAT-FIAP/ms-ofisy-billing). O core continua dono do status da OS e o atualiza ao receber `QuoteSentForApproval`, `QuoteApproved`, `QuoteCancelled` e `PaymentConfirmed` do Billing. Quando a OS é finalizada, publica `ServiceOrderFinished`, que dispara a cobrança. O `PaymentConfirmed` move a OS para `PAID`, e só a partir daí o veículo pode ser entregue. A autenticação de funcionários continua usando o JWT emitido pelo Core.
 
 As rotas de notificações (`/api/v1/notifications`) são servidas pelo [ms-ofisy-notification](https://github.com/15SOAT-FIAP/ms-ofisy-notification). O microsserviço cria o aviso de orçamento ao receber `QuoteSentForApproval` do Billing. A autenticação de funcionários continua usando o JWT emitido pelo Core.
 
 ### Usuários disponíveis para utilização:
-  #### ROLE ADMIN
+#### ROLE ADMIN
     - username: admin@ofisy.com
     - senha: Admin@1234
 #### ROLE ATTENDANT
@@ -253,10 +253,11 @@ As rotas de notificações (`/api/v1/notifications`) são servidas pelo [ms-ofis
 ## Documentação Adicional
 
 ### Arquitetura
+- **[Arquitetura](docs/ARCHITECTURE.md)** - Visão do sistema inteiro: serviços na AWS, mapa de eventos entre os microsserviços e máquinas de estado da saga
 - **[Diagrama de Componentes](docs/COMPONENT-DIAGRAM.md)** - Componentes do backend do core e como se relacionam (padrão C4)
 - **[Architecture Decision Records (ADRs)](docs/adr/README.md)** - Registro das decisões arquiteturais do projeto, sua motivação e consequências
 - **[Requests for Comments (RFCs)](docs/rfc/README.md)** - Propostas de mudança discutidas pelo time antes de virarem decisão
-- **[Diagrama de Sequência](docs/SEQUENCE-DIAGRAM.md)** - Diagrama de Sequência do fluxo da aplicação Ofisy
+- **[Diagrama de Sequência](docs/SEQUENCE-DIAGRAM.md)** - Saga da ordem de serviço entre o core e os microsserviços: caminho feliz e compensações
 - **[Mensageria](docs/MESSAGING.md)** - Comunicação com os microsserviços por SNS e SQS: envelope dos eventos, outbox e listener
 - **[Documentação Banco de Dados](docs/DATABASE.md)** - Justificativa formal sobre a escolha do banco de dados, modelo relacional, diagramas ER e explicação dos relacionamentos.
 
@@ -264,7 +265,8 @@ As rotas de notificações (`/api/v1/notifications`) são servidas pelo [ms-ofis
 - **[Guia de Deploy](docs/DEPLOY.md)** - Instruções completas para execução local (Docker Compose) e deploy em nuvem AWS (CI/CD ou CLI)
 - **[Infraestrutura AWS com Terraform](docs/INFRASTRUCTURE.md)** - Recursos AWS provisionados, arquitetura de rede e passo a passo para inicializar, validar e aplicar a infraestrutura
 - **[Kubernetes no EKS](docs/K8S.md)** - Manual para publicar e operar a aplicação no cluster EKS provisionado via Terraform
-- **[Diagrama de Infraestrutura e CI/CD](docs/INFRA-CICD-DIAGRAM.md)** - Infraestrutura AWS e como é o fluxo de CI/CD para deploy da aplicação
+- **[Diagrama de Infraestrutura e CI/CD](docs/INFRA-CICD-DIAGRAM.md)** - Infraestrutura AWS dos cinco serviços e o fluxo de CI/CD orquestrado pelo ofisy-platform
+- **[Observabilidade com Datadog](docs/OBSERVABILITY.md)** - Instrumentação da aplicação (traces, logs correlacionados e métricas), rastreamento distribuído entre os microsserviços, dashboards e monitors
 
 ### Qualidade e Testes
 - **[Guia de Testes](docs/TESTING.md)** - Instruções para executar análises de cobertura de testes e segurança
