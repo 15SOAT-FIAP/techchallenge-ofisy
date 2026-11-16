@@ -1,10 +1,7 @@
 package br.com.ofisy.application.serviceorder.cancelbyquote;
 
-import br.com.ofisy.application.serviceorder.cancel.CancelServiceOrderService;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.config.metrics.ServiceOrderMetrics;
-import br.com.ofisy.domain.messaging.OutboxEvent;
-import br.com.ofisy.domain.messaging.OutboxEventRepository;
 import br.com.ofisy.domain.messaging.ProcessedEvent;
 import br.com.ofisy.domain.messaging.ProcessedEventRepository;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
@@ -15,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -30,7 +26,6 @@ public class CancelServiceOrderByQuoteService implements CancelServiceOrderByQuo
 
     private final ServiceOrderRepository serviceOrderRepository;
     private final ProcessedEventRepository processedEventRepository;
-    private final OutboxEventRepository outboxEventRepository;
     private final ServiceOrderMetrics serviceOrderMetrics;
 
     @Override
@@ -47,8 +42,6 @@ public class CancelServiceOrderByQuoteService implements CancelServiceOrderByQuo
             LocalDateTime enteredFromStatusAt = serviceOrder.getUpdatedAt();
             serviceOrder.cancel();
             ServiceOrder saved = serviceOrderRepository.save(serviceOrder);
-            outboxEventRepository.save(OutboxEvent.create(
-                    CancelServiceOrderService.SERVICE_ORDER_CANCELLED, cmd.serviceOrderId(), Map.of()));
             serviceOrderMetrics.recordTransition(previousStatus, saved.getStatus(), enteredFromStatusAt);
         }
 
