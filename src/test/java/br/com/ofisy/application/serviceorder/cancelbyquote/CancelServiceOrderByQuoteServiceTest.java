@@ -3,8 +3,6 @@ package br.com.ofisy.application.serviceorder.cancelbyquote;
 import br.com.ofisy.application.serviceorder.cancelbyquote.CancelServiceOrderByQuoteUseCase.CancelServiceOrderByQuoteCommand;
 import br.com.ofisy.application.serviceorder.exceptions.ServiceOrderNotFoundException;
 import br.com.ofisy.config.metrics.ServiceOrderMetrics;
-import br.com.ofisy.domain.messaging.OutboxEvent;
-import br.com.ofisy.domain.messaging.OutboxEventRepository;
 import br.com.ofisy.domain.messaging.ProcessedEvent;
 import br.com.ofisy.domain.messaging.ProcessedEventRepository;
 import br.com.ofisy.domain.serviceorder.ServiceOrder;
@@ -47,13 +45,9 @@ class CancelServiceOrderByQuoteServiceTest {
     @Mock
     private ProcessedEventRepository processedEventRepository;
     @Mock
-    private OutboxEventRepository outboxEventRepository;
-    @Mock
     private ServiceOrderMetrics serviceOrderMetrics;
     @Captor
     private ArgumentCaptor<ProcessedEvent> processedEventCaptor;
-    @Captor
-    private ArgumentCaptor<OutboxEvent> outboxEventCaptor;
 
     @InjectMocks
     private CancelServiceOrderByQuoteService cancelServiceOrderByQuoteService;
@@ -76,16 +70,17 @@ class CancelServiceOrderByQuoteServiceTest {
         }
 
         @Test
-        void shouldPublishServiceOrderCancelled() {
+        void shouldCancelWhenOrderIsInDiagnostic() {
             ServiceOrder serviceOrder = inDiagnosticServiceOrder();
             when(serviceOrderRepository.findById(VALID_SERVICE_ORDER_ID)).thenReturn(Optional.of(serviceOrder));
             when(serviceOrderRepository.save(serviceOrder)).thenAnswer(inv -> inv.getArgument(0));
 
             cancelServiceOrderByQuoteService.execute(COMMAND);
 
-            verify(outboxEventRepository).save(outboxEventCaptor.capture());
-            assertThat(outboxEventCaptor.getValue().getEventType()).isEqualTo("ServiceOrderCancelled");
-            assertThat(outboxEventCaptor.getValue().getServiceOrderId()).isEqualTo(VALID_SERVICE_ORDER_ID);
+            assertThat(serviceOrder.getStatus()).isEqualTo(ServiceOrderStatus.CANCELLED);
+            verify(serviceOrderRepository).save(serviceOrder);
+            verify(serviceOrderMetrics).recordTransition(
+                    eq(ServiceOrderStatus.IN_DIAGNOSTIC), eq(ServiceOrderStatus.CANCELLED), any());
         }
 
         @Test
@@ -109,7 +104,6 @@ class CancelServiceOrderByQuoteServiceTest {
 
             verify(serviceOrderRepository, never()).findById(any());
             verify(serviceOrderRepository, never()).save(any());
-            verify(outboxEventRepository, never()).save(any());
             verify(processedEventRepository, never()).save(any());
             verify(serviceOrderMetrics, never()).recordTransition(any(), any(), any());
         }
@@ -123,7 +117,6 @@ class CancelServiceOrderByQuoteServiceTest {
 
             assertThat(serviceOrder.getStatus()).isEqualTo(ServiceOrderStatus.CANCELLED);
             verify(serviceOrderRepository, never()).save(any());
-            verify(outboxEventRepository, never()).save(any());
             verify(processedEventRepository).save(any(ProcessedEvent.class));
             verify(serviceOrderMetrics, never()).recordTransition(any(), any(), any());
         }
@@ -137,7 +130,6 @@ class CancelServiceOrderByQuoteServiceTest {
 
             assertThat(serviceOrder.getStatus()).isEqualTo(ServiceOrderStatus.FINISHED);
             verify(serviceOrderRepository, never()).save(any());
-            verify(outboxEventRepository, never()).save(any());
             verify(processedEventRepository).save(any(ProcessedEvent.class));
         }
 
@@ -150,7 +142,6 @@ class CancelServiceOrderByQuoteServiceTest {
 
             assertThat(serviceOrder.getStatus()).isEqualTo(ServiceOrderStatus.PAID);
             verify(serviceOrderRepository, never()).save(any());
-            verify(outboxEventRepository, never()).save(any());
             verify(processedEventRepository).save(any(ProcessedEvent.class));
             verify(serviceOrderMetrics, never()).recordTransition(any(), any(), any());
         }
@@ -163,7 +154,6 @@ class CancelServiceOrderByQuoteServiceTest {
                     .isInstanceOf(ServiceOrderNotFoundException.class);
 
             verify(serviceOrderRepository, never()).save(any());
-            verify(outboxEventRepository, never()).save(any());
             verify(processedEventRepository, never()).save(any());
         }
     }
