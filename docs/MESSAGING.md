@@ -67,8 +67,8 @@ Todo evento segue o mesmo envelope (`adapters/listeners/dto/EventEnvelope.java`)
 | `AllExecutionsCompleted` | `ms-ofisy-execution` | `AllExecutionsCompletedHandler` | Move a OS de `IN_PROGRESS` para `FINISHED` e publica `ServiceOrderFinished`                   |
 | `QuoteSentForApproval`   | `ms-ofisy-billing`   | `QuoteSentForApprovalHandler`   | Move a OS de `IN_DIAGNOSTIC` para `AWAITING_APPROVAL`                                         |
 | `QuoteApproved`          | `ms-ofisy-billing`   | `QuoteApprovedHandler`          | Move a OS de `AWAITING_APPROVAL` para `AWAITING_EXECUTION`                                    |
-| `QuoteCancelled`         | `ms-ofisy-billing`   | `QuoteCancelledHandler`         | Cancela a OS e publica `ServiceOrderCancelled`                                                |
-| `StockRefunded`          | `ms-ofisy-stock`     | `StockRefundedHandler`          | Cancela a OS e publica `ServiceOrderCancelled`                                                |
+| `QuoteCancelled`         | `ms-ofisy-billing`   | `QuoteCancelledHandler`         | Cancela a OS                                                                                  |
+| `StockRefunded`          | `ms-ofisy-stock`     | `StockRefundedHandler`          | Cancela a OS                                                                                  |
 | `PaymentConfirmed`       | `ms-ofisy-billing`   | `PaymentConfirmedHandler`       | Move a OS de `FINISHED` para `PAID`, liberando a entrega                                      |
 
 O core só usa o `serviceOrderId` do envelope, então o payload dos eventos é ignorado. O `PaymentConfirmed`, por exemplo, traz `paymentId` e `amount` para outros consumidores, mas o core não lê esses campos. O tratamento depende do status em que a OS está quando o evento chega:
@@ -79,6 +79,7 @@ O core só usa o `serviceOrderId` do envelope, então o payload dos eventos é i
 - **Eventos do orçamento**: seguem a mesma regra. `QuoteSentForApproval` só registra o evento quando a OS já está em `AWAITING_APPROVAL` ou à frente (um orçamento editado volta a ser enviado para aprovação, então o evento pode chegar mais de uma vez por OS). `QuoteApproved` só registra quando a OS já está em `AWAITING_EXECUTION` ou à frente. `QuoteCancelled` e `StockRefunded` só registram quando a OS já está em `FINISHED`, `DELIVERED` ou `CANCELLED`.
 - **Pagamento**: `PaymentConfirmed` só registra o evento quando a OS já está em `PAID` ou `DELIVERED`. Com a OS antes de `FINISHED`, a mensagem volta para a fila até a OS ser finalizada. Com a OS `CANCELLED`, a transição é inválida e a mensagem acaba na DLQ, porque um pagamento de OS cancelada indica inconsistência entre os serviços. A entrega (`PATCH /service-orders/{id}/deliver`) só aceita OS em `PAID`.
 - **Reprovação do orçamento**: o core não ouve o `QuoteReproved`. O estoque devolve os itens e publica o `StockRefunded`, e é ele que leva o core a cancelar a OS. O `StockRefunded` também chega depois de um cancelamento feito no próprio core (pelo caminho `ServiceOrderCancelled` → `AllExecutionsCancelled`), e aí a OS já está `CANCELLED` e o evento só é registrado.
+- **Cancelamento pelo orçamento não publica `ServiceOrderCancelled`**: quando o `QuoteCancelled` ou o `StockRefunded` cancelam a OS, ela está em `IN_DIAGNOSTIC` ou `AWAITING_APPROVAL`. As execuções só nascem no `QuoteApproved`, então não há nada para o `ms-ofisy-execution` cancelar, e publicar o evento só geraria um novo `AllExecutionsCancelled` e um `StockRefunded` vazio.
 - **Atrás do evento** (antes de `AWAITING_EXECUTION`): a transição é inválida, a exceção impede o ack e a mensagem volta para a fila até a OS alcançar o status ou, depois de 5 recebimentos, ir para a DLQ.
 - **OS inexistente**: a mensagem vai para a DLQ de propósito, porque indica inconsistência entre os serviços.
 
@@ -86,10 +87,10 @@ O core só usa o `serviceOrderId` do envelope, então o payload dos eventos é i
 
 | Evento                  | Quando é publicado                             | Quem reage                                                         |
 |-------------------------|------------------------------------------------|--------------------------------------------------------------------|
-| `ServiceOrderCancelled` | Ao cancelar a OS (`CancelServiceOrderService`) ou quando o estoque devolve os itens de um orçamento reprovado ou o orçamento é cancelado (`CancelServiceOrderByQuoteService`) | `ms-ofisy-execution` cancela as execuções pendentes e em andamento |
+| `ServiceOrderCancelled` | Ao cancelar a OS pela API (`CancelServiceOrderService`) | `ms-ofisy-execution` cancela as execuções pendentes e em andamento |
 | `ServiceOrderFinished`  | Ao finalizar a OS (`FinishServiceOrderService`) | `ms-ofisy-billing` cria a cobrança no Mercado Pago |
 
-O payload dos dois é `{}`. Quando a OS é cancelada pelo `StockRefunded`, os itens já voltaram ao estoque, e o `ServiceOrderCancelled` publicado pelo core leva a um novo `AllExecutionsCancelled` e a um novo `StockRefunded`, que chega com a OS já cancelada. As compensações do estoque são idempotentes, como prevê a [RFC-0008](rfc/0008-coordenar-a-saga-entre-os-microsservicos.md).
+O payload dos dois é `{}`. Quando a OS é cancelada pelo `QuoteCancelled` ou pelo `StockRefunded`, o core não publica o `ServiceOrderCancelled`, porque a OS ainda não tem execuções. As compensações continuam idempotentes, como prevê a [RFC-0008](rfc/0008-coordenar-a-saga-entre-os-microsservicos.md), porque a entrega do SQS é *at-least-once*.
 
 ---
 
@@ -196,7 +197,7 @@ Os testes de integração (`integration/IntegrationTestBase`) sobem um LocalStac
 | `MessageTraceContextReaderTest`  | Leitura do atributo `_datadog` como `SdkBytes`, texto ou bytes, e atributo ausente ou ilegível                             |
 | `ServiceOrderEventsListenerTest` | Despacho pelo `type`, tipo sem handler, falha do handler, `type` duplicado entre handlers e consumo dentro do trace da mensagem |
 | `OutboxEventPublisherIT`         | Evento gravado no outbox chega na fila de inspeção e fica com `published_at`                                               |
-| `ServiceOrderEventsListenerIT`   | Evento sem handler é confirmado, `ExecutionStarted` repetido move a OS uma vez só, `AllExecutionsCompleted` finaliza a OS e publica `ServiceOrderFinished`, os eventos do orçamento levam a OS a `AWAITING_APPROVAL`, `AWAITING_EXECUTION` ou `CANCELLED`, e `PaymentConfirmed` repetido move a OS para `PAID` uma vez só |
+| `ServiceOrderEventsListenerIT`   | Evento sem handler é confirmado, `ExecutionStarted` repetido move a OS uma vez só, `AllExecutionsCompleted` finaliza a OS e publica `ServiceOrderFinished`, os eventos do orçamento levam a OS a `AWAITING_APPROVAL`, `AWAITING_EXECUTION` ou `CANCELLED` (sem publicar `ServiceOrderCancelled`), e `PaymentConfirmed` repetido move a OS para `PAID` uma vez só |
 
 ---
 
