@@ -253,6 +253,7 @@ As rotas de notificações (`/api/v1/notifications`) são servidas pelo [ms-ofis
 ## Documentação Adicional
 
 ### Arquitetura
+- **[Arquitetura](docs/ARCHITECTURE.md)** - Visão do sistema inteiro: serviços na AWS, mapa de eventos entre os microsserviços e máquinas de estado da saga
 - **[Diagrama de Componentes](docs/COMPONENT-DIAGRAM.md)** - Componentes do backend e como se relacionam (padrão C4)
 - **[Architecture Decision Records (ADRs)](docs/adr/README.md)** - Registro das decisões arquiteturais do projeto, sua motivação e consequências
 - **[Requests for Comments (RFCs)](docs/rfc/README.md)** - Propostas de mudança discutidas pelo time antes de virarem decisão
