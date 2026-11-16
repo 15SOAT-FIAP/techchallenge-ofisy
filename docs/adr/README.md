@@ -24,12 +24,13 @@ precisa ser discutida pelo time, o instrumento é uma RFC, em
 | [0006](0006-separar-a-autenticacao-de-clientes-e-de-funcionarios.md)      | Separar a autenticação de clientes e de funcionários      | Aceito | 2026-09-06 |
 | [0007](0007-versionar-o-schema-com-flyway.md)                             | Versionar o schema do banco com Flyway                    | Aceito | 2026-09-06 |
 | [0008](0008-testar-integracao-com-testcontainers.md)                      | Testar a integração com Testcontainers                    | Aceito | 2026-09-06 |
-| [0009](0009-registrar-notificacoes-de-forma-sincrona-no-banco.md)         | Registrar notificações de forma síncrona no banco         | Aceito | 2026-09-06 |
-| [0010](0010-dividir-a-aplicacao-em-microsservicos-por-bounded-context.md) | Dividir a aplicação em microsserviços por bounded context | Aceito | 2026-10-02 |
-| [0011](0011-utilizar-sns-e-sqs-como-mensageria.md)                        | Utilizar SNS e SQS como mensageria                        | Aceito | 2026-10-03 |
+| [0009](0009-registrar-notificacoes-de-forma-sincrona-no-banco.md)         | Registrar notificações de forma síncrona no banco         | Substituído por [ADR-0010](0010-dividir-a-aplicacao-em-microsservicos-por-bounded-context.md) | 2026-09-06 |
+| [0010](0010-dividir-a-aplicacao-em-microsservicos-por-bounded-context.md) | Dividir a aplicação em microsserviços por bounded context | Aceito, com o fluxo da saga e o REST síncrono revistos no [ADR-0015](0015-ajustar-a-saga-da-os-ao-fluxo-implementado.md) | 2026-10-02 |
+| [0011](0011-utilizar-sns-e-sqs-como-mensageria.md)                        | Utilizar SNS e SQS como mensageria                        | Aceito, com o alarme de DLQ revisto no [ADR-0015](0015-ajustar-a-saga-da-os-ao-fluxo-implementado.md) | 2026-10-03 |
 | [0012](0012-coordenar-a-saga-por-coreografia.md)                          | Coordenar a saga por coreografia                          | Aceito | 2026-10-03 |
 | [0013](0013-utilizar-dynamodb-no-ms-ofisy-notification.md)                | Utilizar DynamoDB no ms-ofisy-notification                | Aceito | 2026-10-03 |
 | [0014](0014-manter-a-infraestrutura-de-bancos-em-um-unico-repositorio.md) | Manter a infraestrutura de bancos em um único repositório | Aceito | 2026-10-03 |
+| [0015](0015-ajustar-a-saga-da-os-ao-fluxo-implementado.md)                | Ajustar a saga da OS ao fluxo implementado                | Aceito | 2026-11-16 |
 
 ## Formato
 
@@ -59,7 +60,8 @@ Proposto  ->  Aceito  ->  Substituído por ADR-XXXX
 ```
 
 - **Proposto**: decisão em discussão, ainda em revisão no Pull Request.
-- **Aceito**: decisão vigente.
+- **Aceito**: decisão vigente. Quando um ADR posterior substitui só parte dela, o status
+  continua `Aceito` e aponta o ADR que revisou essa parte.
 - **Substituído por ADR-XXXX**: outra decisão tomou o lugar desta.
 - **Descontinuado**: a decisão deixou de valer e nada a substituiu.
 
