@@ -25,8 +25,8 @@ O diagrama de componentes do core está em [COMPONENT-DIAGRAM.md](COMPONENT-DIAG
 | ms-ofisy-stock | `ms-ofisy-stock` | Peças, baixa e devolução por OS |
 | ms-ofisy-execution | `ms-ofisy-execution` | Execução de cada serviço do orçamento aprovado |
 | ms-ofisy-notification | `ms-ofisy-notification` | Avisos ao cliente e à equipe, gravados no DynamoDB |
-| RDS PostgreSQL (4) | `techchallenge-ofisy-rds-infra` | Um banco por serviço: core, billing, stock e execution |
-| DynamoDB `Notifications` | `techchallenge-ofisy-rds-infra/notification` | Avisos do notification |
+| RDS PostgreSQL (4) | `techchallenge-ofisy-db-infra` | Um banco por serviço: core, billing, stock e execution |
+| DynamoDB `Notifications` | `techchallenge-ofisy-db-infra/notification` | Avisos do notification |
 | SNS e SQS FIFO | `techchallenge-ofisy-eks-infra/messaging` | 4 tópicos, 5 filas com DLQ e 11 assinaturas |
 | Ambiente completo | `ofisy-platform` | Sobe e destrói tudo na ordem certa |
 
