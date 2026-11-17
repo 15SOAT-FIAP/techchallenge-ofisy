@@ -125,14 +125,24 @@ A combinação dessas tecnologias permite a construção de um backend robusto e
 
 ---
 
-## Arquitetura e Repositórios da Fase 3 (Tech Challenge)
+## Repositórios do projeto
 
-Em atendimento às diretrizes da **Fase 3**, o projeto foi estruturado de forma desacoplada em **4 repositórios independentes**, cada um com seu próprio ciclo de entrega e CI/CD automatizado:
+O projeto é dividido em repositórios independentes, cada um com seu próprio ciclo de entrega e CI/CD automatizado:
 
-1. **[Serverless Function (Lambda)](https://github.com/15SOAT-FIAP/techchallenge-ofisy-auth)** — Autenticação de clientes via CPF e geração de JWT token, exposta pelo API Gateway junto ao authorizer que protege as rotas da aplicação.
-2. **[Infraestrutura Kubernetes EKS (Terraform)](https://github.com/15SOAT-FIAP/techchallenge-ofisy-eks-infra)** — Provisionamento da rede (VPC, Subnets, Gateways) e cluster EKS na AWS.
-3. **[Infraestrutura do Banco de Dados RDS (Terraform)](https://github.com/15SOAT-FIAP/techchallenge-ofisy-rds-infra)** — Provisionamento isolado do banco de dados relacional gerenciado AWS RDS PostgreSQL.
-4. **[Aplicação Principal executando em Kubernetes](https://github.com/15SOAT-FIAP/techchallenge-ofisy)** *(Este repositório)* — Aplicação Spring Boot, Dockerfile, manifestos Kubernetes (`k8s/`) e pipeline CD no EKS.
+**Aplicações**
+
+1. **[Core](https://github.com/15SOAT-FIAP/techchallenge-ofisy)** *(este repositório)* — Clientes, veículos, catálogo de serviços, usuários e ordens de serviço. Emite o JWT dos funcionários.
+2. **[ms-ofisy-billing](https://github.com/15SOAT-FIAP/ms-ofisy-billing)** — Orçamento e pagamento, com checkout pelo Mercado Pago.
+3. **[ms-ofisy-stock](https://github.com/15SOAT-FIAP/ms-ofisy-stock)** — Estoque de peças e insumos e suas movimentações.
+4. **[ms-ofisy-execution](https://github.com/15SOAT-FIAP/ms-ofisy-execution)** — Execução dos serviços da OS pelo mecânico, do início à conclusão.
+5. **[ms-ofisy-notification](https://github.com/15SOAT-FIAP/ms-ofisy-notification)** — Notificações de estoque, orçamento e pagamento, gravadas no DynamoDB.
+6. **[techchallenge-ofisy-auth](https://github.com/15SOAT-FIAP/techchallenge-ofisy-auth)** — Lambda de autenticação de clientes por CPF/CNPJ, com emissão do JWT, e o authorizer do API Gateway.
+
+**Infraestrutura**
+
+7. **[techchallenge-ofisy-eks-infra](https://github.com/15SOAT-FIAP/techchallenge-ofisy-eks-infra)** — Rede, cluster EKS, API Gateway, infraestrutura da Lambda de autenticação e Datadog Agent (Terraform).
+8. **[techchallenge-ofisy-db-infra](https://github.com/15SOAT-FIAP/techchallenge-ofisy-db-infra)** — Bancos de dados de todos os serviços: um RDS PostgreSQL por serviço e a tabela DynamoDB do notification (Terraform) ([ADR-0014](docs/adr/0014-manter-a-infraestrutura-de-bancos-em-um-unico-repositorio.md)).
+9. **[ofisy-platform](https://github.com/15SOAT-FIAP/ofisy-platform)** — Sobe e derruba o ambiente inteiro na AWS, chamando os workflows de infraestrutura e de deploy na ordem certa.
 
 ---
 
