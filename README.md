@@ -173,7 +173,7 @@ Acesse o repositório clonado.
 
 ### 2. Crie o arquivo `.env`
 
-O arquivo `env.example` já contém os valores prontos para um novo ambiente ou avaliação. Para efetuar a cópia, execute o RAMO:
+O arquivo `env.example` já contém os valores prontos para um novo ambiente ou avaliação. Para efetuar a cópia, execute o comando:
 
 ```bash
 cp env.example .env
@@ -195,7 +195,7 @@ docker compose up --build
 
 ### Opção 2 — Desenvolvimento local (banco e LocalStack no Docker + aplicação na IDE)
 
-**Passo 1:** Suba primeiro o banco e o LocalStack via Docker utilzando o comando abaixo:
+**Passo 1:** Suba primeiro o banco e o LocalStack via Docker utilizando o comando abaixo:
 
 ```bash
 docker compose -f compose.db.yaml up -d
