@@ -263,7 +263,14 @@ As rotas de notificações (`/api/v1/notifications`) são servidas pelo [ms-ofis
 | `POSTGRES_DB`       | Nome do banco de dados              |
 | `POSTGRES_USER`     | Usuário do banco                    |
 | `POSTGRES_PASSWORD` | Senha do banco                      |
-| `JWT_SECRET`        | Secret para assinatura do token JWT |
+| `JWT_SECRET`        | Secret para assinatura do token JWT. Os microsserviços usam o mesmo valor para validar o token |
+| `ADMIN_LOGIN`, `ADMIN_PASSWORD` | Usuário e senha usados pelo OWASP ZAP (`compose.zap.yaml`) para autenticar na varredura |
+| `POSTGRES_HOST`     | Host do banco no perfil `k8s`       |
+| `SPRING_PROFILES_ACTIVE` | Perfil ativo (`k8s` no cluster; `dev` por padrão no ambiente local) |
+| `DD_API_KEY`, `DD_METRICS_ENABLED` | Exportação de métricas para o Datadog (desligada por padrão) |
+| `DD_TRACE_OTEL_ENABLED` | Conecta a API do OpenTelemetry ao `dd-java-agent`, necessária para o trace seguir pelo outbox |
+
+As demais variáveis do Datadog (`DD_SERVICE`, `DD_ENV`, `DD_VERSION`, `DD_LOGS_INJECTION` e `DD_TRACE_AGENT_PORT`) estão no `k8s/configmap.yml` e descritas em [Observabilidade com Datadog](docs/OBSERVABILITY.md).
 
 ---
 
