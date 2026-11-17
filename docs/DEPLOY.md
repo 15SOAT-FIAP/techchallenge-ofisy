@@ -1,12 +1,12 @@
-# Guia de Execução e Deploy — Local & AWS Cloud (Fase 2)
+# Guia de Execução e Deploy - Local & AWS Cloud
 
-Procedimentos para executar, testar e fazer deploy da aplicação **Ofisy** em ambiente local (Docker Compose) e em produção na AWS (via GitHub Actions ou linha de comando).
+Procedimentos para executar a aplicação **Ofisy** (core) localmente com Docker Compose e para fazer o deploy no cluster EKS da AWS pelos workflows do GitHub Actions.
 
 ---
 
-## 1. Execução local rápida (Docker Compose)
+## 1. Execução local (Docker Compose)
 
-Para testes rápidos com aplicação e banco rodando em containers integrados:
+Para subir o core com o banco e o LocalStack em containers:
 
 1.  Acesse a pasta raiz do projeto.
 2.  Copie o arquivo de exemplo de variáveis de ambiente:
@@ -19,128 +19,65 @@ Para testes rápidos com aplicação e banco rodando em containers integrados:
     ```
 4.  O Swagger fica acessível em: `http://localhost:8080/swagger-ui/index.html`
 
+Para rodar a aplicação na IDE, com só o banco e o LocalStack no Docker, veja o [README](../README.md#subindo-a-aplicação).
+
 ---
 
-## 2. Deploy na AWS via GitHub Actions (automático)
+## 2. Infraestrutura
 
-Esse método automatiza o build do código, a publicação da imagem no ECR e o deploy no cluster EKS da AWS. É acionado automaticamente a cada push ou merge na branch `master`.
+O deploy do core não provisiona infraestrutura. Ele espera que já existam:
 
-O provisionamento da infraestrutura não faz parte dessa esteira: o cluster EKS e o RDS vêm dos repositórios `techchallenge-ofisy-eks-infra` e `techchallenge-ofisy-rds-infra`, cada um com sua própria pipeline de Terraform. O CD daqui assume os dois já de pé.
+| Recurso | Nome | Repositório |
+|---|---|---|
+| Cluster EKS | `ms-ofisy-core-cluster` | `techchallenge-ofisy-eks-infra` (`eks/core`) |
+| ECR | `ms-ofisy-core-ecr` | `techchallenge-ofisy-eks-infra` (`eks/core`) |
+| RDS PostgreSQL | `ms-ofisy-core-db` | `techchallenge-ofisy-db-infra` (`core`) |
+| Tópico SNS e fila SQS | `ofisy-service-order-events.fifo` e `ofisy-service-order.fifo` | `techchallenge-ofisy-eks-infra` (`messaging`) |
 
-### Passo 1: configurar o Environment e Secrets no GitHub
+O API Gateway, que expõe o core pelo NLB interno, é provisionado depois do deploy de todos os serviços. Os recursos e a ordem entre os repositórios estão em [INFRASTRUCTURE.md](INFRASTRUCTURE.md).
 
-Como a esteira roda de forma autônoma, crie um ambiente (**Environment**) no GitHub chamado **`AWS_ACADEMY`** e salve as credenciais lá como **Environment Secrets**:
+---
 
-1. No GitHub, acesse o repositório e vá em **Settings** > **Environments** > **New environment**.
-2. Nomeie o ambiente como **`AWS_ACADEMY`** e clique em **Configure environment**.
-3. Na seção **Environment secrets**, clique em **Add secret** para adicionar as seguintes chaves:
-    *   `AWS_ACCESS_KEY_ID`: a *AWS Access Key ID* (painel *AWS Details* do Learner Lab).
-    *   `AWS_SECRET_ACCESS_KEY`: a *AWS Secret Access Key*.
-    *   `AWS_SESSION_TOKEN`: o *AWS Session Token*.
-    *   `AWS_ACCOUNT_ID`: o ID numérico de 12 dígitos da conta AWS Academy.
+## 3. Deploy na AWS
+
+### Pelo ofisy-platform (padrão)
+
+O AWS Academy expira a sessão a cada 4 horas, então o ambiente inteiro é recriado com frequência. O workflow **Subir ambiente** (`up.yml`) do [ofisy-platform](https://github.com/15SOAT-FIAP/ofisy-platform) provisiona a infraestrutura e chama o `cd.yml` deste repositório como reusable workflow (`workflow_call`), na ordem certa. O workflow **Destruir ambiente** (`down.yml`) faz o caminho inverso e chama o `destroy-app.yml`.
+
+### Só o core
+
+Para implantar só o core, por exemplo depois de um merge, rode o workflow **Deploy Manual na AWS (CD)** (`.github/workflows/cd.yml`) na aba **Actions**, informando a branch, tag ou commit (padrão `master`). O CD não roda a cada push: o CI (`ci.yml`) já builda e testa cada push e Pull Request.
+
+O workflow:
+
+1. busca o endereço do RDS `ms-ofisy-core-db` e espera ele ficar disponível. Se o banco não existir ou estiver parado, o deploy para com erro;
+2. conecta o `kubectl` ao cluster `ms-ofisy-core-cluster` e instala o Metrics Server, usado pelo HPA;
+3. builda o JAR e a imagem e envia ao ECR `ms-ofisy-core-ecr` com a tag do commit curto. Se a tag já existir, reaproveita a imagem, porque o ECR não aceita sobrescrever tags;
+4. substitui os placeholders dos manifestos de `k8s/` (endereço do RDS, tag da imagem e secrets em base64), aplica no cluster e espera o rollout do `ofisy-deployment`.
+
+### Secrets
+
+O `cd.yml` e o `destroy-app.yml` rodam no environment **`AWS_ACADEMY`** e usam os secrets da organização `15SOAT-FIAP`:
+
+| Secret | Uso |
+|---|---|
+| `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN` | Credenciais da sessão do AWS Academy |
+| `AWS_ACCOUNT_ID` | Conta do ECR |
+| `DB_PASSWORD` | Senha do usuário `admin_db` do RDS |
+| `JWT_SECRET` | Assinatura do JWT de funcionário. Precisa ser o mesmo dos microsserviços, que validam esse token |
+| `DD_API_KEY` | Métricas do Datadog |
 
 > [!WARNING]
-> As chaves temporárias da AWS Academy expiram após algumas horas. Atualize os 3 secrets de autenticação (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` e `AWS_SESSION_TOKEN`) no ambiente **`AWS_ACADEMY`** sempre que reiniciar o laboratório antes de novos merges na `master`.
+> As chaves temporárias da AWS Academy expiram a cada sessão do laboratório. Atualize `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` e `AWS_SESSION_TOKEN` na organização antes de rodar qualquer workflow.
 
-### Passo 2: executar o deploy automático
+### Manualmente
 
-1.  Faça o merge de um PR ou push direto para a branch `master`.
-2.  A esteira **Deploy Automático na AWS (CD)** inicia automaticamente e executa:
-    *   Obtém o endereço do RDS (PostgreSQL) já provisionado.
-    *   Conecta o `kubectl` ao cluster EKS e garante o Metrics Server instalado.
-    *   Faz login no ECR e envia a imagem Docker da aplicação.
-    *   Substitui os placeholders de imagem/RDS e aplica os recursos no EKS.
+O passo a passo com `kubectl`, sem o workflow, está em [K8S.md](K8S.md).
 
 ---
 
-## 3. Deploy na AWS via CLI (manual)
+## 4. Remoção da aplicação
 
-Para provisionar e fazer deploy manualmente pela sua máquina:
+Para remover o core do cluster, rode **Destruir Aplicação no Kubernetes (EKS)** (`.github/workflows/destroy-app.yml`). Ele apaga os recursos de `k8s/`, inclusive o `Service` que cria o NLB, e espera a AWS liberar o Load Balancer. Se o cluster já não existir, termina com sucesso sem fazer nada.
 
-### Passo 1: autenticar o terminal local
-
-Cole as credenciais do AWS Academy formatadas para o PowerShell:
-```powershell
-$env:AWS_ACCESS_KEY_ID="SUA_KEY"
-$env:AWS_SECRET_ACCESS_KEY="SUA_SECRET"
-$env:AWS_SESSION_TOKEN="SEU_TOKEN"
-```
-
-### Passo 2: provisionar a infraestrutura (Terraform)
-
-1.  Navegue até a pasta de bootstrap para criar o bucket de estado remoto (S3):
-    ```powershell
-    cd infra/bootstrap
-    echo 'account_id = "<AWS_ACCOUNT_ID>"' > terraform.tfvars
-    terraform init
-    terraform apply -auto-approve
-    ```
-2.  Retorne à pasta principal do Terraform para subir o EKS e o RDS:
-    ```powershell
-    cd ..
-    # Busca os nomes dinâmicos das roles do EKS do AWS Academy
-    $clusterRole = aws iam list-roles --query "Roles[?contains(RoleName, 'LabEksClusterRole')].RoleName" --output text
-    $nodeRole = aws iam list-roles --query "Roles[?contains(RoleName, 'LabEksNodeRole')].RoleName" --output text
-
-    echo 'bucket = "ofisy-tfstate-<AWS_ACCOUNT_ID>"' > backend.hcl
-    echo "account_id = `"<AWS_ACCOUNT_ID>`"" > terraform.tfvars
-    echo "role_name  = `"LabRole`"" >> terraform.tfvars
-    echo "db_password = `"ofisy_pass`"" >> terraform.tfvars
-    echo "eks_cluster_role = `"$clusterRole`"" >> terraform.tfvars
-    echo "eks_node_role = `"$nodeRole`"" >> terraform.tfvars
-
-    terraform init "-backend-config=backend.hcl"
-    terraform apply -auto-approve
-    ```
-
-### Passo 3: enviar a imagem e aplicar os manifestos
-
-1.  Conecte o `kubectl` ao cluster EKS criado:
-    ```powershell
-    aws eks update-kubeconfig --region us-east-1 --name ms-ofisy-core-cluster
-    ```
-2.  Insira o endpoint do banco RDS (retornado pelo Terraform como `rds_address`) no campo `POSTGRES_HOST` de `k8s/configmap.yml`.
-3.  Autentique o Docker no ECR, compile a aplicação e faça o push:
-    ```powershell
-    aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com
-    .\mvnw.cmd clean package -DskipTests
-    docker build -t ofisy-app:latest .
-    docker tag ofisy-app:latest <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/ms-ofisy-core-ecr:latest
-    docker push <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/ms-ofisy-core-ecr:latest
-    ```
-4.  Crie os secrets e aplique os manifestos no cluster:
-    ```powershell
-    # Cria o secret ofisy-secret via linha de comando no cluster:
-    kubectl create secret generic ofisy-secret `
-      --from-literal=POSTGRES_USER=ofisy_user `
-      --from-literal=POSTGRES_PASSWORD=<SUA_SENHA_RDS> `
-      --from-literal=JWT_SECRET=<SEU_JWT_SECRET>
-
-    # Aplica os manifestos da aplicação:
-    kubectl apply -f k8s/configmap.yml
-    kubectl apply -f k8s/deployment.yml
-    kubectl apply -f k8s/service.yml
-    kubectl apply -f k8s/hpa.yml
-    ```
-
----
-
-## 4. Limpeza e destruição (economia de créditos)
-
-Os recursos gerados por esse deploy na AWS consomem créditos do laboratório. Destrua-os sempre que terminar apresentações ou avaliações.
-
-### Método A: via GitHub Actions (recomendado)
-
-1.  Garanta que as chaves da AWS Academy nos Secrets do GitHub estejam atualizadas e válidas.
-2.  Acesse a aba **Actions** no repositório do GitHub.
-3.  No menu lateral, selecione a esteira **Destruir Infraestrutura AWS**.
-4.  Clique em **Run workflow** e confirme a execução.
-5.  O workflow se conecta ao cluster, deleta os serviços Kubernetes públicos (ELB/ENIs) e destrói a infraestrutura Terraform.
-
-### Método B: via CLI local
-
-No terminal do PowerShell autenticado, entre na pasta do Terraform e execute a destruição:
-```powershell
-cd infra
-terraform destroy -auto-approve
-```
+O cluster, o banco e o restante da infraestrutura são destruídos pelos workflows dos repositórios de infraestrutura, ou de uma vez pelo `down.yml` do ofisy-platform. Destrua sempre os recursos quando terminar apresentações ou avaliações, para não consumir os créditos do laboratório.
