@@ -1,79 +1,56 @@
 # Diagrama de Infraestrutura e CI/CD - Ofisy
 
-Diagrama de infraestrutura (deployment) e de CI/CD da aplicação Ofisy na AWS: como o
-container Backend documentado em `docs/COMPONENT-DIAGRAM.md` roda, é exposto e persiste
-dados em produção, e como o pipeline de CI/CD (detalhado mais abaixo) leva o código até
-esse ambiente.
+Diagrama de infraestrutura (deployment) da Ofisy na AWS e do CI/CD que leva o código de cada repositório até esse ambiente.
 
-A aplicação roda num cluster EKS dentro de uma VPC dedicada, com os nós de trabalho na
-subnet privada. Quem entra vindo da internet chega pelo API Gateway, que valida a
-requisição com o Ofisy Authorizer (Lambda) e a encaminha por um VPC Link até o Load
-Balancer na subnet privada, de forma que os nós do EKS não ficam expostos diretamente à
-internet. Quem sai (por exemplo, o pull de imagem no ECR) passa pelo NAT Gateway e pelo
-Internet Gateway. O banco fica num RDS PostgreSQL, acessível a partir da subnet privada.
+## Infraestrutura
 
-A autenticação de clientes por CPF é feita fora do cluster, pela Lambda Ofisy Auth, que
-consulta o mesmo RDS e devolve o JWT usado nas chamadas seguintes.
+Cada um dos cinco serviços roda no próprio cluster EKS, com os nós na subnet privada de uma VPC compartilhada. Quem entra vindo da internet chega pelo API Gateway, que encaminha a requisição por um VPC Link até o NLB interno do serviço. As rotas do cliente passam antes pelo Lambda Authorizer. Quem sai (pull de imagem no ECR, chamadas ao Mercado Pago e telemetria do Datadog) passa pelo NAT Gateway e pelo Internet Gateway.
 
-![Diagrama de Infraestrutura e CI/CD AWS](resources/infra-cicd-diagram.png)
+Cada serviço tem o próprio banco: um RDS PostgreSQL para o core, o billing, o stock e o execution, e uma tabela do DynamoDB para o notification. Os serviços trocam eventos por SNS e SQS FIFO, que ficam fora da VPC.
 
-## Componentes
+![Arquitetura na AWS](resources/aws-overview.png)
 
-| Componente              | Tecnologia                  | Responsabilidade                                                                                                                    |
-|-------------------------|-----------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
-| **API Gateway**         | Amazon API Gateway          | Ponto de entrada das requisições dos usuários; valida o acesso via Ofisy Authorizer e encaminha o tráfego para dentro da VPC.       |
-| **Ofisy Authorizer**    | AWS Lambda                  | Authorizer acionado pelo API Gateway a cada requisição; valida o JWT e autoriza (ou nega) o acesso às rotas protegidas.             |
-| **Ofisy Auth**          | AWS Lambda                  | Autenticação de clientes por CPF; consulta o RDS PostgreSQL e devolve o JWT usado nas chamadas seguintes.                           |
-| **VPC Link**            | API Gateway VPC Link        | Conexão privada entre o API Gateway e o Load Balancer na VPC, sem expor os nós do EKS à internet.                                   |
-| **Internet Gateway**    | AWS Internet Gateway        | Liga a VPC à internet; no fluxo atual atende principalmente à saída, como o pull da imagem no ECR via NAT Gateway.                  |
-| **Load Balancer**       | AWS Load Balancer           | Recebe o tráfego vindo do VPC Link na subnet privada e distribui entre os nós/pods do backend no EKS.                               |
-| **NAT Gateway**         | AWS NAT Gateway             | Permite que recursos na subnet privada (nós do EKS) iniciem conexões de saída à internet, como o pull da imagem no ECR.             |
-| **EKS**                 | Amazon EKS (Kubernetes)     | Cluster que orquestra os pods (Ofisy Instance/Node) do backend, replicados em pelo menos duas instâncias para alta disponibilidade. |
-| **Ofisy Instance/Node** | Pod (Spring Boot / Java 21) | Executa o container do backend descrito em `docs/COMPONENT-DIAGRAM.md`; escala horizontalmente conforme carga.                      |
-| **ECR Repository**      | Amazon ECR                  | Registro privado da imagem Docker do backend, usada no deploy dos nós do EKS.                                                       |
-| **RDS PostgreSQL**      | Amazon RDS (PostgreSQL)     | Banco de dados relacional gerenciado, na subnet privada, acessado pelos pods do backend e pela Lambda Ofisy Auth.                   |
+### Componentes
 
-## Subnets e segurança de rede
+| Componente | Tecnologia | Responsabilidade |
+|---|---|---|
+| **API Gateway** | Amazon API Gateway (HTTP API) | Ponto de entrada. Encaminha cada rota ao NLB do serviço; as rotas do cliente passam pelo Ofisy Authorizer |
+| **Ofisy Authorizer** | AWS Lambda (Go) | Valida o JWT do cliente e repassa o `customerId` no header `X-Customer-Id` |
+| **Ofisy Auth** | AWS Lambda (Go) | Autentica o cliente por CPF/CNPJ no RDS do core e devolve o JWT |
+| **VPC Link** | API Gateway VPC Link | Conexão privada entre o API Gateway e os NLBs, sem expor os nós do EKS |
+| **NLB interno** | AWS Network Load Balancer | Um por serviço. Recebe o tráfego do VPC Link e as chamadas síncronas entre serviços |
+| **EKS** | Amazon EKS | Um cluster por serviço (`ms-ofisy-<service>-cluster`), com HPA por CPU e Datadog Agent (Helm) |
+| **RDS PostgreSQL** | Amazon RDS | Um banco por serviço: core, billing, stock e execution |
+| **DynamoDB** | Amazon DynamoDB | Tabela `Notifications` do `ms-ofisy-notification` |
+| **SNS e SQS FIFO** | Amazon SNS e SQS | 4 tópicos, 5 filas com DLQ e 11 assinaturas; detalhe no [mapa de eventos](ARCHITECTURE.md#2-mapa-de-eventos) |
+| **ECR** | Amazon ECR | Uma imagem por serviço (`ms-ofisy-<service>-ecr`) e as imagens das duas Lambdas |
+| **NAT Gateway** e **Internet Gateway** | AWS | Saída da subnet privada para a internet |
 
-| Subnet             | Conteúdo                                     | Exposição                                                                                 |
-|--------------------|----------------------------------------------|-------------------------------------------------------------------------------------------|
-| **Public subnet**  | Internet Gateway, NAT Gateway                | Ligada à internet; atende à saída dos recursos privados (ex.: pull de imagem do ECR).     |
-| **Private subnet** | VPC Link, Load Balancer, EKS (nós/pods), RDS | Sem IP público; a entrada só chega via API Gateway/VPC Link e a saída só via NAT Gateway. |
+### Subnets e segurança de rede
 
-O único ponto de entrada externo é o API Gateway, que fica fora da VPC e alcança o Load
-Balancer pelo VPC Link.
+| Subnet | Conteúdo | Exposição |
+|---|---|---|
+| **Pública** (us-east-1a e 1b) | Internet Gateway e NAT Gateway | Ligada à internet; atende à saída dos recursos privados |
+| **Privada** (us-east-1a e 1b) | VPC Link, NLBs, clusters EKS, RDS e Lambda Ofisy Auth | Sem IP público; a entrada só chega pelo API Gateway e a saída só pelo NAT Gateway |
 
-## Relação com o diagrama de componentes
+O único ponto de entrada externo é o API Gateway. O webhook do Mercado Pago também entra por ele.
 
-Cada Ofisy Instance/Node aqui é uma réplica do container Backend detalhado em
-`docs/COMPONENT-DIAGRAM.md` (Controllers, Use Cases, Domain, Gateways etc.). O
-PostgreSQL 16 citado naquele diagrama é o mesmo RDS PostgreSQL representado aqui.
+### Relação com o diagrama de componentes
 
-A autenticação de clientes por CPF, porém, não roda dentro desse container: ela fica na
-Lambda Ofisy Auth, num repositório próprio (ver a seção de arquitetura da Fase 3 no
-README). O backend no EKS recebe as requisições já autorizadas pelo API Gateway, e
-segue tratando por conta própria a autenticação JWT das APIs administrativas.
+Os pods do cluster `ms-ofisy-core-cluster` rodam o container Backend detalhado em [COMPONENT-DIAGRAM.md](COMPONENT-DIAGRAM.md). Os outros microsserviços documentam os próprios componentes nos seus repositórios.
 
 ## Pipeline de CI/CD
 
-O deploy roda em duas pipelines encadeadas: primeiro o CI, e só se ele passar o CD é
-disparado.
+![CI/CD](resources/cicd-pipeline.png)
 
-1. Dev faz push no repositório `techchallenge-ofisy` (GitHub).
-2. O CI workflow sobe e roda o Build/Tests.
-3. Se der sucesso, o CD workflow dispara em sequência. Se falhar, para ali e o CD nem
-   roda.
-4. O CD builda a Docker Image e dá push pro ECR Repository.
-5. O Terraform gera o Plan e, aprovado, roda o Apply pra provisionar/atualizar a infra
-   na AWS (VPC, EKS, Load Balancer, NAT Gateway, RDS etc).
-6. Por fim, o CD roda Kubectl Apply no Control Plane do EKS, atualizando os pods
-   (Ofisy Instance/Node) com a nova imagem, que é puxada do ECR via Internet Gateway.
+O CI roda a cada push e pull request na `master` de cada repositório. O deploy não é disparado pelo CI: como o AWS Academy expira a sessão a cada 4 horas, o ambiente é recriado com frequência pelo [ofisy-platform](https://github.com/15SOAT-FIAP/ofisy-platform), que chama os workflows de deploy de cada repositório como reusable workflows (`workflow_call`), na ordem das dependências.
 
-| Etapa         | Ferramenta     | O que faz                                                                                   |
-|---------------|----------------|---------------------------------------------------------------------------------------------|
-| CI workflow   | GitHub Actions | Dispara build e testes a cada push.                                                         |
-| Build/Tests   | GitHub Actions | Compila e testa a aplicação; decide se a pipeline avança pro CD.                            |
-| CD workflow   | GitHub Actions | Só roda se o CI passar; builda/publica a imagem e aplica os manifests no EKS.               |
-| Docker Image  | Docker         | Imagem do backend construída no CD e enviada (push) pro ECR Repository.                     |
-| Terraform     | Terraform      | Gera o plan e roda o apply da infra AWS (VPC, EKS, RDS) a partir dos repositórios de infra. |
-| Kubectl Apply | kubectl        | Aplica os manifests no Control Plane do EKS, atualizando os pods com a nova imagem do ECR.  |
+| Etapa | Ferramenta | O que faz |
+|---|---|---|
+| CI (`ci.yml`) | GitHub Actions | Build e testes de cada repositório; nos serviços Java, `mvn verify` com Testcontainers e JaCoCo |
+| Plan e validate da infra | GitHub Actions + Terraform | `terraform plan` em cada PR do `eks-infra` e `validate` no `techchallenge-ofisy-db-infra` |
+| Subir ambiente (`up.yml`) | GitHub Actions | No `ofisy-platform`, provisiona rede, mensageria, clusters, bancos e Lambdas, faz o deploy dos serviços e, por último, do API Gateway |
+| CD de cada serviço (`cd.yml`) | GitHub Actions + kubectl | Builda o JAR, publica a imagem no ECR (reaproveita a tag do commit se já existir) e aplica os manifests no cluster do serviço |
+| Destruir ambiente (`down.yml`) | GitHub Actions | Destrói tudo no caminho inverso |
+
+A ordem completa e o motivo de cada dependência estão no README do `ofisy-platform` e na seção "Ordem de Execução entre os Repositórios" do `techchallenge-ofisy-eks-infra`.
