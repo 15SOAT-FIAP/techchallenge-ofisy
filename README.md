@@ -92,7 +92,7 @@ A combinação dessas tecnologias permite a construção de um backend robusto e
 - `application.yml` — configurações para subir o servidor em ambiente local, sendo banco via Docker e a aplicação na IDE, além da região AWS e dos nomes da fila e do tópico da mensageria;
 - `application-dev.yml` — aponta o SDK da AWS para o LocalStack em `localhost:4566`;
 - `application-docker.yml` — configurações para subir o ambiente completo via Docker, com o SDK da AWS apontando para o LocalStack do compose;
-- `application-k8s.yml` — configurações do perfil `k8s`, utilizado quando a aplicação é executada no cluster Kubernetes (EKS), incluindo conexão com o banco via `POSTGRES_HOST` e habilitação dos probes de saúde do Actuator para liveness/readiness;
+- `application-k8s.yml` — configurações do perfil `k8s`, utilizado quando a aplicação é executada no cluster Kubernetes (EKS), incluindo conexão com o banco via `POSTGRES_HOST` e habilitação dos probes de saúde do Actuator para liveness/readiness, além do Swagger agregado com as specs dos microsserviços;
 - `logback-spring.xml` — logs em JSON para o Datadog no perfil `k8s` e console padrão nos demais;
 - `pom.xml` — dependências do projeto gerenciadas via Maven.
 
@@ -215,6 +215,8 @@ docker compose -f compose.db.yaml up -d
 
 - A API estará disponível em `http://localhost:8080`.
 - A documentação Swagger estará disponível em `http://localhost:8080/swagger-ui.html`.
+
+Em produção, o Swagger do core é **agregado**: pelo seletor de definições no topo do Swagger UI, ele mostra também as APIs do billing, do stock, do execution e do notification. A spec do core vem do próprio `/v3/api-docs`, e a de cada microsserviço vem da rota `/docs/<service>` do API Gateway (configuração em `application-k8s.yml`). O *Try it out* chama as rotas na raiz do Gateway, com o mesmo roteamento e o mesmo authorizer das chamadas normais.
 
 ### Login
 - Para realizar o login seguir os seguintes passos:
