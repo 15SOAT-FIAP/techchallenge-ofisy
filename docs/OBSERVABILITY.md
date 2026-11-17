@@ -5,7 +5,7 @@ A observabilidade do Ofisy tem duas partes:
 - **Infraestrutura**: o Datadog Agent roda no cluster EKS e recebe o que as aplicações enviam. Ele é provisionado pelo repositório de infraestrutura, não por este ([Componentes](#componentes)).
 - **Instrumentação da aplicação**: é o que gera os traces, os logs correlacionados e as métricas. Ela fica neste repositório e está descrita em [Instrumentação da aplicação](#instrumentação-da-aplicação).
 
-A cobertura vem de auto-instrumentação do `dd-java-agent`, com dois complementos em código: o log estruturado das falhas de OS e a propagação do trace pelo outbox e pela fila. Não há métricas de negócio escritas no código; o volume de ordens de serviço e o tempo por status são atendidos por rotas da própria API.
+A cobertura vem de auto-instrumentação do `dd-java-agent`, com três complementos em código: as métricas de negócio das ordens de serviço (volume, tempo por status e erros), o log estruturado das falhas de OS e a propagação do trace pelo outbox e pela fila.
 
 ---
 
@@ -18,7 +18,8 @@ A cobertura vem de auto-instrumentação do `dd-java-agent`, com dois complement
 | Healthcheck / uptime                          | Autodiscovery do Agent faz um `http_check` em `/actuator/health` (annotation `ad.datadoghq.com/ofisy-app.checks` em `k8s/deployment.yml`), além das probes nativas do K8s. |
 | Logs estruturados (JSON) com correlação       | `logback-spring.xml` gera JSON via `logstash-logback-encoder`; `DD_LOGS_INJECTION=true` faz o `dd-java-agent` injetar `dd.trace_id`/`dd.span_id` no MDC, correlacionando log ↔ trace. |
 | Falhas no processamento de ordem de serviço   | `GlobalExceptionHandler` loga `ERROR` com o campo estruturado `event: order_processing_failed` para `InvalidServiceOrderTransitionException` e `ServiceOrderNotFoundException` — base para o monitor de falhas ([Monitors configurados](#monitors-configurados)). |
-| Erros e falhas (geral)                        | Métricas de APM (`trace.servlet.request.*`) geradas pelo `dd-java-agent` e métricas do Micrometer (`http.server.requests.*`, tags `status`, `exception`, `outcome`, `uri`). |
+| Erros e falhas (geral)                        | Métricas de APM (`trace.servlet.request.*`) geradas pelo `dd-java-agent`, métricas do Micrometer (`http.server.requests.*`, tags `status`, `exception`, `outcome`, `uri`) e a métrica `api.errors`, contada pelo `GlobalExceptionHandler` por tipo de erro ([Métricas de negócio](#métricas-de-negócio)). |
+| Volume de OS e tempo por status               | `ServiceOrderMetrics` conta cada transição de status (`serviceorder.status.transitions`) e mede quanto tempo a OS ficou no status anterior (`serviceorder.status.duration`) ([Métricas de negócio](#métricas-de-negócio)). |
 | Rastreamento dos fluxos distribuídos          | O contexto do trace é salvo com cada evento do outbox e restaurado na publicação, e o listener continua o trace recebido na mensagem, então o fluxo da OS segue no mesmo trace entre o core e os outros microsserviços ([Rastreamento distribuído](#rastreamento-distribuído)). |
 
 ---
@@ -36,14 +37,44 @@ Cada peça abaixo está versionada neste repositório. Juntas, elas fazem a apli
 | Correlação log ↔ trace | `k8s/configmap.yml` (`DD_LOGS_INJECTION=true`) e `src/main/resources/logback-spring.xml` | O agent coloca `dd.trace_id`, `dd.span_id`, `dd.service`, `dd.env` e `dd.version` no MDC, e o `LogstashEncoder` escreve esses campos em cada linha de log JSON. O Agent coleta o stdout do pod, e o Datadog liga cada log ao seu trace |
 | Métricas da aplicação | `src/main/resources/application.yml` (`management.datadog.metrics.export`) | O Micrometer envia métricas direto para a API do Datadog (`api.us5.datadoghq.com`) a cada 30s, quando `DD_METRICS_ENABLED=true` (só no ConfigMap do k8s) |
 | Healthcheck | `k8s/deployment.yml` (annotation `ad.datadoghq.com/ofisy-app.checks`) | O Autodiscovery do Agent configura um `http_check` em `/actuator/health` |
+| Métricas de OS | `config/metrics/ServiceOrderMetrics` | Os serviços de aplicação que mudam o status da OS registram a criação e cada transição: um contador e um timer com o tempo no status anterior ([Métricas de negócio](#métricas-de-negócio)) |
 | Falhas de OS | `config/GlobalExceptionHandler` | Loga `ERROR` com `event: order_processing_failed` (via `StructuredArguments.kv`) nas falhas de transição e de OS não encontrada |
+| Erros por tipo | `config/GlobalExceptionHandler` | Incrementa `api.errors` em cada erro tratado, com o título do erro, a exceção e o status HTTP |
 | Rastreamento distribuído | `adapters/tracing/TraceContextPropagator`, `adapters/tracing/MessageTraceContextReader` e `DD_TRACE_OTEL_ENABLED=true` | Mantém o fluxo da OS no mesmo trace entre o outbox, o SNS/SQS e os outros microsserviços ([Rastreamento distribuído](#rastreamento-distribuído)) |
 
 ### O que aparece no Datadog
 
 - **APM**: o serviço `ofisy-api`, com os spans das requisições HTTP (`servlet.request`, `spring.handler`), das consultas ao banco (`postgresql.query`, `repository.operation`), do job do outbox (`scheduled.call`) e os spans `outbox.publish` e `event.consume` da mensageria.
 - **Logs**: as linhas JSON do pod, com os campos `dd.trace_id` e `dd.span_id`. Na tela de um trace, a aba **Logs** mostra os logs daquela requisição. Os logs chegam com `service:ofisy`, que vem de `spring.application.name` pelo `customFields` do `logback-spring.xml`; a ligação com o trace é feita pelo `dd.trace_id`, então não depende desse nome.
-- **Métricas**: as de APM (`trace.servlet.request.hits`, `trace.servlet.request.errors`, latência em `trace.servlet.request`), com a tag `service:ofisy-api`, e as do Micrometer (`http.server.requests.count`, `.avg`, `.max`), que chegam sem a tag `service`, porque o core não define `management.metrics.tags`.
+- **Métricas**: as de APM (`trace.servlet.request.hits`, `trace.servlet.request.errors`, latência em `trace.servlet.request`), com a tag `service:ofisy-api`, e as do Micrometer (`http.server.requests.count`, `.avg`, `.max` e as de negócio da seção abaixo), que chegam sem a tag `service`, porque o core não define `management.metrics.tags`.
+
+---
+
+## Métricas de negócio
+
+Além das métricas automáticas, o core registra pelo Micrometer as métricas abaixo. Elas são enviadas junto com as demais a cada 30s.
+
+| Métrica | Tipo | Tags | Quando é registrada |
+|---|---|---|---|
+| `serviceorder.status.transitions` | Contador | `from`, `to` | Na criação da OS (`from:none`, `to:received`) e em cada mudança de status |
+| `serviceorder.status.duration` | Timer (`.count`, `.sum`, `.avg`, `.max`, em milissegundos) | `status` (status de onde a OS saiu), `to` | Em cada mudança de status, com o tempo que a OS passou no status anterior |
+| `api.errors` | Contador | `title`, `exception`, `status` | Em cada erro tratado pelo `GlobalExceptionHandler` |
+
+O Datadog guarda os valores das tags em minúsculas (`status:in_progress`, `to:finished`). Como o timer é registrado na saída do status, o tempo de um status só aparece depois que a OS sai dele. As transições possíveis seguem o `ServiceOrderStatus`: `received → in_diagnostic → awaiting_approval → awaiting_execution → in_progress → finished → paid → delivered`, com `cancelled` possível até `in_progress`.
+
+O tempo médio em um status é a soma dividida pela contagem do timer, em minutos:
+
+```
+(sum:serviceorder.status.duration.sum{status:in_progress,to:finished}.as_count()
+ / sum:serviceorder.status.duration.count{status:in_progress,to:finished}.as_count()) / 60000
+```
+
+### Dashboard "Ofisy - Acompanhamento de OS"
+
+Usa essas métricas para mostrar o total de OS criadas e canceladas, o volume diário, o tempo médio por status e os erros por tipo. Pontos a ajustar nele:
+
+- **"OS finalizadas"** e **"Finalizadas"** filtram por `status:finished,to:delivered`, transição que não existe: depois de `finished` a OS vai para `paid`. A contagem de finalizadas fica certa com `sum:serviceorder.status.transitions{to:finished}.as_count()`, e o tempo em "Finalizada" (até o pagamento) com `status:finished,to:paid`.
+- **"Tempo médio de execução por status (no período)"** está com período fixo (setembro de 2026), por isso não mostra dados novos. Os outros widgets usam a última semana.
 
 ---
 

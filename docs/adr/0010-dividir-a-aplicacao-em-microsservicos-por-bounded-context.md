@@ -4,7 +4,8 @@ Data: 2026-10-02
 
 ## Status
 
-Aceito
+Aceito, com o fluxo da saga e o REST síncrono revistos no
+[ADR-0015](0015-ajustar-a-saga-da-os-ao-fluxo-implementado.md)
 
 ## Contexto
 

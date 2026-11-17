@@ -48,7 +48,7 @@ O CI roda a cada push e pull request na `master` de cada repositório. O deploy 
 | Etapa | Ferramenta | O que faz |
 |---|---|---|
 | CI (`ci.yml`) | GitHub Actions | Build e testes de cada repositório; nos serviços Java, `mvn verify` com Testcontainers e JaCoCo |
-| Plan e validate da infra | GitHub Actions + Terraform | `terraform plan` em cada PR do `eks-infra` e `validate` no `rds-infra` |
+| Plan e validate da infra | GitHub Actions + Terraform | `terraform plan` em cada PR do `eks-infra` e `validate` no `techchallenge-ofisy-db-infra` |
 | Subir ambiente (`up.yml`) | GitHub Actions | No `ofisy-platform`, provisiona rede, mensageria, clusters, bancos e Lambdas, faz o deploy dos serviços e, por último, do API Gateway |
 | CD de cada serviço (`cd.yml`) | GitHub Actions + kubectl | Builda o JAR, publica a imagem no ECR (reaproveita a tag do commit se já existir) e aplica os manifests no cluster do serviço |
 | Destruir ambiente (`down.yml`) | GitHub Actions | Destrói tudo no caminho inverso |
