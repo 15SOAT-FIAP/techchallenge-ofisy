@@ -1,22 +1,23 @@
 # Ofisy
 
-FIAP 15SOAT - Tech Challenge Fase 3 - Grupo 87
+FIAP 15SOAT - Tech Challenge - Grupo 87
 
 Sistema de gestão de oficina automotiva desenvolvido com Spring Boot e DDD.
+
+Este repositório é o **core** da Ofisy: cuida de clientes, veículos, catálogo de serviços, usuários e ordens de serviço, e é o dono do status da OS. Orçamento e pagamento, estoque, execução e notificações ficam em microsserviços próprios, que conversam com o core por eventos no SNS e no SQS ([Repositórios do projeto](#repositórios-do-projeto)).
 
 ---
 ## Estrutura do Projeto
 
-Visto a solicitação da criação nesta primeira etapa do projeto de um monolito, optamos pela organização do projeto como um **Monolito Modular**.
-
-A utilização do Monolito Modular, além de permitir a criação da aplicação de maneira mais organizada, funcionando sob uma mesma base de dados, facilita a transição desse projeto para uma arquitetura de microsserviços posteriormente, algo que será exigido nas próximas fases do projeto.
+Nas primeiras fases, o projeto foi construído como um **Monolito Modular**, organizado por agregado para facilitar uma futura divisão. Na Fase 4, os contextos de orçamento e pagamento, estoque, execução e notificação foram extraídos para microsserviços, cada um com seu próprio banco ([ADR-0010](docs/adr/0010-dividir-a-aplicacao-em-microsservicos-por-bounded-context.md)), e o core ficou com os demais.
 
 A estruturação das classes e entidades criadas segue os princípios da **Clean Architecture**, combinados com conceitos de **DDD (Domain-Driven Design)** para a modelagem dos agregados, organizadas nas seguintes camadas:
 
 ```
 br.com.ofisy
 ├── domain/                       # Regras de negócio e entidades ricas, sem dependências externas
-│   └── <agregado>/                   # Entidade, Value Objects, interface de repositório (porta) e exceções por agregado
+│   ├── <agregado>/                   # Entidade, Value Objects, interface de repositório (porta) e exceções por agregado
+│   └── messaging/                    # Evento do outbox e evento processado
 ├── application/                  # Casos de uso da aplicação (orquestração das regras de negócio)
 │   └── <agregado>/
 │       └── <caso-de-uso>/            # Interface do UseCase + Service com a implementação do caso de uso
@@ -26,8 +27,11 @@ br.com.ofisy
 │   │       └── dto/
 │   ├── gateways/                     # Adaptadores de saída: implementação dos repositórios do domínio (Spring Data JPA)
 │   │   └── <agregado>/                   # Entity JPA, Mapper, RepositoryImpl (implementa a porta do domínio) e interface Spring Data
-│   └── presenters/                   # Conversão das entidades de domínio para os DTOs de resposta
-│       └── <agregado>/
+│   ├── presenters/                   # Conversão das entidades de domínio para os DTOs de resposta
+│   │   └── <agregado>/
+│   ├── listeners/                    # Adaptadores de entrada: consumo da fila SQS e um handler por tipo de evento
+│   ├── publishers/                   # Adaptadores de saída: publicação do outbox no SNS
+│   └── tracing/                      # Propagação do contexto do trace pelo outbox e pela fila
 ├── config/                       # Configurações transversais (segurança, JWT, Swagger, tratamento global de exceções)
 └── shared/                       # Utilitários compartilhados entre camadas (ex.: filtros de segurança, serviço de JWT)
 ```
