@@ -1,6 +1,6 @@
 # Arquitetura - Ofisy
 
-Visão da arquitetura depois da divisão em microsserviços ([ADR-0010](adr/0010-dividir-a-aplicacao-em-microsservicos-por-bounded-context.md)), com a saga coordenada por coreografia ([ADR-0012](adr/0012-coordenar-a-saga-por-coreografia.md)) sobre SNS e SQS ([ADR-0011](adr/0011-utilizar-sns-e-sqs-como-mensageria.md)).
+Visão da arquitetura depois da divisão em microsserviços ([ADR-0010](adr/0010-dividir-a-aplicacao-em-microsservicos-por-bounded-context.md)), com a saga coordenada por coreografia ([ADR-0012](adr/0012-coordenar-a-saga-por-coreografia.md)) sobre SNS e SQS ([ADR-0011](adr/0011-utilizar-sns-e-sqs-como-mensageria.md)), e com o fluxo da saga como implementado ([ADR-0015](adr/0015-ajustar-a-saga-da-os-ao-fluxo-implementado.md)).
 
 Os desenhos vão do mais geral ao mais detalhado:
 
