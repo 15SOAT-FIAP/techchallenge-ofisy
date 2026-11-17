@@ -236,7 +236,9 @@ As rotas de estoque (`/api/v1/stocks`) e de movimentações (`/api/v1/stock-move
 
 As rotas de orçamento (`/api/v1/quotes`) e de cobrança (`/api/v1/payments`) não ficam mais neste repositório: elas são servidas pelo [ms-ofisy-billing](https://github.com/15SOAT-FIAP/ms-ofisy-billing). O core continua dono do status da OS e o atualiza ao receber `QuoteSentForApproval`, `QuoteApproved`, `QuoteCancelled` e `PaymentConfirmed` do Billing. Quando a OS é finalizada, publica `ServiceOrderFinished`, que dispara a cobrança. O `PaymentConfirmed` move a OS para `PAID`, e só a partir daí o veículo pode ser entregue. A autenticação de funcionários continua usando o JWT emitido pelo Core.
 
-As rotas de notificações (`/api/v1/notifications`) são servidas pelo [ms-ofisy-notification](https://github.com/15SOAT-FIAP/ms-ofisy-notification). O microsserviço cria o aviso de orçamento ao receber `QuoteSentForApproval` do Billing. A autenticação de funcionários continua usando o JWT emitido pelo Core.
+As rotas de execução (`/api/v1/service_order_executions`) são servidas pelo [ms-ofisy-execution](https://github.com/15SOAT-FIAP/ms-ofisy-execution). O core move a OS para `IN_PROGRESS` ao receber `ExecutionStarted` e para `FINISHED` ao receber `AllExecutionsCompleted`. Do [ms-ofisy-stock](https://github.com/15SOAT-FIAP/ms-ofisy-stock), o core consome o `StockRefunded`, que cancela a OS quando o orçamento é reprovado. A autenticação de funcionários continua usando o JWT emitido pelo Core.
+
+As rotas de notificações (`/api/v1/notifications`) são servidas pelo [ms-ofisy-notification](https://github.com/15SOAT-FIAP/ms-ofisy-notification). O microsserviço cria o aviso de orçamento ao receber `QuoteSentForApproval` e os avisos de pagamento ao receber `PaymentCheckoutCreated`, `PaymentConfirmed` e `PaymentFailed`, todos do Billing. Para saber o cliente da OS, ele consulta o core em `GET /api/v1/service-orders/{id}/customer`. A autenticação de funcionários continua usando o JWT emitido pelo Core.
 
 ### Usuários disponíveis para utilização:
 #### ROLE ADMIN
