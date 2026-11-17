@@ -4,7 +4,8 @@ Data: 2026-10-03
 
 ## Status
 
-Aceito
+Aceito, com o alarme de DLQ revisto no
+[ADR-0015](0015-ajustar-a-saga-da-os-ao-fluxo-implementado.md)
 
 ## Contexto
 

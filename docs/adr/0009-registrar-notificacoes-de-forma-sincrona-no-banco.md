@@ -4,7 +4,7 @@ Data: 2026-09-06
 
 ## Status
 
-Aceito
+Substituído por [ADR-0010](0010-dividir-a-aplicacao-em-microsservicos-por-bounded-context.md)
 
 ## Contexto
 
