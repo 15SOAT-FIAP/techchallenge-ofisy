@@ -14,7 +14,7 @@ A cobertura vem de auto-instrumentação do `dd-java-agent`, com três complemen
 | Requisito                                   | Como é coletado                                                                                                                                          |
 |------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Latência das APIs                             | `dd-java-agent` (APM) instrumenta Spring MVC/Tomcat automaticamente — traces de cada requisição, sem código adicional.                                    |
-| CPU/memória do Kubernetes                     | Datadog Agent (Process Agent + Cluster Agent), instalado via Helm no cluster EKS pelo repo de infraestrutura (Terraform).                                  |
+| CPU/memória do Kubernetes                     | Datadog Agent (DaemonSet + Cluster Agent, via kubelet e kube-state-metrics), instalado via Helm no cluster EKS pelo repo de infraestrutura (Terraform).    |
 | Healthcheck / uptime                          | Autodiscovery do Agent faz um `http_check` em `/actuator/health` (annotation `ad.datadoghq.com/ofisy-app.checks` em `k8s/deployment.yml`), além das probes nativas do K8s. |
 | Logs estruturados (JSON) com correlação       | `logback-spring.xml` gera JSON via `logstash-logback-encoder`; `DD_LOGS_INJECTION=true` faz o `dd-java-agent` injetar `dd.trace_id`/`dd.span_id` no MDC, correlacionando log ↔ trace. |
 | Falhas no processamento de ordem de serviço   | `GlobalExceptionHandler` loga `ERROR` com o campo estruturado `event: order_processing_failed` para `InvalidServiceOrderTransitionException` e `ServiceOrderNotFoundException` — base para o monitor de falhas ([Monitors configurados](#monitors-configurados)). |
@@ -106,7 +106,7 @@ Os microsserviços seguem a mesma instrumentação: `dd-java-agent` na imagem, a
 
 ## Componentes
 
-- **Datadog Agent** — instalado via Helm no namespace `datadog`, mas **não** por este repositório: é provisionado pelo repo de infraestrutura (`techchallenge-ofisy-eks-infra`, Terraform, `infra/datadog.tf`) como parte do próprio cluster EKS. Coleta logs de todos os pods, métricas de infraestrutura e recebe traces de APM na porta 8126.
+- **Datadog Agent** — instalado via Helm no namespace `datadog`, mas **não** por este repositório: é provisionado pelo repo de infraestrutura (`techchallenge-ofisy-eks-infra`, Terraform, `modules/eks/datadog.tf`) como parte do próprio cluster EKS. Coleta logs de todos os pods, métricas de infraestrutura e recebe traces de APM na porta 8126.
 - **`dd-java-agent.jar`** — baixado no build da imagem (`Dockerfile`) e anexado via `-javaagent` no `ENTRYPOINT`. Responsável pelo APM e pela injeção de contexto de trace nos logs.
 
 ---

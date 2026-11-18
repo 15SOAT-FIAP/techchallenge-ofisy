@@ -1,13 +1,17 @@
 # Banco de Dados - Ofisy
 
 > Documento de referência técnica sobre a escolha, o modelo relacional e os relacionamentos do
-> banco de dados da plataforma Ofisy. Baseado no schema real versionado via Flyway em
-> `techchallenge-ofisy` (migrations `V1` a `V29`) e na infraestrutura provisionada em
-> `techchallenge-ofisy-rds-infra`.
+> banco de dados do core da Ofisy. Baseado no schema real versionado via Flyway em
+> `techchallenge-ofisy` (migrations `V3` a `V30`) e na infraestrutura provisionada em
+> `techchallenge-ofisy-db-infra`.
 >
-> 
+> Cada microsserviço tem o próprio banco ([ADR-0010](adr/0010-dividir-a-aplicacao-em-microsservicos-por-bounded-context.md)):
+> orçamento e cobrança ficam no banco do `ms-ofisy-billing`, estoque no do `ms-ofisy-stock`,
+> execução no do `ms-ofisy-execution` e notificações no DynamoDB do `ms-ofisy-notification`
+> ([ADR-0013](adr/0013-utilizar-dynamodb-no-ms-ofisy-notification.md)). Este documento cobre só o banco do core.
+>
 > **Diagrama editável (draw.io)**: [`database-diagram.drawio`](resources/database-diagram.drawio)
-> 
+>
 > **Diagrama visual (arquivo .png):** [`database-diagram.png`](resources/database-diagram.png)
 
 ---
@@ -17,15 +21,16 @@
 ### 1.1 Decisão
 
 **Amazon RDS para PostgreSQL 15**, instância `db.t3.micro`, armazenamento `gp2` de 20 GB,
-criptografado em repouso, em subnets privadas, sem acesso público, provisionado via Terraform em
-`techchallenge-ofisy-rds-infra/infra/rds.tf`.
+criptografado em repouso, em subnets privadas, sem acesso público, provisionado via Terraform
+pela raiz `core/` do `techchallenge-ofisy-db-infra`, que usa o módulo compartilhado
+`modules/postgresql/` ([ADR-0014](adr/0014-manter-a-infraestrutura-de-bancos-em-um-unico-repositorio.md)).
 
 ### 1.2 Justificativa formal
 
-O domínio do Ofisy (clientes, veículos, ordens de serviço, orçamentos) é
-fortemente relacional: as entidades têm cardinalidade bem definida, integridade referencial
-obrigatória (uma ordem de serviço *não existe* sem um veículo e um cliente válidos) e regras de
-consistência transacional (um orçamento só pode ser aprovado se existir uma OS associada).
+O domínio do core (clientes, veículos, usuários, catálogo de serviços e ordens de serviço) é
+fortemente relacional: as entidades têm cardinalidade bem definida e integridade referencial
+obrigatória (uma ordem de serviço *não existe* sem um veículo, um cliente e o funcionário que a
+abriu).
 
 Esse perfil de domínio orienta
 a escolha para um banco relacional com garantias ACID, e não para um armazenamento
@@ -34,66 +39,67 @@ PostgreSQL são:
 
 | Critério                                      | Como o PostgreSQL atende                                                                                                                                                                                                                                 |
 |-----------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Integridade referencial e transacional**    | Suporte completo a `FOREIGN KEY`, `CHECK`, `UNIQUE` e transações ACID, usados extensivamente no schema (ver seção 2) para impor regras de negócio no nível do banco, não apenas na aplicação.                                                            |
-| **Consumo por múltiplos serviços/linguagens** | O banco é acessado tanto pelo monolito Java/Spring (`techchallenge-ofisy`, via JPA/Flyway) quanto pela Lambda em Go (`techchallenge-ofisy-auth`, via `pgx`/`sqlx`). O protocolo e o driver do Postgres têm suporte maduro e estável nas duas linguagens. |
-| **Geração de identificadores distribuída**    | A função nativa `gen_random_uuid()` (extensão `pgcrypto`/`uuid-ossp` disponível por padrão no RDS Postgres) permite que dois serviços diferentes insiram registros (ex.: `customers`) sem depender de uma sequência autoincremental centralizada.        |
+| **Integridade referencial e transacional**    | Suporte completo a `FOREIGN KEY`, `CHECK`, `UNIQUE` e transações ACID, usados extensivamente no schema (ver seção 2) para impor regras de negócio no nível do banco, não apenas na aplicação. A mudança de status da OS e o evento do outbox são gravados na mesma transação ([MESSAGING.md](MESSAGING.md)). |
+| **Consumo por múltiplos serviços/linguagens** | O banco é acessado tanto pelo core Java/Spring (`techchallenge-ofisy`, via JPA/Flyway) quanto pela Lambda em Go (`techchallenge-ofisy-auth`, via `pgx`/`sqlx`), que lê `customers` para autenticar o cliente. O protocolo e o driver do Postgres têm suporte maduro e estável nas duas linguagens. |
+| **Identificadores sem coordenação**           | A função nativa `gen_random_uuid()` gera UUIDs sem uma sequência centralizada. Os ids da OS e do catálogo viajam nos eventos e nas chamadas aos microsserviços, que os guardam como referência sem conflito.                                                |
 | **Constraints declarativas de estado**        | `CHECK` constraints (ex.: `service_orders.status`) tornam a máquina de estados do domínio auditável diretamente no schema, como uma segunda camada de defesa complementar à validação feita em `ServiceOrder.canTransitionTo`.                           |
-| **Maturidade operacional na AWS**             | RDS gerencia patching, backups automáticos (retenção de 7 dias) e criptografia, reduzindo o esforço operacional de um time pequeno (Tech Challenge).                                                                                                     |
+| **Maturidade operacional na AWS**             | RDS gerencia patching e criptografia, reduzindo o esforço operacional de um time pequeno (Tech Challenge).                                                                                                                                               |
 | **Custo/escala do projeto**                   | `db.t3.micro` atende à carga do desafio; o modelo relacional permite crescer verticalmente (instance class) e futuramente para `Multi-AZ` sem re-desenho do schema.                                                                                      |
 
 ### 1.3 Infraestrutura provisionada
 
 ```
 Amazon RDS PostgreSQL 15 (db.t3.micro, gp2 20GB)
-├─ db_name: ofisydb
+├─ identifier: ms-ofisy-core-db
+├─ db_name: ms_ofisy_core_db
+├─ usuário: admin_db (senha vinda da secret DB_PASSWORD)
 ├─ Subnets privadas (DB Subnet Group cobrindo 2 AZs, sem acesso público)
 ├─ Storage encryption: habilitado
-├─ Backup retention: 7 dias (janela 03:00–04:00 UTC)
-├─ Maintenance window: domingo 04:00–05:00 UTC
-├─ Multi-AZ: desabilitado no ambiente atual (custo do desafio). Subnet group já
-│  cobre 2 AZs, permitindo habilitar Multi-AZ sem re-provisionar rede
-└─ Security Group: libera porta 5432 apenas para os SGs do EKS (aplicação) e da
-   Lambda de autenticação (ver techchallenge-ofisy-eks-infra)
+├─ Backup: desabilitado (backup_retention_period = 0) e sem snapshot final, porque o
+│  ambiente do AWS Academy é recriado a cada sessão
+├─ Multi-AZ: desabilitado (custo do desafio). Subnet group já cobre 2 AZs, permitindo
+│  habilitar Multi-AZ sem re-provisionar rede
+└─ Security Group (ms-ofisy-core-db-sg): libera a porta 5432 para o CIDR da VPC e para o
+   SG da Lambda de autenticação (ofisy-lambda-auth-sg, criado no techchallenge-ofisy-eks-infra)
 ```
 
-Repositório responsável: [`techchallenge-ofisy-rds-infra`](https://github.com/15SOAT-FIAP/techchallenge-ofisy-rds-infra).
-A ordem de provisionamento entre repositórios (rede → auth Lambda no ECR → RDS → Lambda authorizer
-→ aplicação no EKS) está documentada no README daquele repositório.
+Repositório responsável: [`techchallenge-ofisy-db-infra`](https://github.com/15SOAT-FIAP/techchallenge-ofisy-db-infra).
+A ordem de provisionamento entre os repositórios está no README do
+[`ofisy-platform`](https://github.com/15SOAT-FIAP/ofisy-platform), que sobe o ambiente inteiro.
 
 ---
 
 ## 2. Ajustes no modelo relacional
 
-O schema evoluiu de forma incremental e versionada (Flyway, `V1` a `V29`) até um modelo completo
-de ordens de serviço e orçamentos. As migrations de execução (`V13`, `V17`) e de estoque (`V1`,
-`V7`, `V8`) foram removidas quando esses domínios saíram para o `ms-ofisy-execution` e o
-`ms-ofisy-stock`. Os principais ajustes de modelagem, e as razões por trás deles, estão descritos
-abaixo.
+O schema evoluiu de forma incremental e versionada (Flyway, `V3` a `V30`). As migrations de
+orçamento, de execução, de estoque e de notificações foram removidas quando esses domínios
+saíram para o `ms-ofisy-billing`, o `ms-ofisy-execution`, o `ms-ofisy-stock` e o
+`ms-ofisy-notification`, por isso a numeração tem lacunas. Os principais ajustes de modelagem, e
+as razões por trás deles, estão descritos abaixo.
 
 ### 2.1 Chaves primárias como UUID
 
 Todas as tabelas usam `UUID PRIMARY KEY DEFAULT gen_random_uuid()` em vez de inteiros
 autoincrementais.
 
-- **Motivo:** evita coordenação de um único gerador de sequência entre os dois serviços que
-  escrevem no banco (o backend Java e a Lambda Go de autenticação), simplifica a geração de IDs
-  antes da persistência (útil em testes e nos usecases da camada de aplicação) e evita vazamento de
-  informação de volume de registros pelo ID (comum em PKs sequenciais expostas em APIs públicas,
-  como `GET /service-orders/{id}/status`).
+- **Motivo:** os ids do core são referenciados fora dele: o `serviceOrderId` é o identificador
+  dos eventos da saga e o `message-group-id` das filas FIFO, e o `serviceCatalogId` é guardado no
+  orçamento e nas execuções. Um UUID pode ser gerado antes da persistência (útil em testes e nos
+  usecases da camada de aplicação) e evita vazamento de informação de volume de registros pelo ID
+  (comum em PKs sequenciais expostas em APIs públicas, como `GET /service-orders/{id}/status`).
 
 ### 2.2 Aggregates isolados por UUID de referência (sem grafo de objetos entre agregados)
 
-O código Java (Clean Architecture) mapeia com JPA apenas relações internas a um mesmo
-agregado, por exemplo, `Quote` tem `@OneToMany` para `QuoteStockItem` e `QuoteServiceItem`
-(cascade `ALL`, `orphanRemoval`), pois esses itens não existem fora do orçamento que os contém.
-Já as referências entre agregados diferentes (`vehicle_id`, `customer_id`, `created_by`,
-`stock_id`, `service_catalog_id` etc.) são armazenadas como coluna `UUID` simples, sem
-mapeamento `@ManyToOne`/navegação de objeto, a integridade é garantida só pela `FOREIGN KEY` do
-schema.
+O código Java (Clean Architecture) não mapeia relações entre agregados diferentes com JPA. As
+referências (`vehicle_id`, `customer_id`, `created_by`) são armazenadas como coluna `UUID`
+simples, sem mapeamento `@ManyToOne`/navegação de objeto, e a integridade é garantida só pela
+`FOREIGN KEY` do schema.
 
-- **Motivo:** reduz o acoplamento entre bounded contexts (Customer, Vehicle, ServiceOrder,
-  Quote etc. evoluem de forma independente no código), evita *lazy loading* acidental entre
-  agregados e mantém a responsabilidade de integridade referencial explicitamente no banco.
+- **Motivo:** reduz o acoplamento entre agregados (Customer, Vehicle, ServiceOrder etc. evoluem
+  de forma independente no código), evita *lazy loading* acidental entre agregados e mantém a
+  responsabilidade de integridade referencial explicitamente no banco. Foi esse isolamento que
+  permitiu extrair orçamento, estoque, execução e notificações para microsserviços sem reescrever
+  os agregados que ficaram no core.
 
 ### 2.3 Exclusão lógica (soft delete) via flag `active`
 
@@ -116,14 +122,15 @@ CHECK (status IN ('RECEIVED','IN_DIAGNOSTIC','AWAITING_APPROVAL','AWAITING_EXECU
 - **Motivo:** a transição de estados de `ServiceOrder` já é validada no
   domínio Java (`ServiceOrderStatus.canTransitionTo`), mas o `CHECK` no banco garante que **nenhum**
   processo (incluindo scripts manuais, jobs futuros ou bugs de aplicação) grave um valor de status
-  fora do vocabulário conhecido.
+  fora do vocabulário conhecido. Com a saga, a maior parte das transições vem dos eventos dos
+  microsserviços ([MESSAGING.md](MESSAGING.md#eventos-consumidos)).
 
 ### 2.5 Evolução aditiva, nunca destrutiva
 
-`V26` (`priority` em `service_orders`) e `V27` (`active` em `customers`) são exemplos de
-`ALTER TABLE ... ADD COLUMN` com valor default e *backfill* via `UPDATE`, preservando os dados já
-existentes e permitindo deploy sem downtime. Nenhuma migration do histórico remove ou renomeia
-coluna/tabela já existente.
+`V26` (`priority` em `service_orders`), `V27` (`active` em `customers`) e `V30` (`trace_context` em
+`outbox_events`) são exemplos de `ALTER TABLE ... ADD COLUMN`, com valor default e *backfill* via
+`UPDATE` quando necessário, preservando os dados já existentes e permitindo deploy sem downtime.
+As únicas remoções do histórico foram as das migrations dos domínios extraídos, descritas acima.
 
 ---
 
@@ -142,20 +149,18 @@ Convenções usadas no diagrama:
 | **`[PK]`** (negrito)       | Chave primária                                                                                      |
 | *`[FK]`* (itálico)         | Chave estrangeira                                                                                   |
 | <u>`[UK]`</u> (sublinhado) | Restrição `UNIQUE`                                                                                  |
-| ***<u>`[FK/UK]`</u>***     | Coluna que é FK **e** UNIQUE ao mesmo tempo (relacionamento 1:1)                                    |
 | `[CHECK]`                  | Coluna protegida por `CHECK constraint` de valores válidos                                          |
 | Linha cheia                | Relacionamento com `FOREIGN KEY` declarada no banco                                                 |
-| Linha tracejada vermelha   | Coluna de referência opcional (nullable) e, no caso de `notifications.quote_id`, sem FK declarada   |
 | Notação nas pontas         | Cardinalidade "pé de galinha" (crow's foot): um traço = "1", garfo = "N", círculo = "0..1" opcional |
 
-As 9 tabelas de negócio do schema estão organizadas em 4 grupos visuais no diagrama. As tabelas de
-mensageria (`outbox_events` e `processed_events`, criadas em `V28` e `V29`, com a coluna `trace_context` do outbox adicionada em `V30`) ficam fora do diagrama e
-estão descritas no [guia de mensageria](MESSAGING.md).
+As 5 tabelas de negócio do schema estão organizadas em 2 grupos visuais no diagrama. As tabelas de
+mensageria (`outbox_events` e `processed_events`, criadas em `V29` e `V28`, com a coluna
+`trace_context` do outbox adicionada em `V30`) ficam fora do diagrama e estão descritas no
+[guia de mensageria](MESSAGING.md).
 
 - **Cadastro**: `users`, `customers`, `vehicles`
 - **Fluxo da Ordem de Serviço**: `service_orders`, `services_catalog`
-- **Orçamento**: `quotes`, `quote_stock_items`, `quote_service_items`
-- **Notificações**: `notifications`
+
 ---
 
 ## 4. Explicação sobre os relacionamentos
@@ -166,17 +171,12 @@ estão descritas no [guia de mensageria](MESSAGING.md).
 | 2  | `customers` → `service_orders`             | 1 : N             | Toda ordem de serviço referencia o cliente dono do veículo no momento da abertura. Mantido mesmo que o veículo troque de dono depois, preservando o histórico correto de quem contratou aquele atendimento.    |
 | 3  | `vehicles` → `service_orders`              | 1 : N             | Um veículo pode ter várias ordens de serviço ao longo do tempo (histórico de manutenções).                                                                                                                     |
 | 4  | `users` → `service_orders` (`created_by`)  | 1 : N             | Toda OS registra qual funcionário (ADMIN/ATTENDANT) a abriu, para rastreabilidade/auditoria.                                                                                                                   |
-| 5  | `service_orders` → `quotes`                | 1 : 0..1 (hoje)   | Uma OS possui no máximo um orçamento (`quotes.service_order_id UNIQUE`): `CreateQuoteService` bloqueia um segundo orçamento para a mesma OS (`QuoteAlreadyExistsException`).                                   |
-| 6  | `quotes` → `quote_stock_items`             | 1 : N             | Itens de peças/estoque incluídos no orçamento, com nome, preço e quantidade "congelados" no momento da cotação (mesmo que o cadastro do estoque mude depois). |
-| 7  | `quotes` → `quote_service_items`           | 1 : N             | Itens de serviço incluídos no orçamento, com o preço "congelado" no momento da cotação (mesmo que o preço do catálogo mude depois).                                                                            |
-| 8  | `ms-ofisy-stock` → `quote_stock_items`     | 1 : N (sem FK)    | Uma peça do `ms-ofisy-stock` pode aparecer em vários orçamentos, no máximo uma vez por orçamento (par único `quote_id + stock_id`). O `stock_id` é só uma referência lógica: o nome e o preço chegam na requisição do orçamento e ficam guardados no item, e o core não baixa nem devolve estoque. |
-| 9  | `services_catalog` → `quote_service_items` | 1 : N             | Um serviço do catálogo pode aparecer em vários orçamentos, mas no máximo uma vez por orçamento (par único `quote_id + service_catalog_id`).                                                                    |
-| 10 | `ms-ofisy-stock` → `notifications`         | 0..1 : N (sem FK) | Notificação de estoque baixo (`type = LOW_STOCK`) referencia opcionalmente a peça que a originou; `stock_id` é nullable desde `V14` para permitir notificações de outros tipos sem essa referência.            |
-| 11 | `quotes` → `notifications`                 | 0..1 : N (sem FK) | Notificação de orçamento pendente de aprovação (`type = QUOTE`) referencia opcionalmente o orçamento.                                                                                                          |
+| 5  | `service_orders` → microsserviços          | 1 : N (sem FK)    | O orçamento e a cobrança (`ms-ofisy-billing`), as execuções (`ms-ofisy-execution`), as movimentações de estoque (`ms-ofisy-stock`) e as notificações (`ms-ofisy-notification`) guardam o `serviceOrderId` como referência lógica, nos próprios bancos. |
+| 6  | `services_catalog` → microsserviços        | 1 : N (sem FK)    | Os itens de serviço do orçamento (`ms-ofisy-billing`) e as execuções (`ms-ofisy-execution`) guardam o `serviceCatalogId`. O billing lê o nome e o preço pela API do core (`GET /api/v1/services-catalog/{id}`) e guarda uma cópia no item. |
 
 ---
 
 ## 5. Referências
 
-- Migrations Flyway: `techchallenge-ofisy/src/main/resources/db/migration/V1__*.sql` … `V29__*.sql`
-- Infraestrutura RDS: `techchallenge-ofisy-rds-infra/infra/rds.tf`
+- Migrations Flyway: `techchallenge-ofisy/src/main/resources/db/migration/V3__*.sql` … `V30__*.sql`
+- Infraestrutura RDS: `techchallenge-ofisy-db-infra/core/main.tf` e `techchallenge-ofisy-db-infra/modules/postgresql/rds.tf`

@@ -1,404 +1,84 @@
-# Infraestrutura AWS com Terraform — Ofisy
+# Infraestrutura AWS com Terraform - Ofisy
 
-Provisiona toda a infraestrutura AWS da aplicação Ofisy via Terraform, incluindo rede, banco de dados relacional e cluster Kubernetes.
+A infraestrutura do Ofisy não fica neste repositório. Ela é provisionada via Terraform em dois repositórios próprios, e o ambiente inteiro é montado e destruído pelo [ofisy-platform](https://github.com/15SOAT-FIAP/ofisy-platform):
 
-Este documento aborda:
+| Repositório | O que provisiona |
+|---|---|
+| [`techchallenge-ofisy-eks-infra`](https://github.com/15SOAT-FIAP/techchallenge-ofisy-eks-infra) | Rede, um cluster EKS e um ECR por serviço, Datadog Agent, Lambdas de autenticação, mensageria (SNS e SQS) e API Gateway |
+| [`techchallenge-ofisy-db-infra`](https://github.com/15SOAT-FIAP/techchallenge-ofisy-db-infra) | Um RDS PostgreSQL por serviço e a tabela DynamoDB do notification ([ADR-0014](adr/0014-manter-a-infraestrutura-de-bancos-em-um-unico-repositorio.md)) |
 
-- Quais recursos AWS são criados e suas responsabilidades
-- Arquitetura de rede e isolamento entre camadas pública e privada
-- Pré-requisitos para execução
-- Variáveis de configuração necessárias
-- Passo a passo para inicializar, validar e aplicar a infraestrutura
-- Comandos AWS CLI para verificar os recursos criados
+Este documento resume o que existe e o que o core usa. Os comandos para provisionar e destruir cada camada estão nos READMEs desses repositórios. O desenho da arquitetura está em [INFRA-CICD-DIAGRAM.md](INFRA-CICD-DIAGRAM.md).
 
 ---
 
-## Recursos criados
+## Recursos usados pelo core
 
-| Recurso                       | Tipo Terraform                      | Descrição                                                                                |
-|-------------------------------|-------------------------------------|------------------------------------------------------------------------------------------|
-| VPC                           | `aws_vpc`                           | Rede isolada `10.0.0.0/16` com suporte a DNS                                             |
-| Internet Gateway              | `aws_internet_gateway`              | Acesso à internet para recursos públicos da VPC                                          |
-| Subnet pública A              | `aws_subnet`                        | `10.0.1.0/24` — AZ `us-east-1a` — Nodes EKS e saída à internet                           |
-| Subnet pública B              | `aws_subnet`                        | `10.0.4.0/24` — AZ `us-east-1b` — Nodes EKS e saída à internet                           |
-| Subnet privada A              | `aws_subnet`                        | `10.0.2.0/24` — AZ `us-east-1a` — RDS e Pods internos                                    |
-| Subnet privada B              | `aws_subnet`                        | `10.0.3.0/24` — AZ `us-east-1b` — RDS e Pods internos                                    |
-| Route Table pública           | `aws_route_table`                   | Roteia `0.0.0.0/0` para o Internet Gateway                                               |
-| Associações de Route Table    | `aws_route_table_association`       | Vincula as subnets públicas à route table                                                |
-| DB Subnet Group               | `aws_db_subnet_group`               | Agrupa subnets privadas para uso pelo RDS                                                |
-| ECR                           | `aws_ecr_repository`                | Repositório de imagens Docker da aplicação                                               |
-| Security Group EKS            | `aws_security_group`                | Firewall do EKS — abre SSH(22), HTTP(80), HTTPS(443) e tráfego interno                   |
-| Security Group RDS            | `aws_security_group`                | Firewall do RDS — permite PostgreSQL(5432) apenas de EKS                                 |
-| RDS PostgreSQL                | `aws_db_instance`                   | PostgreSQL 15.4 gerenciado (`db.t3.micro`, 20GB, backup 7 dias, criptografia habilitada) |
-| RDS Parameter Group           | `aws_db_parameter_group`            | Configurações otimizadas para o PostgreSQL                                               |
-| EKS Cluster                   | `aws_eks_cluster`                   | Kubernetes v1.29 gerenciado — control plane, logging (5 tipos)                           |
-| EKS Cluster IAM Role          | `aws_iam_role`                      | Permissões para o control plane do EKS                                                   |
-| EKS Node Group                | `aws_eks_node_group`                | 2 instâncias `t3.medium` (min:1, max:4) que executam os workloads                        |
-| EKS Node Group IAM Role       | `aws_iam_role`                      | Permissões para nodes (worker policy, CNI, ECR read)                                     |
-| EKS Access Entry              | `aws_eks_access_entry`              | Controle de acesso ao cluster via IAM Role                                               |
-| EKS Access Policy Association | `aws_eks_access_policy_association` | Associa política de administrador para acesso ao cluster                                 |
+| Recurso | Nome | Camada |
+|---|---|---|
+| Cluster EKS | `ms-ofisy-core-cluster`, com node group `t3.medium` (1 nó) e Datadog Agent via Helm | `eks-infra/eks/core` |
+| ECR | `ms-ofisy-core-ecr`, com tags imutáveis | `eks-infra/eks/core` |
+| RDS PostgreSQL 15 | `ms-ofisy-core-db`, banco `ms_ofisy_core_db`, `db.t3.micro` | `db-infra/core` |
+| Tópico SNS FIFO | `ofisy-service-order-events.fifo`, onde o core publica | `eks-infra/messaging` |
+| Fila SQS FIFO | `ofisy-service-order.fifo`, com a DLQ `ofisy-service-order-dlq.fifo` | `eks-infra/messaging` |
+| NLB interno | Criado pelo `Service` `ofisy-service` do `k8s/service.yml`, fora do Terraform | este repositório |
+| API Gateway | Rota `ANY /{proxy+}` e `GET /api/v1/service-orders/{id}/status` (com authorizer) para o NLB do core | `eks-infra/api-gateway` |
+
+Os outros serviços têm o mesmo conjunto, com o nome do serviço no lugar de `core`, menos o notification, que usa a tabela DynamoDB `Notifications` em vez de um RDS. As assinaturas entre tópicos e filas estão em [MESSAGING.md](MESSAGING.md) e no README do `eks-infra`.
 
 ---
 
 ## Arquitetura de rede
 
-```
-Internet
-    │
-    ▼ (HTTPS)
-API Gateway  ──►  Lambda Authorizer (valida JWT)
-    │
-    ▼ (VPC Link)
-Internet Gateway (ofisy-igw)  ──►  saída à internet dos recursos da VPC
-    │
-    ▼ (0.0.0.0/0)
-┌──────────────────────────────────────────────────────┐
-│  VPC  10.0.0.0/16                                    │
-│                                                      │
-│  Public Subnets (Expostas à internet)                │
-│  ┌──────────────────┐      ┌──────────────────┐      │
-│  │ Subnet A         │      │ Subnet B         │      │
-│  │ 10.0.1.0/24      │      │ 10.0.4.0/24      │      │
-│  │ us-east-1a       │      │ us-east-1b       │      │
-│  │ ┌──────────────┐ │      │ ┌──────────────┐ │      │
-│  │ │ EKS Node 1   │ │      │ │ EKS Node 2   │ │      │
-│  │ │ t3.medium    │ │      │ │ t3.medium    │ │      │
-│  │ │ (Pods)       │ │      │ │ (Pods)       │ │      │
-│  │ └──────────────┘ │      │ └──────────────┘ │      │
-│  └──────────────────┘      └──────────────────┘      │
-│                                                      │
-│  Security Group EKS                                  │
-│  ├─ SSH (22), HTTP (80), HTTPS (443)                 │
-│  └─ Tráfego interno entre nodes                      │
-│                                                      │
-│  Private Subnets (Isoladas da internet)              │
-│  ┌──────────────────────────┐  ┌────────────────┐    │
-│  │ Subnet A                 │  │ Subnet B       │    │
-│  │ 10.0.2.0/24              │  │ 10.0.3.0/24    │    │
-│  │ us-east-1a               │  │ us-east-1b     │    │
-│  │ ┌──────────────────────┐ │  │                │    │
-│  │ │ RDS PostgreSQL 15.4  │ │  │ (Standby)      │    │
-│  │ │ ofisy-postgres-db    │ │  │                │    │
-│  │ │ db.t3.micro          │ │  │                │    │
-│  │ │ 20GB storage         │ │  │                │    │
-│  │ │ Criptografia: SIM    │ │  │                │    │
-│  │ │ Backup: 7 dias       │ │  │                │    │
-│  │ └──────────────────────┘ │  │                │    │
-│  └──────────────────────────┘  └────────────────┘    │
-│                                                      │
-│  Security Group RDS                                  │
-│  └─ PostgreSQL (5432) apenas de EKS                  │
-│                                                      │
-└──────────────────────────────────────────────────    ────┘
-
-EKS Control Plane (AWS Managed)
-├─ Kubernetes v1.29
-├─ API Server: https://[ID].eks.us-east-1.amazonaws.com
-├─ Logging: API, Audit, Authenticator, ControllerManager, Scheduler
-└─ Endpoints: Público + Privado
-```
-
-#### Fluxo de Dados
-
-1. **Requisição externa** → API Gateway (valida o acesso no authorizer Lambda)
-2. **API Gateway** → VPC Link → Load Balancer
-3. **Load Balancer** → EKS Nodes (via Security Group EKS)
-4. **Pods** → Query SQL → RDS (via Security Group RDS, porta 5432)
-5. **RDS** → Retorna dados → Pods
-6. **Pods** → Response → Load Balancer → VPC Link → API Gateway → Cliente
-
-#### Isolamento de Segurança
-
-- **RDS em subnets privadas** — sem acesso direto da internet
-- **RDS só aceita conexões do Security Group EKS** — isolamento em nível de firewall
-- **EKS nodes sem exposição direta à internet** — alcançáveis apenas pelo Load Balancer, que recebe o tráfego do API Gateway via VPC Link
-- **Backups automáticos** — diários com retenção de 7 dias
-- **Criptografia** — dados armazenados criptografados
-
----
-
-## Pré-requisitos
-
-- [Terraform](https://developer.hashicorp.com/terraform/install) >= 1.5
-- [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) configurado com credenciais válidas
-- Conta AWS com permissões para criar recursos de VPC, EKS e RDS (no AWS Academy, usar sessão ativa do laboratório)
-
----
-
-## Variáveis
-
-| Variável      | Descrição                                | Padrão    | Obrigatório    |
-|---------------|------------------------------------------|-----------|----------------|
-| `account_id`  | ID da conta AWS (12 dígitos)             | —         | ✅ SIM         |
-| `role_name`   | IAM Role com acesso ao EKS               | `LabRole` | No AWS Academy |
-| `db_password` | Senha do usuário admin do banco de dados | —         | ✅ SIM         |
-
-**Configuração:**
-
-```bash
-# Opção A: Via arquivo (menos seguro)
-cp infra/terraform/terraform.tfvars.example infra/terraform/terraform.tfvars
-# Editar terraform.tfvars com seus valores
-```
-
----
-
-## Como executar
-
-### 1. Bootstrap — criar o bucket S3 para o estado remoto
-
-Execute apenas uma vez no início. O bucket não é destruído com `terraform destroy`.
-
-```bash
-cd infra/terraform/bootstrap
-cp terraform.tfvars.example terraform.tfvars
-# Editar: preencher account_id no terraform.tfvars
-terraform init
-terraform apply
-```
-
-Copie o valor de `bucket_name` retornado no output.
-
-### Localizando as IAM Roles no AWS Academy
-
-No AWS Academy Learner Lab, os nomes das IAM Roles do Amazon EKS são gerados automaticamente. Antes de executar o Terraform, identifique as ARNs disponíveis com o comando:
-
-```bash
-aws iam list-roles --query "Roles[?contains(RoleName, 'LabEks')].[RoleName, Arn]" --output table
-```
-
-Exemplo de saída:
-
 ```text
--------------------------------------------------------------
-|                        ListRoles                          |
-+-----------------------------------------------------------+
-| c213429...-LabEksClusterRole-XXXX | arn:aws:iam::123456789012:role/c213429...-LabEksClusterRole-XXXX |
-| c213429...-LabEksNodeRole-YYYY    | arn:aws:iam::123456789012:role/c213429...-LabEksNodeRole-YYYY    |
-+-----------------------------------------------------------+
+AWS Cloud (us-east-1)
+ └── VPC (10.0.0.0/16)
+      ├── Internet Gateway & NAT Gateway
+      ├── Subnet Pública A (10.0.1.0/24 - us-east-1a) ── [NAT Gateway]
+      ├── Subnet Pública B (10.0.4.0/24 - us-east-1b)
+      ├── Subnet Privada A (10.0.2.0/24 - us-east-1a) ── [Nós dos 5 clusters / NLBs internos / RDS / Lambda de auth / VPC Link]
+      └── Subnet Privada B (10.0.3.0/24 - us-east-1b) ── [Nós dos 5 clusters / NLBs internos / RDS / Lambda de auth / VPC Link]
 ```
 
-Utilize essas ARNs para configurar as variáveis do Terraform:
-
-```hcl
-eks_cluster_role_arn = "arn:aws:iam::<ACCOUNT_ID>:role/<LabEksClusterRole>"
-eks_node_role_arn    = "arn:aws:iam::<ACCOUNT_ID>:role/<LabEksNodeRole>"
-```
-
-> **Observação:** Os nomes das roles variam para cada laboratório do AWS Academy. Nunca utilize valores fixos encontrados em outro ambiente.
-
-### 2. Configurar o backend remoto
-
-```bash
-cd ../  # volta para infra/terraform
-cp backend.hcl.example backend.hcl
-# Editar: preencher o bucket com o valor retornado no passo anterior
-```
-
-
-### 3. Inicializar Terraform
-
-```bash
-terraform init -backend-config=backend.hcl
-```
-
-Se você já fez `terraform apply` com estado local:
-```bash
-terraform init -backend-config=backend.hcl -migrate-state
-```
-
-### 4. Configurar as variáveis
-
-Escolha uma das opções:
-
-**Opção A: Arquivo (menos seguro)**
-```bash
-cp terraform.tfvars.example terraform.tfvars
-# Editar com seus valores
-```
-
-**Opção B: Variáveis de ambiente (RECOMENDADO)**
-```bash
-export TF_VAR_account_id="123456789012"
-export TF_VAR_role_name="LabRole"
-export TF_VAR_db_password="SenhaSegura123"
-```
-
-### 5. Validar a configuração
-
-```bash
-terraform validate
-```
-
-### 6. Visualizar o plano
-
-```bash
-terraform plan
-```
-
-Revise os recursos que serão criados.
-
-### 7. Aplicar a infraestrutura
-
-```bash
-terraform apply
-```
-
-**Tempo estimado:**
-- RDS: ~5-7 minutos
-- EKS Cluster: ~7-10 minutos
-- EKS Node Group: ~3-5 minutos
-- **Total: 15-20 minutos**
-
-### 8. Obter outputs
-
-```bash
-terraform output
-```
-
-Copie os valores importantes:
-- `eks_cluster_name` — para uso com `kubectl`
-- `rds_endpoint` — para conectar no banco
-- `ecr_repository_url` — para push de imagens Docker
-
-### 9. Destruir os recursos
-
-```bash
-terraform destroy
-```
-
-O bucket S3 do bootstrap **não é destruído**. Para removê-lo:
-```bash
-cd bootstrap
-terraform destroy
-```
+- **Entrada**: o API Gateway é o único ponto de entrada público. Ele alcança o NLB interno de cada serviço por um VPC Link, e as rotas do cliente passam antes pelo Lambda Authorizer.
+- **Saída**: os nós ficam nas subnets privadas e saem para a internet (ECR, Datadog, Mercado Pago) pelo NAT Gateway.
+- **Banco**: cada RDS libera a porta 5432 para o CIDR da VPC. O do core também libera o Security Group da Lambda de autenticação, que lê a tabela `customers`.
+- **Entre serviços**: o security group `ofisy-eks-sg`, compartilhado pelos nós dos cinco clusters, libera a porta 8080. Como o NLB é interno e os nós não têm IP público, só o VPC Link e os outros serviços dentro da VPC chegam até ela, como o billing e o notification ao chamar o core.
+- **Mensageria**: SNS e SQS ficam fora da VPC. Os nós acessam pelas credenciais da `LabRole`.
 
 ---
 
-## Verificar recursos criados (AWS CLI)
+## Ordem de provisionamento
 
-### Visualizar todos os outputs do Terraform
+A ordem completa e o motivo de cada dependência estão no README do [ofisy-platform](https://github.com/15SOAT-FIAP/ofisy-platform). Para o core, o que importa:
 
-```bash
-terraform output
-# ou em formato JSON:
-terraform output -json
-```
+1. a rede, o cluster `ms-ofisy-core-cluster`, o RDS `ms-ofisy-core-db` e a mensageria precisam existir antes do deploy, porque o `cd.yml` busca o cluster e o banco pelo nome e a aplicação não sobe sem a fila (`queue-not-found-strategy: fail`);
+2. o API Gateway só pode subir depois do deploy, porque descobre o NLB do core pela tag `kubernetes.io/service-name = default/ofisy-service`;
+3. o billing e o notification também esperam o core, porque o CD deles descobre o NLB do core para configurar as chamadas síncronas.
 
-### Verificar infraestrutura de rede (Bootstrap/VPC/Subnets)
+Para destruir, o caminho é o inverso: API Gateway, aplicações (`destroy-app.yml`), mensageria e Lambdas, bancos, clusters e, por último, a rede.
 
-```bash
-# S3 (estado remoto)
-aws s3 ls | grep ofisy-tfstate
+---
 
-# VPC
-aws ec2 describe-vpcs --filters "Name=tag:Name,Values=ofisy-vpc" \
-  --query "Vpcs[*].{ID:VpcId,CIDR:CidrBlock,State:State}"
-
-# Subnets (substitua SEU_VPC_ID pelo ID da VPC)
-SEU_VPC_ID=$(aws ec2 describe-vpcs --filters "Name=tag:Name,Values=ofisy-vpc" \
-  --query "Vpcs[0].VpcId" --output text)
-  
-aws ec2 describe-subnets --filters "Name=vpc-id,Values=$SEU_VPC_ID" \
-  --query "Subnets[*].{ID:SubnetId,Name:Tags[?Key=='Name']|[0].Value,CIDR:CidrBlock,AZ:AvailabilityZone,Public:MapPublicIpOnLaunch}"
-
-# Internet Gateway
-aws ec2 describe-internet-gateways --filters "Name=tag:Name,Values=ofisy-igw" \
-  --query "InternetGateways[*].{ID:InternetGatewayId,State:Attachments[0].State,VPC:Attachments[0].VpcId}"
-
-# DB Subnet Group
-aws rds describe-db-subnet-groups --db-subnet-group-name ofisy-db-subnet-group \
-  --query "DBSubnetGroups[*].{Name:DBSubnetGroupName,Subnets:DBSubnetGroupDescription,VPC:VpcId}"
-```
-
-### Verificar Security Groups
+## Verificar os recursos (AWS CLI)
 
 ```bash
-# Security Group EKS
-aws ec2 describe-security-groups --filters "Name=tag:Name,Values=ofisy-eks-sg" \
-  --query "SecurityGroups[*].{ID:GroupId,Name:GroupName,VPC:VpcId,InboundRules:IpPermissions[*].{FromPort:FromPort,ToPort:ToPort,Protocol:IpProtocol}}"
-
-# Security Group RDS
-aws ec2 describe-security-groups --filters "Name=tag:Name,Values=ofisy-rds-sg" \
-  --query "SecurityGroups[*].{ID:GroupId,Name:GroupName,VPC:VpcId,InboundRules:IpPermissions[*].{FromPort:FromPort,ToPort:ToPort,Protocol:IpProtocol}}"
-```
-
-### Verificar ECR
-
-```bash
-aws ecr describe-repositories --query "repositories[*].{Name:repositoryName,URI:repositoryUri,ScanOnPush:imageScanningConfiguration.scanOnPush}"
-```
-
-### Verificar RDS PostgreSQL
-
-```bash
-# Informações gerais do banco
-aws rds describe-db-instances --db-instance-identifier ofisy-postgres-db \
-  --query "DBInstances[*].{Endpoint:Endpoint.Address,Port:Endpoint.Port,Engine:Engine,Version:EngineVersion,Class:DBInstanceClass,Storage:AllocatedStorageMB,Status:DBInstanceStatus,Backup:BackupRetentionPeriod,Encrypted:StorageEncrypted}"
-
-# Testar conectividade com o banco (se psql estiver instalado)
-ENDPOINT=$(aws rds describe-db-instances --db-instance-identifier ofisy-postgres-db \
-  --query "DBInstances[0].Endpoint.Address" --output text)
-echo "Conectando em: $ENDPOINT"
-psql -h $ENDPOINT -U admin -d ofisydb -c "SELECT version();"
-```
-
-### Verificar EKS Cluster
-
-```bash
-# Informações do cluster
-aws eks describe-cluster --name ms-ofisy-core-cluster \
-  --query "cluster.{Name:name,Version:version,Status:status,Endpoint:endpoint,Logging:logging.clusterLogging[*].types}"
-
-# Atualizar kubeconfig para usar kubectl
+# Cluster e nós
+aws eks describe-cluster --name ms-ofisy-core-cluster --query "cluster.status"
 aws eks update-kubeconfig --region us-east-1 --name ms-ofisy-core-cluster
+kubectl get nodes
 
-# Verificar acesso ao cluster
-kubectl cluster-info
-kubectl get cluster-info
+# Banco
+aws rds describe-db-instances --db-instance-identifier ms-ofisy-core-db \
+  --query "DBInstances[0].[DBInstanceStatus,Endpoint.Address]"
 
-# Ver os nodes
-kubectl get nodes -o wide
+# Imagens publicadas
+aws ecr describe-images --repository-name ms-ofisy-core-ecr --query "imageDetails[].imageTags"
 
-# Ver pods rodando
-kubectl get pods -A
-```
+# Fila e DLQ do core
+aws sqs get-queue-url --queue-name ofisy-service-order.fifo
+aws sqs get-queue-url --queue-name ofisy-service-order-dlq.fifo
 
-### Verificar EKS Node Group
-
-```bash
-# Informações do node group
-aws eks describe-nodegroup --cluster-name ms-ofisy-core-cluster --nodegroup-name ms-ofisy-core-node-group \
-  --query "nodegroup.{Name:nodegroupName,Status:status,InstanceTypes:instanceTypes,DesiredSize:scalingConfig.desiredSize,MinSize:scalingConfig.minSize,MaxSize:scalingConfig.maxSize}"
-
-# Detailed node information via kubectl
-kubectl describe nodes
-```
-
-### Verificar IAM Roles
-
-```bash
-# EKS Cluster Role
-aws iam get-role --role-name ofisy-eks-cluster-role \
-  --query "Role.{Name:RoleName,Arn:Arn,Created:CreateDate}"
-
-# EKS Node Group Role
-aws iam get-role --role-name ofisy-eks-node-group-role \
-  --query "Role.{Name:RoleName,Arn:Arn,Created:CreateDate}"
-
-# Policies anexadas ao Cluster Role
-aws iam list-attached-role-policies --role-name ofisy-eks-cluster-role
-
-# Policies anexadas ao Node Group Role
-aws iam list-attached-role-policies --role-name ofisy-eks-node-group-role
-```
-
-### Verificação rápida — Tudo em um comando
-
-```bash
-echo "=== TERRAFORM OUTPUTS ===" && terraform output && \
-echo -e "\n=== EKS CLUSTER ===" && aws eks describe-cluster --name ms-ofisy-core-cluster --query "cluster.{Name:name,Status:status,Version:version}" && \
-echo -e "\n=== EKS NODES ===" && kubectl get nodes && \
-echo -e "\n=== RDS DATABASE ===" && aws rds describe-db-instances --db-instance-identifier ms-ofisy-core-db --query "DBInstances[0].{Endpoint:Endpoint.Address,Status:DBInstanceStatus,Engine:Engine}" && \
-echo -e "\n=== SECURITY GROUPS ===" && aws ec2 describe-security-groups --filters "Name=tag:Name,Values=ofisy-*" --query "SecurityGroups[*].{Name:GroupName,ID:GroupId}"
+# NLB interno do core
+aws elbv2 describe-load-balancers \
+  --query "LoadBalancers[?Scheme=='internal'].[LoadBalancerName,DNSName]"
 ```
