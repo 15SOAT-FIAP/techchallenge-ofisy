@@ -38,7 +38,7 @@ As únicas chamadas síncronas entre serviços usam um token de serviço:
 |---|---|---|---|
 | billing | core | `GET /api/v1/services-catalog/{id}` | Nome e preço do serviço ao montar o orçamento |
 | billing | stock | `GET /api/v1/stocks/{id}` | Nome e preço da peça ao montar o orçamento |
-| notification | core | `GET /api/v1/service-orders/{id}/customer` | Dono da OS para o aviso de orçamento |
+| notification | core | `GET /api/v1/service-orders/{id}/customer` | Dono da OS para os avisos de orçamento e de pagamento |
 | billing | Mercado Pago | `POST /v1/orders` e `GET /v1/orders/{id}` | Criar a cobrança e conferir o status depois do webhook |
 
 ## 2. Mapa de eventos
